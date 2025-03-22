@@ -1,0 +1,7 @@
+{
+  "name": "IoweU",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
