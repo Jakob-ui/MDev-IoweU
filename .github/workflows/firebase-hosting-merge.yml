@@ -37,3 +37,4 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_MDEV_VERDICT }}'
           channelId: live
           projectId: mdev-verdict
+          entryPoint: ./IoweU # Set the entryPoint to the directory containing firebase.json
