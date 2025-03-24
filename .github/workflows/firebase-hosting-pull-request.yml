@@ -8,14 +8,30 @@ permissions:
   contents: read
   pull-requests: write
 jobs:
-  build_and_preview:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+  build_and_deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - run: ionic build --prod
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MDEV_VERDICT }}
+          node-version: '18' # Or your desired Node.js version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Ionic CLI
+        run: npm install -g @ionic/cli
+
+      - name: Build Ionic app
+        run: ionic build --prod
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_MDEV_VERDICT }}'
+          channelId: live
           projectId: mdev-verdict
