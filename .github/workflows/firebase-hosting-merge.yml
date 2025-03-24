@@ -20,12 +20,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: ./IoweU
 
       - name: Install Ionic CLI
         run: npm install -g @ionic/cli
+        working-directory: ./IoweU
 
       - name: Build Ionic app
         run: ionic build --prod
+        working-directory: ./IoweU
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
