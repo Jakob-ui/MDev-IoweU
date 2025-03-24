@@ -43,4 +43,4 @@ Beiträge zur IoweU-App sind willkommen! Wenn Sie Fehler melden oder neue Funkti
 
 ## Kontakt
 
-(Hier können Sie Kontaktinformationen für das Projekt hinzufügen.)
+jakob.laschober@gmail.com
