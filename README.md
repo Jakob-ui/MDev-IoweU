@@ -37,6 +37,6 @@ IoweU ist eine Abrechnungs-App, die es Benutzern ermöglicht, Ausgaben in versch
 
 Beiträge zur IoweU-App sind willkommen! Wenn Sie Fehler melden oder neue Funktionen vorschlagen möchten, öffnen Sie bitte ein Issue oder einen Pull Request.
 
-## Kontakt
+## Kontakt 
 
 jakob.laschober@gmail.com
