@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonInput, IonInputPasswordToggle, IonList, IonItem, IonListHeader, IonButton } from '@ionic/angular/standalone';
-import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
+import { Auth, createUserWithEmailAndPassword, updateProfile } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-register',
@@ -13,7 +14,10 @@ import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 })
 export class RegisterPage implements OnInit {
 
-  constructor(private auth: Auth) {
+
+  constructor(
+    private auth: Auth,
+    private router: Router) {
 
   }
   email = '';
@@ -23,9 +27,21 @@ export class RegisterPage implements OnInit {
   ngOnInit() {
   }
 
-  async register(email: string, password: string) {
+  async register(email: string, password: string, name: string) {
+  try {
+    // Benutzer erstellen
     const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-    console.log('User registered:', userCredential.user);
-    
+
+    // Benutzerprofil aktualisieren (Nickname setzen)
+    if (userCredential.user) {
+      await updateProfile(userCredential.user, { displayName: name });
+      console.log('User profile updated with nickname:', name);
+    }
+
+    // Weiterleitung nach erfolgreicher Registrierung
+    this.router.navigate(['/home']);
+  } catch (error) {
+    console.error('Error during registration:', error);
   }
+}
 }
