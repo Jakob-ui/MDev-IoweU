@@ -12,6 +12,8 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, FormsModule, IonicModule, RouterModule]
 })
 export class LoginPage implements OnInit {
+  email: string = "";
+  password: string = "";
 
   constructor() { }
 
@@ -20,10 +22,7 @@ export class LoginPage implements OnInit {
 
   login() {
     // Deine Login-Logik hier
+    console.log("Email:", this.email);
+    console.log("Password:", this.password);
   }
-
-  register() {
-    // Deine Register-Logik hier
-  }
-
 }
