@@ -1,6 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>register</ion-title>
+    <ion-title>Registrieren</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -24,10 +24,8 @@
 <ion-input type="password" label="Password" placeholder="Password123" [(ngModel)]="password">
 </ion-input>
     </ion-item>
-    <ion-item>
-      <ion-button (click)="register(email, password, name)">
+      <ion-button (click)="register(email, password, name)" slot="end">
         Register
       </ion-button>
-    </ion-item>
   </ion-list>
 </ion-content>
