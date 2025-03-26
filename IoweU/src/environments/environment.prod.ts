@@ -1,12 +1,11 @@
 export const environment = {
   production: false,
   firebase: {
-    apiKey: "AIzaSyAqHM8qaC73wcI5LfO9bcQKGS438WnavTA",
-    authDomain: "mdev-ioweu.firebaseapp.com",
-    projectId: "mdev-ioweu",
-    storageBucket: "mdev-ioweu.firebasestorage.app",
-    messagingSenderId: "372900673752",
-    appId: "1:372900673752:web:4f72cc1a005f043ddfbfad",
-    measurementId: "G-QVRYBBR6P6"
+  apiKey: "AIzaSyDn4hAduYYpx_ERORW58vl-I1IjewZey9o",
+  authDomain: "ioweu-a74cd.firebaseapp.com",
+  projectId: "ioweu-a74cd",
+  storageBucket: "ioweu-a74cd.firebasestorage.app",
+  messagingSenderId: "380190786410",
+  appId: "1:380190786410:web:ebbab06b1bf5214da6db13"
   }
 };
