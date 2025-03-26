@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
+import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-login',
@@ -17,18 +18,24 @@ export class LoginPage implements OnInit {
   password: string = "";
   //router: any;
 
-  constructor(private router: Router) { }
+  constructor(private auth: Auth, private router: Router) { }
 
   ngOnInit() {
   }
 
-  login() {
-    // Deine Login-Logik hier
-    console.log("Email:", this.email);
-    console.log("Password:", this.password);
+  async login(email: string, password: string) {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        this.auth,
+        email.trim(),
+        password.trim()
+      );
 
-    // Weiterleitung nach erfolgreicher Registrierung
-    this.router.navigate(['/group-overview']);
-
+      console.log('Login erfolgreich:', userCredential.user);
+      this.router.navigate(['/group-overview']);
+    } catch (error) {
+      console.error('Login fehlgeschlagen:', error);
+      alert('Login fehlgeschlagen. Bitte überprüfe deine Anmeldedaten.');
+    }
   }
 }

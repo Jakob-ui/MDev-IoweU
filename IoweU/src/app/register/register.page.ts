@@ -29,16 +29,13 @@ export class RegisterPage implements OnInit {
 
   async register(email: string, password: string, name: string) {
   try {
-    // Benutzer erstellen
     const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
 
-    // Benutzerprofil aktualisieren (Nickname setzen)
     if (userCredential.user) {
       await updateProfile(userCredential.user, { displayName: name });
       console.log('User profile updated with nickname:', name);
     }
 
-    // Weiterleitung nach erfolgreicher Registrierung
     this.router.navigate(['/home']);
   } catch (error) {
     console.error('Error during registration:', error);
