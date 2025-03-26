@@ -210,13 +210,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ion-color-primary: #1a1d22; /* Dunklerer Farbton für Dark Mode */
-    --ion-color-primary-contrast: #ffffff; /* Hellerer Kontrast */
-    
-    --ion-color-secondary: #2e3237;
-    --ion-color-secondary-contrast: #ffffff;
-    
-    --ion-color-tertiary: #36b1a8;  /* Eine Farbe, die im Dark Mode gut aussieht */
+    --ion-color-primary: #DDE0E4;
+    --ion-color-primary-rgb: 221,224,228;
+    --ion-color-primary-contrast: #000000;
+    --ion-color-primary-contrast-rgb: 0,0,0;
+    --ion-color-primary-shade: #c2c5c9;
+    --ion-color-primary-tint: #e0e3e7;
+
+    --ion-color-secondary: #EFF1F3;
+    --ion-color-secondary-rgb: 239,241,243;
+    --ion-color-secondary-contrast: #000000;
+    --ion-color-secondary-contrast-rgb: 0,0,0;
+    --ion-color-secondary-shade: #d2d4d6;
+    --ion-color-secondary-tint: #f1f2f4;
     
     --ion-color-light: #f6f8fc;
     --ion-color-light-rgb: 246,248,252;

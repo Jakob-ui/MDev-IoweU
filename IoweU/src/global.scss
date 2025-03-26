@@ -184,38 +184,5 @@ ion-item .input-label::part(native){
     background: var(--ion-color-dark);
   }
 
-  ion-button.main-button::part(native) {
-    --background: var(--ion-color-light);
-    font-weight: 100;
-    padding: 12px 24px;
-    text-transform: uppercase;
-    border-radius: 50px;
-    box-shadow: none !important;
-  }
-
-  /* Input-Felder im Dark Mode: Heller Hintergrund und dunkler Text */
-  ion-item::part(native) {
-    font-family: var(--ion-font-family);
-    font-weight: 100;
-    font-size: 12px;
-    background: var(--ion-color-light) !important; /* Heller Hintergrund */
-    color: var(--ion-color-dark); /* Dunkler Text */
-    border-radius: 50px; /* Abgerundete Ecken */
-    --border-style: none !important;
-    border: none !important;
-  }
-
-  ion-item .input-label::part(native) {
-    font-family: var(--ion-font-family);
-    font-weight: 100;
-    font-size: 12px;
-    background: var(--ion-color-light); /* Heller Hintergrund */
-    color: var(--ion-color-dark); /* Dunkler Text */
-  }
-
-
-  .input-item, .main-button {
-    background: var(--ion-color-light); /* Heller Hintergrund */
-    color: var(--ion-color-dark); /* Dunkler Text */
-  }
+  
 }
