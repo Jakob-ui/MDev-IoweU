@@ -35,11 +35,24 @@ export class AuthService {
   }
 
   private async saveUserData(uid: string, data: any): Promise<void> {
-    if (!this.auth.currentUser) {
-  throw new Error('Benutzer ist nicht authentifiziert.');
-}
-    const userDoc = doc(this.firestore, `User/${uid}`); // Dokument in der Sammlung "user"
-    await setDoc(userDoc, data); // Daten in Firestore speichern
+console.log('UID aus Parameter:', uid);
+  console.log('UID des authentifizierten Benutzers:', this.auth.currentUser?.uid);
+
+  if (!this.auth.currentUser) {
+    throw new Error('Benutzer ist nicht authentifiziert.');
+  }
+
+  if (this.auth.currentUser.uid !== uid) {
+    throw new Error('Die UID des authentifizierten Benutzers stimmt nicht mit der Dokument-ID überein.');
+  }
+    try {
+    const userDoc = doc(this.firestore, `users/${uid}`);
+    console.log('Speichere Daten in Firestore:', data);
+    await setDoc(userDoc, data);
+    console.log('Daten erfolgreich gespeichert.');
+  } catch (error) {
+    console.error('Fehler beim Speichern in Firestore:', error);
+  }
   }
 
   login(email: string, password: string): Promise<UserCredential> {
