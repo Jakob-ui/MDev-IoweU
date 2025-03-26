@@ -11,27 +11,29 @@ import { AuthService } from '../services/auth.service';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule]
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule],
 })
 export class LoginPage implements OnInit {
-  private authService = inject(AuthService)
-  private router = inject(Router)
-  
-  email: string = "";
-  password: string = "";
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  ngOnInit() {
-  }
+  email: string = '';
+  password: string = '';
+
+  ngOnInit() {}
 
   async login() {
     try {
-      const userCredential = await this.authService.login(this.email, this.password);
-    
+      const userCredential = await this.authService.login(
+        this.email,
+        this.password
+      );
+
       if (userCredential.user) {
-      console.log('Login erfolgreich:', userCredential.user);
-      
-      this.router.navigate(['/group-overview']);
-    }
+        console.log('Login erfolgreich:', userCredential.user);
+
+        this.router.navigate(['/group-overview']);
+      }
     } catch (error) {
       console.error('Login fehlgeschlagen:', error);
       alert('Login fehlgeschlagen. Bitte überprüfe deine Anmeldedaten.');

@@ -1,5 +1,17 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonItem, IonLabel, IonInput, IonList, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonButton,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonList,
+  IonSelect,
+  IonSelectOption,
+} from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
@@ -8,7 +20,21 @@ import { RouterModule } from '@angular/router';
   templateUrl: './create-group.page.html',
   styleUrls: ['./create-group.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonItem, IonLabel, IonInput, IonList, IonSelect, IonSelectOption, RouterModule, FormsModule],
+  imports: [
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonButton,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonList,
+    IonSelect,
+    IonSelectOption,
+    RouterModule,
+    FormsModule,
+  ],
 })
 export class CreateGroupPage implements OnInit {
   groupname: string = '';
@@ -32,7 +58,7 @@ export class CreateGroupPage implements OnInit {
   }
 
   removeMember(member: string) {
-    this.members = this.members.filter(m => m !== member);
+    this.members = this.members.filter((m) => m !== member);
   }
 
   selectImage() {
