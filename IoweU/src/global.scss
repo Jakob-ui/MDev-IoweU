@@ -32,7 +32,7 @@
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/*@import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
@@ -151,4 +151,55 @@ ion-item .input-label::part(native){
   width: 80%;
   max-width: 400px;
   margin-bottom: 10px;
+}
+
+/* Anpassungen für den Dark Mode */
+@media (prefers-color-scheme: dark) {
+  h1, h2, h3, h4, h5, h6, h7, p {
+    color: var(--ion-color-light) !important;
+  }
+
+  ion-card-content, ion-card-title, ion-card-subtitle, ion-item::part(native), ion-item .input-label::part(native) {
+    color: var(--ion-color-dark) !important;
+  }
+
+  /* Hintergründe für ion-card im Dark Mode */
+  ion-card {
+    background: var(--ion-color-dark);
+  }
+
+  ion-button.main-button::part(native) {
+    --background: var(--ion-color-light);
+    font-weight: 100;
+    padding: 12px 24px;
+    text-transform: uppercase;
+    border-radius: 50px;
+    box-shadow: none !important;
+  }
+
+  /* Input-Felder im Dark Mode: Heller Hintergrund und dunkler Text */
+  ion-item::part(native) {
+    font-family: var(--ion-font-family);
+    font-weight: 100;
+    font-size: 12px;
+    background: var(--ion-color-light) !important; /* Heller Hintergrund */
+    color: var(--ion-color-dark); /* Dunkler Text */
+    border-radius: 50px; /* Abgerundete Ecken */
+    --border-style: none !important;
+    border: none !important;
+  }
+
+  ion-item .input-label::part(native) {
+    font-family: var(--ion-font-family);
+    font-weight: 100;
+    font-size: 12px;
+    background: var(--ion-color-light); /* Heller Hintergrund */
+    color: var(--ion-color-dark); /* Dunkler Text */
+  }
+
+
+  .input-item, .main-button {
+    background: var(--ion-color-light); /* Heller Hintergrund */
+    color: var(--ion-color-dark); /* Dunkler Text */
+  }
 }
