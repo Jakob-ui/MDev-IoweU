@@ -40,13 +40,7 @@
 
 
 
-ion-button.main-button::part(native) {
-  --background: var(--ion-color-primary);
-  font-weight: 100;
-  padding: 12px 24px;
-  text-transform: uppercase;
-  border-radius: 50px;
-}
+
 
 h1{
   font-family: var(--ion-font-family);
@@ -111,18 +105,50 @@ ion-card{
   background: var(--ion-color-secondary);
 }
 
+ion-button.main-button::part(native) {
+  --background: var(--ion-color-primary);
+  font-weight: 100;
+  padding: 12px 24px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+}
+
 ion-item::part(native){
   font-family: var(--ion-font-family);
   font-weight: 100;
   font-size: 12px;
   background: var(--ion-color-secondary) !important;
   border-radius: 50px;
-  border-color: #1f1f1f;
+  --border-style: none !important;
+  border: none !important;
 }
+
 
 ion-item .input-label::part(native){
   font-family: var(--ion-font-family);
   font-weight: 100;
   font-size: 12px;
   background: var(--ion-color-dark);
+}
+
+.container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+}
+
+.container .logo{
+  width: 20%;
+  margin-bottom: 10%;
+  max-width: 100px;
+}
+
+.input-item, .main-button {
+  width: 80%;
+  max-width: 400px;
+  margin-bottom: 10px;
 }
