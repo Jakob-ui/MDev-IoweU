@@ -11,7 +11,7 @@ import { Auth } from '@angular/fire/auth';
   templateUrl: './group-overview.page.html',
   styleUrls: ['./group-overview.page.scss'],
   standalone: true,
-  imports: [IonFooter, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonItem, IonLabel, IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonList, RouterModule]
+  imports: [IonFooter, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonItem, IonLabel, IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonList, RouterModule,CommonModule]
 })
 export class GroupOverviewPage implements OnInit {
   displayName: string | null = null;

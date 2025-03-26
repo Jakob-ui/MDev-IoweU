@@ -32,7 +32,7 @@
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/*@import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
@@ -167,4 +167,17 @@ ion-item .input-label::part(native){
   width: 80%;
   max-width: 400px;
   margin-bottom: 10px;
+}
+
+/* Anpassungen für den Dark Mode */
+@media (prefers-color-scheme: dark) {
+  h1, h2, h3, h4, h5, h6, h7, p {
+    color: var(--ion-color-light) !important;
+  }
+
+  ion-card-content, ion-card-title, ion-card-subtitle, ion-item::part(native), ion-item .input-label::part(native) {
+    color: var(--ion-color-dark) !important;
+  }
+
+  
 }
