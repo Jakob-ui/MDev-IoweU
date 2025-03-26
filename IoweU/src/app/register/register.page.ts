@@ -1,44 +1,40 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonInput, IonInputPasswordToggle, IonList, IonItem, IonListHeader, IonButton } from '@ionic/angular/standalone';
-import { Auth, createUserWithEmailAndPassword, updateProfile } from '@angular/fire/auth';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
   standalone: true,
-  imports: [IonButton, IonListHeader, IonItem, IonList, IonInput, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule]
+  imports: [IonButton, IonItem, IonInput, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule]
 })
 export class RegisterPage implements OnInit {
+  private authService = inject(AuthService)
+  private router = inject(Router)
 
-
-  constructor(
-    private auth: Auth,
-    private router: Router) {
-
-  }
+  constructor( ) {  }
   email = '';
   password = '';
   name = '';
 
-  ngOnInit() {
-  }
+  ngOnInit() { }
 
-  async register(email: string, password: string, name: string) {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-
+  async register() {
+    try {
+      const userCredential = await this.authService.signup(this.email, this.password, this.name);
+    
     if (userCredential.user) {
-      await updateProfile(userCredential.user, { displayName: name });
-      console.log('User profile updated with nickname:', name);
+      console.log('Registrierung erfolgreich:', userCredential.user);
+      
+      this.router.navigate(['/home']);
     }
-
-    this.router.navigate(['/home']);
   } catch (error) {
-    console.error('Error during registration:', error);
+      console.error('Registrierung fehlgeschlagen:', error);
+      alert('Registrierung fehlgeschlagen. Bitte überprüfe deine Eingaben.');
+    }
   }
-}
 }
