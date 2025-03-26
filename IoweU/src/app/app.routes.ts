@@ -33,7 +33,8 @@ export const routes: Routes = [
   {
     path: 'finance',
     loadComponent: () => import('./finance/finance.page').then( m => m.FinancePage)
-  },  {
+  },
+  {
     path: 'reset-password',
     loadComponent: () => import('./reset-password/reset-password.page').then( m => m.ResetPasswordPage)
   },
@@ -41,6 +42,11 @@ export const routes: Routes = [
     path: 'account-settings',
     loadComponent: () => import('./account-settings/account-settings.page').then( m => m.AccountSettingsPage)
   },
+  {
+    path: 'expance',
+    loadComponent: () => import('./expance/expance.page').then( m => m.ExpancePage)
+  },
+
 
 
 
