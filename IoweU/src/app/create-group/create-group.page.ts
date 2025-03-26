@@ -1,4 +1,5 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
   IonHeader,
   IonToolbar,
@@ -34,6 +35,7 @@ import { RouterModule } from '@angular/router';
     IonSelectOption,
     RouterModule,
     FormsModule,
+    CommonModule
   ],
 })
 export class CreateGroupPage implements OnInit {

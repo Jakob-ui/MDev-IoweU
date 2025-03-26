@@ -124,12 +124,13 @@ ion-card-subtitle {
   padding: 5px 10px;
 }
 
-ion-card-subtitle span{
+ion-card-subtitle span {
   font-size: 12px;
   font-weight: 100;
 }
 
-.finance-card, .expance-card {
+.finance-card,
+.expance-card {
   width: 80%;
   max-width: 400px;
   margin: auto;
@@ -141,7 +142,8 @@ ion-card-subtitle span{
   justify-content: center;
 }
 
-.card-content-finance, .card-content-expance {
+.card-content-finance,
+.card-content-expance {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -149,11 +151,13 @@ ion-card-subtitle span{
   text-align: center;
 }
 
-.card-content-finance h2, .card-content-expance h2{
+.card-content-finance h2,
+.card-content-expance h2 {
   margin: 0px;
 }
 
-.card-content-finance p, .card-content-expance p{
+.card-content-finance p,
+.card-content-expance p {
   margin: 0px;
 }
 
@@ -233,7 +237,8 @@ ion-item .input-label::part(native) {
   background: var(--ion-color-dark);
 }
 
-.bilance-list, .expance-list {
+.bilance-list,
+.expance-list {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -241,7 +246,7 @@ ion-item .input-label::part(native) {
   justify-content: center;
 }
 
-.info-item{
+.info-item {
   --background: var(--ion-color-primary);
   margin: 5px 0;
   padding: 8px;
@@ -303,9 +308,7 @@ ion-item .input-label::part(native) {
   margin: 0;
 }
 
-
-
-.container{
+.container {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -347,8 +350,4 @@ ion-item .input-label::part(native) {
   ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
   }
-
-
-
-
 }

@@ -23,12 +23,10 @@ import { RouterModule } from '@angular/router';
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   imports: [
-    IonFooter,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
-    IonButtons,
     IonButton,
     IonItem,
     IonLabel,
