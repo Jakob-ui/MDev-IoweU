@@ -179,10 +179,5 @@ ion-item .input-label::part(native){
     color: var(--ion-color-dark) !important;
   }
 
-  /* Hintergründe für ion-card im Dark Mode */
-  ion-card {
-    background: var(--ion-color-dark);
-  }
-
   
 }
