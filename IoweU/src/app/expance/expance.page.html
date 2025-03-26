@@ -1,0 +1,41 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Expance</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Expance</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="container">
+    <h4>Gruppenname</h4>
+    <h1>Ausgaben</h1>
+
+    <ion-card class="expance-card" [ngClass]="{ 'negative': balance < 0, 'positive': balance >= 0 }">
+      <div class="card-content-expance">
+        <h2>{{ balance | currency: 'EUR' }}</h2>
+        <p>Gesamtausgaben im Monat {{ lastTransactionDate | date:'dd.MM.yyyy' }}</p>
+      </div>
+    </ion-card>
+
+    <ion-list class="expance-list">
+      <ion-item class="info-item" *ngFor="let expense of expances">
+
+        <div class="profile-placeholder"></div>
+        <h5>{{ expense.expace }}</h5>
+        <div class="expance-details">
+          <div class="Ausgabepreis">
+            <h5 class="Gesamtpreis">{{ expense.totalAmount | currency: 'EUR' }}</h5>
+            <ion-badge class="Preis" [ngClass]="{ 'negative': expense.amountToPay < 0, 'positive': expense.amountToPay >= 0 }">
+              {{ expense.amountToPay | currency: 'EUR' }}
+            </ion-badge>
+          </div>
+        </div>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>
