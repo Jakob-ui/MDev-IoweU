@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import {initializeApp} from "firebase-admin/app";
+import {getFirestore} from "firebase-admin/firestore";
 import * as functions from "firebase-functions/v1";
 
 initializeApp();
@@ -11,8 +11,8 @@ initializeApp();
  * @returns {null|object} The document that was created in Firestore.
  */
 exports.onUserCreated = functions.auth.user().onCreate(async (user) => {
-  const { email, passwordHash, photoURL: profilepicurl, uid: userid } = user;
-  const nickname = null; // Set a default value or retrieve it from another source if applicable
+  const {email, passwordHash, photoURL: profilepicurl, uid: userid} = user;
+  const nickname = null;
 
   if (!email) {
     console.log("can't create user, user has no email");
@@ -34,7 +34,7 @@ exports.onUserCreated = functions.auth.user().onCreate(async (user) => {
     await collection.doc(userid).set(newUser);
 
     console.log("collection", collection);
-    return { success: true };
+    return {success: true};
   } catch (error) {
     console.error("Error creating user in Firestore", error);
     return null;
