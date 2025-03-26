@@ -17,10 +17,21 @@ export const routes: Routes = [
   {
     path: 'register',
     loadComponent: () => import('./register/register.page').then( m => m.RegisterPage)
-  },  {
+  },
+  {
     path: 'group-overview',
     loadComponent: () => import('./group-overview/group-overview.page').then( m => m.GroupOverviewPage)
   },
+  {
+    path: 'create-group',
+    loadComponent: () => import('./create-group/create-group.page').then( m => m.CreateGroupPage)
+  },
+  {
+    path: 'group',
+    loadComponent: () => import('./group/group.page').then( m => m.GroupPage)
+  },
+
+
 
 
 ];
