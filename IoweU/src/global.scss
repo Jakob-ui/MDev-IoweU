@@ -35,3 +35,120 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+@import "./theme/variables.scss";
+
+
+
+
+
+h1{
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 40px;
+  color: var(--ion-color-dark);
+}
+
+h2{
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 36px;
+  color: var(--ion-color-dark);
+}
+
+h3, ion-card-title{
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 32px;
+  color: var(--ion-color-dark);
+}
+
+h4{
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  font-size: 24px;
+  color: var(--ion-color-dark);
+}
+
+h5{
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--ion-color-dark);
+}
+
+h6, ion-card-subtitle{
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ion-color-dark);
+}
+
+h7{
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ion-color-dark);
+}
+
+p, ion-card-content{
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  font-size: 12px;
+  color: var(--ion-color-dark) !important;
+}
+
+ion-card{
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  font-size: 12px;
+  background: var(--ion-color-secondary);
+}
+
+ion-button.main-button::part(native) {
+  --background: var(--ion-color-primary);
+  font-weight: 100;
+  padding: 12px 24px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+}
+
+ion-item::part(native){
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  font-size: 12px;
+  background: var(--ion-color-secondary) !important;
+  border-radius: 50px;
+  --border-style: none !important;
+  border: none !important;
+}
+
+
+ion-item .input-label::part(native){
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  font-size: 12px;
+  background: var(--ion-color-dark);
+}
+
+.container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+}
+
+.container .logo{
+  width: 20%;
+  margin-bottom: 10%;
+  max-width: 100px;
+}
+
+.input-item, .main-button {
+  width: 80%;
+  max-width: 400px;
+  margin-bottom: 10px;
+}
