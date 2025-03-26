@@ -1,0 +1,26 @@
+.password-change-container {
+    padding: 20px;
+    transition: max-height 0.3s ease-in-out;
+    max-height: 0;
+    overflow: hidden;
+  }
+  
+  .password-change-container.ng-animating {
+    max-height: 500px; /* Die maximale Höhe, wenn das Dropdown geöffnet wird */
+  }
+  
+  
+  /* Pfeil-Icon in Weiß */
+.chevron-icon {
+    color: white; /* Setzt die Farbe des Chevron-Icons auf Weiß */
+    transition: transform 0.3s ease;
+  }
+  
+  .password-change-container.ng-animating {
+    max-height: 500px; /* Maximale Höhe, wenn das Dropdown geöffnet ist */
+  }
+
+  /* Pfeil Animation */
+.password-change-container.ng-animating {
+    max-height: 500px; /* Maximale Höhe für das Dropdown */
+  }
