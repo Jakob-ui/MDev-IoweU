@@ -12,41 +12,62 @@
   </ion-header>
 
   <div class="container">
-
+    <ion-button class="edit-button">bearbeiten</ion-button>
     <div class="image-upload">
       <ng-container *ngIf="groupImage; else placeholder">
         <img [src]="groupImage" alt="Gruppenbild" class="group-image">
       </ng-container>
       <ng-template #placeholder>
-        <div class="upload-placeholder">+</div>
+        <div class="upload-placeholder"></div>
       </ng-template>
     </div>
 
     <h1>Gruppenname</h1>
-    <ion-card class="Finanzübersicht">
+
+    <ion-card class="Finanzübersicht" [routerLink]="'/finance'">
       <div class="card-content">
         <ion-card-title>Finanzübersicht</ion-card-title>
-        <ion-card-subtitle>-20€</ion-card-subtitle>
+        <ion-card-subtitle [ngClass]="{ 'negative': balance < 0, 'positive': balance >= 0 }">
+          <span *ngIf="balance >= 0">Mein Guthaben:</span>
+          <span *ngIf="balance < 0">Meine Schulden:</span>
+          {{ balance | currency: 'EUR' }}
+        </ion-card-subtitle>
       </div>
     </ion-card>
+
     <ion-card class="Ausgaben">
       <div class="card-content">
         <ion-card-title>Ausgaben</ion-card-title>
-        <ion-card-subtitle>-20€</ion-card-subtitle>
+        <ion-card-subtitle [ngClass]="{ 'negative': balance < 0, 'positive': balance >= 0 }">
+          <span *ngIf="balance >= 0">Mein Guthaben:</span>
+          <span *ngIf="balance < 0">Meine Schulden:</span>
+          {{ balance | currency: 'EUR' }}
+        </ion-card-subtitle>
       </div>
     </ion-card>
+
     <ion-card class="Einkaufsliste">
       <div class="card-content">
         <ion-card-title>Einkaufsliste</ion-card-title>
-        <ion-card-subtitle>-20€</ion-card-subtitle>
+        <ion-card-subtitle [ngClass]="{ 'negative': balance < 0, 'positive': balance >= 0 }">
+          <span *ngIf="balance >= 0">Mein Guthaben:</span>
+          <span *ngIf="balance < 0">Meine Schulden:</span>
+          {{ balance | currency: 'EUR' }}
+        </ion-card-subtitle>
       </div>
     </ion-card>
+
     <ion-card class="Anlagegüter">
       <div class="card-content">
         <ion-card-title>Anlagegüter</ion-card-title>
-        <ion-card-subtitle>-20€</ion-card-subtitle>
+        <ion-card-subtitle [ngClass]="{ 'negative': balance < 0, 'positive': balance >= 0 }">
+          <span *ngIf="balance >= 0">Mein Guthaben:</span>
+          <span *ngIf="balance < 0">Meine Schulden:</span>
+          {{ balance | currency: 'EUR' }}
+        </ion-card-subtitle>
       </div>
     </ion-card>
+
 
   </div>
 </ion-content>

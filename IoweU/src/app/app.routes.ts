@@ -30,6 +30,11 @@ export const routes: Routes = [
     path: 'group',
     loadComponent: () => import('./group/group.page').then( m => m.GroupPage)
   },
+  {
+    path: 'finance',
+    loadComponent: () => import('./finance/finance.page').then( m => m.FinancePage)
+  },
+
 
 
 

@@ -121,6 +121,26 @@ ion-card{
   margin: 20px;
 }
 
+ion-card-subtitle {
+  border-radius: 50px;
+  padding: 5px 10px;
+}
+
+ion-card-subtitle span{
+  font-size: 12;
+  font-weight: 100;
+}
+
+.negative {
+  background: var(--ion-color-danger); /* Rote Farbe für negative Zahlen */
+  color: var(--ion-color-dark);
+}
+
+.positive {
+  background: var(--ion-color-success); /* Grüne Farbe für positive Zahlen */
+  color: var(--ion-color-dark);
+}
+
 ion-button.main-button::part(native) {
   --background: var(--ion-color-primary);
   font-weight: 100;
@@ -129,6 +149,17 @@ ion-button.main-button::part(native) {
   border-radius: 50px;
   box-shadow: none !important;
 }
+
+ion-button.edit-button::part(native) {
+  --background: var(--ion-color-primary);
+  font-weight: 100;
+  font-size: 12px;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+}
+
 
 ion-item::part(native){
   font-family: var(--ion-font-family);
@@ -179,5 +210,5 @@ ion-item .input-label::part(native){
     color: var(--ion-color-dark) !important;
   }
 
-  
+
 }
