@@ -12,10 +12,9 @@
     </ion-toolbar>
   </ion-header>
 
-  <div>
+  <div class="container">
   <h2>Meine Gruppen</h2>
 
-  <!-- Falls noch keine Gruppen existieren -->
   <div *ngIf="groups.length === 0" class="no-groups">
     <p>Noch keine Gruppen vorhanden.</p>
   </div>
@@ -25,13 +24,11 @@
     <ion-item *ngFor="let group of groups">
       <ion-label>
         <h2>{{ group.name }}</h2>
-        <p [ngClass]="group.balance >= 0 ? 'positive' : 'negative'">
-          {{ group.balance >= 0 ? '+' : '' }}{{ group.balance | currency:'EUR' }}
-        </p>
+        <p></p>
       </ion-label>
     </ion-item>
   </ion-list>
 
-  <ion-button class="main-button" expand="block" (click)="addGroup()">Neue Gruppe erstellen +</ion-button>
+  <ion-button class="main-button" expand="block" [routerLink]="'/create-group'">Neue Gruppe erstellen +</ion-button>
 </div>
 </ion-content>
