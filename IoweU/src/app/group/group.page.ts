@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common'; // Hier importieren
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons, IonButton, IonItem, IonLabel, IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent } from '@ionic/angular/standalone';
 import { RouterModule } from "@angular/router";
 
@@ -7,11 +8,12 @@ import { RouterModule } from "@angular/router";
   templateUrl: './group.page.html',
   styleUrls: ['./group.page.scss'],
   standalone: true,
-  imports: [IonFooter, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonItem, IonLabel, IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, RouterModule],
+  imports: [CommonModule, IonFooter, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonItem, IonLabel, IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, RouterModule],
 })
 export class GroupPage implements OnInit {
 
   groupImage: string = ''; // Standardwert für das Gruppenbild
+  balance: number = -20;  // Beispielwert für das Guthaben
 
   constructor() { }
 
