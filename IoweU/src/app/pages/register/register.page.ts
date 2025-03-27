@@ -34,10 +34,9 @@ import { AuthService } from '../../services/auth.service';
   ],
 })
 export class RegisterPage implements OnInit {
-  private authService = inject(AuthService);
   private router = inject(Router);
-
-  constructor() {}
+  private authService = inject(AuthService);
+  
   email = '';
   password = '';
   name = '';

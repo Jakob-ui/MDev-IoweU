@@ -1,21 +1,24 @@
 import { inject, Injectable } from '@angular/core';
-import { doc, Firestore, setDoc } from '@angular/fire/firestore';
+import {
+  Firestore,
+  collection,
+  getDocs,
+  addDoc,
+} from '@angular/fire/firestore';
 import {
   Auth,
-  GoogleAuthProvider,
-  signInWithPopup,
   UserCredential,
   createUserWithEmailAndPassword,
   updateProfile,
+  signInWithEmailAndPassword,
 } from '@angular/fire/auth';
-import { signInWithEmailAndPassword } from 'firebase/auth';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private auth = inject(Auth);
-  private firestore = inject(Firestore);
+  private firestore = inject(Firestore)
 
   async signup(
     email: string,
@@ -56,12 +59,14 @@ export class AuthService {
       );
     }
     try {
-      const userDoc = doc(this.firestore, `users/${uid}`);
-      console.log('Speichere Daten in Firestore:', data);
-      await setDoc(userDoc, data);
-      console.log('Daten erfolgreich gespeichert.');
-    } catch (error) {
-      console.error('Fehler beim Speichern in Firestore:', error);
+      const docRef = await addDoc(collection(this.firestore, 'users'), {
+        first: 'Ada',
+        last: 'Lovelace',
+        born: 1815,
+      });
+      console.log('Document written with ID: ', docRef.id);
+    } catch (e) {
+      console.error('Error adding document: ', e);
     }
   }
 

@@ -7,12 +7,13 @@ export const environment = {
     apiKey: 'AIzaSyDn4hAduYYpx_ERORW58vl-I1IjewZey9o',
     authDomain: 'ioweu-a74cd.firebaseapp.com',
     projectId: 'ioweu-a74cd',
-    storageBucket: 'ioweu-a74cd.firebasestorage.app',
+    storageBucket: 'ioweu-a74cd.appspot.com',
     messagingSenderId: '380190786410',
     appId: '1:380190786410:web:ebbab06b1bf5214da6db13',
   },
   production: false,
 };
+
 /*
  * For easier debugging in development mode, you can import the following file
  * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
