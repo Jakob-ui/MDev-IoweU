@@ -38,7 +38,7 @@ import { RouterModule } from '@angular/router';
     CommonModule
   ],
 })
-export class CreateGroupPage implements OnInit {
+export class CreateGroupPage {
   groupname: string = '';
   newMember: string = '';
   members: string[] = [];
@@ -49,8 +49,6 @@ export class CreateGroupPage implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   constructor() {}
-
-  ngOnInit() {}
 
   addMember() {
     if (this.newMember.trim() !== '') {

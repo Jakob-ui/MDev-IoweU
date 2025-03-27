@@ -39,7 +39,7 @@ import { RouterModule } from '@angular/router';
     RouterModule,
   ],
 })
-export class ExpancePage implements OnInit {
+export class ExpancePage {
   // Beispiel für Gruppenmitglieder mit Profilbildern
   groupMembers = [
     { name: 'Livia', profileImage: 'assets/profiles/livia.jpg' },
@@ -79,5 +79,4 @@ export class ExpancePage implements OnInit {
 
   constructor() {}
 
-  ngOnInit() {}
 }

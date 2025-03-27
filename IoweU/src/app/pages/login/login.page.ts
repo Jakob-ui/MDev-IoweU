@@ -13,14 +13,12 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, IonicModule, RouterModule],
 })
-export class LoginPage implements OnInit {
+export class LoginPage {
   private authService = inject(AuthService);
   private router = inject(Router);
 
   email: string = '';
   password: string = '';
-
-  ngOnInit() {}
 
   async login() {
     try {

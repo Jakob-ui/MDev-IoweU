@@ -30,7 +30,7 @@ import {
     FormsModule,
   ],
 })
-export class AccountSettingsPage implements OnInit {
+export class AccountSettingsPage {
   name: string = '';
   email: string = '';
   oldPassword: string = '';
@@ -38,10 +38,6 @@ export class AccountSettingsPage implements OnInit {
   confirmPassword: string = '';
 
   showPasswordFields: boolean = false;
-
-  constructor() {}
-
-  ngOnInit() {}
 
   togglePasswordChange() {
     this.showPasswordFields = !this.showPasswordFields;

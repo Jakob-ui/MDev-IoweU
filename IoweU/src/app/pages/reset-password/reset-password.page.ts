@@ -29,13 +29,11 @@ import { AuthService } from 'src/app/services/auth.service';
     FormsModule,
   ],
 })
-export class ResetPasswordPage implements OnInit {
+export class ResetPasswordPage {
   private authservice = inject(AuthService);
   email: string = '';
 
   constructor() {}
-
-  ngOnInit() {}
 
   async resetPassword() {
     try {

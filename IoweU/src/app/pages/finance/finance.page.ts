@@ -40,7 +40,7 @@ import { RouterModule } from '@angular/router';
     RouterModule,
   ],
 })
-export class FinancePage implements OnInit {
+export class FinancePage {
   balance: number = +200;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
@@ -53,6 +53,4 @@ export class FinancePage implements OnInit {
   ];
 
   constructor() {}
-
-  ngOnInit() {}
 }

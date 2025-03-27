@@ -37,11 +37,9 @@ import { RouterModule } from '@angular/router';
     RouterModule,
   ],
 })
-export class GroupPage implements OnInit {
+export class GroupPage {
   groupImage: string = ''; // Standardwert für das Gruppenbild
   balance: number = -20; // Beispielwert für das Guthaben
 
   constructor() {}
-
-  ngOnInit() {}
 }

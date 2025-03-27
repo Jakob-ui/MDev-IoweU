@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -40,8 +40,7 @@ import { RouterModule } from '@angular/router';
   ],
   standalone: true,
 })
-export class HomePage {
+export class HomePage{
   constructor() {}
 
-  ngOnInit() {}
 }

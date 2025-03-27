@@ -33,15 +33,13 @@ import { AuthService } from '../../services/auth.service';
     FormsModule,
   ],
 })
-export class RegisterPage implements OnInit {
+export class RegisterPage {
   private router = inject(Router);
   private authService = inject(AuthService);
   
   email = '';
   password = '';
   name = '';
-
-  ngOnInit() {}
 
   async register() {
     try {
