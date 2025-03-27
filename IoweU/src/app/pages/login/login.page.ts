@@ -16,25 +16,25 @@ import { AuthService } from '../../services/auth.service';
 export class LoginPage {
   private authService = inject(AuthService);
   private router = inject(Router);
+  failed: boolean = false;
 
   email: string = '';
   password: string = '';
 
+  inputChange() {
+    this.failed = false;
+  }
+
   async login() {
     try {
-      const userCredential = await this.authService.login(
-        this.email,
-        this.password
-      );
-
-      if (userCredential.user) {
-        console.log('Login erfolgreich:', userCredential.user);
-
-        this.router.navigate(['/group-overview']);
-      }
+      const uid = await this.authService.login(this.email, this.password);
+      const username = await this.authService.getUsernameByUid(uid);
+      sessionStorage.setItem('username', username);
+      console.log('Login erfolgreich. Benutzername gespeichert:', username);
+      this.router.navigate(['/group-overview']);
     } catch (error) {
-      console.error('Login fehlgeschlagen:', error);
-      alert('Login fehlgeschlagen. Bitte überprüfe deine Anmeldedaten.');
+      console.error('Fehler beim Login:', error);
+      this.failed = true;
     }
   }
 }

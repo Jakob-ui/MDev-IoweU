@@ -1,3 +1,16 @@
+.link-text:hover{
+    cursor: pointer;
+    text-decoration: underline;
+}
 
+.error-Space{
+    margin-top: 5px;
+    height: 5px;
+    align-items: center;
+    display: flex;
+}
 
-
+ion-input  {
+  color: black;
+  caret-color: black;
+}

@@ -11,6 +11,7 @@ import {
   IonInput,
 } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-reset-password',
@@ -31,6 +32,7 @@ import { AuthService } from 'src/app/services/auth.service';
 })
 export class ResetPasswordPage {
   private authservice = inject(AuthService);
+  private router = inject(Router);
   email: string = '';
 
   constructor() {}
@@ -38,7 +40,10 @@ export class ResetPasswordPage {
   async resetPassword() {
     try {
       await this.authservice.resetpassword(this.email);
-      console.log('Password reset email sent successfully');
+      alert(
+        'Bitte schaue in dein Email Postfach um dein Passwort zurückzusetzen.'
+      );
+      this.router.navigate(['/login'])
     } catch (error) {
       console.error('Error sending password reset email:', error);
     }

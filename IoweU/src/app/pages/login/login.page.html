@@ -21,6 +21,8 @@
         type="email"
         placeholder="E-Mail"
         [(ngModel)]="email"
+        (ngModelChange)="inputChange()"
+        autofocus
       ></ion-input>
     </ion-item>
 
@@ -29,7 +31,11 @@
         type="password"
         placeholder="Passwort"
         [(ngModel)]="password"
-      ></ion-input>
+        (ngModelChange)="inputChange()"
+        (keyup.enter)="login()"
+      >
+        <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+    </ion-input>
     </ion-item>
 
     <ion-button class="main-button" expand="block" (click)="login()"
@@ -39,7 +45,11 @@
     <ion-button class="main-button" expand="block" [routerLink]="'/register'"
       >Register</ion-button
     >
-
-    <p [routerLink]="'/reset-password'">Passwort vergessen</p>
-  </div>
+    <div class="error-Space">
+      <p *ngIf="failed === true" class="error">
+        Email oder Passwort falsch
+      </p>
+    </div>
+    <p class="link-text"[routerLink]="'/reset-password'">Passwort vergessen</p>
+  </div> 
 </ion-content>

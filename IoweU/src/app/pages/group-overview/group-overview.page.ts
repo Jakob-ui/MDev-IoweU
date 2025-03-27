@@ -42,6 +42,7 @@ import { Auth } from '@angular/fire/auth';
   ],
 })
 export class GroupOverviewPage implements OnInit {
+  user: string | null ="";
   displayName: string | null = null;
 
   groups: { name: string; balance: number }[] = []; // Anfangs leere Liste
@@ -49,9 +50,6 @@ export class GroupOverviewPage implements OnInit {
   constructor(private auth: Auth) {}
 
   ngOnInit() {
-    const user = this.auth.currentUser;
-    if (user) {
-      this.displayName = user.displayName;
-    }
+    this.user = sessionStorage.getItem('username');
   }
 }

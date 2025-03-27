@@ -4,13 +4,15 @@ import {
   collection,
   getDocs,
   addDoc,
+  query,
+  where,
 } from '@angular/fire/firestore';
 import {
   Auth,
   UserCredential,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
 } from '@angular/fire/auth';
 
 @Injectable({
@@ -59,13 +61,36 @@ export class AuthService {
     }
   }
 
-  login(email: string, password: string): Promise<UserCredential> {
-    return signInWithEmailAndPassword(this.auth, email.trim(), password.trim());
+  login(email: string, password: string): Promise<string> {
+    return signInWithEmailAndPassword(
+      this.auth,
+      email.trim(),
+      password.trim()
+    ).then((userCredential) => {
+      if (userCredential.user) {
+        return userCredential.user.uid;
+      }
+      throw new Error('Benutzer konnte nicht authentifiziert werden.');
+    });
+  }
+
+  async getUsernameByUid(uid: string): Promise<string> {
+    const usersCollection = collection(this.firestore, 'users');
+    const q = query(usersCollection, where('id', '==', uid));
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      const userDoc = snapshot.docs[0];
+      const data = userDoc.data();
+      return data['name'];
+    }
+
+    throw new Error('Benutzername konnte nicht gefunden werden.');
   }
 
   resetpassword(email: string): Promise<void> {
     return sendPasswordResetEmail(this.auth, email.trim(), {
-      url: 'http://localhost:4200/auth',
+      url: 'http://localhost:8100/login',
     });
   }
 }

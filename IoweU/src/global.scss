@@ -308,6 +308,10 @@ ion-item .input-label::part(native) {
   margin: 0;
 }
 
+.error{
+  color: #ff0000 !important;
+}
+
 .container {
   display: flex;
   flex-direction: column;

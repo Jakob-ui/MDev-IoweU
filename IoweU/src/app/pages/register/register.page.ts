@@ -31,15 +31,21 @@ import { AuthService } from '../../services/auth.service';
     IonToolbar,
     CommonModule,
     FormsModule,
+    IonInputPasswordToggle,
   ],
 })
 export class RegisterPage {
   private router = inject(Router);
   private authService = inject(AuthService);
-  
+  failed: boolean = false;
+
   email = '';
   password = '';
   name = '';
+
+  inputChange() {
+    this.failed = false;
+  }
 
   async register() {
     try {
@@ -48,15 +54,14 @@ export class RegisterPage {
         this.password,
         this.name
       );
-
       if (userCredential.user) {
+        sessionStorage.setItem('username', this.name);
         console.log('Registrierung erfolgreich:', userCredential.user);
-
-        this.router.navigate(['/home']);
+        this.router.navigate(['/group-overview']);
       }
     } catch (error) {
       console.error('Registrierung fehlgeschlagen:', error);
-      alert('Registrierung fehlgeschlagen. Bitte überprüfe deine Eingaben.');
+      this.failed = true;
     }
   }
 }
