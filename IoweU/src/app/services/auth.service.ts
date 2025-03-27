@@ -9,8 +9,8 @@ import {
   Auth,
   UserCredential,
   createUserWithEmailAndPassword,
-  updateProfile,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail
 } from '@angular/fire/auth';
 
 @Injectable({
@@ -18,7 +18,7 @@ import {
 })
 export class AuthService {
   private auth = inject(Auth);
-  private firestore = inject(Firestore)
+  private firestore = inject(Firestore);
 
   async signup(
     email: string,
@@ -31,11 +31,7 @@ export class AuthService {
       password.trim()
     );
 
-    // Benutzerprofil aktualisieren (z. B. Name setzen)
     if (userCredential.user) {
-      await updateProfile(userCredential.user, { displayName: name });
-
-      // Benutzerdaten in Firestore speichern
       await this.saveUserData(userCredential.user.uid, { email, name });
     }
 
@@ -43,12 +39,6 @@ export class AuthService {
   }
 
   private async saveUserData(uid: string, data: any): Promise<void> {
-    console.log('UID aus Parameter:', uid);
-    console.log(
-      'UID des authentifizierten Benutzers:',
-      this.auth.currentUser?.uid
-    );
-
     if (!this.auth.currentUser) {
       throw new Error('Benutzer ist nicht authentifiziert.');
     }
@@ -60,11 +50,10 @@ export class AuthService {
     }
     try {
       const docRef = await addDoc(collection(this.firestore, 'users'), {
-        first: 'Ada',
-        last: 'Lovelace',
-        born: 1815,
+        id: uid,
+        name: data.name,
+        email: data.email,
       });
-      console.log('Document written with ID: ', docRef.id);
     } catch (e) {
       console.error('Error adding document: ', e);
     }
@@ -72,5 +61,11 @@ export class AuthService {
 
   login(email: string, password: string): Promise<UserCredential> {
     return signInWithEmailAndPassword(this.auth, email.trim(), password.trim());
+  }
+
+  resetpassword(email: string): Promise<void> {
+    return sendPasswordResetEmail(this.auth, email.trim(), {
+      url: 'http://localhost:4200/auth',
+    });
   }
 }

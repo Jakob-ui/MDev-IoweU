@@ -64,8 +64,4 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/expance/expance.page').then((m) => m.ExpancePage),
   },
-  {
-    path: 'test',
-    loadComponent: () => import('./pages/test/test.page').then( m => m.TestPage)
-  },
 ];
