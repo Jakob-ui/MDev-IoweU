@@ -1,0 +1,49 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Registrieren</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">register</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div id="container" class="container">
+    <img src="assets/logo/Logo_lang.png" alt="Logo" class="logo" />
+    <h3>Registrieren</h3>
+    <ion-item class="input-item">
+      <ion-input
+        type="Email"
+        placeholder="E-Mail"
+        [(ngModel)]="email"
+        (ngModelChange)="inputChange()"
+      >
+      </ion-input>
+    </ion-item>
+    <ion-item class="input-item">
+      <ion-input
+        type="text"
+        placeholder="Benutzername"
+        [(ngModel)]="name"
+        (ngModelChange)="inputChange()"
+      >
+      </ion-input>
+    </ion-item>
+    <ion-item class="input-item">
+      <ion-input
+        type="password"
+        placeholder="Passwort"
+        [(ngModel)]="password"
+        (keyup.enter)="register()"
+        (ngModelChange)="inputChange()"
+      >
+        <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+      </ion-input>
+    </ion-item>
+    <ion-button class="main-button" (click)="register()"> Register </ion-button>
+    <p class="error" *ngIf="failed === true">Registrierung fehlgeschlagen</p>
+  </div>
+</ion-content>
