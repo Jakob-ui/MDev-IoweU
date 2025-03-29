@@ -32,13 +32,174 @@
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/*@import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+@import "@ionic/angular/css/palettes/dark.system.css";
 
 @import "./theme/variables.scss";
 
+h1 {
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 40px;
+  color: var(--ion-color-dark);
+}
 
+h2 {
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 36px;
+  color: var(--ion-color-dark);
+}
+
+h3,
+ion-card-title {
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 32px;
+  color: var(--ion-color-dark);
+}
+
+h4 {
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  font-size: 24px;
+  color: var(--ion-color-dark);
+}
+
+h5 {
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--ion-color-dark);
+}
+
+h6,
+ion-card-subtitle {
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ion-color-dark);
+}
+
+h7 {
+  font-family: var(--ion-font-family);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ion-color-dark);
+}
+
+p,
+ion-card-content {
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  font-size: 12px;
+  color: var(--ion-color-dark) !important;
+}
+
+ion-card {
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  background: var(--ion-color-secondary);
+  border-radius: 15px;
+  width: 80%;
+  max-width: 400px;
+  height: 120px;
+  display: flex;
+  --box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+  margin: 20px;
+}
+
+ion-card-subtitle {
+  border-radius: 50px;
+  padding: 5px 10px;
+}
+
+ion-card-subtitle span {
+  font-size: 12px;
+  font-weight: 100;
+}
+
+.finance-card,
+.expance-card {
+  width: 80%;
+  max-width: 400px;
+  margin: auto;
+  padding: 20px;
+  text-align: center;
+  border-radius: 15px;
+  font-weight: bold;
+  transition: background 0.3s ease-in-out;
+  justify-content: center;
+}
+
+.card-content-finance,
+.card-content-expance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.card-content-finance h2,
+.card-content-expance h2 {
+  margin: 0px;
+}
+
+.card-content-finance p,
+.card-content-expance p {
+  margin: 0px;
+}
+
+.expance-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  flex-grow: 1;
+}
+
+.Ausgabepreis {
+  display: flex;
+  flex-direction: column; /* Preise untereinander anordnen */
+  align-items: flex-end; /* Preise rechtsbündig */
+  gap: 5px;
+}
+
+.Gesamtpreis {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.Preis {
+  margin-left: auto;
+  font-weight: 100;
+  padding: 5px 10px;
+  font-size: 14px;
+  border-radius: 50px;
+  margin: 0;
+}
+
+.negative {
+  background: var(--ion-color-danger); /* Rote Farbe für negative Zahlen */
+  color: var(--ion-color-dark);
+}
+
+.positive {
+  background: var(--ion-color-success); /* Grüne Farbe für positive Zahlen */
+  color: var(--ion-color-dark);
+}
 
 ion-button.main-button::part(native) {
   --background: var(--ion-color-primary);
@@ -46,87 +207,147 @@ ion-button.main-button::part(native) {
   padding: 12px 24px;
   text-transform: uppercase;
   border-radius: 50px;
+  box-shadow: none !important;
 }
 
-h1{
-  font-family: var(--ion-font-family);
-  font-weight: 700;
-  font-size: 40px;
-  color: var(--ion-color-dark);
-}
-
-h2{
-  font-family: var(--ion-font-family);
-  font-weight: 700;
-  font-size: 36px;
-  color: var(--ion-color-dark);
-}
-
-h3, ion-card-title{
-  font-family: var(--ion-font-family);
-  font-weight: 700;
-  font-size: 32px;
-  color: var(--ion-color-dark);
-}
-
-h4{
-  font-family: var(--ion-font-family);
-  font-weight: 100;
-  font-size: 24px;
-  color: var(--ion-color-dark);
-}
-
-h5{
-  font-family: var(--ion-font-family);
-  font-weight: 700;
-  font-size: 20px;
-  color: var(--ion-color-dark);
-}
-
-h6, ion-card-subtitle{
-  font-family: var(--ion-font-family);
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--ion-color-dark);
-}
-
-h7{
-  font-family: var(--ion-font-family);
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--ion-color-dark);
-}
-
-p, ion-card-content{
-  font-family: var(--ion-font-family);
+ion-button.edit-button::part(native) {
+  --background: var(--ion-color-primary);
   font-weight: 100;
   font-size: 12px;
-  color: var(--ion-color-dark) !important;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
 }
 
-ion-card{
-  font-family: var(--ion-font-family);
-  font-weight: 100;
-  font-size: 12px;
-  background: var(--ion-color-secondary);
-}
-
-ion-item::part(native){
+ion-item::part(native) {
   font-family: var(--ion-font-family);
   font-weight: 100;
   font-size: 12px;
   background: var(--ion-color-secondary) !important;
   border-radius: 50px;
-  border-color: #1f1f1f;
+  --border-style: none !important;
+  border: none !important;
 }
 
-ion-item .input-label::part(native){
+ion-item .input-label::part(native) {
   font-family: var(--ion-font-family);
   font-weight: 100;
   font-size: 12px;
   background: var(--ion-color-dark);
 }
 
-.error{
-  color: red !important;
+.bilance-list,
+.expance-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-item {
+  --background: var(--ion-color-primary);
+  margin: 5px 0;
+  padding: 8px;
+  width: 80%;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+}
+.info-item::part(native) {
+  height: 80px;
+  border-radius: 15px;
+}
+
+.member-info {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  border-radius: 50px;
+  gap: 10px;
+  background: rgb(200, 221, 253);
+  border: 2px solid #1a65eb;
+  padding: 5px 10px 5px 5px;
+}
+
+.profile-placeholder {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #1a65eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--ion-color-dark);
+  font-size: 18px;
+  border: 2px solid var(--ion-color-primary);
+}
+
+.member-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--ion-color-dark);
+}
+
+.balance-info {
+  min-width: 80px; /* Damit das Badge immer eine feste Größe hat */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50px;
+  padding: 10px 15px;
+  font-size: 20px;
+  margin-left: auto;
+}
+
+.balance-info span {
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+}
+
+.container .logo {
+  width: 20%;
+  margin-bottom: 10%;
+  max-width: 100px;
+}
+
+.input-item,
+.main-button {
+  width: 80%;
+  max-width: 400px;
+  margin-bottom: 10px;
+}
+
+/* Anpassungen für den Dark Mode */
+@media (prefers-color-scheme: dark) {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  h7,
+  p {
+    color: var(--ion-color-light) !important;
+  }
+
+  ion-card-content,
+  ion-card-title,
+  ion-card-subtitle,
+  ion-item::part(native),
+  ion-item .input-label::part(native) {
+    color: var(--ion-color-dark) !important;
+  }
 }
