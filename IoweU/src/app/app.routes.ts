@@ -65,8 +65,14 @@ export const routes: Routes = [
       import('./pages/expance/expance.page').then((m) => m.ExpancePage),
   },
   {
+    path: 'create-expance',
+    loadComponent: () => import('./pages/create-expance/create-expance.page').then(m => m.CreateExpancePage)
+  },
+  {
     path: '**',
     redirectTo: 'home',
     pathMatch: 'full',
   },
+
+
 ];

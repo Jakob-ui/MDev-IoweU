@@ -18,7 +18,6 @@ import {
   IonCardContent,
 } from '@ionic/angular/standalone';
 import { RouterModule } from '@angular/router';
-
 @Component({
   selector: 'app-group',
   templateUrl: './group.page.html',
@@ -40,6 +39,14 @@ import { RouterModule } from '@angular/router';
 export class GroupPage {
   groupImage: string = ''; // Standardwert für das Gruppenbild
   balance: number = -20; // Beispielwert für das Guthaben
+
+  totalCost: number = 120.50; // Beispielhafte Gesamtkosten
+  currentMonth: string = 'März 2025';
+
+  shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter']; // Beispielhafte Einkaufsliste
+
+  assetsList: string[] = ['Sofa', 'Küche', 'Fernseher']; // Beispielhafte Liste
+
 
   constructor() {}
 }

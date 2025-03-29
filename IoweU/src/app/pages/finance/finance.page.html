@@ -10,7 +10,7 @@
       <ion-title size="large">finance</ion-title>
     </ion-toolbar>
   </ion-header>
-  <div class="container">
+  <div class="page-container">
     <h4>Gruppenname</h4>
     <h1>Finanzübersicht</h1>
 
@@ -26,6 +26,16 @@
         </p>
       </div>
     </ion-card>
+
+    <div class="menu">
+      <div class="menu-text active">
+        <span>Bilanz</span>
+      </div>
+      <div class="divider"></div>
+      <div class="menu-text">
+        <span>Transaktionen</span>
+      </div>
+    </div>
 
     <ion-list class="bilance-list">
       <ion-item class="info-item" *ngFor="let member of groupMembers">

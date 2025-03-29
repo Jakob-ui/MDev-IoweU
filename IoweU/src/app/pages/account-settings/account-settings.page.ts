@@ -10,6 +10,7 @@ import {
   IonLabel,
   IonButton,
   IonIcon,
+  IonInput
 } from '@ionic/angular/standalone';
 
 @Component({
@@ -28,6 +29,7 @@ import {
     IonToolbar,
     CommonModule,
     FormsModule,
+    IonInput
   ],
 })
 export class AccountSettingsPage {

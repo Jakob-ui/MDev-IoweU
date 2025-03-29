@@ -11,7 +11,7 @@
     </ion-toolbar>
   </ion-header>
 
-  <div class="container">
+  <div class="page-container">
     <h4>Gruppenname</h4>
     <h1>Ausgaben</h1>
 
@@ -22,7 +22,7 @@
       <div class="card-content-expance">
         <h2>{{ balance | currency: 'EUR' }}</h2>
         <p>
-          Gesamtausgaben im Monat {{ lastTransactionDate | date:'dd.MM.yyyy' }}
+          Gesamtausgaben seit {{ lastTransactionDate | date:'dd.MM.yyyy' }}
         </p>
       </div>
     </ion-card>
@@ -46,5 +46,7 @@
         </div>
       </ion-item>
     </ion-list>
+
+    <ion-button class="main-button" expand="block" [routerLink]="'/create-expance'">Neue Ausgabe hinzufügen +</ion-button>
   </div>
 </ion-content>

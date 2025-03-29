@@ -129,10 +129,26 @@ ion-card-subtitle span {
   font-weight: 100;
 }
 
+ion-card-subtitle p{
+  margin: 0;
+  margin-left: -5px;
+}
+
+ion-card-subtitle h6 {
+  background: white;
+  border-radius: 50px;
+  padding: 5px 10px;
+  display: inline-block;
+  margin-top: 5px;
+  margin-left: -5px;
+  margin-bottom: 0;
+}
+
+
 .finance-card,
 .expance-card {
-  width: 80%;
-  max-width: 400px;
+  width: 60%;
+  max-width: 300px;
   margin: auto;
   padding: 20px;
   text-align: center;
@@ -169,6 +185,10 @@ ion-card-subtitle span {
   flex-grow: 1;
 }
 
+.info-item h5{
+  margin-left: 15px;
+}
+
 .Ausgabepreis {
   display: flex;
   flex-direction: column; /* Preise untereinander anordnen */
@@ -189,6 +209,7 @@ ion-card-subtitle span {
   font-size: 14px;
   border-radius: 50px;
   margin: 0;
+  margin-top: -5px;
 }
 
 .negative {
@@ -223,7 +244,7 @@ ion-button.edit-button::part(native) {
 ion-item::part(native) {
   font-family: var(--ion-font-family);
   font-weight: 100;
-  font-size: 12px;
+  font-size: 14px;
   background: var(--ion-color-secondary) !important;
   border-radius: 50px;
   --border-style: none !important;
@@ -235,6 +256,33 @@ ion-item .input-label::part(native) {
   font-weight: 100;
   font-size: 12px;
   background: var(--ion-color-dark);
+  color: var(--ion-color-dark);
+
+}
+
+ion-item .Dropdown-label{
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  font-size: 12px;
+  color: var(--ion-color-dark);
+}
+
+ion-select {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  --padding-end: 40px;
+}
+
+ion-select::part(icon) {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+ion-select:has(.select-text:not(:empty)) .Dropdown-label {
+  display: none;
 }
 
 .bilance-list,
@@ -317,6 +365,15 @@ ion-item .input-label::part(native) {
   text-align: center;
 }
 
+.page-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-top: 20px;
+}
+
 .container .logo {
   width: 20%;
   margin-bottom: 10%;
@@ -328,6 +385,47 @@ ion-item .input-label::part(native) {
   width: 80%;
   max-width: 400px;
   margin-bottom: 10px;
+}
+
+.separator {
+  border: none;
+  height: 1px;
+  background-color: var(--ion-color-dark);
+  margin-top: 10px;
+  margin-bottom: 20px;
+  width: 80%;
+}
+
+.menu {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  padding: 10px 15px;
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid;
+  border-color: var(--ion-color-dark);
+}
+
+.menu-text {
+  font-size: 12px;
+  font-weight: 100;
+  cursor: pointer;
+  text-align: center;
+  flex: 1;
+}
+
+
+.menu-text.active {
+  font-weight: 700; /* Aktive Menü-Option (Bilanz) */
+}
+
+.divider {
+  border-left: 1px solid;
+  border-color: var(--ion-color-dark);
+  height: 20px;
 }
 
 /* Anpassungen für den Dark Mode */
@@ -351,3 +449,5 @@ ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
   }
 }
+
+
