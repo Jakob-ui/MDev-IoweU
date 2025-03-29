@@ -126,3 +126,7 @@ ion-item .input-label::part(native){
   font-size: 12px;
   background: var(--ion-color-dark);
 }
+
+.error{
+  color: red !important;
+}
