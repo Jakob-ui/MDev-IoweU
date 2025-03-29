@@ -1,0 +1,67 @@
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/11.5.0/firebase-app-compat.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/11.5.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/11.5.0/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/11.5.0/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/11.5.0/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/11.5.0/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/11.5.0/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/11.5.0/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/11.5.0/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/11.5.0/firebase-performance-compat.js"></script>
+    <!--
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title> IoweU </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">IoweU</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div id="container">
+    <strong>Hier entsteht IoweU</strong>
+    <p style="font-weight: 100">Lasst uns starten!</p>
+    <ion-button class="main-button" expand="full" [routerLink]="'/login'"> zum Login</ion-button>
+
+    <h1>Willkommen bei Ionic</h1>
+    <h2>Einführung in Ionic Komponenten</h2>
+    <h3>Beispiel für verschiedene UI-Elemente</h3>
+    <h4>Unsere WG</h4>
+    <h5>Unsere WG</h5>
+    <h6>Unsere WG</h6>
+
+    <p>Hier sind einige Ionic UI-Komponenten, die in einer App verwendet werden können.</p>
+
+    <ion-item>
+      <ion-label class="input-label" position="floating">Gib deinen Namen ein</ion-label>
+      <ion-input type="text"></ion-input>
+    </ion-item>
+
+    <!-- Ion Card -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Kartentitel</ion-card-title>
+        <ion-card-subtitle>Untertitel der Karte</ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        Das ist ein Beispiel für eine Ionic-Karte mit etwas Inhalt.
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
+
+<ion-footer>
+      <p style="justify-self: right; margin-right: 50px;">Kontakt: <a href="mailto:jakob.laschober@gmail.com">Jakob Laschober</a></p>
+</ion-footer>
