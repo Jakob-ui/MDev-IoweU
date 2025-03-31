@@ -39,5 +39,5 @@ jobs:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_IOWEU_A74CD }}'
           channelId: live
-          projectId: mdev-ioweu
+          projectId: ioweu-a74cd
           entryPoint: ./IoweU
