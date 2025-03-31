@@ -1,0 +1,41 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Gruppenübersicht</ion-title>
+    <ion-title slot="end">Hi {{ user || 'NA' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Gruppenübersicht</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="page-container">
+    <div class="profile-placeholder"></div>
+
+    <h2>Meine Gruppen</h2>
+
+    <div *ngIf="groups.length === 0" class="no-groups">
+      <p>Noch keine Gruppen vorhanden.</p>
+    </div>
+
+    <!-- Gruppenliste -->
+    <ion-list *ngIf="groups.length > 0">
+      <ion-item *ngFor="let group of groups">
+        <ion-label>
+          <h2>{{ group.name }}</h2>
+          <p></p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+
+    <ion-button
+      class="main-button"
+      expand="block"
+      [routerLink]="'/create-group'"
+      >Neue Gruppe erstellen +</ion-button
+    >
+  </div>
+</ion-content>

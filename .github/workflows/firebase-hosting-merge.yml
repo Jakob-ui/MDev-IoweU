@@ -34,7 +34,7 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_IOWEU_A74CD }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_MDEV_IOWEU }}'
           channelId: live
-          projectId: ioweu-a74cd
-          entryPoint: ./IoweU 
+          projectId: mdev-ioweu
+          entryPoint: ./IoweU # Set the entryPoint to the directory containing firebase.json

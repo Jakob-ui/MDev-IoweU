@@ -1,0 +1,55 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>finance</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">finance</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <div class="page-container">
+    <h4>Gruppenname</h4>
+    <h1>Finanzübersicht</h1>
+
+    <ion-card
+      class="finance-card"
+      [ngClass]="{ 'negative': balance < 0, 'positive': balance >= 0 }"
+    >
+      <div class="card-content-finance">
+        <h2>{{ balance | currency: 'EUR' }}</h2>
+        <p>
+          {{ balance < 0 ? 'Schulden' : 'Guthaben' }} | seit dem {{
+          lastTransactionDate | date:'dd.MM.yyyy' }}
+        </p>
+      </div>
+    </ion-card>
+
+    <div class="menu">
+      <div class="menu-text active">
+        <span>Bilanz</span>
+      </div>
+      <div class="divider"></div>
+      <div class="menu-text">
+        <span>Transaktionen</span>
+      </div>
+    </div>
+
+    <ion-list class="bilance-list">
+      <ion-item class="info-item" *ngFor="let member of groupMembers">
+        <div class="member-info">
+          <div class="profile-placeholder"></div>
+          <span class="member-name">{{ member.name }}</span>
+        </div>
+        <ion-badge
+          class="balance-info"
+          [ngClass]="{ 'negative': member.amount < 0, 'positive': member.amount >= 0 }"
+        >
+          {{ member.amount | currency: 'EUR' }}
+        </ion-badge>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>
