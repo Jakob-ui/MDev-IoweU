@@ -72,23 +72,9 @@
         Bestätigen
       </ion-button>
     </div>
-    
-    <ion-button id="delete-alert" color="danger">Konto löschen</ion-button>
-    <ion-alert
-      trigger="delete-alert"
-      header="Konto löschen?"
-      message="Möchtest du dein Konto wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
-      [buttons]="alertButtons"
-      (didDismiss)="setResult($event)"
-    ></ion-alert>
-    
-    
 
-    <ion-button class="main-button" expand="block">
-      Änderungen speichern
-    </ion-button>
-
-   
-  
+    <ion-button class="main-button" expand="block"
+      >Änderungen speichern</ion-button
+    >
   </div>
 </ion-content>

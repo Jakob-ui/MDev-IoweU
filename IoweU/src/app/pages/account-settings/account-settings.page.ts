@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -13,7 +13,6 @@ import {
   IonInput,
   IonAlert
 } from '@ionic/angular/standalone';
-import { OverlayEventDetail } from '@ionic/core/components';
 
 @Component({
   selector: 'app-account-settings',
@@ -32,10 +31,12 @@ import { OverlayEventDetail } from '@ionic/core/components';
     IonToolbar,
     CommonModule,
     FormsModule,
-    IonInput
+    IonInput,
   ],
 })
 export class AccountSettingsPage {
+  private auth = inject(AuthService);
+
   name: string = '';
   email: string = '';
   oldPassword: string = '';
@@ -55,34 +56,5 @@ export class AccountSettingsPage {
       return;
     }
     alert('Passwort erfolgreich geändert!');
-  }
-
- 
-
- 
-  public alertButtons = [
-    {
-      text: 'Abbrechen',
-      role: 'cancel',
-      handler: () => {
-        console.log('Löschung abgebrochen');
-      },
-    },
-    {
-      text: 'Löschen',
-      role: 'destructive',
-      handler: () => {
-        this.deleteAccount();
-      },
-    },
-  ];
-
-  setResult(event: CustomEvent<OverlayEventDetail>) {
-    console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`); 
-  }
-
-  deleteAccount() {
-    console.log('Konto wird gelöscht...');
-    // Hier kannst du den Löschprozess starten, z. B. einen API-Call
   }
 }
