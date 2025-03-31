@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -12,6 +12,7 @@ import {
   IonIcon,
   IonInput
 } from '@ionic/angular/standalone';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-account-settings',
@@ -29,10 +30,12 @@ import {
     IonToolbar,
     CommonModule,
     FormsModule,
-    IonInput
+    IonInput,
   ],
 })
 export class AccountSettingsPage {
+  private auth = inject(AuthService);
+
   name: string = '';
   email: string = '';
   oldPassword: string = '';
@@ -51,5 +54,23 @@ export class AccountSettingsPage {
       return;
     }
     alert('Passwort erfolgreich geändert!');
+  }
+
+  async delete() {
+    const confirmation = confirm('Möchten Sie Ihr Konto wirklich löschen?');
+    if (!confirmation) {
+      return; 
+    }
+
+    try {
+      await this.auth.userdelete(); 
+      alert('Ihr Konto wurde erfolgreich gelöscht.');
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Fehler beim Löschen des Kontos:', error);
+      alert(
+        'Es ist ein Fehler aufgetreten. Ihr Konto konnte nicht gelöscht werden.'
+      );
+    }
   }
 }

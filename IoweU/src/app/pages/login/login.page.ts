@@ -16,25 +16,32 @@ import { AuthService } from '../../services/auth.service';
 export class LoginPage {
   private authService = inject(AuthService);
   private router = inject(Router);
-  failed: boolean = false;
 
+  error: string = '';
   email: string = '';
   password: string = '';
+  rememberMe: boolean = false;
 
   inputChange() {
-    this.failed = false;
+    this.error = '';
   }
 
   async login() {
+    if (!this.email || !this.password) {
+      this.error = 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort ein.';
+      return;
+    }
+    if (!this.email.includes('@')) {
+      this.error = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+      return;
+    }
+
     try {
-      const uid = await this.authService.login(this.email, this.password);
-      const username = await this.authService.getUsernameByUid(uid);
-      sessionStorage.setItem('username', username);
-      console.log('Login erfolgreich. Benutzername gespeichert:', username);
+      await this.authService.login(this.email, this.password, this.rememberMe);
       this.router.navigate(['/group-overview']);
     } catch (error) {
       console.error('Fehler beim Login:', error);
-      this.failed = true;
+      this.error = 'Fehler beim Login';
     }
   }
 }

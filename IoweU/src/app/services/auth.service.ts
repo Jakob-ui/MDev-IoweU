@@ -6,6 +6,7 @@ import {
   addDoc,
   query,
   where,
+  deleteDoc,
 } from '@angular/fire/firestore';
 import {
   Auth,
@@ -13,6 +14,10 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  setPersistence,
+  browserSessionPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged,
 } from '@angular/fire/auth';
 
 @Injectable({
@@ -61,16 +66,51 @@ export class AuthService {
     }
   }
 
-  login(email: string, password: string): Promise<string> {
-    return signInWithEmailAndPassword(
-      this.auth,
-      email.trim(),
-      password.trim()
-    ).then((userCredential) => {
-      if (userCredential.user) {
-        return userCredential.user.uid;
+  login(email: string, password: string, rememberMe: boolean): Promise<void> {
+    const persistence = rememberMe
+      ? browserLocalPersistence
+      : browserSessionPersistence;
+
+    return setPersistence(this.auth, persistence)
+      .then(() => {
+        return signInWithEmailAndPassword(
+          this.auth,
+          email.trim(),
+          password.trim()
+        );
+      })
+      .then(async (userCredential) => {
+        if (userCredential.user) {
+          const uid = userCredential.user.uid;
+          const username = await this.getUsernameByUid(uid);
+          sessionStorage.setItem('username', username);
+        } else {
+          throw new Error('Benutzer konnte nicht authentifiziert werden.');
+        }
+      })
+      .catch((error) => {
+        console.error('Fehler beim Login:', error);
+        throw error;
+      });
+  }
+
+  logout(): void {
+    this.auth.signOut().then(() => {
+      console.log('Benutzer wurde abgemeldet.');
+    });
+  }
+
+  isLoggedIn(): boolean {
+    return !!this.auth.currentUser;
+  }
+
+  monitorAuthState(): void {
+    onAuthStateChanged(this.auth, (user) => {
+      if (user) {
+        console.log('Benutzer eingeloggt:', user);
+      } else {
+        console.log('Kein Benutzer eingeloggt.');
       }
-      throw new Error('Benutzer konnte nicht authentifiziert werden.');
     });
   }
 
@@ -92,5 +132,36 @@ export class AuthService {
     return sendPasswordResetEmail(this.auth, email.trim(), {
       url: 'http://localhost:8100/login',
     });
+  }
+
+  async userdelete(): Promise<void> {
+    if (this.auth.currentUser) {
+      try {
+        const uid = this.auth.currentUser.uid;
+
+        const usersCollection = collection(this.firestore, 'users');
+        const q = query(usersCollection, where('id', '==', uid));
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+          const userDoc = snapshot.docs[0];
+          await deleteDoc(userDoc.ref);
+          console.log('Benutzerdaten aus der Datenbank gelöscht.');
+        } else {
+          console.warn(
+            'Benutzerdaten konnten in der Datenbank nicht gefunden werden.'
+          );
+        }
+
+        await this.auth.currentUser.delete();
+        console.log('Benutzer wurde erfolgreich gelöscht.');
+      } catch (error) {
+        console.error('Fehler beim Löschen des Benutzers:', error);
+        throw error;
+      }
+    } else {
+      console.error('Kein Benutzer ist aktuell eingeloggt.');
+      throw new Error('Kein Benutzer ist aktuell eingeloggt.');
+    }
   }
 }
