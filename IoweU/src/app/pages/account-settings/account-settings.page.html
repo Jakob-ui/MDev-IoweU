@@ -19,11 +19,28 @@
     <h2>Mein Account</h2>
 
     <ion-item class="input-item">
-      <ion-button>Name ändern</ion-button>
+      <ion-input
+        type="text"
+        placeholder="Benutzername ändern"
+        [(ngModel)]="name">
+      </ion-input>
+      <ion-icon name="pencil" slot="end" color="primary"></ion-icon>
     </ion-item>
 
     <ion-item class="input-item">
-      <ion-button>E-Mail ändern</ion-button>
+      <ion-input
+        type="text"
+        placeholder="Nickname ändern"
+        [(ngModel)]="name">
+      </ion-input>
+    </ion-item>
+
+    <ion-item class="input-item">
+      <ion-input
+        type="email"
+        [(ngModel)]="email"
+        placeholder="E-Mail ändern"
+      ></ion-input>
     </ion-item>
 
     <ion-item class="input-item" (click)="togglePasswordChange()">

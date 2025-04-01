@@ -10,6 +10,16 @@
   padding: 20px;
 }
 
+.input-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+ion-icon {
+  margin-left: 10px; /* Abstand zwischen dem Textfeld und dem Icon */
+}
+
 /* Pfeil-Icon in Weiß */
 .chevron-icon {
   font-size: 20px;

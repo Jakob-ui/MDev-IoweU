@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from 'src/app/services/auth.service';
 import {
   IonContent,
   IonHeader,
@@ -35,7 +36,7 @@ import { OverlayEventDetail } from '@ionic/core/components';
     IonInput
   ],
 })
-export class AccountSettingsPage {
+export class AccountSettingsPage implements OnInit {
   name: string = '';
   email: string = '';
   oldPassword: string = '';
@@ -45,10 +46,26 @@ export class AccountSettingsPage {
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false; // Diese Variable steuert, ob der Löschen-Dialog angezeigt wird
 
+  constructor(private authService: AuthService) {}
+
+  ngOnInit() {
+    this.loadSessionData();
+  }
+
+  async loadSessionData() {
+    try {
+      const userData = await this.authService.getUserData();
+      this.name = userData.name;
+      this.email = userData.email;
+    } catch (error) {
+      console.error('Fehler beim Laden der Benutzerdaten:', error);
+    }
+  }
+
   togglePasswordChange() {
     this.showPasswordFields = !this.showPasswordFields;
   }
-  
+
   changePassword() {
     if (this.newPassword !== this.confirmPassword) {
       alert('Die Passwörter stimmen nicht überein.');
@@ -57,7 +74,6 @@ export class AccountSettingsPage {
     alert('Passwort erfolgreich geändert!');
   }
 
- 
 
  
   public alertButtons = [
