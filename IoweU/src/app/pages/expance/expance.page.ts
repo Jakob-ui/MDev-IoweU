@@ -1,46 +1,59 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonFooter,
-  IonButtons,
-  IonButton,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonBadge,
-  IonInput,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
-  IonCardContent,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonFooter,
+    IonButtons,
+    IonButton,
+    IonItem,
+    IonLabel,
+    IonList,
+    IonBadge,
+    IonInput,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardSubtitle,
+    IonCardContent, IonIcon,
 } from '@ionic/angular/standalone';
-import { RouterModule } from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
+import {AuthService} from "../../services/auth.service";
+import {NavController, Platform} from "@ionic/angular";
 
 @Component({
   selector: 'app-expance',
   templateUrl: './expance.page.html',
   styleUrls: ['./expance.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonItem,
-    IonList,
-    IonBadge,
-    IonCard,
-    RouterModule,
-    IonButton,
-  ],
+    imports: [
+        CommonModule,
+        IonHeader,
+        IonToolbar,
+        IonTitle,
+        IonContent,
+        IonItem,
+        IonList,
+        IonBadge,
+        IonCard,
+        RouterModule,
+        IonButton,
+        IonIcon,
+    ],
 })
 export class ExpancePage implements OnInit {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  private platform = inject(Platform);
+  private navCtrl = inject(NavController);
+
+  iosIcons: boolean = false;
+
+  user: string | null ="";
+  displayName: string | null = null;
+
   groupMembers = [
     { name: 'Livia', profileImage: 'assets/profiles/livia.jpg' },
     { name: 'Michaela', profileImage: 'assets/profiles/michaela.jpg' },
@@ -78,5 +91,21 @@ export class ExpancePage implements OnInit {
 
   constructor() {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.user = sessionStorage.getItem('username');
+    this.iosIcons = this.platform.is('ios');
+  }
+
+  async logout() {
+    try {
+      await this.auth.logout();
+      this.router.navigate(['home']);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  goBack() {
+    this.navCtrl.back(); // Navigiert zur letzten Seite
+  }
 }

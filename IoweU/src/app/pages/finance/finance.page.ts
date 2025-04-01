@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -18,9 +18,11 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonCardSubtitle,
-  IonCardContent,
+  IonCardContent, IonIcon,
 } from '@ionic/angular/standalone';
-import { RouterModule } from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
+import {AuthService} from "../../services/auth.service";
+import {NavController, Platform} from "@ionic/angular";
 
 @Component({
   selector: 'app-finance',
@@ -38,9 +40,20 @@ import { RouterModule } from '@angular/router';
     IonBadge,
     IonCard,
     RouterModule,
+    IonIcon,
   ],
 })
 export class FinancePage {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  private platform = inject(Platform);
+  private navCtrl = inject(NavController);
+
+  iosIcons: boolean = false;
+
+  user: string | null ="";
+  displayName: string | null = null;
+
   balance: number = +200;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
@@ -51,6 +64,24 @@ export class FinancePage {
     { name: 'Sophie', amount: -10 },
     { name: 'Mateusz', amount: 0 },
   ];
+
+  ngOnInit() {
+    this.user = sessionStorage.getItem('username');
+    this.iosIcons = this.platform.is('ios');
+  }
+  async logout() {
+    try {
+      await this.auth.logout();
+      this.router.navigate(['home']);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  goBack() {
+    this.navCtrl.back(); // Navigiert zur letzten Seite
+  }
+
 
   constructor() {}
 }
