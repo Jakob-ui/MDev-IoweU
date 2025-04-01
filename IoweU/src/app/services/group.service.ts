@@ -18,14 +18,40 @@ export class GroupService {
 
 private firestore: Firestore = inject(Firestore);
 
-  async createGroup(group: Group): Promise<void> 
+  async createGroup(id: string, name: string, founder: string, foundationdate: Date, template:string,  members: string[]): Promise<void> 
   {
     try {
-      const docRef = await addDoc(collection(this.firestore, 'groups'), group);
-      console.log('Group created with ID: ', docRef.id);
+      // Add the founder to the members list:
+      members.push(founder) // Add founder to members list
+      const docRef = await addDoc(collection(this.firestore, 'groups'), {id, name, founder, foundationdate, template});
+      // Add members to the group:
+      for(let i = 0; i < members.length; i++) {
+        const membersRef = await addDoc(collection(this.firestore, 'groups', docRef.id, 'members'), {id: members[i], totalbalance: 0});
+        console.log('Member added with ID: ' + membersRef.id);
+      }
+      console.log('Group created with ID: ' + docRef.id);
     } catch (error) {
       console.error('Error creating group: ', error);
     }
   }
-  //constructor() { }
+  
+  async getGroups(): Promise<Group[]> {
+    const groupsRef = collection(this.firestore, 'groups');
+    const groupSnapshot = await getDocs(groupsRef);
+    const groups: Group[] = groupSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Group[];
+    return groups;
+  }
+  async getGroupById(id: string): Promise<Group | undefined> {
+    const groupsRef = collection(this.firestore, 'groups');
+    const q = query(groupsRef, where('id', '==', id));
+    const groupSnapshot = await getDocs(q);
+    if (groupSnapshot.empty) {
+      return undefined;
+    }
+    const group = groupSnapshot.docs[0].data() as Group;
+    return group;
+  }
 }
