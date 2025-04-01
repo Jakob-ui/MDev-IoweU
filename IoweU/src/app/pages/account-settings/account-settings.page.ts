@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from 'src/app/services/auth.service';
 import {
   IonContent,
   IonHeader,
@@ -11,9 +12,11 @@ import {
   IonButton,
   IonIcon,
   IonInput,
-  IonAlert
+  IonAlert,
 } from '@ionic/angular/standalone';
 import { OverlayEventDetail } from '@ionic/core/components';
+import {Router} from "@angular/router";
+import {NavController, Platform} from "@ionic/angular";
 
 @Component({
   selector: 'app-account-settings',
@@ -21,7 +24,7 @@ import { OverlayEventDetail } from '@ionic/core/components';
   styleUrls: ['./account-settings.page.scss'],
   standalone: true,
   imports: [
-    IonAlert, 
+    IonAlert,
     IonIcon,
     IonButton,
     IonLabel,
@@ -32,10 +35,20 @@ import { OverlayEventDetail } from '@ionic/core/components';
     IonToolbar,
     CommonModule,
     FormsModule,
-    IonInput
+    IonInput,
   ],
 })
-export class AccountSettingsPage {
+export class AccountSettingsPage implements OnInit {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  private platform = inject(Platform);
+  private navCtrl = inject(NavController);
+
+  iosIcons: boolean = false;
+
+  user: string | null ="";
+  displayName: string | null = null;
+
   name: string = '';
   email: string = '';
   oldPassword: string = '';
@@ -45,10 +58,28 @@ export class AccountSettingsPage {
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false; // Diese Variable steuert, ob der Löschen-Dialog angezeigt wird
 
+  constructor(private authService: AuthService) {}
+
+  ngOnInit() {
+    this.loadSessionData();
+    this.user = sessionStorage.getItem('username');
+    this.iosIcons = this.platform.is('ios');
+  }
+
+  async loadSessionData() {
+    try {
+      const userData = await this.authService.getUserData();
+      this.name = userData.name;
+      this.email = userData.email;
+    } catch (error) {
+      console.error('Fehler beim Laden der Benutzerdaten:', error);
+    }
+  }
+
   togglePasswordChange() {
     this.showPasswordFields = !this.showPasswordFields;
   }
-  
+
   changePassword() {
     if (this.newPassword !== this.confirmPassword) {
       alert('Die Passwörter stimmen nicht überein.');
@@ -57,9 +88,8 @@ export class AccountSettingsPage {
     alert('Passwort erfolgreich geändert!');
   }
 
- 
 
- 
+
   public alertButtons = [
     {
       text: 'Abbrechen',
@@ -76,13 +106,26 @@ export class AccountSettingsPage {
       },
     },
   ];
- 
+
   setResult(event: CustomEvent<OverlayEventDetail>) {
-    console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`); 
+    console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`);
   }
 
   deleteAccount() {
     console.log('Konto wird gelöscht...');
     // Hier kannst du den Löschprozess starten, z. B. einen API-Call
+  }
+
+  async logout() {
+    try {
+      await this.auth.logout();
+      this.router.navigate(['home']);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  goBack() {
+    this.navCtrl.back(); // Navigiert zur letzten Seite
   }
 }

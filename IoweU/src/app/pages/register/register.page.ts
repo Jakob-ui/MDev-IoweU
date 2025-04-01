@@ -13,15 +13,16 @@ import {
   IonItem,
   IonListHeader,
   IonButton,
+  IonLabel,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
-
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
   standalone: true,
   imports: [
+    IonLabel,
     IonButton,
     IonItem,
     IonInput,
@@ -42,17 +43,38 @@ export class RegisterPage {
   email = '';
   password = '';
   name = '';
+  img: string = '';
+  color = '';
 
   inputChange() {
     this.failed = false;
   }
 
+  private generateRandomHexColor(): string {
+    return `#${Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, '0')}`;
+  }
+
+  private async blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob); // Konvertiert das Blob in Base64
+    });
+  }
+
   async register() {
     try {
+      const usercolor =
+        this.color === '' ? this.generateRandomHexColor() : this.color;
       const userCredential = await this.authService.signup(
         this.email,
         this.password,
-        this.name
+        this.name,
+        usercolor,
+        this.img
       );
       if (userCredential.user) {
         sessionStorage.setItem('username', this.name);

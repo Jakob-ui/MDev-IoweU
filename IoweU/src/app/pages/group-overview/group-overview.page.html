@@ -1,18 +1,24 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Gruppenübersicht</ion-title>
-    <ion-title slot="end" class="username"><a [routerLink]="'/account-settings'">Hi {{ user || 'NA' }}</a></ion-title>
-    <ion-button (click)="logout()" slot="end" class="logout-button">Logout</ion-button>
+    <div class="left-container" slot="start">
+      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+                class="back-button" (click)="goBack()"></ion-icon>
+      <div class="divider"></div>
+      <div class="pagename">Gruppenübersicht</div>
+    </div>
+
+    <div class="right-container" slot="end">
+      <div class="user-info" [routerLink]="'/account-settings'">
+        <div class="profile-placeholder"></div>
+        <span class="member-name">{{ user }}</span>
+      </div>
+      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
+                (click)="logout()" class="logout-button"></ion-icon>
+    </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Gruppenübersicht</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
   <div class="page-container">
     <div class="profile-placeholder"></div>
 

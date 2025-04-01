@@ -30,7 +30,9 @@ export class AuthService {
   async signup(
     email: string,
     password: string,
-    name: string
+    name: string,
+    color: string,
+    img: string
   ): Promise<UserCredential> {
     const userCredential = await createUserWithEmailAndPassword(
       this.auth,
@@ -39,13 +41,22 @@ export class AuthService {
     );
 
     if (userCredential.user) {
-      await this.saveUserData(userCredential.user.uid, { email, name });
+      const success = await this.saveUserData(userCredential.user.uid, {
+        email,
+        name,
+        color,
+        img,
+      });
+
+      if (!success) {
+        throw new Error('Fehler beim Speichern der Benutzerdaten.');
+      }
     }
 
     return userCredential;
   }
 
-  private async saveUserData(uid: string, data: any): Promise<void> {
+  private async saveUserData(uid: string, data: any): Promise<boolean> {
     if (!this.auth.currentUser) {
       throw new Error('Benutzer ist nicht authentifiziert.');
     }
@@ -60,9 +71,14 @@ export class AuthService {
         id: uid,
         name: data.name,
         email: data.email,
+        color: data.color,
+        img: data.img,
       });
+      console.log('Dokument erfolgreich hinzugefügt:', docRef.id);
+      return true; // Erfolg
     } catch (e) {
-      console.error('Error adding document: ', e);
+      console.error('Fehler beim Hinzufügen des Dokuments:', e);
+      return false; // Fehler
     }
   }
 
@@ -164,4 +180,19 @@ export class AuthService {
       throw new Error('Kein Benutzer ist aktuell eingeloggt.');
     }
   }
+  
+  async getUserData(): Promise<{ name: string, email: string }> {
+    if (!this.auth.currentUser) {
+      throw new Error('Benutzer ist nicht authentifiziert.');
+    }
+    
+    const uid = this.auth.currentUser.uid;
+    const username = await this.getUsernameByUid(uid);
+  
+    return {
+      name: username,
+      email: this.auth.currentUser.email || ''
+    };
+  }
+  
 }

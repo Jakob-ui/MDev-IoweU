@@ -13,21 +13,26 @@
 
   <div id="container" class="container">
     <img src="assets/logo/Logo_lang.png" alt="Logo" class="logo" />
+
     <h3>Registrieren</h3>
-    <ion-item class="input-item">
-      <ion-input
-        type="Email"
-        placeholder="E-Mail"
-        [(ngModel)]="email"
-        (ngModelChange)="inputChange()"
-      >
-      </ion-input>
-    </ion-item>
     <ion-item class="input-item">
       <ion-input
         type="text"
         placeholder="Benutzername"
         [(ngModel)]="name"
+        (ngModelChange)="inputChange()"
+      >
+      </ion-input>
+    </ion-item>
+    <ion-item class="input-item">
+      <ion-label class="label">Choose a color: </ion-label>
+      <ion-input type="color" [(ngModel)]="color" class="colorinput"></ion-input>
+    </ion-item>
+    <ion-item class="input-item">
+      <ion-input
+        type="Email"
+        placeholder="E-Mail"
+        [(ngModel)]="email"
         (ngModelChange)="inputChange()"
       >
       </ion-input>
