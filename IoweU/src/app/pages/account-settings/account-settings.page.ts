@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -10,9 +10,10 @@ import {
   IonLabel,
   IonButton,
   IonIcon,
-  IonInput
+  IonInput,
+  IonAlert
 } from '@ionic/angular/standalone';
-import { AuthService } from 'src/app/services/auth.service';
+import { OverlayEventDetail } from '@ionic/core/components';
 
 @Component({
   selector: 'app-account-settings',
@@ -20,6 +21,7 @@ import { AuthService } from 'src/app/services/auth.service';
   styleUrls: ['./account-settings.page.scss'],
   standalone: true,
   imports: [
+    IonAlert, 
     IonIcon,
     IonButton,
     IonLabel,
@@ -30,12 +32,10 @@ import { AuthService } from 'src/app/services/auth.service';
     IonToolbar,
     CommonModule,
     FormsModule,
-    IonInput,
+    IonInput
   ],
 })
 export class AccountSettingsPage {
-  private auth = inject(AuthService);
-
   name: string = '';
   email: string = '';
   oldPassword: string = '';
@@ -43,11 +43,12 @@ export class AccountSettingsPage {
   confirmPassword: string = '';
 
   showPasswordFields: boolean = false;
+  showDeleteAlert: boolean = false; // Diese Variable steuert, ob der Löschen-Dialog angezeigt wird
 
   togglePasswordChange() {
     this.showPasswordFields = !this.showPasswordFields;
   }
-
+  
   changePassword() {
     if (this.newPassword !== this.confirmPassword) {
       alert('Die Passwörter stimmen nicht überein.');
@@ -56,21 +57,32 @@ export class AccountSettingsPage {
     alert('Passwort erfolgreich geändert!');
   }
 
-  async delete() {
-    const confirmation = confirm('Möchten Sie Ihr Konto wirklich löschen?');
-    if (!confirmation) {
-      return; 
-    }
+ 
 
-    try {
-      await this.auth.userdelete(); 
-      alert('Ihr Konto wurde erfolgreich gelöscht.');
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Fehler beim Löschen des Kontos:', error);
-      alert(
-        'Es ist ein Fehler aufgetreten. Ihr Konto konnte nicht gelöscht werden.'
-      );
-    }
+ 
+  public alertButtons = [
+    {
+      text: 'Abbrechen',
+      role: 'cancel',
+      handler: () => {
+        console.log('Löschung abgebrochen');
+      },
+    },
+    {
+      text: 'Löschen',
+      role: 'destructive',
+      handler: () => {
+        this.deleteAccount();
+      },
+    },
+  ];
+
+  setResult(event: CustomEvent<OverlayEventDetail>) {
+    console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`); 
+  }
+
+  deleteAccount() {
+    console.log('Konto wird gelöscht...');
+    // Hier kannst du den Löschprozess starten, z. B. einen API-Call
   }
 }

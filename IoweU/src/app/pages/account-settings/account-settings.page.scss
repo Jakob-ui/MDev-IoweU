@@ -1,31 +1,31 @@
 .password-change-container {
-    padding: 20px;
-    transition: max-height 0.3s ease-in-out;
-    max-height: 0;
-    overflow: hidden;
-  }
-  
-  .password-change-container.ng-animating {
-    max-height: 500px; /* Die maximale Höhe, wenn das Dropdown geöffnet wird */
-  }
-  
-  
-  /* Pfeil-Icon in Weiß */
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+  padding: 0 20px; /* Anfangs kein Padding */
+}
+
+.password-change-container.open {
+  max-height: 300px; /* Stelle sicher, dass genug Platz ist */
+  padding: 20px;
+}
+
+/* Pfeil-Icon in Weiß */
 .chevron-icon {
-    color: white; /* Setzt die Farbe des Chevron-Icons auf Weiß */
-    transition: transform 0.3s ease;
-  }
-  
-  .password-change-container.ng-animating {
-    max-height: 500px; /* Maximale Höhe, wenn das Dropdown geöffnet ist */
-  }
+  font-size: 20px;
+  color: var(--ion-color-medium);
+  transition: transform 0.3s ease;
+}
 
-  /* Pfeil Animation */
-.password-change-container.ng-animating {
-    max-height: 500px; /* Maximale Höhe für das Dropdown */
-  }
+.rotate {
+  transform: rotate(180deg);
+}
 
-.profilepic{
+.hidden {
+  display: none;
+}
+
+.profilepic {
   width: 60px;
   height: 60px;
   border: solid;
