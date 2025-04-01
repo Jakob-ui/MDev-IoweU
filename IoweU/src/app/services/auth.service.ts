@@ -180,4 +180,19 @@ export class AuthService {
       throw new Error('Kein Benutzer ist aktuell eingeloggt.');
     }
   }
+  
+  async getUserData(): Promise<{ name: string, email: string }> {
+    if (!this.auth.currentUser) {
+      throw new Error('Benutzer ist nicht authentifiziert.');
+    }
+    
+    const uid = this.auth.currentUser.uid;
+    const username = await this.getUsernameByUid(uid);
+  
+    return {
+      name: username,
+      email: this.auth.currentUser.email || ''
+    };
+  }
+  
 }

@@ -237,19 +237,48 @@ ion-card-subtitle h6 {
 ion-toolbar {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
   flex-direction: row;
   height: 56px;
   padding: 0 10px;
+  justify-content: space-between;
+}
+
+.left-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Abstand zwischen den Elementen */
+  flex-grow: 1; /* Lässt die linke Seite so viel Platz wie möglich einnehmen */
+}
+
+.right-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Abstand zwischen den Elementen */
 }
 
 ion-title {
   font-weight: 700;
   color: var(--ion-color-dark);
-  text-align: left;
+  flex-grow: 1;
+  padding: 0;
+}
+
+ion-title .pagename {
+  font-weight: 100;
+  font-size: 16px;
+  color: var(--ion-color-dark);
+  border-bottom: solid 1px var(--ion-color-dark);
   margin: 0;
   padding: 0;
-  flex-grow: 1;
+}
+
+ion-title .username{
+  font-weight: 100;
+  font-size: 16px;
+  color: var(--ion-color-dark);
+  border-bottom: solid 1px var(--ion-color-dark);
+  margin: 0;
+  padding-right: 50px;
 }
 
 ion-button.back-button::part(native) {
@@ -266,8 +295,8 @@ ion-button.back-button::part(native) {
 .divider {
   width: 2px;
   background-color: var(--ion-color-dark);
-  margin-right: 15px;
-  margin-left: 15px;
+  margin-right: 10px;
+  margin-left: 10px;
   height: 24px;
 }
 
@@ -292,21 +321,14 @@ ion-button.edit-button::part(native) {
   box-shadow: none !important;
 }
 
-ion-button.logout-button::part(native) {
+ion-icon.logout-button::part(native) {
   --background: var(--ion-color-primary);
   font-weight: 100;
-  font-size: 12px;
+  --font-size: 24px;
   padding: 10px 20px;
   text-transform: uppercase;
   border-radius: 50px;
   box-shadow: none !important;
-}
-
-ion-title .username a{
-  font-weight: 100;
-  font-size: 16px;
-  color: var(--ion-color-dark);
-  border-bottom: solid 1px var(--ion-color-dark);
 }
 
 ion-item::part(native) {
@@ -387,6 +409,30 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   background: rgb(200, 221, 253);
   border: 2px solid #1a65eb;
   padding: 5px 10px 5px 5px;
+}
+
+.user-info {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  border-radius: 50px;
+  gap: 10px;
+  background: rgb(200, 221, 253);
+  border: 2px solid #1a65eb;
+  padding: 5px 10px 5px 5px;
+}
+.user-info .profile-placeholder {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1a65eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--ion-color-dark);
+  font-size: 18px;
+  border: 2px solid var(--ion-color-primary);
 }
 
 .profile-placeholder {

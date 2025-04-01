@@ -17,9 +17,9 @@ import {
   IonCardTitle,
   IonCardSubtitle,
   IonCardContent,
-  IonList,
+  IonList, IonIcon,
 } from '@ionic/angular/standalone';
-import { IonicModule } from '@ionic/angular';
+import {IonicModule, NavController, Platform} from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import { AuthService } from 'src/app/services/auth.service';
@@ -40,11 +40,16 @@ import { AuthService } from 'src/app/services/auth.service';
     IonList,
     RouterModule,
     CommonModule,
+    IonIcon,
   ],
 })
 export class GroupOverviewPage implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
+  private platform = inject(Platform);
+  private navCtrl = inject(NavController);
+
+  iosIcons: boolean = false;
 
   user: string | null ="";
   displayName: string | null = null;
@@ -54,8 +59,8 @@ export class GroupOverviewPage implements OnInit {
 
   ngOnInit() {
     this.user = sessionStorage.getItem('username');
+    this.iosIcons = this.platform.is('ios');
   }
-
   async logout() {
     try {
       await this.auth.logout();
@@ -63,5 +68,13 @@ export class GroupOverviewPage implements OnInit {
     } catch (e) {
       console.log(e);
     }
+  }
+
+  goBack() {
+    this.navCtrl.back(); // Navigiert zur letzten Seite
+  }
+
+  constructor() {
+
   }
 }
