@@ -1,10 +1,9 @@
-import { Component, inject, Inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { ROUTER_CONFIGURATION, RouterModule } from '@angular/router';
-import { Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../services/auth.service-DESKTOP-5IICVVM';
 
 @Component({
   selector: 'app-login',
@@ -38,3 +37,4 @@ export class LoginPage implements OnInit {
     }
   }
 }
+

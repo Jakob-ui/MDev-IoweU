@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons, IonButton, IonItem, IonLabel, IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent } from '@ionic/angular/standalone';
 import { RouterModule } from '@angular/router';
 
-
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -11,9 +10,5 @@ import { RouterModule } from '@angular/router';
   standalone: true
 })
 export class HomePage {
-
   constructor() {}
-
-  ngOnInit() {
-  }
 }

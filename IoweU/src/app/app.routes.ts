@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -27,6 +28,7 @@ export const routes: Routes = [
       import('./pages/group-overview/group-overview.page').then(
         (m) => m.GroupOverviewPage
       ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'create-group',
@@ -34,16 +36,19 @@ export const routes: Routes = [
       import('./pages/create-group/create-group.page').then(
         (m) => m.CreateGroupPage
       ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'group',
     loadComponent: () =>
       import('./pages/group/group.page').then((m) => m.GroupPage),
+    canActivate: [AuthGuard],
   },
   {
     path: 'finance',
     loadComponent: () =>
       import('./pages/finance/finance.page').then((m) => m.FinancePage),
+    canActivate: [AuthGuard],
   },
   {
     path: 'reset-password',
@@ -58,11 +63,21 @@ export const routes: Routes = [
       import('./pages/account-settings/account-settings.page').then(
         (m) => m.AccountSettingsPage
       ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'expance',
     loadComponent: () =>
       import('./pages/expance/expance.page').then((m) => m.ExpancePage),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'create-expance',
+    loadComponent: () =>
+      import('./pages/create-expance/create-expance.page').then(
+        (m) => m.CreateExpancePage
+      ),
+    canActivate: [AuthGuard],
   },
   {
     path: '**',

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -20,8 +20,9 @@ import {
   IonList,
 } from '@ionic/angular/standalone';
 import { IonicModule } from '@ionic/angular';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-group-overview',
@@ -42,14 +43,25 @@ import { Auth } from '@angular/fire/auth';
   ],
 })
 export class GroupOverviewPage implements OnInit {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
   user: string | null ="";
   displayName: string | null = null;
 
-  groups: { name: string; balance: number }[] = []; // Anfangs leere Liste
+  groups: { name: string; balance: number }[] = [];
 
-  constructor(private auth: Auth) {}
 
   ngOnInit() {
     this.user = sessionStorage.getItem('username');
+  }
+
+  async logout() {
+    try {
+      await this.auth.logout();
+      this.router.navigate(['home']);
+    } catch (e) {
+      console.log(e);
+    }
   }
 }

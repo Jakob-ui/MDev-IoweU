@@ -16,18 +16,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18' # Or your desired Node.js version
+          node-version: '22' 
 
       - name: Install dependencies
         run: npm ci
         working-directory: ./IoweU
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
 
       - name: Install Ionic CLI
         run: npm install -g @ionic/cli
         working-directory: ./IoweU
 
       - name: Build Ionic app
-        run: ionic build --prod
+        run: ionic build 
         working-directory: ./IoweU
 
       - name: Deploy to Firebase Hosting
@@ -37,4 +40,4 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_IOWEU_A74CD }}'
           channelId: live
           projectId: ioweu-a74cd
-          entryPoint: ./IoweU 
+          entryPoint: ./IoweU

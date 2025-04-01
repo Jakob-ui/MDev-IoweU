@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
@@ -35,7 +35,7 @@ import { RouterModule } from '@angular/router';
     IonSelectOption,
     RouterModule,
     FormsModule,
-    CommonModule
+    CommonModule,
   ],
 })
 export class CreateGroupPage {
@@ -45,6 +45,7 @@ export class CreateGroupPage {
   selectedTemplate: string = '';
   templates: string[] = ['Standard', 'Projekt', 'Reise'];
   groupImage: string | ArrayBuffer | null = null;
+  showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
@@ -74,5 +75,10 @@ export class CreateGroupPage {
       };
       reader.readAsDataURL(file);
     }
+  }
+
+  // **Korrekt platzierte Methode**
+  onSelectChange() {
+    this.showLabel = !this.selectedTemplate;
   }
 }

@@ -11,23 +11,21 @@
     </ion-toolbar>
   </ion-header>
 
-  <div id="container" class="container">
+  <div id="container" class="login">
     <img src="assets/logo/Logo_lang.png" alt="Logo" class="logo">
 
-    <h3>Login</h3>
+    <h1>Login</h1>
 
-    <ion-item class="input-item">
+    <ion-item>
       <ion-input type="email" placeholder="E-Mail" [(ngModel)]="email"></ion-input>
     </ion-item>
 
-    <ion-item class="input-item">
+    <ion-item>
       <ion-input type="password" placeholder="Passwort" [(ngModel)]="password"></ion-input>
     </ion-item>
 
-    <ion-button class="main-button" expand="block" (click)="login()">Anmelden</ion-button>
+    <ion-button class="main-button" expand="block" (click)="login()">anmedlen</ion-button>
 
     <ion-button class="main-button" expand="block" [routerLink]="'/register'">Register</ion-button>
-
-    <p [routerLink]="'/reset-password'">Passwort vergessen</p>
   </div>
 </ion-content>

@@ -53,16 +53,15 @@
     </ion-list>
 
     <ion-item class="input-item">
-      <ion-label>Template auswählen</ion-label>
+      <ion-label *ngIf="!selectedTemplate" class="Dropdown-label">Template auswählen</ion-label>
       <ion-select [(ngModel)]="selectedTemplate">
-        <ion-select-option
-          *ngFor="let template of templates"
-          [value]="template"
-        >
+        <ion-select-option *ngFor="let template of templates" [value]="template">
           {{ template }}
         </ion-select-option>
       </ion-select>
     </ion-item>
+
+
 
     <ion-button
       class="main-button"

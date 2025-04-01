@@ -12,22 +12,18 @@
   </ion-header>
 
   <div id="container" class="container">
+    <div class="profilepic">
+      <img src="../../../assets/icon/person.svg" />
+    </div>
+
     <h2>Mein Account</h2>
 
     <ion-item class="input-item">
-      <ion-input
-        type="text"
-        placeholder="Name ändern"
-        [(ngModel)]="name"
-      ></ion-input>
+      <ion-button>Name ändern</ion-button>
     </ion-item>
 
     <ion-item class="input-item">
-      <ion-input
-        type="email"
-        placeholder="E-Mail ändern"
-        [(ngModel)]="email"
-      ></ion-input>
+      <ion-button>E-Mail ändern</ion-button>
     </ion-item>
 
     <ion-item class="input-item" (click)="togglePasswordChange()">
@@ -36,12 +32,14 @@
         slot="end"
         [name]="showPasswordFields ? 'chevron-up' : 'chevron-down'"
         class="chevron-icon"
+        [ngClass]="{'rotate': showPasswordFields}"
       ></ion-icon>
     </ion-item>
 
-    <div *ngIf="showPasswordFields" class="password-change-container">
+    <div class="password-change-container" [ngClass]="{'open': showPasswordFields}">
       <ion-item class="input-item">
         <ion-input
+          class="password-input"
           type="password"
           placeholder="Altes Passwort"
           [(ngModel)]="oldPassword"
@@ -50,6 +48,7 @@
 
       <ion-item class="input-item">
         <ion-input
+          class="password-input"
           type="password"
           placeholder="Neues Passwort"
           [(ngModel)]="newPassword"
@@ -58,19 +57,34 @@
 
       <ion-item class="input-item">
         <ion-input
+          class="password-input"
           type="password"
           placeholder="Passwort wiederholen"
           [(ngModel)]="confirmPassword"
         ></ion-input>
       </ion-item>
 
-      <ion-button class="main-button" expand="block" (click)="changePassword()"
-        >Bestätigen</ion-button
-      >
+      <ion-button class="main-button" expand="block" (click)="changePassword()">
+        Bestätigen
+      </ion-button>
     </div>
+    
+    <ion-button id="delete-alert" color="danger">Konto löschen</ion-button>
+    <ion-alert
+      trigger="delete-alert"
+      header="Konto löschen?"
+      message="Möchtest du dein Konto wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+      [buttons]="alertButtons"
+      (didDismiss)="setResult($event)"
+    ></ion-alert>
+    
+    
 
-    <ion-button class="main-button" expand="block"
-      >Änderungen speichern</ion-button
-    >
+    <ion-button class="main-button" expand="block">
+      Änderungen speichern
+    </ion-button>
+
+   
+  
   </div>
 </ion-content>

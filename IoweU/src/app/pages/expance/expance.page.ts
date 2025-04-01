@@ -37,10 +37,10 @@ import { RouterModule } from '@angular/router';
     IonBadge,
     IonCard,
     RouterModule,
+    IonButton,
   ],
 })
-export class ExpancePage {
-  // Beispiel für Gruppenmitglieder mit Profilbildern
+export class ExpancePage implements OnInit {
   groupMembers = [
     { name: 'Livia', profileImage: 'assets/profiles/livia.jpg' },
     { name: 'Michaela', profileImage: 'assets/profiles/michaela.jpg' },
@@ -49,34 +49,34 @@ export class ExpancePage {
     { name: 'Mateusz', profileImage: 'assets/profiles/mateusz.jpg' },
   ];
 
-  // Beispiel für Ausgaben
   expances = [
     {
       expace: 'Pizza',
       totalAmount: 50,
-      amountToPay: -10, // Betrag des eingeloggten Benutzers
-      paidBy: this.groupMembers[0], // Bezahlte Person (z.B. Livia)
+      amountToPay: -10,
+      paidBy: this.groupMembers[0],
       date: new Date(2025, 2, 20),
     },
     {
       expace: 'Einkauf bei Hofer',
       totalAmount: 70,
-      amountToPay: -20, // Betrag des eingeloggten Benutzers
-      paidBy: this.groupMembers[1], // Bezahlte Person (z.B. Michaela)
+      amountToPay: -20,
+      paidBy: this.groupMembers[1],
       date: new Date(2025, 3, 5),
     },
     {
       expace: 'Kino',
       totalAmount: 40,
-      amountToPay: -5, // Betrag des eingeloggten Benutzers
-      paidBy: this.groupMembers[2], // Bezahlte Person (z.B. Jakob)
-      date: new Date(2025, 3, 12),
+      amountToPay: -5,
+      paidBy: this.groupMembers[2],
+      date: new Date(2025, 3, 5),
     },
   ];
 
-  balance = 50; // Beispiel für den Gesamtbetrag
-  lastTransactionDate = new Date(2025, 2, 20); // Beispiel für das Datum der letzten Transaktion
+  balance = 50;
+  lastTransactionDate = new Date(2025, 2, 20);
 
   constructor() {}
 
+  ngOnInit() {}
 }
