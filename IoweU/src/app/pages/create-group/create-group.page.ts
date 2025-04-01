@@ -22,9 +22,6 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./create-group.page.scss'],
   standalone: true,
   imports: [
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonButton,
     IonItem,

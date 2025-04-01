@@ -102,12 +102,13 @@ ion-header::part(native) {
   --box-shadow: none !important;
 }
 
+/*
 .header-md{
   //--box-shadow: none !important;
   //--webkit-box-shadow: none !important;
   //border-bottom: solid 1px var(--ion-color-dark);
 
-}
+} */
 
 ion-card {
   font-family: var(--ion-font-family);
@@ -425,7 +426,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #1a65eb;
+  background: var(--user-color, #1a65eb);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -439,7 +440,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   width: 25px;
   height: 25px;
   border-radius: 50%;
-  background: #1a65eb;
+  background: var(--user-color, #1a65eb);
   display: flex;
   align-items: center;
   justify-content: center;
