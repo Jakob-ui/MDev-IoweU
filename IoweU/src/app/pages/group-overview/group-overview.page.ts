@@ -17,9 +17,10 @@ import {
   IonCardTitle,
   IonCardSubtitle,
   IonCardContent,
-  IonList, IonIcon,
+  IonList,
+  IonIcon,
 } from '@ionic/angular/standalone';
-import {IonicModule, NavController, Platform} from '@ionic/angular';
+import { IonicModule, NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import { AuthService } from 'src/app/services/auth.service';
@@ -32,7 +33,6 @@ import { AuthService } from 'src/app/services/auth.service';
   imports: [
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonContent,
     IonButton,
     IonItem,
@@ -51,15 +51,18 @@ export class GroupOverviewPage implements OnInit {
 
   iosIcons: boolean = false;
 
-  user: string | null ="";
+  user: string | null = '';
   displayName: string | null = null;
 
   groups: { name: string; balance: number }[] = [];
 
-
   ngOnInit() {
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
+
+    const userColor = sessionStorage.getItem('usercolor');
+    document.documentElement.style.setProperty('--user-color', userColor);
+    //document.documentElement.style.setProperty('--user-color-background;', userColor);   muss noch Implementiert werden
   }
   async logout() {
     try {
@@ -74,7 +77,5 @@ export class GroupOverviewPage implements OnInit {
     this.navCtrl.back(); // Navigiert zur letzten Seite
   }
 
-  constructor() {
-
-  }
+  constructor() {}
 }

@@ -31,7 +31,6 @@ import {NavController, Platform} from "@ionic/angular";
     IonItem,
     IonContent,
     IonHeader,
-    IonTitle,
     IonToolbar,
     CommonModule,
     FormsModule,

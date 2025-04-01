@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Platform } from '@ionic/angular';
 import { NavController } from '@ionic/angular';
@@ -17,10 +17,11 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonCardSubtitle,
-  IonCardContent, IonIcon,
+  IonCardContent,
+  IonIcon,
 } from '@ionic/angular/standalone';
-import {Router, RouterModule} from '@angular/router';
-import {AuthService} from "../../services/auth.service";
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-group',
@@ -48,13 +49,13 @@ export class GroupPage {
 
   iosIcons: boolean = false;
 
-  user: string | null ="";
+  user: string | null = '';
   displayName: string | null = null;
 
   groupImage: string = ''; // Standardwert für das Gruppenbild
   balance: number = -20; // Beispielwert für das Guthaben
 
-  totalCost: number = 120.50; // Beispielhafte Gesamtkosten
+  totalCost: number = 120.5; // Beispielhafte Gesamtkosten
   currentMonth: string = 'März 2025';
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter']; // Beispielhafte Einkaufsliste
@@ -62,11 +63,9 @@ export class GroupPage {
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher']; // Beispielhafte Liste
 
   ngOnInit() {
-    this.user = sessionStorage.getItem('username');
-    this.iosIcons = this.platform.is('ios');
-    const userColor = sessionStorage.getItem('usercolor');
-    document.documentElement.style.setProperty('--user-color', userColor);
+
   }
+
   async logout() {
     try {
       await this.auth.logout();
@@ -80,7 +79,5 @@ export class GroupPage {
     this.navCtrl.back(); // Navigiert zur letzten Seite
   }
 
-  constructor() {
-
-  }
+  constructor() {}
 }

@@ -301,8 +301,6 @@ ion-button.back-button::part(native) {
   height: 24px;
 }
 
-
-
 ion-button.main-button::part(native) {
   --background: var(--ion-color-primary);
   font-weight: 100;
@@ -407,7 +405,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   height: 40px;
   border-radius: 50px;
   gap: 10px;
-  background: rgb(200, 221, 253);
+  background: rgb(228, 228, 228);
   border: 2px solid #1a65eb;
   padding: 5px 10px 5px 5px;
 }
@@ -418,8 +416,8 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   height: 30px;
   border-radius: 50px;
   gap: 10px;
-  background: rgb(200, 221, 253);
-  border: 2px solid #1a65eb;
+  background: var(--user-color-background, #c7c7c7d6);
+  border: 2px solid var(--user-color, #1a65eb);
   padding: 5px 10px 5px 5px;
 }
 .user-info .profile-placeholder {
