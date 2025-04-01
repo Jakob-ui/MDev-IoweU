@@ -32,7 +32,7 @@
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/*@import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
@@ -40,13 +40,7 @@
 
 
 
-ion-button.main-button::part(native) {
-  --background: var(--ion-color-primary);
-  font-weight: 100;
-  padding: 12px 24px;
-  text-transform: uppercase;
-  border-radius: 50px;
-}
+
 
 h1{
   font-family: var(--ion-font-family);
@@ -107,9 +101,65 @@ p, ion-card-content{
 ion-card{
   font-family: var(--ion-font-family);
   font-weight: 100;
-  font-size: 12px;
   background: var(--ion-color-secondary);
+  border-radius: 15px;
+  width: 80%;
+  max-width: 400px;
+  height: 120px;
+  display: flex;
+  --box-shadow: none !important;
+  box-shadow: none !important;
 }
+
+
+.card-content{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+  margin: 20px;
+}
+
+ion-card-subtitle {
+  border-radius: 50px;
+  padding: 5px 10px;
+}
+
+ion-card-subtitle span{
+  font-size: 12;
+  font-weight: 100;
+}
+
+.negative {
+  background: var(--ion-color-danger); /* Rote Farbe für negative Zahlen */
+  color: var(--ion-color-dark);
+}
+
+.positive {
+  background: var(--ion-color-success); /* Grüne Farbe für positive Zahlen */
+  color: var(--ion-color-dark);
+}
+
+ion-button.main-button::part(native) {
+  --background: var(--ion-color-primary);
+  font-weight: 100;
+  padding: 12px 24px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+}
+
+ion-button.edit-button::part(native) {
+  --background: var(--ion-color-primary);
+  font-weight: 100;
+  font-size: 12px;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+}
+
 
 ion-item::part(native){
   font-family: var(--ion-font-family);
@@ -117,12 +167,48 @@ ion-item::part(native){
   font-size: 12px;
   background: var(--ion-color-secondary) !important;
   border-radius: 50px;
-  border-color: #1f1f1f;
+  --border-style: none !important;
+  border: none !important;
 }
+
 
 ion-item .input-label::part(native){
   font-family: var(--ion-font-family);
   font-weight: 100;
   font-size: 12px;
   background: var(--ion-color-dark);
+}
+
+.container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+}
+
+.container .logo{
+  width: 20%;
+  margin-bottom: 10%;
+  max-width: 100px;
+}
+
+.input-item, .main-button {
+  width: 80%;
+  max-width: 400px;
+  margin-bottom: 10px;
+}
+
+/* Anpassungen für den Dark Mode */
+@media (prefers-color-scheme: dark) {
+  h1, h2, h3, h4, h5, h6, h7, p {
+    color: var(--ion-color-light) !important;
+  }
+
+  ion-card-content, ion-card-title, ion-card-subtitle, ion-item::part(native), ion-item .input-label::part(native) {
+    color: var(--ion-color-dark) !important;
+  }
+
+
 }
