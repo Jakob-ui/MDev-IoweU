@@ -1,8 +1,8 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Gruppenübersicht</ion-title>
-    <ion-title slot="end"><a [routerLink]="'/account-settings'">Hi {{ user || 'NA' }}</a></ion-title>
-    <ion-button (click)="logout()" slot="end">Logout</ion-button>
+    <ion-title slot="end" class="username"><a [routerLink]="'/account-settings'">Hi {{ user || 'NA' }}</a></ion-title>
+    <ion-button (click)="logout()" slot="end" class="logout-button">Logout</ion-button>
   </ion-toolbar>
 </ion-header>
 

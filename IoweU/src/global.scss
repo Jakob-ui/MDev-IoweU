@@ -1,3 +1,5 @@
+@use "./theme/variables" as *;
+
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
@@ -36,7 +38,6 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
 
-@import "./theme/variables.scss";
 
 h1 {
   font-family: var(--ion-font-family);
@@ -95,6 +96,17 @@ ion-card-content {
   font-weight: 100;
   font-size: 12px;
   color: var(--ion-color-dark) !important;
+}
+
+ion-header::part(native) {
+  --box-shadow: none !important;
+}
+
+.header-md{
+  //--box-shadow: none !important;
+  //--webkit-box-shadow: none !important;
+  //border-bottom: solid 1px var(--ion-color-dark);
+
 }
 
 ion-card {
@@ -213,14 +225,53 @@ ion-card-subtitle h6 {
 }
 
 .negative {
-  background: var(--ion-color-danger); /* Rote Farbe für negative Zahlen */
+  background: var(--ion-color-danger);
   color: var(--ion-color-dark);
 }
 
 .positive {
-  background: var(--ion-color-success); /* Grüne Farbe für positive Zahlen */
+  background: var(--ion-color-success);
   color: var(--ion-color-dark);
 }
+
+ion-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row;
+  height: 56px;
+  padding: 0 10px;
+}
+
+ion-title {
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  text-align: left;
+  margin: 0;
+  padding: 0;
+  flex-grow: 1;
+}
+
+ion-button.back-button::part(native) {
+  --background: var(--ion-color-primary);
+  font-weight: 700;
+  font-size: 20px;
+  padding: 6px 10px;
+  margin-right: 5px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+}
+
+.divider {
+  width: 2px;
+  background-color: var(--ion-color-dark);
+  margin-right: 15px;
+  margin-left: 15px;
+  height: 24px;
+}
+
+
 
 ion-button.main-button::part(native) {
   --background: var(--ion-color-primary);
@@ -239,6 +290,23 @@ ion-button.edit-button::part(native) {
   text-transform: uppercase;
   border-radius: 50px;
   box-shadow: none !important;
+}
+
+ion-button.logout-button::part(native) {
+  --background: var(--ion-color-primary);
+  font-weight: 100;
+  font-size: 12px;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+}
+
+ion-title .username a{
+  font-weight: 100;
+  font-size: 16px;
+  color: var(--ion-color-dark);
+  border-bottom: solid 1px var(--ion-color-dark);
 }
 
 ion-item::part(native) {
