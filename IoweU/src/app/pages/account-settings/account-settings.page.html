@@ -12,22 +12,18 @@
   </ion-header>
 
   <div id="container" class="container">
+    <div class="profilepic">
+      <img src="../../../assets/icon/person.svg" />
+    </div>
+
     <h2>Mein Account</h2>
 
     <ion-item class="input-item">
-      <ion-input
-        type="text"
-        placeholder="Name ändern"
-        [(ngModel)]="name"
-      ></ion-input>
+      <ion-button>Name ändern</ion-button>
     </ion-item>
 
     <ion-item class="input-item">
-      <ion-input
-        type="email"
-        placeholder="E-Mail ändern"
-        [(ngModel)]="email"
-      ></ion-input>
+      <ion-button>E-Mail ändern</ion-button>
     </ion-item>
 
     <ion-item class="input-item" (click)="togglePasswordChange()">
