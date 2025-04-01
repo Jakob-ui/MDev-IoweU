@@ -76,7 +76,7 @@ export class AccountSettingsPage {
       },
     },
   ];
-
+ 
   setResult(event: CustomEvent<OverlayEventDetail>) {
     console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`); 
   }
