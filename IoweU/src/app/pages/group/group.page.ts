@@ -68,6 +68,8 @@ export class GroupPage {
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher']; // Beispielhafte Liste
 
   ngOnInit() {
+    this.user = sessionStorage.getItem('username');
+    this.iosIcons = this.platform.is('ios');
     this.timeout = setTimeout(() => {
       this.loading = false;
     }, 3000);
