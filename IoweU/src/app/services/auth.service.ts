@@ -24,8 +24,12 @@ import {
   providedIn: 'root',
 })
 export class AuthService {
+  getFirestoreInstance(): import("@firebase/firestore").Firestore {
+    throw new Error('Method not implemented.');
+  }
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+  currentUser: any;
 
   async signup(
     email: string,
@@ -181,18 +185,28 @@ export class AuthService {
     }
   }
   
-  async getUserData(): Promise<{ name: string, email: string }> {
-    if (!this.auth.currentUser) {
-      throw new Error('Benutzer ist nicht authentifiziert.');
-    }
-    
-    const uid = this.auth.currentUser.uid;
-    const username = await this.getUsernameByUid(uid);
-  
+  async getUserData(): Promise<{ name: string, email: string, color: string }> {
+  if (!this.auth.currentUser) {
+    throw new Error('Benutzer ist nicht authentifiziert.');
+  }
+
+  const uid = this.auth.currentUser.uid;
+  const usersCollection = collection(this.firestore, 'users');
+  const q = query(usersCollection, where('id', '==', uid));
+  const snapshot = await getDocs(q);
+
+  if (!snapshot.empty) {
+    const userDoc = snapshot.docs[0];
+    const data = userDoc.data();
     return {
-      name: username,
-      email: this.auth.currentUser.email || ''
+      name: data['name'] || '',
+      email: data['email'] || '',
+      color: data['color'] || '#ffffff', // Standardfarbe falls nicht gesetzt
     };
   }
+
+  throw new Error('Benutzerdaten konnten nicht gefunden werden.');
+}
+
   
 }

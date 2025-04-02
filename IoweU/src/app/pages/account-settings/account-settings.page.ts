@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
@@ -15,8 +15,8 @@ import {
   IonAlert,
 } from '@ionic/angular/standalone';
 import { OverlayEventDetail } from '@ionic/core/components';
-import {Router} from "@angular/router";
-import {NavController, Platform} from "@ionic/angular";
+import { Router } from '@angular/router';
+import { NavController, Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-account-settings',
@@ -38,38 +38,41 @@ import {NavController, Platform} from "@ionic/angular";
   ],
 })
 export class AccountSettingsPage implements OnInit {
-  private auth = inject(AuthService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
 
   iosIcons: boolean = false;
-
-  user: string | null ="";
+  user: string | null = "";
   displayName: string | null = null;
 
   name: string = '';
   email: string = '';
+  color: string = '#ffffff'; // Standardfarbe (weiß), falls keine Farbe gespeichert ist
+  profileImage: string | ArrayBuffer | null = null; // Profilbild
+
   oldPassword: string = '';
   newPassword: string = '';
   confirmPassword: string = '';
 
   showPasswordFields: boolean = false;
-  showDeleteAlert: boolean = false; // Diese Variable steuert, ob der Löschen-Dialog angezeigt wird
+  showDeleteAlert: boolean = false;
 
-  constructor(private authService: AuthService) {}
+  constructor() {}
 
   ngOnInit() {
-    this.loadSessionData();
+    this.loadUserData();
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
   }
 
-  async loadSessionData() {
+  async loadUserData() {
     try {
       const userData = await this.authService.getUserData();
       this.name = userData.name;
       this.email = userData.email;
+      this.color = userData.color; // Farbe direkt laden
     } catch (error) {
       console.error('Fehler beim Laden der Benutzerdaten:', error);
     }
@@ -87,22 +90,16 @@ export class AccountSettingsPage implements OnInit {
     alert('Passwort erfolgreich geändert!');
   }
 
-
-
   public alertButtons = [
     {
       text: 'Abbrechen',
       role: 'cancel',
-      handler: () => {
-        console.log('Löschung abgebrochen');
-      },
+      handler: () => console.log('Löschung abgebrochen'),
     },
     {
       text: 'Löschen',
       role: 'destructive',
-      handler: () => {
-        this.deleteAccount();
-      },
+      handler: () => this.deleteAccount(),
     },
   ];
 
@@ -112,12 +109,12 @@ export class AccountSettingsPage implements OnInit {
 
   deleteAccount() {
     console.log('Konto wird gelöscht...');
-    // Hier kannst du den Löschprozess starten, z. B. einen API-Call
+    // Hier kannst du den Löschprozess starten
   }
 
   async logout() {
     try {
-      await this.auth.logout();
+      await this.authService.logout();
       this.router.navigate(['home']);
     } catch (e) {
       console.log(e);
@@ -127,4 +124,6 @@ export class AccountSettingsPage implements OnInit {
   goBack() {
     this.navCtrl.back(); // Navigiert zur letzten Seite
   }
+
+  
 }

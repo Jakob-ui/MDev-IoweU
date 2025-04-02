@@ -310,6 +310,15 @@ ion-button.main-button::part(native) {
   box-shadow: none !important;
 }
 
+ion-button.delete-button::part(native) {
+  --background: var(--ion-color-danger);
+  font-weight: 100;
+  padding: 12px 24px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+}
+
 ion-button.edit-button::part(native) {
   --background: var(--ion-color-primary);
   font-weight: 100;
