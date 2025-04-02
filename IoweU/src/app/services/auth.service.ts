@@ -54,6 +54,7 @@ export class AuthService {
         email: email,
         color: color,
         img: img,
+        lastedited: new Date().toISOString(),
       };
 
       const success = await this.saveUserData(

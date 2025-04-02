@@ -68,6 +68,7 @@ export class AccountSettingsPage implements OnInit {
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false;
   auth: any;
+  lastedited: string = '';
 
   constructor() {}
 
@@ -83,7 +84,15 @@ export class AccountSettingsPage implements OnInit {
       const userColor = sessionStorage.getItem('usercolor');
       this.color = userColor || '';
       this.email = sessionStorage.getItem('email') || '';
+      const uid = this.authService.currentUser?.uid;
 
+      if (uid) {
+        this.lastedited = await this.userService.getUserthingsByUid(
+          uid,
+          'lastedited'
+        );
+        sessionStorage.setItem('lastedited', this.lastedited);
+      }
       if (userColor) {
         document.documentElement.style.setProperty('--user-color', userColor);
       }
@@ -92,6 +101,20 @@ export class AccountSettingsPage implements OnInit {
     } catch (error) {
       console.error('Fehler beim Laden der Benutzerdaten:', error);
     }
+  }
+
+  proofTime() {
+    const lastedited = sessionStorage.getItem('lastedited');
+    if (!lastedited) {
+      return true;
+    }
+
+    const lastEditDate = new Date(lastedited);
+    const currentDate = new Date();
+
+    const differenceInMs = currentDate.getTime() - lastEditDate.getTime();
+
+    return differenceInMs > 5 * 60 * 1000;
   }
 
   public alertButtons = [
@@ -152,7 +175,7 @@ export class AccountSettingsPage implements OnInit {
   }
   cancel() {
     this.userEditing = false;
-    this.name = sessionStorage.getItem('username') || '';
+    this.newname = sessionStorage.getItem('username') || '';
   }
   confirm() {
     this.userEditing = false;
@@ -164,9 +187,16 @@ export class AccountSettingsPage implements OnInit {
 
   async saveChanges() {
     try {
+      if (!this.proofTime()) {
+        console.warn(
+          'Änderungen können nur alle 5 Minuten vorgenommen werden.'
+        );
+        return;
+      }
       await this.acc.userupdate({
         name: this.newname,
         color: this.color,
+        lastedited: new Date().toISOString(),
       });
 
       sessionStorage.setItem('username', this.newname);

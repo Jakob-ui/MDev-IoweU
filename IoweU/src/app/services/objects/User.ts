@@ -5,4 +5,5 @@ export interface User
     email: string;
     color: string;
     img: string;
+    lastedited: string;
 }
