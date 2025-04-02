@@ -1,4 +1,3 @@
-
 .profilepic {
   width: 60px;
   height: 60px;
@@ -7,8 +6,6 @@
   border-radius: 50%;
   margin-bottom: 5px;
 }
-
-
 
 .fixed-bottom {
   position: absolute;
@@ -23,3 +20,18 @@
 .fixed-bottom ion-button {
   width: 80%; 
 }
+
+/* Styling für den Color Picker */
+.colorinput {
+  width: 40px; 
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  display: block; 
+  top: 0; /* Entfernt mögliche Verschiebungen nach unten */
+}
+
+.colorinput::-webkit-color-swatch {
+  border-radius: 50%; 
+}
+
