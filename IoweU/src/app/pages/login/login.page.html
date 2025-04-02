@@ -33,23 +33,21 @@
         placeholder="Passwort"
         [(ngModel)]="password"
         (ngModelChange)="inputChange()"
-        (keyup.enter)="login()"
-      >
+        (keyup.enter)="login()">
         <ion-input-password-toggle slot="end"></ion-input-password-toggle>
       </ion-input>
     </ion-item>
-
-    <ion-button class="main-button" expand="block" (click)="login()"
-      >Anmelden</ion-button
-    ><ion-label>Remember Me</ion-label>
+    <div class="remember-me">
+      <ion-label>Remember Me</ion-label>
       <ion-checkbox [(ngModel)]="rememberMe"></ion-checkbox>
+    </div>
+    <ion-button class="main-button" expand="block" (click)="login()">Anmelden</ion-button>
 
-    <ion-button class="main-button" expand="block" [routerLink]="'/register'"
-      >Register</ion-button
-    >
+
+    <ion-button class="main-button" expand="block" [routerLink]="'/register'">Register</ion-button>
     <div class="error-Space">
       <p *ngIf="error !== ''" class="error">{{error}}</p>
     </div>
-    <p class="link-text" [routerLink]="'/reset-password'">Passwort vergessen</p>
+    <p class="link-text" [routerLink]="'/reset-password'">Passwort vergessen?</p>
   </div>
 </ion-content>
