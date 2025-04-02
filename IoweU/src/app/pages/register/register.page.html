@@ -48,7 +48,17 @@
         <ion-input-password-toggle slot="end"></ion-input-password-toggle>
       </ion-input>
     </ion-item>
-    <ion-button class="main-button" (click)="register()"> Register </ion-button>
-    <p class="error" *ngIf="failed === true">Registrierung fehlgeschlagen</p>
+
+    <ion-button
+      class="main-button"
+      expand="block"
+      (click)="register()"
+      [class.error-button]="registerFailed">
+      Register
+    </ion-button>
+
+    <div class="error-Space">
+      <p *ngIf="error !== ''" class="error" [class.error-message]="registerFailed">{{error}}</p>
+    </div>
   </div>
 </ion-content>
