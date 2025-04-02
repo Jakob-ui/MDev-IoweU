@@ -156,7 +156,9 @@ export class AuthService {
     });
   }
 
-  async getUserData(): Promise<{ name: string; email: string }> {
+  async getUserData(): Promise<{
+    color: string; name: string; email: string 
+}> {
     if (!this.auth.currentUser) {
       throw new Error('Benutzer ist nicht authentifiziert.');
     }
@@ -167,6 +169,7 @@ export class AuthService {
     return {
       name: username,
       email: this.auth.currentUser.email || '',
+      color: sessionStorage.getItem('usercolor') || '#ffffff', // Standardfarbe (weiß), falls keine Farbe gespeichert ist
     };
   }
 }
