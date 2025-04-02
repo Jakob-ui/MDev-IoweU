@@ -329,6 +329,15 @@ ion-button.edit-button::part(native) {
   box-shadow: none !important;
 }
 
+ion-button.main-button.error-button::part(native) {
+  --background: var(--ion-color-danger);
+  --color: white;
+}
+
+.error-message {
+  font-weight: bold;
+}
+
 ion-icon.logout-button::part(native) {
   --background: var(--ion-color-primary);
   font-weight: 100;
@@ -509,6 +518,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   margin-bottom: 10px;
 }
 
+
 .separator {
   border: none;
   height: 1px;
@@ -563,7 +573,6 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   font-weight: 100;
   cursor: pointer;
   text-align: center;
-  margin-top: -5px;
 }
 
 .loading-overlay {

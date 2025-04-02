@@ -41,13 +41,21 @@
       <ion-label>Remember Me</ion-label>
       <ion-checkbox [(ngModel)]="rememberMe"></ion-checkbox>
     </div>
-    <ion-button class="main-button" expand="block" (click)="login()">Anmelden</ion-button>
+    <ion-button
+      class="main-button"
+      expand="block"
+      (click)="login()"
+      [class.error-button]="loginFailed">
+      Anmelden
+    </ion-button>
 
 
     <ion-button class="main-button" expand="block" [routerLink]="'/register'">Register</ion-button>
-    <div class="error-Space">
-      <p *ngIf="error !== ''" class="error">{{error}}</p>
-    </div>
+
     <p class="link-text" [routerLink]="'/reset-password'">Passwort vergessen?</p>
+
+    <div class="error-Space">
+      <p *ngIf="error !== ''" class="error" [class.error-message]="loginFailed">{{error}}</p>
+    </div>
   </div>
 </ion-content>
