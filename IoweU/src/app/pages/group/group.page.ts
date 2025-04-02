@@ -57,15 +57,14 @@ export class GroupPage {
   user: string | null = '';
   displayName: string | null = null;
 
-  groupImage: string = ''; // Standardwert für das Gruppenbild
-  balance: number = -20; // Beispielwert für das Guthaben
-
-  totalCost: number = 120.5; // Beispielhafte Gesamtkosten
+  groupImage: string = '';
+  balance: number = -20;
+  totalCost: number = 120.5;
   currentMonth: string = 'März 2025';
 
-  shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter']; // Beispielhafte Einkaufsliste
+  shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
 
-  assetsList: string[] = ['Sofa', 'Küche', 'Fernseher']; // Beispielhafte Liste
+  assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
 
   ngOnInit() {
     this.user = sessionStorage.getItem('username');
@@ -74,7 +73,6 @@ export class GroupPage {
       this.loading = false;
     }, 3000);
 
-    // Simuliertes Laden von Daten
     this.loadData();
   }
 
@@ -96,7 +94,7 @@ export class GroupPage {
   async loadData() {
     try {
       // Simuliertes Datenladen (z. B. API-Aufruf)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       this.loading = false;
       clearTimeout(this.timeout);
     } catch (error) {

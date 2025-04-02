@@ -1,8 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <div class="left-container" slot="start">
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
-                class="back-button" (click)="goBack()"></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+        class="back-button"
+        (click)="goBack()"
+      ></ion-icon>
       <div class="divider"></div>
       <div class="pagename">Accountsettings</div>
     </div>
@@ -12,14 +15,16 @@
         <div class="profile-placeholder"></div>
         <span class="member-name">{{ user }}</span>
       </div>
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
-                (click)="logout()" class="logout-button"></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
+        (click)="logout()"
+        class="logout-button"
+      ></ion-icon>
     </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-
   <div id="container" class="container">
     <div class="profilepic">
       <img src="../../../assets/icon/person.svg" />
@@ -28,13 +33,13 @@
     <h2>Mein Account</h2>
 
     <ion-item class="input-item">
-      <ion-input
-        type="text"
-        placeholder="Benutzername ändern"
-        [(ngModel)]="name">
+      <ion-input type="text" placeholder="{{changeMessage}}" [(ngModel)]="name">
       </ion-input>
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'"
-               ></ion-icon>
+      <ion-icon *ngIf="!editing"></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'"
+        (click)="change('Schreibe deinen neuen Usernamen')"
+      ></ion-icon>
     </ion-item>
 
     <ion-item class="input-item">
@@ -43,56 +48,23 @@
         [(ngModel)]="email"
         placeholder="E-Mail ändern"
       ></ion-input>
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'"
-               ></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'"
+      ></ion-icon>
     </ion-item>
 
     <ion-item class="input-item">
       <ion-label class="label">Profilfarbe:</ion-label>
       <input type="color" [(ngModel)]="color" class="colorinput" />
     </ion-item>
-    
 
-    <ion-item class="input-item" (click)="togglePasswordChange()">
-      <ion-label>Passwort ändern</ion-label>
-      <ion-icon
-        [class.rotate]="showPasswordFields"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/md-arrow-dropdown.svg'"
-      ></ion-icon>
-    </ion-item>
-
-    <div class="password-change-container" [ngClass]="{'open': showPasswordFields}">
-      <ion-item class="input-item">
-        <ion-input
-          class="password-input"
-          type="password"
-          placeholder="Altes Passwort"
-          [(ngModel)]="oldPassword"
-        ></ion-input>
-      </ion-item>
-
-      <ion-item class="input-item">
-        <ion-input
-          class="password-input"
-          type="password"
-          placeholder="Neues Passwort"
-          [(ngModel)]="newPassword"
-        ></ion-input>
-      </ion-item>
-
-      <ion-item class="input-item">
-        <ion-input
-          class="password-input"
-          type="password"
-          placeholder="Passwort wiederholen"
-          [(ngModel)]="confirmPassword"
-        ></ion-input>
-      </ion-item>
-
-      <ion-button class="main-button" expand="block" (click)="changePassword()">
-        Bestätigen
-      </ion-button>
-    </div>
+    <ion-button
+      class="main-button"
+      expand="block"
+      [routerLink]="'/reset-password'"
+    >
+      Passwort ändern
+    </ion-button>
 
     <ion-button class="delete-button" color="danger">Konto löschen</ion-button>
     <ion-alert
@@ -104,11 +76,8 @@
       (didDismiss)="setResult($event)"
     ></ion-alert>
 
-    <ion-button class="main-button" expand="block">
+    <ion-button class="main-button save-button" expand="block">
       Änderungen speichern
     </ion-button>
-
-
-
   </div>
 </ion-content>
