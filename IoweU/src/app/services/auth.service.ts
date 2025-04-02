@@ -19,16 +19,19 @@ import {
   browserLocalPersistence,
   onAuthStateChanged,
 } from '@angular/fire/auth';
+import { User } from './objects/User';
+import { UserService } from './user.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  getFirestoreInstance(): import("@firebase/firestore").Firestore {
+  getFirestoreInstance(): import('@firebase/firestore').Firestore {
     throw new Error('Method not implemented.');
   }
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+  private userService = inject(UserService);
   currentUser: any;
 
   async signup(
@@ -45,12 +48,18 @@ export class AuthService {
     );
 
     if (userCredential.user) {
-      const success = await this.saveUserData(userCredential.user.uid, {
-        email,
-        name,
-        color,
-        img,
-      });
+      const userData: User = {
+        id: userCredential.user.uid,
+        name: name,
+        email: email,
+        color: color,
+        img: img,
+      };
+
+      const success = await this.saveUserData(
+        userCredential.user.uid,
+        userData
+      );
 
       if (!success) {
         throw new Error('Fehler beim Speichern der Benutzerdaten.');
@@ -60,7 +69,7 @@ export class AuthService {
     return userCredential;
   }
 
-  private async saveUserData(uid: string, data: any): Promise<boolean> {
+  private async saveUserData(uid: string, data: User): Promise<boolean> {
     if (!this.auth.currentUser) {
       throw new Error('Benutzer ist nicht authentifiziert.');
     }
@@ -71,13 +80,7 @@ export class AuthService {
       );
     }
     try {
-      const docRef = await addDoc(collection(this.firestore, 'users'), {
-        id: uid,
-        name: data.name,
-        email: data.email,
-        color: data.color,
-        img: data.img,
-      });
+      const docRef = await addDoc(collection(this.firestore, 'users'), data);
       console.log('Dokument erfolgreich hinzugefügt:', docRef.id);
       return true;
     } catch (e) {
@@ -102,8 +105,8 @@ export class AuthService {
       .then(async (userCredential) => {
         if (userCredential.user) {
           const uid = userCredential.user.uid;
-          const username = await this.getUserthingsByUid(uid, 'name');
-          const userColor = await this.getUserthingsByUid(uid, 'color');
+          const username = await this.userService.getUserthingsByUid(uid, 'name');
+          const userColor = await this.userService.getUserthingsByUid(uid, 'color');
           sessionStorage.setItem('username', username);
           sessionStorage.setItem('usercolor', userColor);
         } else {
@@ -136,40 +139,9 @@ export class AuthService {
     });
   }
 
-  async getUserthingsByUid(uid: string, search: string): Promise<string> {
-    const usersCollection = collection(this.firestore, 'users');
-    const q = query(usersCollection, where('id', '==', uid));
-    const snapshot = await getDocs(q);
-
-    if (!snapshot.empty) {
-      const userDoc = snapshot.docs[0];
-      const data = userDoc.data();
-      return data[search];
-    }
-
-    throw new Error('Benutzername konnte nicht gefunden werden.');
-  }
-
   resetpassword(email: string): Promise<void> {
     return sendPasswordResetEmail(this.auth, email.trim(), {
       url: 'http://localhost:8100/login',
     });
-  }
-
-  async getUserData(): Promise<{
-    color: string; name: string; email: string 
-}> {
-    if (!this.auth.currentUser) {
-      throw new Error('Benutzer ist nicht authentifiziert.');
-    }
-
-    const uid = this.auth.currentUser.uid;
-    const username = await this.getUserthingsByUid(uid, 'name');
-
-    return {
-      name: username,
-      email: this.auth.currentUser.email || '',
-      color: sessionStorage.getItem('usercolor') || '#ffffff', // Standardfarbe (weiß), falls keine Farbe gespeichert ist
-    };
   }
 }

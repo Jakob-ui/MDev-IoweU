@@ -19,6 +19,7 @@ import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { NavController, Platform } from '@ionic/angular';
 import { AccountService } from 'src/app/services/account.service';
+import { UserService } from 'src/app/services/user.service';
 
 @Component({
   selector: 'app-account-settings',
@@ -46,6 +47,7 @@ export class AccountSettingsPage implements OnInit {
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private acc = inject(AccountService);
+  private userService = inject(UserService);
 
   iosIcons: boolean = false;
 
@@ -55,8 +57,10 @@ export class AccountSettingsPage implements OnInit {
   name: string = '';
   newname: string = '';
   email: string = '';
-  color: string = '#ffffff'; // Standardfarbe (weiß), falls keine Farbe gespeichert ist
-  profileImage: string | ArrayBuffer | null = null; // Profilbild
+  color: string = '#ffffff';
+  profileImage: string | ArrayBuffer | null = null;
+  changeMessage: string = '';
+  editing: boolean = false;
 
   oldPassword: string = '';
   newPassword: string = '';
@@ -78,7 +82,7 @@ export class AccountSettingsPage implements OnInit {
 
   async loadUserData() {
     try {
-      const userData = await this.authService.getUserData();
+      const userData = await this.userService.getUserData();
       this.name = userData.name;
       this.email = userData.email;
       this.color = userData.color; // Farbe direkt laden
@@ -86,8 +90,6 @@ export class AccountSettingsPage implements OnInit {
       console.error('Fehler beim Laden der Benutzerdaten:', error);
     }
   }
-
-
 
   public alertButtons = [
     {
@@ -114,8 +116,7 @@ export class AccountSettingsPage implements OnInit {
       placeholder: 'Passwort',
       type: 'password',
     },
-
-  ]
+  ];
 
   setResult(event: CustomEvent<OverlayEventDetail>) {
     console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`);
@@ -148,9 +149,14 @@ export class AccountSettingsPage implements OnInit {
     }
   }
 
+  change(message: string) {
+    this.editing = true;
+    this.changeMessage = message;
+    this.name = '';
+    console.log('heeeeeeeeeeeeeeeeey');
+  }
+
   goBack() {
     this.navCtrl.back();
   }
-
-
 }

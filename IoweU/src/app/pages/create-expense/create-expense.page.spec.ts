@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { CreateExpancePage } from './create-expance.page';
+import { CreateExpensePage } from './create-expense.page';
 
 describe('CreateExpancePage', () => {
-  let component: CreateExpancePage;
-  let fixture: ComponentFixture<CreateExpancePage>;
+  let component: CreateExpensePage;
+  let fixture: ComponentFixture<CreateExpensePage>;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CreateExpancePage);
+    fixture = TestBed.createComponent(CreateExpensePage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

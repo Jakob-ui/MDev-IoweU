@@ -4,13 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonDatetime, IonToggle } from '@ionic/angular/standalone';
 
 @Component({
-  selector: 'app-create-expance',
-  templateUrl: './create-expance.page.html',
-  styleUrls: ['./create-expance.page.scss'],
+  selector: 'app-create-expense',
+  templateUrl: './create-expense.page.html',
+  styleUrls: ['./create-expense.page.scss'],
   standalone: true,
   imports: [IonContent, IonHeader, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonDatetime, IonToggle, CommonModule, FormsModule]
 })
-export class CreateExpancePage {
+export class CreateExpensePage {
   expense: any = {
     description: '',
     category: '',
