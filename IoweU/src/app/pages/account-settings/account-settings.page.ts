@@ -93,12 +93,16 @@ export class AccountSettingsPage implements OnInit {
     {
       text: 'Abbrechen',
       role: 'cancel',
-      handler: () => console.log('Löschung abgebrochen'),
+      handler: () => {
+        console.log('Löschung abgebrochen');
+      },
     },
     {
       text: 'Löschen',
       role: 'destructive',
-      handler: () => this.deleteAccount(),
+      handler: () => {
+        this.deleteAccount();
+      },
     },
   ];
   public alertInputs = [
