@@ -16,6 +16,7 @@ import {
 } from '@ionic/angular/standalone';
 import { OverlayEventDetail } from '@ionic/core/components';
 import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { NavController, Platform } from '@ionic/angular';
 import { AccountService } from 'src/app/services/account.service';
 
@@ -36,6 +37,7 @@ import { AccountService } from 'src/app/services/account.service';
     CommonModule,
     FormsModule,
     IonInput,
+    RouterModule,
   ],
 })
 export class AccountSettingsPage implements OnInit {
@@ -85,17 +87,7 @@ export class AccountSettingsPage implements OnInit {
     }
   }
 
-  togglePasswordChange() {
-    this.showPasswordFields = !this.showPasswordFields;
-  }
 
-  changePassword() {
-    if (this.newPassword !== this.confirmPassword) {
-      alert('Die Passwörter stimmen nicht überein.');
-      return;
-    }
-    alert('Passwort erfolgreich geändert!');
-  }
 
   public alertButtons = [
     {
@@ -156,5 +148,5 @@ export class AccountSettingsPage implements OnInit {
     this.navCtrl.back();
   }
 
-  
+
 }

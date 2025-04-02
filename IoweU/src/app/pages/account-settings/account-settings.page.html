@@ -53,46 +53,12 @@
     </ion-item>
     
 
-    <ion-item class="input-item" (click)="togglePasswordChange()">
-      <ion-label>Passwort ändern</ion-label>
-      <ion-icon
-        [class.rotate]="showPasswordFields"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/md-arrow-dropdown.svg'"
-      ></ion-icon>
-    </ion-item>
-
-    <div class="password-change-container" [ngClass]="{'open': showPasswordFields}">
-      <ion-item class="input-item">
-        <ion-input
-          class="password-input"
-          type="password"
-          placeholder="Altes Passwort"
-          [(ngModel)]="oldPassword"
-        ></ion-input>
-      </ion-item>
-
-      <ion-item class="input-item">
-        <ion-input
-          class="password-input"
-          type="password"
-          placeholder="Neues Passwort"
-          [(ngModel)]="newPassword"
-        ></ion-input>
-      </ion-item>
-
-      <ion-item class="input-item">
-        <ion-input
-          class="password-input"
-          type="password"
-          placeholder="Passwort wiederholen"
-          [(ngModel)]="confirmPassword"
-        ></ion-input>
-      </ion-item>
-
-      <ion-button class="main-button" expand="block" (click)="changePassword()">
-        Bestätigen
+      <ion-button class="main-button" expand="block" [routerLink]="'/reset-password'">
+        Passwort ändern
       </ion-button>
-    </div>
+
+
+     
 
     <ion-button class="delete-button" color="danger">Konto löschen</ion-button>
     <ion-alert
@@ -104,7 +70,7 @@
       (didDismiss)="setResult($event)"
     ></ion-alert>
 
-    <ion-button class="main-button" expand="block">
+    <ion-button class="main-button save-button" expand="block">
       Änderungen speichern
     </ion-button>
 
