@@ -84,14 +84,16 @@
       (didDismiss)="setResult($event)"
     ></ion-alert>
 
-    <ion-button
-      class="main-button save-button"
-      expand="block"
-      [disabled]="userEditing"
-      (click)="saveChanges()"
-    >
+    <ion-button id="save-alert" class="main-button save-button" expand="block" [disabled]="userEditing">
       Änderungen speichern
     </ion-button>
+    <ion-alert
+      trigger="save-alert"
+      header="Änderungen speichern"
+      message="Sie können nur einmal monatlich den Namen, die E-Mail oder andere Einstellungen ändern. Möchten Sie die Änderungen speichern?"
+      [buttons]="saveAlertButtons"
+      (didDismiss)="setResult($event)"
+    ></ion-alert>
     </div>
 
   </div>
