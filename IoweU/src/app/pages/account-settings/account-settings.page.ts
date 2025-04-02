@@ -16,6 +16,7 @@ import {
 } from '@ionic/angular/standalone';
 import { OverlayEventDetail } from '@ionic/core/components';
 import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { NavController, Platform } from '@ionic/angular';
 import { AccountService } from 'src/app/services/account.service';
 import { UserService } from 'src/app/services/user.service';
@@ -37,6 +38,7 @@ import { UserService } from 'src/app/services/user.service';
     CommonModule,
     FormsModule,
     IonInput,
+    RouterModule,
   ],
 })
 export class AccountSettingsPage implements OnInit {
@@ -66,6 +68,7 @@ export class AccountSettingsPage implements OnInit {
 
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false;
+  auth: any;
 
   constructor() {}
 
@@ -88,18 +91,6 @@ export class AccountSettingsPage implements OnInit {
     }
   }
 
-  togglePasswordChange() {
-    this.showPasswordFields = !this.showPasswordFields;
-  }
-
-  changePassword() {
-    if (this.newPassword !== this.confirmPassword) {
-      alert('Die Passwörter stimmen nicht überein.');
-      return;
-    }
-    alert('Passwort erfolgreich geändert!');
-  }
-
   public alertButtons = [
     {
       text: 'Abbrechen',
@@ -110,6 +101,16 @@ export class AccountSettingsPage implements OnInit {
       text: 'Löschen',
       role: 'destructive',
       handler: () => this.deleteAccount(),
+    },
+  ];
+  public alertInputs = [
+    {
+      placeholder: 'E-Mail',
+      type: 'email',
+    },
+    {
+      placeholder: 'Passwort',
+      type: 'password',
     },
   ];
 
@@ -148,7 +149,7 @@ export class AccountSettingsPage implements OnInit {
     this.editing = true;
     this.changeMessage = message;
     this.name = '';
-    console.log("heeeeeeeeeeeeeeeeey")
+    console.log('heeeeeeeeeeeeeeeeey');
   }
 
   goBack() {

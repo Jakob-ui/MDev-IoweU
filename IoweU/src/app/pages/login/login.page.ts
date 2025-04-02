@@ -21,18 +21,22 @@ export class LoginPage {
   email: string = '';
   password: string = '';
   rememberMe: boolean = false;
+  loginFailed: boolean = false; // Neue Variable für den Buttonstatus
 
   inputChange() {
     this.error = '';
+    this.loginFailed = false; // Zurücksetzen des Buttonstatus bei Eingabeänderungen
   }
 
   async login() {
     if (!this.email || !this.password) {
       this.error = 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort ein.';
+      this.loginFailed = true; // Login fehlgeschlagen
       return;
     }
     if (!this.email.includes('@')) {
       this.error = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+      this.loginFailed = true; // Login fehlgeschlagen
       return;
     }
 
@@ -41,7 +45,8 @@ export class LoginPage {
       this.router.navigate(['/group-overview']);
     } catch (error) {
       console.error('Fehler beim Login:', error);
-      this.error = 'Fehler beim Login';
+      this.error = 'Fehler beim Login, bitte versuchen Sie es erneut.';
+      this.loginFailed = true; // Login fehlgeschlagen
     }
   }
 }

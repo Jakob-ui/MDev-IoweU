@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   IonContent,
@@ -33,12 +33,14 @@ import { AuthService } from '../../services/auth.service';
     CommonModule,
     FormsModule,
     IonInputPasswordToggle,
+    RouterLink,
   ],
 })
 export class RegisterPage {
   private router = inject(Router);
   private authService = inject(AuthService);
   failed: boolean = false;
+  registerFailed: boolean = false; // Neue Variable für den Buttonstatus
 
   email = '';
   password = '';
@@ -49,6 +51,7 @@ export class RegisterPage {
 
   inputChange() {
     this.failed = false;
+    this.registerFailed = false; // Button zurücksetzen
   }
 
   private generateRandomHexColor(): string {
@@ -60,16 +63,20 @@ export class RegisterPage {
   async register() {
     if (!this.email || !this.password) {
       this.error = 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort ein.';
+      this.registerFailed = true; // Fehlerstatus setzen
       return;
     }
     if (!this.email.includes('@')) {
       this.error = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+      this.registerFailed = true;
       return;
     }
     if (this.name.length > 15) {
       this.error = 'Der Benutzername darf maximal 15 Zeichen haben';
+      this.registerFailed = true;
       return;
     }
+
     try {
       const usercolor =
         this.color === '' ? this.generateRandomHexColor() : this.color;
@@ -88,7 +95,9 @@ export class RegisterPage {
       }
     } catch (error) {
       console.error('Registrierung fehlgeschlagen:', error);
-      this.failed = true;
+      this.error = 'Fehler bei der Registrierung. Bitte versuchen Sie es erneut.';
+      this.registerFailed = true; // Fehlerstatus setzen
     }
   }
 }
+

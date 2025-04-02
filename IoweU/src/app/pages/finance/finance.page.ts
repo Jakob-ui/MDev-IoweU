@@ -68,6 +68,8 @@ export class FinancePage {
   ngOnInit() {
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
+    const userColor = sessionStorage.getItem('usercolor');
+    document.documentElement.style.setProperty('--user-color', userColor);
   }
   async logout() {
     try {

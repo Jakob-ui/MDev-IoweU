@@ -88,8 +88,17 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'join-group',
+    loadComponent: () =>
+      import('./pages/join-group/join-group.page').then(
+        m => m.JoinGroupPage),
+    canActivate: [AuthGuard],
+  },
+  {
     path: '**',
     redirectTo: 'home',
     pathMatch: 'full',
   },
+
+
 ];

@@ -1,0 +1,30 @@
+<ion-content [fullscreen]="true">
+  <div id="container" class="container">
+    <img src="assets/logo/Logo_lang.png" alt="Logo" class="logo" />
+
+    <h3>Gruppe beitreten</h3>
+
+    <ion-item class="input-item">
+      <ion-input
+        type="text"
+        placeholder="Beitrittscode eingeben"
+        [(ngModel)]="joinCode"
+        (ngModelChange)="inputChange()"
+      ></ion-input>
+    </ion-item>
+
+    <ion-button
+      class="main-button"
+      expand="block"
+      [routerLink]="'/group-overview'">Abbrechen</ion-button>
+
+    <ion-button
+      class="main-button"
+      expand="block"
+      [class.error-button]="joinFailed"
+    (click)="joinGroup()">Beitreten
+    </ion-button>
+
+    <p *ngIf="joinFailed" class="error-message">{{ error }}</p> <!-- Fehlermeldung anzeigen, wenn joinFailed true ist -->
+  </div>
+</ion-content>
