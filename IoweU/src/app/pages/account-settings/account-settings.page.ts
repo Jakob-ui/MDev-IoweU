@@ -17,6 +17,7 @@ import {
 import { OverlayEventDetail } from '@ionic/core/components';
 import { Router } from '@angular/router';
 import { NavController, Platform } from '@ionic/angular';
+import { AccountService } from 'src/app/services/account.service';
 
 @Component({
   selector: 'app-account-settings',
@@ -42,12 +43,15 @@ export class AccountSettingsPage implements OnInit {
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
+  private acc = inject(AccountService);
 
   iosIcons: boolean = false;
-  user: string | null = "";
+
+  user: string | null = '';
   displayName: string | null = null;
 
   name: string = '';
+  newname: string = '';
   email: string = '';
   color: string = '#ffffff'; // Standardfarbe (weiß), falls keine Farbe gespeichert ist
   profileImage: string | ArrayBuffer | null = null; // Profilbild
@@ -65,6 +69,8 @@ export class AccountSettingsPage implements OnInit {
     this.loadUserData();
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
+    const userColor = sessionStorage.getItem('usercolor');
+    document.documentElement.style.setProperty('--user-color', userColor);
   }
 
   async loadUserData() {
@@ -107,22 +113,35 @@ export class AccountSettingsPage implements OnInit {
     console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`);
   }
 
-  deleteAccount() {
+  async deleteAccount() {
     console.log('Konto wird gelöscht...');
-    // Hier kannst du den Löschprozess starten
+    try {
+      await this.acc.userdelete();
+      this.router.navigate(['home']);
+    } catch (e) {
+      console.log('error: ' + e);
+    }
+  }
+
+  async updatename() {
+    try {
+      await this.acc.userupdate('name', this.newname);
+    } catch (e) {
+      console.log('error: ' + e);
+    }
   }
 
   async logout() {
     try {
-      await this.authService.logout();
-      this.router.navigate(['home']);
+      await this.auth.logout();
+      this.router.navigate(['login']);
     } catch (e) {
       console.log(e);
     }
   }
 
   goBack() {
-    this.navCtrl.back(); // Navigiert zur letzten Seite
+    this.navCtrl.back();
   }
 
   
