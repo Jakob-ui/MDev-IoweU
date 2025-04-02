@@ -75,10 +75,10 @@ export class AuthService {
         img: data.img,
       });
       console.log('Dokument erfolgreich hinzugefügt:', docRef.id);
-      return true; // Erfolg
+      return true;
     } catch (e) {
       console.error('Fehler beim Hinzufügen des Dokuments:', e);
-      return false; // Fehler
+      return false;
     }
   }
 
@@ -98,8 +98,10 @@ export class AuthService {
       .then(async (userCredential) => {
         if (userCredential.user) {
           const uid = userCredential.user.uid;
-          const username = await this.getUsernameByUid(uid);
+          const username = await this.getUserthingsByUid(uid, 'name');
+          const userColor = await this.getUserthingsByUid(uid, 'color');
           sessionStorage.setItem('username', username);
+          sessionStorage.setItem('usercolor', userColor);
         } else {
           throw new Error('Benutzer konnte nicht authentifiziert werden.');
         }
@@ -130,7 +132,7 @@ export class AuthService {
     });
   }
 
-  async getUsernameByUid(uid: string): Promise<string> {
+  async getUserthingsByUid(uid: string, search: string): Promise<string> {
     const usersCollection = collection(this.firestore, 'users');
     const q = query(usersCollection, where('id', '==', uid));
     const snapshot = await getDocs(q);
@@ -138,7 +140,7 @@ export class AuthService {
     if (!snapshot.empty) {
       const userDoc = snapshot.docs[0];
       const data = userDoc.data();
-      return data['name'];
+      return data[search];
     }
 
     throw new Error('Benutzername konnte nicht gefunden werden.');
@@ -150,49 +152,17 @@ export class AuthService {
     });
   }
 
-  async userdelete(): Promise<void> {
-    if (this.auth.currentUser) {
-      try {
-        const uid = this.auth.currentUser.uid;
-
-        const usersCollection = collection(this.firestore, 'users');
-        const q = query(usersCollection, where('id', '==', uid));
-        const snapshot = await getDocs(q);
-
-        if (!snapshot.empty) {
-          const userDoc = snapshot.docs[0];
-          await deleteDoc(userDoc.ref);
-          console.log('Benutzerdaten aus der Datenbank gelöscht.');
-        } else {
-          console.warn(
-            'Benutzerdaten konnten in der Datenbank nicht gefunden werden.'
-          );
-        }
-
-        await this.auth.currentUser.delete();
-        console.log('Benutzer wurde erfolgreich gelöscht.');
-      } catch (error) {
-        console.error('Fehler beim Löschen des Benutzers:', error);
-        throw error;
-      }
-    } else {
-      console.error('Kein Benutzer ist aktuell eingeloggt.');
-      throw new Error('Kein Benutzer ist aktuell eingeloggt.');
-    }
-  }
-  
-  async getUserData(): Promise<{ name: string, email: string }> {
+  async getUserData(): Promise<{ name: string; email: string }> {
     if (!this.auth.currentUser) {
       throw new Error('Benutzer ist nicht authentifiziert.');
     }
-    
+
     const uid = this.auth.currentUser.uid;
-    const username = await this.getUsernameByUid(uid);
-  
+    const username = await this.getUserthingsByUid(uid, 'name');
+
     return {
       name: username,
-      email: this.auth.currentUser.email || ''
+      email: this.auth.currentUser.email || '',
     };
   }
-  
 }

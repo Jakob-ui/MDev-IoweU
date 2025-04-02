@@ -56,13 +56,14 @@ export class GroupOverviewPage implements OnInit {
 
   groups: { name: string; balance: number }[] = [];
 
-  ngOnInit() {
-    this.user = sessionStorage.getItem('username');
-    this.iosIcons = this.platform.is('ios');
+  constructor() {  }
 
-    const userColor = sessionStorage.getItem('usercolor');
-    document.documentElement.style.setProperty('--user-color', userColor);
-    //document.documentElement.style.setProperty('--user-color-background;', userColor);   muss noch Implementiert werden
+  ngOnInit() {
+      this.user = sessionStorage.getItem('username');
+      this.iosIcons = this.platform.is('ios');
+
+      const userColor = sessionStorage.getItem('usercolor');
+      document.documentElement.style.setProperty('--user-color', userColor);
   }
   async logout() {
     try {
@@ -76,6 +77,4 @@ export class GroupOverviewPage implements OnInit {
   goBack() {
     this.navCtrl.back(); // Navigiert zur letzten Seite
   }
-
-  constructor() {}
 }

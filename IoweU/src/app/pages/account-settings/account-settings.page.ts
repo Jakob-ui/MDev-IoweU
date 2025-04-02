@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
@@ -15,8 +15,9 @@ import {
   IonAlert,
 } from '@ionic/angular/standalone';
 import { OverlayEventDetail } from '@ionic/core/components';
-import {Router} from "@angular/router";
-import {NavController, Platform} from "@ionic/angular";
+import { Router } from '@angular/router';
+import { NavController, Platform } from '@ionic/angular';
+import { AccountService } from 'src/app/services/account.service';
 
 @Component({
   selector: 'app-account-settings',
@@ -42,13 +43,15 @@ export class AccountSettingsPage implements OnInit {
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
+  private acc = inject(AccountService);
 
   iosIcons: boolean = false;
 
-  user: string | null ="";
+  user: string | null = '';
   displayName: string | null = null;
 
   name: string = '';
+  newname: string = '';
   email: string = '';
   oldPassword: string = '';
   newPassword: string = '';
@@ -63,6 +66,8 @@ export class AccountSettingsPage implements OnInit {
     this.loadSessionData();
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
+    const userColor = sessionStorage.getItem('usercolor');
+    document.documentElement.style.setProperty('--user-color', userColor);
   }
 
   async loadSessionData() {
@@ -87,8 +92,6 @@ export class AccountSettingsPage implements OnInit {
     alert('Passwort erfolgreich geändert!');
   }
 
-
-
   public alertButtons = [
     {
       text: 'Abbrechen',
@@ -110,21 +113,34 @@ export class AccountSettingsPage implements OnInit {
     console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`);
   }
 
-  deleteAccount() {
+  async deleteAccount() {
     console.log('Konto wird gelöscht...');
-    // Hier kannst du den Löschprozess starten, z. B. einen API-Call
+    try {
+      await this.acc.userdelete();
+      this.router.navigate(['home']);
+    } catch (e) {
+      console.log('error: ' + e);
+    }
+  }
+
+  async updatename() {
+    try {
+      await this.acc.userupdate('name', this.newname);
+    } catch (e) {
+      console.log('error: ' + e);
+    }
   }
 
   async logout() {
     try {
       await this.auth.logout();
-      this.router.navigate(['home']);
+      this.router.navigate(['login']);
     } catch (e) {
       console.log(e);
     }
   }
 
   goBack() {
-    this.navCtrl.back(); // Navigiert zur letzten Seite
+    this.navCtrl.back();
   }
 }
