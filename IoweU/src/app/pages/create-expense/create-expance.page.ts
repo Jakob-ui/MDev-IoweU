@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonDatetime, IonToggle } from '@ionic/angular/standalone';
 
 @Component({
-  selector: 'app-create-expance',
+  selector: 'app-create-expense',
   templateUrl: './create-expance.page.html',
   styleUrls: ['./create-expance.page.scss'],
   standalone: true,

@@ -24,7 +24,7 @@ import {AuthService} from "../../services/auth.service";
 import {NavController, Platform} from "@ionic/angular";
 
 @Component({
-  selector: 'app-expance',
+  selector: 'app-expense',
   templateUrl: './expance.page.html',
   styleUrls: ['./expance.page.scss'],
   standalone: true,

@@ -66,15 +66,15 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'expance',
+    path: 'expense',
     loadComponent: () =>
-      import('./pages/expance/expance.page').then((m) => m.ExpancePage),
+      import('./pages/expense/expance.page').then((m) => m.ExpancePage),
     canActivate: [AuthGuard],
   },
   {
-    path: 'create-expance',
+    path: 'create-expense',
     loadComponent: () =>
-      import('./pages/create-expance/create-expance.page').then(
+      import('./pages/create-expense/create-expance.page').then(
         (m) => m.CreateExpancePage
       ),
     canActivate: [AuthGuard],
