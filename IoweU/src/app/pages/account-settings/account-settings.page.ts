@@ -5,7 +5,6 @@ import { AuthService } from 'src/app/services/auth.service';
 import {
   IonContent,
   IonHeader,
-  IonTitle,
   IonToolbar,
   IonItem,
   IonLabel,
@@ -84,37 +83,35 @@ export class AccountSettingsPage implements OnInit {
       const userColor = sessionStorage.getItem('usercolor');
       this.color = userColor || '';
       this.email = sessionStorage.getItem('email') || '';
-      const uid = this.authService.currentUser?.uid;
+      const lastedited = sessionStorage.getItem('lastedited');
 
-      if (uid) {
-        this.lastedited = await this.userService.getUserthingsByUid(
-          uid,
-          'lastedited'
-        );
-        sessionStorage.setItem('lastedited', this.lastedited);
+      if (!this.name || !this.email) {
+        const uid = this.authService.currentUser?.uid;
+
+        if (uid) {
+          const userData = await this.userService.getUserData();
+          this.name = userData.name;
+          this.email = userData.email;
+          this.color = userData.color;
+          this.lastedited = userData.lastedited;
+
+          sessionStorage.setItem('username', this.name);
+          sessionStorage.setItem('email', this.email);
+          sessionStorage.setItem('usercolor', this.color);
+          sessionStorage.setItem('lastedited', this.lastedited);
+        } else {
+          console.error('Kein Benutzer ist aktuell eingeloggt.');
+        }
       }
-      if (userColor) {
-        document.documentElement.style.setProperty('--user-color', userColor);
+
+      if (this.color) {
+        document.documentElement.style.setProperty('--user-color', this.color);
       }
 
       console.log('Benutzerdaten erfolgreich geladen.');
     } catch (error) {
       console.error('Fehler beim Laden der Benutzerdaten:', error);
     }
-  }
-
-  proofTime() {
-    const lastedited = sessionStorage.getItem('lastedited');
-    if (!lastedited) {
-      return true;
-    }
-
-    const lastEditDate = new Date(lastedited);
-    const currentDate = new Date();
-
-    const differenceInMs = currentDate.getTime() - lastEditDate.getTime();
-
-    return differenceInMs > 5 * 60 * 1000;
   }
 
   public alertButtons = [
@@ -156,7 +153,7 @@ export class AccountSettingsPage implements OnInit {
       text: 'Speichern',
       role: 'confirm',
       handler: () => {
-        this.saveChanges(); // Ruft die Methode auf, um die Änderungen zu speichern
+        this.saveChanges();
       },
     },
   ];
@@ -202,14 +199,34 @@ export class AccountSettingsPage implements OnInit {
     this.navCtrl.back();
   }
 
+  proofTime(): boolean {
+    const lastedited = sessionStorage.getItem('lastedited');
+    if (!lastedited) {
+      return true;
+    }
+
+    const lastEditDate = new Date(lastedited);
+    const currentDate = new Date();
+
+    const differenceInMs = currentDate.getTime() - lastEditDate.getTime();
+
+    return differenceInMs > 5 * 60 * 1000;
+  }
+
   async saveChanges() {
     try {
       if (!this.proofTime()) {
-        console.warn(
-          'Änderungen können nur alle 5 Minuten vorgenommen werden.'
-        );
+        const alert = document.createElement('ion-alert');
+        alert.header = 'Änderung nicht möglich';
+        alert.message =
+          'Sie können den Benutzernamen nur alle 5 Minuten ändern. Bitte versuchen Sie es später erneut.';
+        alert.buttons = ['OK'];
+
+        document.body.appendChild(alert);
+        await alert.present();
         return;
       }
+
       await this.acc.userupdate({
         name: this.newname,
         color: this.color,

@@ -33,7 +33,11 @@
     <h2>Mein Account</h2>
 
     <ion-item class="input-item">
-      <ion-input type="text" placeholder="{{changeMessage}}" [(ngModel)]="newname">
+      <ion-input
+        type="text"
+        placeholder="{{changeMessage}}"
+        [(ngModel)]="newname"
+      >
       </ion-input>
       <ion-icon
         *ngIf="userEditing"
@@ -74,27 +78,33 @@
     </ion-button>
 
     <div class="fixed-bottom">
-    <ion-button id="delete-alert" class="delete-button" color="danger">Konto löschen</ion-button>
-    <ion-alert
-      trigger="delete-alert"
-      header="Konto löschen?"
-      message="Möchtest du dein Konto wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
-      [buttons]="alertButtons"
-      [inputs]="alertInputs"
-      (didDismiss)="setResult($event)"
-    ></ion-alert>
+      <ion-button id="delete-alert" class="delete-button" color="danger"
+        >Konto löschen</ion-button
+      >
+      <ion-alert
+        trigger="delete-alert"
+        header="Konto löschen?"
+        message="Möchtest du dein Konto wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+        [buttons]="alertButtons"
+        [inputs]="alertInputs"
+        (didDismiss)="setResult($event)"
+      ></ion-alert>
 
-    <ion-button id="save-alert" class="main-button save-button" expand="block" [disabled]="userEditing">
-      Änderungen speichern
-    </ion-button>
-    <ion-alert
-      trigger="save-alert"
-      header="Änderungen speichern"
-      message="Sie können nur einmal monatlich den Namen, die E-Mail oder andere Einstellungen ändern. Möchten Sie die Änderungen speichern?"
-      [buttons]="saveAlertButtons"
-      (didDismiss)="setResult($event)"
-    ></ion-alert>
+      <ion-button
+        id="save-alert"
+        class="main-button save-button"
+        expand="block"
+        [disabled]="userEditing"
+      >
+        Änderungen speichern
+      </ion-button>
+      <ion-alert
+        trigger="save-alert"
+        header="Änderungen speichern"
+        message="Sie können nur einmal monatlich den Namen, die E-Mail oder andere Einstellungen ändern. Möchten Sie die Änderungen speichern?"
+        [buttons]="saveAlertButtons"
+        (didDismiss)="setResult($event)"
+      ></ion-alert>
     </div>
-
   </div>
 </ion-content>

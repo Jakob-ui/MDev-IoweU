@@ -21,22 +21,22 @@ export class LoginPage {
   email: string = '';
   password: string = '';
   rememberMe: boolean = false;
-  loginFailed: boolean = false; // Neue Variable für den Buttonstatus
+  loginFailed: boolean = false;
 
   inputChange() {
     this.error = '';
-    this.loginFailed = false; // Zurücksetzen des Buttonstatus bei Eingabeänderungen
+    this.loginFailed = false;
   }
 
   async login() {
     if (!this.email || !this.password) {
       this.error = 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort ein.';
-      this.loginFailed = true; // Login fehlgeschlagen
+      this.loginFailed = true;
       return;
     }
     if (!this.email.includes('@')) {
       this.error = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
-      this.loginFailed = true; // Login fehlgeschlagen
+      this.loginFailed = true;
       return;
     }
 
