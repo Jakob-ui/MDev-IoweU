@@ -62,6 +62,7 @@ export class AccountSettingsPage implements OnInit {
 
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false;
+  auth: any;
 
   constructor() {}
 
@@ -108,6 +109,17 @@ export class AccountSettingsPage implements OnInit {
       handler: () => this.deleteAccount(),
     },
   ];
+  public alertInputs = [
+    {
+      placeholder: 'E-Mail',
+      type: 'email',
+    },
+    {
+      placeholder: 'Passwort',
+      type: 'password',
+    },
+
+  ]
 
   setResult(event: CustomEvent<OverlayEventDetail>) {
     console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`);
@@ -133,7 +145,7 @@ export class AccountSettingsPage implements OnInit {
 
   async logout() {
     try {
-      await this.auth.logout();
+      await this.authService.logout();
       this.router.navigate(['login']);
     } catch (e) {
       console.log(e);

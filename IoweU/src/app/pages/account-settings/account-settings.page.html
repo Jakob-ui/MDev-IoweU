@@ -100,6 +100,7 @@
       header="Konto löschen?"
       message="Möchtest du dein Konto wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
       [buttons]="alertButtons"
+      [inputs]="alertInputs"
       (didDismiss)="setResult($event)"
     ></ion-alert>
 
