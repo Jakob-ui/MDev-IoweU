@@ -30,6 +30,16 @@
   padding-right: 5px;
 }
 
+/* Styling für den Color Picker */
 .colorinput {
-  border-radius: 50px;
+  width: 40px; 
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  display: block; 
+  top: 0; /* Entfernt mögliche Verschiebungen nach unten */
+}
+
+.colorinput::-webkit-color-swatch {
+  border-radius: 50% !important; 
 }
