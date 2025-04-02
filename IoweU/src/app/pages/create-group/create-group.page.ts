@@ -1,9 +1,6 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonButton,
   IonItem,
@@ -15,6 +12,10 @@ import {
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { GroupService } from 'src/app/services/group.service';
+import { Auth } from '@angular/fire/auth';
+import { Firestore } from '@angular/fire/firestore';
+import { Group } from 'src/app/services/objects/Group';
 
 @Component({
   selector: 'app-create-group',
@@ -36,27 +37,60 @@ import { RouterModule } from '@angular/router';
   ],
 })
 export class CreateGroupPage {
+  groupService = inject(GroupService);
+  auth = inject(Auth);
+  firestore = inject(Firestore);
   groupname: string = '';
-  newMember: string = '';
-  members: string[] = [];
+  //newMember: string = '';
+  //members: string[] = [];
   selectedTemplate: string = '';
   templates: string[] = ['Standard', 'Projekt', 'Reise'];
   groupImage: string | ArrayBuffer | null = null;
   showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige
+  newGroup: Group | null = null; // Initialisierung der newGroup-Variable
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
-  constructor() {}
+  // addMember() {
+  //   if (this.newMember.trim() !== '') {
+  //     this.members.push(this.newMember.trim());
+  //     this.newMember = '';
+  //   }
+  // }
 
-  addMember() {
-    if (this.newMember.trim() !== '') {
-      this.members.push(this.newMember.trim());
-      this.newMember = '';
+  // removeMember(member: string) {
+  //   this.members = this.members.filter((m) => m !== member);
+  // }
+
+  async saveGroup() 
+  {
+    if (!this.groupname || !this.selectedTemplate) {
+      console.error('Group name and template are required!');
+      return;
     }
-  }
+    // if (this.members.length === 0) {
+    //   console.error('At least one member is required!');
+    //   return;
+    // }
 
-  removeMember(member: string) {
-    this.members = this.members.filter((m) => m !== member);
+    const user = this.auth.currentUser;
+    if (!user) {
+      console.error('User is not logged in!');
+      return;
+    }
+    const founder = user.uid; // Get the logged-in user's ID
+
+    if (!user) {
+      console.error('User is not logged in!');
+      return;
+    }
+
+    try {
+      await this.groupService.createGroup(this.groupname, founder, this.selectedTemplate, this.groupImage as string);
+      console.log('Group successfully created!');
+    } catch (error) {
+      console.error('Error creating group:', error);
+    }
   }
 
   selectImage() {

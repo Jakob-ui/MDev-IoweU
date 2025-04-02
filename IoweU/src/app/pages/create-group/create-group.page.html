@@ -24,7 +24,7 @@
       ></ion-input>
     </ion-item>
 
-    <ion-item class="input-item">
+    <!-- <ion-item class="input-item">
       <ion-input
         type="text"
         placeholder="Mitglied hinzufügen"
@@ -40,7 +40,7 @@
           >X</ion-button
         >
       </ion-item>
-    </ion-list>
+    </ion-list> -->
 
     <ion-item class="input-item">
       <ion-label *ngIf="!selectedTemplate" class="Dropdown-label">Template auswählen</ion-label>
@@ -59,7 +59,7 @@
       [routerLink]="'/group-overview'"
       >Abbrechen</ion-button
     >
-    <ion-button class="main-button" expand="block" [routerLink]="'/group'"
+    <ion-button class="main-button" expand="block" (click)="saveGroup()" [routerLink]="'/group'"
       >Speichern</ion-button
     >
   </div>
