@@ -74,6 +74,7 @@ export class AccountSettingsPage implements OnInit {
   ngOnInit() {
     this.loadUserData();
     this.iosIcons = this.platform.is('ios');
+    this.newname = this.name;
   }
 
   async loadUserData() {
@@ -146,7 +147,7 @@ export class AccountSettingsPage implements OnInit {
   edit(message: string) {
     this.userEditing = true;
     this.changeMessage = message;
-    this.name = '';
+    this.newname = '';
     console.log(this.userEditing);
   }
   cancel() {
@@ -164,11 +165,11 @@ export class AccountSettingsPage implements OnInit {
   async saveChanges() {
     try {
       await this.acc.userupdate({
-        name: this.name,
+        name: this.newname,
         color: this.color,
       });
 
-      sessionStorage.setItem('username', this.name);
+      sessionStorage.setItem('username', this.newname);
       sessionStorage.setItem('usercolor', this.color);
 
       console.log('Änderungen erfolgreich gespeichert.');
