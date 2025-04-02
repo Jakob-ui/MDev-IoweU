@@ -25,8 +25,8 @@ import {NavController, Platform} from "@ionic/angular";
 
 @Component({
   selector: 'app-expense',
-  templateUrl: './expance.page.html',
-  styleUrls: ['./expance.page.scss'],
+  templateUrl: './expense.page.html',
+  styleUrls: ['./expense.page.scss'],
   standalone: true,
     imports: [
         CommonModule,
@@ -43,7 +43,7 @@ import {NavController, Platform} from "@ionic/angular";
         IonIcon,
     ],
 })
-export class ExpancePage implements OnInit {
+export class ExpensePage implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private platform = inject(Platform);
