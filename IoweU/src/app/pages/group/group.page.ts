@@ -19,6 +19,7 @@ import {
   IonCardSubtitle,
   IonCardContent,
   IonIcon,
+  IonSpinner,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -39,6 +40,7 @@ import { AuthService } from '../../services/auth.service';
     IonCardSubtitle,
     RouterModule,
     IonIcon,
+    IonSpinner,
   ],
 })
 export class GroupPage {
@@ -46,6 +48,9 @@ export class GroupPage {
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
+
+  loading: boolean = true;
+  timeout: any;
 
   iosIcons: boolean = false;
 
@@ -63,7 +68,12 @@ export class GroupPage {
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher']; // Beispielhafte Liste
 
   ngOnInit() {
+    this.timeout = setTimeout(() => {
+      this.loading = false;
+    }, 3000);
 
+    // Simuliertes Laden von Daten
+    this.loadData();
   }
 
   async logout() {
@@ -76,8 +86,20 @@ export class GroupPage {
   }
 
   goBack() {
-    this.navCtrl.back(); // Navigiert zur letzten Seite
+    this.navCtrl.back();
   }
 
   constructor() {}
+
+  async loadData() {
+    try {
+      // Simuliertes Datenladen (z. B. API-Aufruf)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      this.loading = false;
+      clearTimeout(this.timeout);
+    } catch (error) {
+      console.error('Fehler beim Laden der Daten', error);
+      this.loading = false;
+    }
+  }
 }

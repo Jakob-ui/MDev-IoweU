@@ -22,6 +22,11 @@
 
 
 <ion-content [fullscreen]="true">
+  <div *ngIf="loading" class="loading-overlay">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Loading ...</p>
+  </div>
+
     <div class="page-container">
     <ion-button class="edit-button" [routerLink]="'/edit-group'">bearbeiten</ion-button>
     <div class="image-upload">

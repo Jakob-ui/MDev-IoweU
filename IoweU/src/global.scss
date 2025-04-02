@@ -541,6 +541,23 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   height: 20px;
 }
 
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--ion-color-secondary);
+  font-size: 18px;
+  z-index: 100;
+}
+
+
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
   h1,
