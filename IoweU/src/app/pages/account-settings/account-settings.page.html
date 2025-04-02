@@ -30,11 +30,12 @@
     <ion-item class="input-item">
       <ion-input
         type="text"
-        placeholder="Benutzername ändern"
+        placeholder={{changeMessage}}
         [(ngModel)]="name">
       </ion-input>
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'"
-               ></ion-icon>
+      <ion-icon *ngIf="!editing"></ion-icon>
+      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'" 
+               (click)="change('Schreibe deinen neuen Usernamen')"></ion-icon>
     </ion-item>
 
     <ion-item class="input-item">
@@ -73,7 +74,7 @@
 
       <ion-item class="input-item">
         <ion-input
-          class="password-input"
+          class="password-ipnut"
           type="password"
           placeholder="Neues Passwort"
           [(ngModel)]="newPassword"
