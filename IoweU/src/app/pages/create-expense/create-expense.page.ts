@@ -1,66 +1,72 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonDatetime, IonToggle } from '@ionic/angular/standalone';
+import { IonContent, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonDatetime } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-create-expense',
   templateUrl: './create-expense.page.html',
   styleUrls: ['./create-expense.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonDatetime, IonToggle, CommonModule, FormsModule]
+  imports: [
+    IonContent,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonButton,
+    IonDatetime,
+    CommonModule,
+    FormsModule
+  ]
 })
 export class CreateExpensePage {
   expense: any = {
     description: '',
-    category: '',
     amount: null,
-    currency: 'EUR',
-    paidBy: '',
-    date: '',
-    repeated: false,
-    splitType: 'prozentual',
-    personCount: 1,
-    shares: [],
-    image: null,
+    paidBy: 'mir',
+    date: new Date().toISOString().split('T')[0],
+    repeat: 'nein',
+    splitType: 'alle'
   };
 
-  members: string[] = ['Person1', 'Person2', 'Person3', 'Person4'];
+  groupMembers = [
+    { name: 'ich' },
+    { name: 'Lila' },
+    { name: 'Grün' }
+  ];
 
-  @ViewChild('fileInput') fileInput!: ElementRef;
+  invoiceImage: string | null = null; // Variable zum Speichern des Bildes
+  isDatePickerOpen = false;
 
-  constructor() {}
+  // Methode zum Öffnen des Datepickers
+  openDatePicker() {
+    this.isDatePickerOpen = true;
+  }
+  // Methode zum Schließen des Datepickers
+  closeDatePicker() {
+    this.isDatePickerOpen = false;
+  }
 
+  // Methode für das Ändern des Datums
+  onDateChange(event: any) {
+    this.expense.date = event.detail.value;
+    this.closeDatePicker();
+  }
+
+  // Methode für die Bildauswahl
   selectImage() {
-    this.fileInput.nativeElement.click();
-  }
-
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.expense.image = reader.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  calculateShare(index: number) {
-    const share = this.expense.shares[index] || 0;
-    if (this.expense.splitType === 'prozentual') {
-      return (this.expense.amount * share) / 100;
-    }
-    return (this.expense.amount / this.expense.personCount) * share;
+    // Hier kannst du eine Methode einfügen, um ein Bild auszuwählen, z.B. über die Kamera oder das Dateisystem
+    // Zum Beispiel eine einfache Simulation eines Bildes:
+    this.invoiceImage = 'https://via.placeholder.com/150';  // Hier kannst du dein Bild setzen
   }
 
   saveExpense() {
     console.log('Expense saved:', this.expense);
-    // Hier könnte die Logik für das Speichern der Ausgabe hinzugefügt werden
   }
 
   cancel() {
     console.log('Cancelled');
-    // Hier könnte die Logik für das Abbrechen der Eingabe hinzugefügt werden
   }
 }
