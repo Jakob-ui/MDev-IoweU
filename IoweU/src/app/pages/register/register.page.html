@@ -1,17 +1,5 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Registrieren</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">register</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <div id="container" class="container">
+    <div id="container" class="container">
     <img src="assets/logo/Logo_lang.png" alt="Logo" class="logo" />
 
     <h3>Registrieren</h3>
@@ -60,5 +48,6 @@
     <div class="error-Space">
       <p *ngIf="error !== ''" class="error" [class.error-message]="registerFailed">{{error}}</p>
     </div>
+      <ion-button class="main-button" expand="full" [routerLink]="'/login'">zum Login</ion-button>
   </div>
 </ion-content>

@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   IonContent,
@@ -33,6 +33,7 @@ import { AuthService } from '../../services/auth.service';
     CommonModule,
     FormsModule,
     IonInputPasswordToggle,
+    RouterLink,
   ],
 })
 export class RegisterPage {
