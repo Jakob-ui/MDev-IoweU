@@ -27,9 +27,6 @@ import { AuthService } from '../../services/auth.service';
     IonItem,
     IonInput,
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
     CommonModule,
     FormsModule,
     IonInputPasswordToggle,
@@ -63,7 +60,7 @@ export class RegisterPage {
   async register() {
     if (!this.email || !this.password) {
       this.error = 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort ein.';
-      this.registerFailed = true; // Fehlerstatus setzen
+      this.registerFailed = true;
       return;
     }
     if (!this.email.includes('@')) {

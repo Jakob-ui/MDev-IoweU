@@ -51,7 +51,6 @@ export class AccountSettingsPage implements OnInit {
 
   iosIcons: boolean = false;
 
-  user: string | null = '';
   displayName: string | null = null;
 
   name: string = '';
@@ -60,7 +59,7 @@ export class AccountSettingsPage implements OnInit {
   color: string = '#ffffff';
   profileImage: string | ArrayBuffer | null = null;
   changeMessage: string = '';
-  editing: boolean = false;
+  userEditing: boolean = false;
 
   oldPassword: string = '';
   newPassword: string = '';
@@ -74,18 +73,21 @@ export class AccountSettingsPage implements OnInit {
 
   ngOnInit() {
     this.loadUserData();
-    this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
-    const userColor = sessionStorage.getItem('usercolor');
-    document.documentElement.style.setProperty('--user-color', userColor);
   }
 
   async loadUserData() {
     try {
-      const userData = await this.userService.getUserData();
-      this.name = userData.name;
-      this.email = userData.email;
-      this.color = userData.color; // Farbe direkt laden
+      this.name = sessionStorage.getItem('username') || '';
+      const userColor = sessionStorage.getItem('usercolor');
+      this.color = userColor || '';
+      this.email = sessionStorage.getItem('email') || '';
+
+      if (userColor) {
+        document.documentElement.style.setProperty('--user-color', userColor);
+      }
+
+      console.log('Benutzerdaten erfolgreich geladen.');
     } catch (error) {
       console.error('Fehler beim Laden der Benutzerdaten:', error);
     }
@@ -132,14 +134,6 @@ export class AccountSettingsPage implements OnInit {
     }
   }
 
-  async updatename() {
-    try {
-      await this.acc.userupdate('name', this.newname);
-    } catch (e) {
-      console.log('error: ' + e);
-    }
-  }
-
   async logout() {
     try {
       await this.authService.logout();
@@ -149,14 +143,39 @@ export class AccountSettingsPage implements OnInit {
     }
   }
 
-  change(message: string) {
-    this.editing = true;
+  edit(message: string) {
+    this.userEditing = true;
     this.changeMessage = message;
     this.name = '';
-    console.log('heeeeeeeeeeeeeeeeey');
+    console.log(this.userEditing);
+  }
+  cancel() {
+    this.userEditing = false;
+    this.name = sessionStorage.getItem('username') || '';
+  }
+  confirm() {
+    this.userEditing = false;
   }
 
   goBack() {
     this.navCtrl.back();
+  }
+
+  async saveChanges() {
+    try {
+      await this.acc.userupdate({
+        name: this.name,
+        color: this.color,
+      });
+
+      sessionStorage.setItem('username', this.name);
+      sessionStorage.setItem('usercolor', this.color);
+
+      console.log('Änderungen erfolgreich gespeichert.');
+
+      this.loadUserData();
+    } catch (e) {
+      console.error('Fehler beim Speichern der Änderungen:', e);
+    }
   }
 }
