@@ -120,6 +120,23 @@ export class AccountSettingsPage implements OnInit {
     },
   ];
 
+  public saveAlertButtons = [
+    {
+      text: 'Abbrechen',
+      role: 'cancel',
+      handler: () => {
+        console.log('Speichern abgebrochen');
+      },
+    },
+    {
+      text: 'Speichern',
+      role: 'confirm',
+      handler: () => {
+        this.saveChanges(); // Ruft die Methode auf, um die Änderungen zu speichern
+      },
+    },
+  ];
+
   setResult(event: CustomEvent<OverlayEventDetail>) {
     console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`);
   }
