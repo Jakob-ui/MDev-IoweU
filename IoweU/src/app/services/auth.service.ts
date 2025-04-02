@@ -54,6 +54,7 @@ export class AuthService {
         email: email,
         color: color,
         img: img,
+        lastedited: new Date().toISOString(),
       };
 
       const success = await this.saveUserData(
@@ -108,6 +109,7 @@ export class AuthService {
           const username = await this.userService.getUserthingsByUid(uid, 'name');
           const userColor = await this.userService.getUserthingsByUid(uid, 'color');
           sessionStorage.setItem('username', username);
+          sessionStorage.setItem('email', email);
           sessionStorage.setItem('usercolor', userColor);
         } else {
           throw new Error('Benutzer konnte nicht authentifiziert werden.');

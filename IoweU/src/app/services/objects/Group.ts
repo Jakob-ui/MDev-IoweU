@@ -5,5 +5,7 @@ export interface Group {
   foundationdate: Date;
   founder: string;
   template: string;
-  members: User[];
+  members: string[];
+  accessCode: number;
+  groupImage: string;
   }

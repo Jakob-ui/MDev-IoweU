@@ -317,6 +317,7 @@ ion-button.delete-button::part(native) {
   text-transform: uppercase;
   border-radius: 50px;
   box-shadow: none !important;
+  width: 100% !important;
 }
 
 ion-button.edit-button::part(native) {
@@ -590,6 +591,21 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   font-size: 18px;
   z-index: 100;
 }
+
+/* Styling für den Color Picker */
+.colorinput {
+  width: 40px; 
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  display: block; 
+  top: 0; /* Entfernt mögliche Verschiebungen nach unten */
+}
+
+.colorinput::-webkit-color-swatch {
+  border-radius: 50%; 
+}
+
 
 
 /* Anpassungen für den Dark Mode */

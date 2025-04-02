@@ -51,7 +51,6 @@ export class AccountSettingsPage implements OnInit {
 
   iosIcons: boolean = false;
 
-  user: string | null = '';
   displayName: string | null = null;
 
   name: string = '';
@@ -60,7 +59,7 @@ export class AccountSettingsPage implements OnInit {
   color: string = '#ffffff';
   profileImage: string | ArrayBuffer | null = null;
   changeMessage: string = '';
-  editing: boolean = false;
+  userEditing: boolean = false;
 
   oldPassword: string = '';
   newPassword: string = '';
@@ -69,26 +68,53 @@ export class AccountSettingsPage implements OnInit {
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false;
   auth: any;
+  lastedited: string = '';
 
   constructor() {}
 
   ngOnInit() {
     this.loadUserData();
-    this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
-    const userColor = sessionStorage.getItem('usercolor');
-    document.documentElement.style.setProperty('--user-color', userColor);
+    this.newname = this.name;
   }
 
   async loadUserData() {
     try {
-      const userData = await this.userService.getUserData();
-      this.name = userData.name;
-      this.email = userData.email;
-      this.color = userData.color; // Farbe direkt laden
+      this.name = sessionStorage.getItem('username') || '';
+      const userColor = sessionStorage.getItem('usercolor');
+      this.color = userColor || '';
+      this.email = sessionStorage.getItem('email') || '';
+      const uid = this.authService.currentUser?.uid;
+
+      if (uid) {
+        this.lastedited = await this.userService.getUserthingsByUid(
+          uid,
+          'lastedited'
+        );
+        sessionStorage.setItem('lastedited', this.lastedited);
+      }
+      if (userColor) {
+        document.documentElement.style.setProperty('--user-color', userColor);
+      }
+
+      console.log('Benutzerdaten erfolgreich geladen.');
     } catch (error) {
       console.error('Fehler beim Laden der Benutzerdaten:', error);
     }
+  }
+
+  proofTime() {
+    const lastedited = sessionStorage.getItem('lastedited');
+    if (!lastedited) {
+      return true;
+    }
+
+    const lastEditDate = new Date(lastedited);
+    const currentDate = new Date();
+
+    const differenceInMs = currentDate.getTime() - lastEditDate.getTime();
+
+    return differenceInMs > 5 * 60 * 1000;
   }
 
   public alertButtons = [
@@ -118,6 +144,23 @@ export class AccountSettingsPage implements OnInit {
     },
   ];
 
+  public saveAlertButtons = [
+    {
+      text: 'Abbrechen',
+      role: 'cancel',
+      handler: () => {
+        console.log('Speichern abgebrochen');
+      },
+    },
+    {
+      text: 'Speichern',
+      role: 'confirm',
+      handler: () => {
+        this.saveChanges(); // Ruft die Methode auf, um die Änderungen zu speichern
+      },
+    },
+  ];
+
   setResult(event: CustomEvent<OverlayEventDetail>) {
     console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`);
   }
@@ -132,14 +175,6 @@ export class AccountSettingsPage implements OnInit {
     }
   }
 
-  async updatename() {
-    try {
-      await this.acc.userupdate('name', this.newname);
-    } catch (e) {
-      console.log('error: ' + e);
-    }
-  }
-
   async logout() {
     try {
       await this.authService.logout();
@@ -149,14 +184,46 @@ export class AccountSettingsPage implements OnInit {
     }
   }
 
-  change(message: string) {
-    this.editing = true;
+  edit(message: string) {
+    this.userEditing = true;
     this.changeMessage = message;
-    this.name = '';
-    console.log('heeeeeeeeeeeeeeeeey');
+    this.newname = '';
+    console.log(this.userEditing);
+  }
+  cancel() {
+    this.userEditing = false;
+    this.newname = sessionStorage.getItem('username') || '';
+  }
+  confirm() {
+    this.userEditing = false;
   }
 
   goBack() {
     this.navCtrl.back();
+  }
+
+  async saveChanges() {
+    try {
+      if (!this.proofTime()) {
+        console.warn(
+          'Änderungen können nur alle 5 Minuten vorgenommen werden.'
+        );
+        return;
+      }
+      await this.acc.userupdate({
+        name: this.newname,
+        color: this.color,
+        lastedited: new Date().toISOString(),
+      });
+
+      sessionStorage.setItem('username', this.newname);
+      sessionStorage.setItem('usercolor', this.color);
+
+      console.log('Änderungen erfolgreich gespeichert.');
+
+      this.loadUserData();
+    } catch (e) {
+      console.error('Fehler beim Speichern der Änderungen:', e);
+    }
   }
 }
