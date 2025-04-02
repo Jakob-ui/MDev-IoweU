@@ -8,6 +8,7 @@ import {
   getDocs,
   deleteDoc,
 } from 'firebase/firestore';
+import { User } from './objects/User';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +17,7 @@ export class AccountService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
 
-  constructor() { }
+  constructor() {}
 
   async userdelete(): Promise<void> {
     if (this.auth.currentUser) {
@@ -49,7 +50,7 @@ export class AccountService {
     }
   }
 
-  async userupdate(updateParam: string, updateData: string): Promise<void> {
+  async userupdate(updateData: Partial<User>): Promise<void> {
     if (this.auth.currentUser) {
       const uid = this.auth.currentUser.uid;
 
@@ -60,16 +61,17 @@ export class AccountService {
       if (!snapshot.empty) {
         const userDoc = snapshot.docs[0];
         try {
-          await updateDoc(userDoc.ref, { [updateParam]: updateData });
-          console.log(
-            `Benutzerfeld "${updateParam}" erfolgreich aktualisiert.`
-          );
+          // Aktualisiere mehrere Felder gleichzeitig
+          await updateDoc(userDoc.ref, updateData);
+          console.log('Benutzerdaten erfolgreich aktualisiert:', updateData);
         } catch (error) {
-          console.error('Fehler beim Aktualisieren des Benutzers:', error);
+          console.error('Fehler beim Aktualisieren der Benutzerdaten:', error);
           throw error;
         }
       } else {
-        console.warn('Benutzerdaten konnten in der Datenbank nicht gefunden werden.');
+        console.warn(
+          'Benutzerdaten konnten in der Datenbank nicht gefunden werden.'
+        );
       }
     } else {
       console.error('Kein Benutzer ist aktuell eingeloggt.');

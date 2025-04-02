@@ -23,9 +23,6 @@ import { Router } from '@angular/router';
     IonButton,
     IonItem,
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
     CommonModule,
     FormsModule,
   ],
@@ -33,7 +30,13 @@ import { Router } from '@angular/router';
 export class ResetPasswordPage {
   private authservice = inject(AuthService);
   private router = inject(Router);
+
   email: string = '';
+
+  ngOnInit() {
+    const loggedEmail = sessionStorage.getItem('email');
+    this.email = loggedEmail || ''
+  }
 
   constructor() {}
 
@@ -43,7 +46,7 @@ export class ResetPasswordPage {
       alert(
         'Bitte schaue in dein Email Postfach um dein Passwort zurückzusetzen.'
       );
-      this.router.navigate(['/login'])
+      this.router.navigate(['/login']);
     } catch (error) {
       console.error('Error sending password reset email:', error);
     }
