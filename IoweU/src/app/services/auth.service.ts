@@ -19,13 +19,20 @@ import {
   browserLocalPersistence,
   onAuthStateChanged,
 } from '@angular/fire/auth';
+import { User } from './objects/User';
+import { UserService } from './user.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  getFirestoreInstance(): import('@firebase/firestore').Firestore {
+    throw new Error('Method not implemented.');
+  }
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+  private userService = inject(UserService);
+  currentUser: any;
 
   async signup(
     email: string,
@@ -41,12 +48,18 @@ export class AuthService {
     );
 
     if (userCredential.user) {
-      const success = await this.saveUserData(userCredential.user.uid, {
-        email,
-        name,
-        color,
-        img,
-      });
+      const userData: User = {
+        id: userCredential.user.uid,
+        name: name,
+        email: email,
+        color: color,
+        img: img,
+      };
+
+      const success = await this.saveUserData(
+        userCredential.user.uid,
+        userData
+      );
 
       if (!success) {
         throw new Error('Fehler beim Speichern der Benutzerdaten.');
@@ -56,7 +69,7 @@ export class AuthService {
     return userCredential;
   }
 
-  private async saveUserData(uid: string, data: any): Promise<boolean> {
+  private async saveUserData(uid: string, data: User): Promise<boolean> {
     if (!this.auth.currentUser) {
       throw new Error('Benutzer ist nicht authentifiziert.');
     }
@@ -67,18 +80,12 @@ export class AuthService {
       );
     }
     try {
-      const docRef = await addDoc(collection(this.firestore, 'users'), {
-        id: uid,
-        name: data.name,
-        email: data.email,
-        color: data.color,
-        img: data.img,
-      });
+      const docRef = await addDoc(collection(this.firestore, 'users'), data);
       console.log('Dokument erfolgreich hinzugefügt:', docRef.id);
-      return true; // Erfolg
+      return true;
     } catch (e) {
       console.error('Fehler beim Hinzufügen des Dokuments:', e);
-      return false; // Fehler
+      return false;
     }
   }
 
@@ -98,8 +105,11 @@ export class AuthService {
       .then(async (userCredential) => {
         if (userCredential.user) {
           const uid = userCredential.user.uid;
-          const username = await this.getUsernameByUid(uid);
+          const username = await this.userService.getUserthingsByUid(uid, 'name');
+          const userColor = await this.userService.getUserthingsByUid(uid, 'color');
           sessionStorage.setItem('username', username);
+          sessionStorage.setItem('email', email);
+          sessionStorage.setItem('usercolor', userColor);
         } else {
           throw new Error('Benutzer konnte nicht authentifiziert werden.');
         }
@@ -130,69 +140,9 @@ export class AuthService {
     });
   }
 
-  async getUsernameByUid(uid: string): Promise<string> {
-    const usersCollection = collection(this.firestore, 'users');
-    const q = query(usersCollection, where('id', '==', uid));
-    const snapshot = await getDocs(q);
-
-    if (!snapshot.empty) {
-      const userDoc = snapshot.docs[0];
-      const data = userDoc.data();
-      return data['name'];
-    }
-
-    throw new Error('Benutzername konnte nicht gefunden werden.');
-  }
-
   resetpassword(email: string): Promise<void> {
     return sendPasswordResetEmail(this.auth, email.trim(), {
       url: 'http://localhost:8100/login',
     });
   }
-
-  async userdelete(): Promise<void> {
-    if (this.auth.currentUser) {
-      try {
-        const uid = this.auth.currentUser.uid;
-
-        const usersCollection = collection(this.firestore, 'users');
-        const q = query(usersCollection, where('id', '==', uid));
-        const snapshot = await getDocs(q);
-
-        if (!snapshot.empty) {
-          const userDoc = snapshot.docs[0];
-          await deleteDoc(userDoc.ref);
-          console.log('Benutzerdaten aus der Datenbank gelöscht.');
-        } else {
-          console.warn(
-            'Benutzerdaten konnten in der Datenbank nicht gefunden werden.'
-          );
-        }
-
-        await this.auth.currentUser.delete();
-        console.log('Benutzer wurde erfolgreich gelöscht.');
-      } catch (error) {
-        console.error('Fehler beim Löschen des Benutzers:', error);
-        throw error;
-      }
-    } else {
-      console.error('Kein Benutzer ist aktuell eingeloggt.');
-      throw new Error('Kein Benutzer ist aktuell eingeloggt.');
-    }
-  }
-  
-  async getUserData(): Promise<{ name: string, email: string }> {
-    if (!this.auth.currentUser) {
-      throw new Error('Benutzer ist nicht authentifiziert.');
-    }
-    
-    const uid = this.auth.currentUser.uid;
-    const username = await this.getUsernameByUid(uid);
-  
-    return {
-      name: username,
-      email: this.auth.currentUser.email || ''
-    };
-  }
-  
 }

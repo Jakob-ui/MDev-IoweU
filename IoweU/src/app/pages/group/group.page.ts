@@ -19,6 +19,7 @@ import {
   IonCardSubtitle,
   IonCardContent,
   IonIcon,
+  IonSpinner,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -39,6 +40,7 @@ import { AuthService } from '../../services/auth.service';
     IonCardSubtitle,
     RouterModule,
     IonIcon,
+    IonSpinner,
   ],
 })
 export class GroupPage {
@@ -47,23 +49,31 @@ export class GroupPage {
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
 
+  loading: boolean = true;
+  timeout: any;
+
   iosIcons: boolean = false;
 
   user: string | null = '';
   displayName: string | null = null;
 
-  groupImage: string = ''; // Standardwert für das Gruppenbild
-  balance: number = -20; // Beispielwert für das Guthaben
-
-  totalCost: number = 120.5; // Beispielhafte Gesamtkosten
+  groupImage: string = '';
+  balance: number = -20;
+  totalCost: number = 120.5;
   currentMonth: string = 'März 2025';
 
-  shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter']; // Beispielhafte Einkaufsliste
+  shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
 
-  assetsList: string[] = ['Sofa', 'Küche', 'Fernseher']; // Beispielhafte Liste
+  assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
 
   ngOnInit() {
+    this.user = sessionStorage.getItem('username');
+    this.iosIcons = this.platform.is('ios');
+    this.timeout = setTimeout(() => {
+      this.loading = false;
+    }, 3000);
 
+    this.loadData();
   }
 
   async logout() {
@@ -76,8 +86,20 @@ export class GroupPage {
   }
 
   goBack() {
-    this.navCtrl.back(); // Navigiert zur letzten Seite
+    this.navCtrl.back();
   }
 
   constructor() {}
+
+  async loadData() {
+    try {
+      // Simuliertes Datenladen (z. B. API-Aufruf)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      this.loading = false;
+      clearTimeout(this.timeout);
+    } catch (error) {
+      console.error('Fehler beim Laden der Daten', error);
+      this.loading = false;
+    }
+  }
 }

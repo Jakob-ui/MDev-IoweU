@@ -22,8 +22,13 @@
 
 
 <ion-content [fullscreen]="true">
+  <div *ngIf="loading" class="loading-overlay">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Loading ...</p>
+  </div>
+
     <div class="page-container">
-    <ion-button class="edit-button">bearbeiten</ion-button>
+    <ion-button class="edit-button" [routerLink]="'/edit-group'">bearbeiten</ion-button>
     <div class="image-upload">
       <ng-container *ngIf="groupImage; else placeholder">
         <img [src]="groupImage" alt="Gruppenbild" class="group-image" />
@@ -49,7 +54,7 @@
       </div>
     </ion-card>
 
-    <ion-card class="Ausgaben" [routerLink]="'/expance'">
+    <ion-card class="Ausgaben" [routerLink]="'/expense'">
       <div class="card-content">
         <ion-card-title>Ausgaben</ion-card-title>
         <ion-card-subtitle>

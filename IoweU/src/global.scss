@@ -310,6 +310,16 @@ ion-button.main-button::part(native) {
   box-shadow: none !important;
 }
 
+ion-button.delete-button::part(native) {
+  --background: var(--ion-color-danger);
+  font-weight: 100;
+  padding: 12px 24px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+  width: 100% !important;
+}
+
 ion-button.edit-button::part(native) {
   --background: var(--ion-color-primary);
   font-weight: 100;
@@ -318,6 +328,15 @@ ion-button.edit-button::part(native) {
   text-transform: uppercase;
   border-radius: 50px;
   box-shadow: none !important;
+}
+
+ion-button.main-button.error-button::part(native) {
+  --background: var(--ion-color-danger);
+  --color: white;
+}
+
+.error-message {
+  font-weight: bold;
 }
 
 ion-icon.logout-button::part(native) {
@@ -488,7 +507,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
 }
 
 .container .logo {
-  width: 20%;
+  width: 50%;
   margin-bottom: 10%;
   max-width: 100px;
 }
@@ -499,6 +518,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   max-width: 400px;
   margin-bottom: 10px;
 }
+
 
 .separator {
   border: none;
@@ -540,6 +560,38 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   border-color: var(--ion-color-dark);
   height: 20px;
 }
+
+.remember-me{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.link-text{
+  font-size: 14px;
+  font-weight: 100;
+  cursor: pointer;
+  text-align: center;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--ion-color-secondary);
+  font-size: 18px;
+  z-index: 100;
+}
+
 
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {

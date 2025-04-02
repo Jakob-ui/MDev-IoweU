@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
@@ -15,8 +15,11 @@ import {
   IonAlert,
 } from '@ionic/angular/standalone';
 import { OverlayEventDetail } from '@ionic/core/components';
-import {Router} from "@angular/router";
-import {NavController, Platform} from "@ionic/angular";
+import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
+import { NavController, Platform } from '@ionic/angular';
+import { AccountService } from 'src/app/services/account.service';
+import { UserService } from 'src/app/services/user.service';
 
 @Component({
   selector: 'app-account-settings',
@@ -35,59 +38,61 @@ import {NavController, Platform} from "@ionic/angular";
     CommonModule,
     FormsModule,
     IonInput,
+    RouterModule,
   ],
 })
 export class AccountSettingsPage implements OnInit {
-  private auth = inject(AuthService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
+  private acc = inject(AccountService);
+  private userService = inject(UserService);
 
   iosIcons: boolean = false;
 
-  user: string | null ="";
   displayName: string | null = null;
 
   name: string = '';
+  newname: string = '';
   email: string = '';
+  color: string = '#ffffff';
+  profileImage: string | ArrayBuffer | null = null;
+  changeMessage: string = '';
+  userEditing: boolean = false;
+
   oldPassword: string = '';
   newPassword: string = '';
   confirmPassword: string = '';
 
   showPasswordFields: boolean = false;
-  showDeleteAlert: boolean = false; // Diese Variable steuert, ob der Löschen-Dialog angezeigt wird
+  showDeleteAlert: boolean = false;
+  auth: any;
 
-  constructor(private authService: AuthService) {}
+  constructor() {}
 
   ngOnInit() {
-    this.loadSessionData();
-    this.user = sessionStorage.getItem('username');
+    this.loadUserData();
     this.iosIcons = this.platform.is('ios');
+    this.newname = this.name;
   }
 
-  async loadSessionData() {
+  async loadUserData() {
     try {
-      const userData = await this.authService.getUserData();
-      this.name = userData.name;
-      this.email = userData.email;
+      this.name = sessionStorage.getItem('username') || '';
+      const userColor = sessionStorage.getItem('usercolor');
+      this.color = userColor || '';
+      this.email = sessionStorage.getItem('email') || '';
+
+      if (userColor) {
+        document.documentElement.style.setProperty('--user-color', userColor);
+      }
+
+      console.log('Benutzerdaten erfolgreich geladen.');
     } catch (error) {
       console.error('Fehler beim Laden der Benutzerdaten:', error);
     }
   }
-
-  togglePasswordChange() {
-    this.showPasswordFields = !this.showPasswordFields;
-  }
-
-  changePassword() {
-    if (this.newPassword !== this.confirmPassword) {
-      alert('Die Passwörter stimmen nicht überein.');
-      return;
-    }
-    alert('Passwort erfolgreich geändert!');
-  }
-
-
 
   public alertButtons = [
     {
@@ -105,26 +110,90 @@ export class AccountSettingsPage implements OnInit {
       },
     },
   ];
+  public alertInputs = [
+    {
+      placeholder: 'E-Mail',
+      type: 'email',
+    },
+    {
+      placeholder: 'Passwort',
+      type: 'password',
+    },
+  ];
+
+  public saveAlertButtons = [
+    {
+      text: 'Abbrechen',
+      role: 'cancel',
+      handler: () => {
+        console.log('Speichern abgebrochen');
+      },
+    },
+    {
+      text: 'Speichern',
+      role: 'confirm',
+      handler: () => {
+        this.saveChanges(); // Ruft die Methode auf, um die Änderungen zu speichern
+      },
+    },
+  ];
 
   setResult(event: CustomEvent<OverlayEventDetail>) {
     console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`);
   }
 
-  deleteAccount() {
+  async deleteAccount() {
     console.log('Konto wird gelöscht...');
-    // Hier kannst du den Löschprozess starten, z. B. einen API-Call
+    try {
+      await this.acc.userdelete();
+      this.router.navigate(['home']);
+    } catch (e) {
+      console.log('error: ' + e);
+    }
   }
 
   async logout() {
     try {
-      await this.auth.logout();
-      this.router.navigate(['home']);
+      await this.authService.logout();
+      this.router.navigate(['login']);
     } catch (e) {
       console.log(e);
     }
   }
 
+  edit(message: string) {
+    this.userEditing = true;
+    this.changeMessage = message;
+    this.newname = '';
+    console.log(this.userEditing);
+  }
+  cancel() {
+    this.userEditing = false;
+    this.name = sessionStorage.getItem('username') || '';
+  }
+  confirm() {
+    this.userEditing = false;
+  }
+
   goBack() {
-    this.navCtrl.back(); // Navigiert zur letzten Seite
+    this.navCtrl.back();
+  }
+
+  async saveChanges() {
+    try {
+      await this.acc.userupdate({
+        name: this.newname,
+        color: this.color,
+      });
+
+      sessionStorage.setItem('username', this.newname);
+      sessionStorage.setItem('usercolor', this.color);
+
+      console.log('Änderungen erfolgreich gespeichert.');
+
+      this.loadUserData();
+    } catch (e) {
+      console.error('Fehler beim Speichern der Änderungen:', e);
+    }
   }
 }
