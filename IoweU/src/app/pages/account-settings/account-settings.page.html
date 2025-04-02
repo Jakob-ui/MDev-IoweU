@@ -73,7 +73,8 @@
       Passwort ändern
     </ion-button>
 
-    <ion-button class="delete-button" color="danger">Konto löschen</ion-button>
+    <div class="fixed-bottom">
+    <ion-button id="delete-alert" class="delete-button" color="danger">Konto löschen</ion-button>
     <ion-alert
       trigger="delete-alert"
       header="Konto löschen?"
@@ -91,5 +92,7 @@
     >
       Änderungen speichern
     </ion-button>
+    </div>
+
   </div>
 </ion-content>

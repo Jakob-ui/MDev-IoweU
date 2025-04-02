@@ -317,6 +317,7 @@ ion-button.delete-button::part(native) {
   text-transform: uppercase;
   border-radius: 50px;
   box-shadow: none !important;
+  width: 100% !important;
 }
 
 ion-button.edit-button::part(native) {

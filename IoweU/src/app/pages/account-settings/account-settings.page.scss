@@ -1,40 +1,3 @@
-.password-change-container {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
-  padding: 0 20px; /* Anfangs kein Padding */
-}
-
-.password-change-container.open {
-  max-height: 300px; /* Stelle sicher, dass genug Platz ist */
-  padding: 20px;
-}
-
-.input-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-ion-icon {
-  margin-left: 10px; /* Abstand zwischen dem Textfeld und dem Icon */
-  cursor: pointer;
-}
-
-/* Pfeil-Icon in Weiß */
-.chevron-icon {
-  font-size: 20px;
-  color: var(--ion-color-medium);
-  transition: transform 0.3s ease;
-}
-
-.rotate {
-  transform: rotate(180deg);
-}
-
-.hidden {
-  display: none;
-}
 
 .profilepic {
   width: 60px;
@@ -45,3 +8,18 @@ ion-icon {
   margin-bottom: 5px;
 }
 
+
+
+.fixed-bottom {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  gap: 10px; 
+}
+
+.fixed-bottom ion-button {
+  width: 80%; 
+}
