@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Auth } from '@angular/fire/auth';
+import { Auth, reauthenticateWithCredential, EmailAuthProvider } from '@angular/fire/auth';
 import { Firestore, updateDoc } from '@angular/fire/firestore';
 import {
   collection,

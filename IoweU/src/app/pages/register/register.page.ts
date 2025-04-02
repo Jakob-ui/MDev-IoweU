@@ -45,6 +45,7 @@ export class RegisterPage {
   name = '';
   img: string = '';
   color = '';
+  error = '';
 
   inputChange() {
     this.failed = false;
@@ -57,6 +58,18 @@ export class RegisterPage {
   }
 
   async register() {
+    if (!this.email || !this.password) {
+      this.error = 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort ein.';
+      return;
+    }
+    if (!this.email.includes('@')) {
+      this.error = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+      return;
+    }
+    if (this.name.length > 15) {
+      this.error = 'Der Benutzername darf maximal 15 Zeichen haben';
+      return;
+    }
     try {
       const usercolor =
         this.color === '' ? this.generateRandomHexColor() : this.color;
