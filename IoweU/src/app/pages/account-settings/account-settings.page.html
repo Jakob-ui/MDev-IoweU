@@ -33,15 +33,8 @@
         placeholder="Benutzername ändern"
         [(ngModel)]="name">
       </ion-input>
-      <ion-icon name="pencil" slot="end" color="primary"></ion-icon>
-    </ion-item>
-
-    <ion-item class="input-item">
-      <ion-input
-        type="text"
-        placeholder="Nickname ändern"
-        [(ngModel)]="name">
-      </ion-input>
+      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'"
+               ></ion-icon>
     </ion-item>
 
     <ion-item class="input-item">
@@ -50,15 +43,21 @@
         [(ngModel)]="email"
         placeholder="E-Mail ändern"
       ></ion-input>
+      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'"
+               ></ion-icon>
     </ion-item>
+
+    <ion-item class="input-item">
+      <ion-label class="label">Profilfarbe:</ion-label>
+      <input type="color" [(ngModel)]="color" class="colorinput" />
+    </ion-item>
+    
 
     <ion-item class="input-item" (click)="togglePasswordChange()">
       <ion-label>Passwort ändern</ion-label>
       <ion-icon
-        slot="end"
-        [name]="showPasswordFields ? 'chevron-up' : 'chevron-down'"
-        class="chevron-icon"
-        [ngClass]="{'rotate': showPasswordFields}"
+        [class.rotate]="showPasswordFields"
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/md-arrow-dropdown.svg'"
       ></ion-icon>
     </ion-item>
 
@@ -95,7 +94,7 @@
       </ion-button>
     </div>
 
-    <ion-button id="delete-alert" color="danger">Konto löschen</ion-button>
+    <ion-button class="delete-button" color="danger">Konto löschen</ion-button>
     <ion-alert
       trigger="delete-alert"
       header="Konto löschen?"
@@ -103,8 +102,6 @@
       [buttons]="alertButtons"
       (didDismiss)="setResult($event)"
     ></ion-alert>
-
-
 
     <ion-button class="main-button" expand="block">
       Änderungen speichern
