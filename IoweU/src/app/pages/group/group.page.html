@@ -30,15 +30,15 @@
     <div class="page-container">
     <ion-button class="edit-button" [routerLink]="'/edit-group'">bearbeiten</ion-button>
     <div class="image-upload">
-      <ng-container *ngIf="groupImage; else placeholder">
-        <img [src]="groupImage" alt="Gruppenbild" class="group-image" />
+      <ng-container *ngIf="currentGroup?.groupImage; else placeholder">
+        <img [src]="currentGroup?.groupImage" alt="Gruppenbild" class="group-image" />
       </ng-container>
       <ng-template #placeholder>
         <div class="upload-placeholder"></div>
       </ng-template>
     </div>
       <ion-icon name="logo-ionic"></ion-icon>
-    <h1>Gruppenname</h1>
+    <h1>{{currentGroup?.name}}</h1>
     <div class="separator"></div>
 
     <ion-card class="Finanzübersicht" [routerLink]="'/finance'">

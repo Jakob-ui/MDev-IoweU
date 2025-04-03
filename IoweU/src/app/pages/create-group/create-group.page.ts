@@ -16,6 +16,7 @@ import { GroupService } from 'src/app/services/group.service';
 import { Auth } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
 import { Group } from 'src/app/services/objects/Group';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-create-group',
@@ -40,6 +41,7 @@ export class CreateGroupPage {
   groupService = inject(GroupService);
   auth = inject(Auth);
   firestore = inject(Firestore);
+  router = inject(Router);
   groupname: string = '';
   //newMember: string = '';
   //members: string[] = [];
@@ -88,6 +90,8 @@ export class CreateGroupPage {
     try {
       await this.groupService.createGroup(this.groupname, founder, this.selectedTemplate, this.groupImage as string);
       console.log('Group successfully created!');
+      sessionStorage.setItem('groupId', groupId); // Store the group ID in session storage
+      this.router.navigate(['/group']); // Navigate to the group page after creation
     } catch (error) {
       console.error('Error creating group:', error);
     }

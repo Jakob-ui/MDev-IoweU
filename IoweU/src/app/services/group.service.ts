@@ -13,6 +13,7 @@ import {
   getDoc,
   updateDoc,
 } from '@angular/fire/firestore';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -20,37 +21,7 @@ import {
 export class GroupService {
 
 public firestore: Firestore = inject(Firestore);
-
-/*
-private idToName(id: string)
-{
-  const user = this.userList.find(user => user.id === id);
-  if (user) {
-    return user.name;
-  } else {
-    console.error('User with ID ' + id + ' not found in userList.');
-    return id; // Return the ID itself if the user is not found
-  }
-}
-*/
-
-/*
-private async loadUsers(): Promise<void> {
-  try {
-    const usersRef = collection(this.firestore, 'users');
-    const userSnapshot = await getDocs(usersRef);
-
-    // Map each document to a User object and save it to userList
-    this.userList = userSnapshot.docs.map(doc => ({
-      ...doc.data() // Spread the document data into the object
-    })) as User[];
-
-    console.log('Loaded users: ', this.userList);
-  } catch (error) {
-    console.error('Error loading users: ', error);
-  }
-}
-*/
+public router = inject(Router);
 
 //Gruppe erstellen:
   async createGroup(name: string, founder: string, template: string, groupImage: string): Promise<void> 
@@ -63,7 +34,7 @@ private async loadUsers(): Promise<void> {
         founder: founder,
         template: template,
         members: [], // Initialize with an empty array
-        accessCode: Math.floor(10000 + Math.random() * 90000), // Initialize with a default value
+        accessCode: Math.floor(10000 + Math.random() * 90000),
         groupImage: groupImage, // Set the group image
       };
       // Add the founder to the members list:
@@ -161,13 +132,31 @@ private async loadUsers(): Promise<void> {
 
   //Bestimmte Gruppe finden:
   async getGroupById(id: string): Promise<Group> {
-    const groupsRef = collection(this.firestore, 'groups');
+    try{
+      const groupsRef = collection(this.firestore, 'groups');
     const q = query(groupsRef, where('id', '==', id));
     const groupSnapshot = await getDocs(q);
     // if (groupSnapshot.empty) {
     //   return undefined;
     // }
     const group = groupSnapshot.docs[0].data() as Group;
+    console.log("Hier erwarten wir group: "+group);
     return group;
+    }
+    catch(e)
+    {
+      console.log("Error getting group:" + e)
+      return {
+        id: '2137',
+        name: 'Error',
+        foundationdate: new Date(),
+        founder: 'Error',
+        template: 'Error',
+        members: [],
+        accessCode: 0,
+        groupImage: 'Error',};
+    }
+    
   }
 }
+
