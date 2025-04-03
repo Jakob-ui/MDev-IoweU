@@ -64,29 +64,33 @@ export class ExpensePage implements OnInit {
     { name: 'Mateusz', profileImage: 'assets/profiles/mateusz.jpg' },
   ];
 
-  expances = [
+  expenses = [
     {
-      expace: 'Pizza',
+      id: 1, // Füge eine ID für jedes Expense hinzu
+      expense: 'Pizza',
       totalAmount: 50,
       amountToPay: -10,
       paidBy: this.groupMembers[0],
       date: new Date(2025, 2, 20),
     },
     {
-      expace: 'Einkauf bei Hofer',
+      id: 2,
+      expense: 'Einkauf bei Hofer',
       totalAmount: 70,
       amountToPay: -20,
       paidBy: this.groupMembers[1],
       date: new Date(2025, 3, 5),
     },
     {
-      expace: 'Kino',
+      id: 3,
+      expense: 'Kino',
       totalAmount: 40,
       amountToPay: -5,
       paidBy: this.groupMembers[2],
       date: new Date(2025, 3, 5),
     },
   ];
+
 
   balance = 50;
   lastTransactionDate = new Date(2025, 2, 20);

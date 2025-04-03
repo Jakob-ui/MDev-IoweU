@@ -159,7 +159,7 @@ ion-card-subtitle h6 {
 
 
 .finance-card,
-.expance-card {
+.expense-card {
   width: 60%;
   max-width: 300px;
   margin: auto;
@@ -190,7 +190,7 @@ ion-card-subtitle h6 {
   margin: 0px;
 }
 
-.expance-details {
+.expense-item {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -222,7 +222,15 @@ ion-card-subtitle h6 {
   font-size: 14px;
   border-radius: 50px;
   margin: 0;
-  margin-top: -5px;
+}
+
+.detailedprice{
+  margin-left: auto;
+  font-weight: 700;
+  padding: 10px 15px;
+  font-size: 20px;
+  border-radius: 50px;
+  margin: 0;
 }
 
 .negative {
@@ -394,7 +402,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
 }
 
 .bilance-list,
-.expance-list {
+.expense-list {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -424,8 +432,8 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   height: 40px;
   border-radius: 50px;
   gap: 10px;
-  background: rgb(228, 228, 228);
-  border: 2px solid #1a65eb;
+  background: var(--user-color-background, rgba(252, 238, 238, 0.84));
+  border: 2px solid var(--user-color, #1a65eb);
   padding: 5px 10px 5px 5px;
 }
 
