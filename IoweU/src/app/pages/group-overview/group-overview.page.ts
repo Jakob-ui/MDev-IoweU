@@ -4,25 +4,18 @@ import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
-  IonFooter,
-  IonButtons,
   IonButton,
   IonItem,
   IonLabel,
-  IonInput,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
-  IonCardContent,
   IonList,
   IonIcon,
+  IonCard,
+  IonCardSubtitle,
+  IonCardTitle
 } from '@ionic/angular/standalone';
-import { IonicModule, NavController, Platform } from '@ionic/angular';
+import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
-import { Auth } from '@angular/fire/auth';
 import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
@@ -31,6 +24,7 @@ import { AuthService } from 'src/app/services/auth.service';
   styleUrls: ['./group-overview.page.scss'],
   standalone: true,
   imports: [
+    CommonModule,
     IonHeader,
     IonToolbar,
     IonContent,
@@ -39,32 +33,41 @@ import { AuthService } from 'src/app/services/auth.service';
     IonLabel,
     IonList,
     RouterModule,
-    CommonModule,
     IonIcon,
+    IonCard,
+    IonCardSubtitle,
+    IonCardTitle,
   ],
 })
 export class GroupOverviewPage implements OnInit {
+  // 🔹 Services injizieren
   private auth = inject(AuthService);
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
 
-  iosIcons: boolean = false;
-
+  // 🔹 Variablen für die Seite
   user: string | null = '';
   displayName: string | null = null;
+  groupName: string = '';
+  iosIcons: boolean = false;
 
-  groups: { name: string; balance: number }[] = [];
+  groups: { name: string; myBalance: number }[] = [
+    { name: 'Unsere WG', myBalance: 200 },
+    { name: 'Reise nach Rom', myBalance: -50 },
+    { name: 'Freunde', myBalance: -20 },
+  ];
 
-  constructor() {  }
+  constructor() {}
 
   ngOnInit() {
-      this.user = sessionStorage.getItem('username');
-      this.iosIcons = this.platform.is('ios');
+    this.user = sessionStorage.getItem('username');
+    this.iosIcons = this.platform.is('ios');
 
-      const userColor = sessionStorage.getItem('usercolor');
-      document.documentElement.style.setProperty('--user-color', userColor);
+    const userColor = sessionStorage.getItem('usercolor');
+    document.documentElement.style.setProperty('--user-color', userColor);
   }
+
   async logout() {
     try {
       await this.auth.logout();
@@ -74,7 +77,12 @@ export class GroupOverviewPage implements OnInit {
     }
   }
 
+  navigateToGroup(groupName: string) {
+    sessionStorage.setItem('groupname', groupName);
+    this.router.navigate(['/group']);
+  }
+
   goBack() {
-    this.navCtrl.back(); // Navigiert zur letzten Seite
+    this.navCtrl.back();
   }
 }

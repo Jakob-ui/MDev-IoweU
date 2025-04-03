@@ -49,12 +49,14 @@ export class FinancePage {
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
 
+  groupname: string = '';
   iosIcons: boolean = false;
 
   user: string | null ="";
   displayName: string | null = null;
 
-  balance: number = +200;
+
+  myBalance: number = +200;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   groupMembers = [
@@ -70,6 +72,8 @@ export class FinancePage {
     this.iosIcons = this.platform.is('ios');
     const userColor = sessionStorage.getItem('usercolor');
     document.documentElement.style.setProperty('--user-color', userColor);
+    this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
+
   }
   async logout() {
     try {

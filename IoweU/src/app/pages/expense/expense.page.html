@@ -21,13 +21,11 @@
 <ion-content [fullscreen]="true">
 
   <div class="page-container">
-    <h4>Gruppenname</h4>
+    <h4>{{ groupname }}</h4>
     <h1>Ausgaben</h1>
 
     <ion-card
-      class="expance-card"
-      [ngClass]="{ 'negative': balance < 0, 'positive': balance >= 0 }"
-    >
+      class="expance-card">
       <div class="card-content-expance">
         <h2>{{ balance | currency: 'EUR' }}</h2>
         <p>

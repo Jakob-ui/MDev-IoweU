@@ -49,6 +49,8 @@ export class ExpensePage implements OnInit {
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
 
+  groupname: string = '';
+
   iosIcons: boolean = false;
 
   user: string | null ="";
@@ -94,6 +96,9 @@ export class ExpensePage implements OnInit {
   ngOnInit() {
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
+    const userColor = sessionStorage.getItem('usercolor');
+    document.documentElement.style.setProperty('--user-color', userColor);
+    this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
   }
 
   async logout() {

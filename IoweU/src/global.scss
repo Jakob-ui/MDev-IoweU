@@ -204,8 +204,8 @@ ion-card-subtitle h6 {
 
 .Ausgabepreis {
   display: flex;
-  flex-direction: column; /* Preise untereinander anordnen */
-  align-items: flex-end; /* Preise rechtsbündig */
+  flex-direction: column;
+  align-items: flex-end;
   gap: 5px;
 }
 
@@ -247,14 +247,14 @@ ion-toolbar {
 .left-container {
   display: flex;
   align-items: center;
-  gap: 10px; /* Abstand zwischen den Elementen */
-  flex-grow: 1; /* Lässt die linke Seite so viel Platz wie möglich einnehmen */
+  gap: 10px;
+  flex-grow: 1;
 }
 
 .right-container {
   display: flex;
   align-items: center;
-  gap: 10px; /* Abstand zwischen den Elementen */
+  gap: 10px;
 }
 
 ion-title {
@@ -435,7 +435,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   height: 30px;
   border-radius: 50px;
   gap: 10px;
-  background: var(--user-color-background, #c7c7c7d6);
+  background: var(--user-color-background, rgba(252, 238, 238, 0.84));
   border: 2px solid var(--user-color, #1a65eb);
   padding: 5px 10px 5px 5px;
 }
@@ -450,7 +450,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   font-weight: bold;
   color: var(--ion-color-dark);
   font-size: 18px;
-  border: 2px solid var(--ion-color-primary);
+  border: 1px solid var(--user-color);
 }
 
 .profile-placeholder {
@@ -464,7 +464,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   font-weight: bold;
   color: var(--ion-color-dark);
   font-size: 18px;
-  border: 2px solid var(--ion-color-primary);
+  border: 2px solid var(--user-color, #1a65eb);
 }
 
 .member-name {
@@ -474,7 +474,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
 }
 
 .balance-info {
-  min-width: 80px; /* Damit das Badge immer eine feste Größe hat */
+  min-width: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -592,18 +592,24 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   z-index: 100;
 }
 
+.space{
+  height: 40px;
+  background-color: transparent;
+
+}
+
 /* Styling für den Color Picker */
 .colorinput {
-  width: 40px; 
+  width: 40px;
   height: 40px;
   border: none;
   border-radius: 50%;
-  display: block; 
+  display: block;
   top: 0; /* Entfernt mögliche Verschiebungen nach unten */
 }
 
 .colorinput::-webkit-color-swatch {
-  border-radius: 50%; 
+  border-radius: 50%;
 }
 
 

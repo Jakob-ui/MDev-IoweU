@@ -49,6 +49,7 @@ export class GroupPage {
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
 
+  groupname: string = '';
   loading: boolean = true;
   timeout: any;
 
@@ -58,8 +59,8 @@ export class GroupPage {
   displayName: string | null = null;
 
   groupImage: string = '';
-  balance: number = -20;
-  totalCost: number = 120.5;
+  myBalance: number = +200;
+  totalCost: number = 120.50;
   currentMonth: string = 'März 2025';
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
@@ -69,6 +70,7 @@ export class GroupPage {
   ngOnInit() {
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
+    this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
     this.timeout = setTimeout(() => {
       this.loading = false;
     }, 3000);
