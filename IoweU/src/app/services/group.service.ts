@@ -16,13 +16,13 @@ import {
 import { Router } from '@angular/router';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class GroupService {
   public router = inject(Router);
-public firestore: Firestore = inject(Firestore);
+  public firestore: Firestore = inject(Firestore);
 
-/*
+  /*
 private idToName(id: string)
 {
   const user = this.userList.find(user => user.id === id);
@@ -35,7 +35,7 @@ private idToName(id: string)
 }
 */
 
-/*
+  /*
 private async loadUsers(): Promise<void> {
   try {
     const usersRef = collection(this.firestore, 'users');
@@ -53,77 +53,90 @@ private async loadUsers(): Promise<void> {
 }
 */
 
-//Gruppe erstellen:
-  async createGroup(name: string, founder: string, template: string, groupImage: string): Promise<void> 
-  {
+  //Gruppe erstellen:
+  async createGroup(
+    name: string,
+    founder: string,
+    template: string
+  ): Promise<void> {
     try {
       const newGroup: Group = {
         id: doc(collection(this.firestore, 'groups')).id, // Generate a new document ID
         name: name,
         foundationdate: new Date(), // Set the foundation date to the current date
         founder: founder,
-        template: template,
         members: [], // Initialize with an empty array
         accessCode: Math.floor(10000 + Math.random() * 90000), // Initialize with a default value
-        groupImage: groupImage, // Set the group image
+        features: [],
       };
       // Add the founder to the members list:
       newGroup.members.push(newGroup.founder);
-      const groupRef = await addDoc(collection(this.firestore, 'groups'), newGroup);
-      console.log('Group created with ID: ' + groupRef.id); 
-      this.router.navigate(['group/' + groupRef.id]);
+      console.log(template);
+      if (template === 'Standart') {
+        newGroup.features.push('Finanzübersicht');
+      }
+      const groupRef = await addDoc(
+        collection(this.firestore, 'groups'),
+        newGroup
+      );
+      console.log('Group created with ID: ' + groupRef.id);
+      this.router.navigate(['group/' + newGroup.id]);
     } catch (error) {
       console.error('Error creating group: ', error);
     }
   }
 
   //Gruppe bearbeiten (nur als Gründer*in möglich):
-  async updateGroup(uid: string, groupId: string, name: string, template: string, photo: string): Promise<void> 
-  {
+  async updateGroup(
+    uid: string,
+    groupId: string,
+    name: string,
+    template: string,
+    photo: string
+  ): Promise<void> {
     const group = await this.getGroupById(groupId);
-    if (group && uid === group.founder)
-    {
+    if (group && uid === group.founder) {
       try {
         const groupRef = doc(this.firestore, 'groups', groupId);
-        // Update the group document in Firestore (template, photo, name)
-        await updateDoc(groupRef, 'name', name, 'template', template, 'groupImage', photo);
+        await updateDoc(
+          groupRef,
+          'name',
+          name,
+          'template',
+          template,
+          'groupImage',
+          photo
+        );
         console.log('Group updated successfully!');
       } catch (error) {
         console.error('Error updating group: ', error);
       }
-    }
-    else
-    {
+    } else {
       console.log('Only the founder can update the group!');
     }
   }
 
   //Gruppe löschen (nur als Gründer*in möglich):
-  async deleteGroup(uid: string, group: Group): Promise<void> 
-  {
-    try 
-    {
+  async deleteGroup(uid: string, group: Group): Promise<void> {
+    try {
       const groupRef = doc(this.firestore, 'groups', group.id);
       // Delete the group document from Firestore
-      if(uid === group.founder) 
-      {
+      if (uid === group.founder) {
         await deleteDoc(groupRef);
         console.log('Group deleted successfully!');
-      } 
-      else
-      {
+      } else {
         console.log('Only the founder can delete the group!');
       }
-    }
-    catch (error) 
-    {
+    } catch (error) {
       console.error('Error deleting group: ', error);
     }
   }
-  async joinGroup(groupId: string, userId: string, accessCode: number): Promise<void> 
-  {
-    try
-    {
+  async joinGroup(
+    groupId: string,
+    userId: string,
+    accessCode: number
+  ): Promise<void> {
+    try {
       const groupRef = doc(this.firestore, 'groups', groupId);
       const groupSnapshot = await getDoc(groupRef);
       if (groupSnapshot.exists()) {
@@ -138,18 +151,16 @@ private async loadUsers(): Promise<void> {
       } else {
         console.error('Group not found!');
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Error joining group: ', error);
     }
   }
 
   //Gruppe verlassen:
-  async leaveGroup(groupId: string, userId: string): Promise<void>
-  {
+  async leaveGroup(groupId: string, userId: string): Promise<void> {
     //Ein User kann nur dann raus wenn seine globale Bilanz 0 beträgt
   }
-  
+
   //Eigene Gruppen finden:
   async getGroupsByUserId(uid: string): Promise<Group[]> {
     const groupsRef = collection(this.firestore, 'groups');
@@ -168,13 +179,14 @@ private async loadUsers(): Promise<void> {
       const groupsRef = collection(this.firestore, 'groups');
       const q = query(groupsRef, where('id', '==', id));
       const groupSnapshot = await getDocs(q);
-      // if (groupSnapshot.empty) {
-      //   return undefined;
-      // }
+      if (groupSnapshot.empty) {
+        console.warn(`No group found with ID: ${id}`);
+        return null;
+      }
       const group = groupSnapshot.docs[0].data() as Group;
       return group;
     } catch (e) {
-      console.log("Error fetching Groups by id! " + e);
+      console.log('Error fetching Groups by id! ' + e);
       return null;
     }
   }

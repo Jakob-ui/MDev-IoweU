@@ -67,7 +67,7 @@ export class GroupPage {
   myBalance: number = +200;
   totalCost: number = 120.5;
   currentMonth: string = 'März 2025';
-  data: Group | null = null;
+  features: string [] = []; 
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
 
@@ -81,12 +81,10 @@ export class GroupPage {
     this.timeout = setTimeout(() => {
       this.loading = false;
     }, 3000);
-
-    
     */
+    
     this.route.params.subscribe((params) => {
       this.goupid = params['id'];
-      console.log('Test ID:', this.goupid);
     });
     this.getGroup(this.goupid);
     this.loadData();
@@ -113,7 +111,6 @@ export class GroupPage {
       if (group) {
         this.groupname = group.name;
         this.goupid = group.id;
-        this.groupImage = group.groupImage;
         console.log('Group data loaded:', group);
       } else {
         console.warn('Group not found!');

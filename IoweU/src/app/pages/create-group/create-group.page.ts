@@ -85,7 +85,7 @@ export class CreateGroupPage {
     }
 
     try {
-      await this.groupService.createGroup(this.groupname, founder, this.selectedTemplate, this.groupImage as string);
+      await this.groupService.createGroup(this.groupname, founder, this.selectedTemplate);
       console.log('Group successfully created!');
     } catch (error) {
       console.error('Error creating group:', error);
