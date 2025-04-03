@@ -4,6 +4,5 @@ export interface User
     name: string;
     email: string;
     color: string;
-    img: string;
     lastedited: string;
 }

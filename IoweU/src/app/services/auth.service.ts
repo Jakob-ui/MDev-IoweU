@@ -53,7 +53,6 @@ export class AuthService {
         name: name,
         email: email,
         color: color,
-        img: img,
         lastedited: new Date().toISOString(),
       };
 
