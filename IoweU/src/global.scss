@@ -612,6 +612,22 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   border-radius: 50%;
 }
 
+.ion-valid.sc-ion-input-md-h {
+  --highlight-color: balck;
+}
+
+.ion-valid.sc-ion-input-ios-h {
+  --highlight-color: black;
+}
+
+:host .ionicon {
+  stroke: black;
+}
+
+ion-input:focus ~ .ionicon {
+  stroke: black;
+}
+
 
 
 /* Anpassungen für den Dark Mode */

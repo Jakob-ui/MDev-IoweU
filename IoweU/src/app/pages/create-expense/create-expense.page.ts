@@ -32,9 +32,9 @@ export class CreateExpensePage {
   };
 
   groupMembers = [
-    { name: 'ich' },
-    { name: 'Lila' },
-    { name: 'Grün' }
+    { name: 'ich', split: null, amountperperson: null },
+    { name: 'Lila', split: null, amountperperson: null },
+    { name: 'Grün', split: null, amountperperson: null }
   ];
 
   invoiceImage: string | null = null; // Variable zum Speichern des Bildes
@@ -44,6 +44,7 @@ export class CreateExpensePage {
   openDatePicker() {
     this.isDatePickerOpen = true;
   }
+
   // Methode zum Schließen des Datepickers
   closeDatePicker() {
     this.isDatePickerOpen = false;
@@ -64,6 +65,7 @@ export class CreateExpensePage {
 
   saveExpense() {
     console.log('Expense saved:', this.expense);
+    console.log('Members with their expenses:', this.groupMembers);
   }
 
   cancel() {

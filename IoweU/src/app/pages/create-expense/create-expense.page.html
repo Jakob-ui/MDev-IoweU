@@ -118,7 +118,6 @@
       </div>
     </div>
 
-    <!-- Mitgliederliste -->
     <div class="section">
       <div class="member-list" *ngFor="let member of groupMembers">
         <div class="member-info">
@@ -130,19 +129,20 @@
             <ion-input
               type="number"
               placeholder="1x"
-              [(ngModel)]="expense.split"
+              [(ngModel)]="member.split"
             ></ion-input>
           </div>
           <div class="input-field">
             <ion-input
               type="number"
               placeholder="0,00"
-              [(ngModel)]="expense.amountperperson"
+              [(ngModel)]="member.amountperperson"
             ></ion-input>
           </div>
         </div>
       </div>
     </div>
+
 
     <!-- Buttons -->
     <div class="button-row">
