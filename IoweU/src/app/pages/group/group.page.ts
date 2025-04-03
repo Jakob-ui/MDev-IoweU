@@ -21,8 +21,10 @@ import {
   IonIcon,
   IonSpinner,
 } from '@ionic/angular/standalone';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { GroupService } from 'src/app/services/group.service';
+import { Group } from 'src/app/services/objects/Group';
 
 @Component({
   selector: 'app-group',
@@ -48,8 +50,9 @@ export class GroupPage {
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
+  private route = inject(ActivatedRoute);
+  private groupService = inject(GroupService);
 
-  groupname: string = '';
   loading: boolean = true;
   timeout: any;
 
@@ -58,10 +61,13 @@ export class GroupPage {
   user: string | null = '';
   displayName: string | null = null;
 
+  groupname: string = '';
+  goupid: string = '';
   groupImage: string = '';
   myBalance: number = +200;
-  totalCost: number = 120.50;
+  totalCost: number = 120.5;
   currentMonth: string = 'März 2025';
+  data: Group | null = null;
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
 
@@ -71,10 +77,18 @@ export class GroupPage {
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
     this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
+    /*
     this.timeout = setTimeout(() => {
       this.loading = false;
     }, 3000);
 
+    
+    */
+    this.route.params.subscribe((params) => {
+      this.goupid = params['id'];
+      console.log('Test ID:', this.goupid);
+    });
+    this.getGroup(this.goupid);
     this.loadData();
   }
 
@@ -92,6 +106,22 @@ export class GroupPage {
   }
 
   constructor() {}
+
+  async getGroup(id: string): Promise<void> {
+    try {
+      const group = await this.groupService.getGroupById(id);
+      if (group) {
+        this.groupname = group.name;
+        this.goupid = group.id;
+        this.groupImage = group.groupImage;
+        console.log('Group data loaded:', group);
+      } else {
+        console.warn('Group not found!');
+      }
+    } catch (e) {
+      console.log('Error getting Groups: ' + e);
+    }
+  }
 
   async loadData() {
     try {

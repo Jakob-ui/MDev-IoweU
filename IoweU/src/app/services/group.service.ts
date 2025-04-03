@@ -13,12 +13,13 @@ import {
   getDoc,
   updateDoc,
 } from '@angular/fire/firestore';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GroupService {
-
+  public router = inject(Router);
 public firestore: Firestore = inject(Firestore);
 
 /*
@@ -70,6 +71,7 @@ private async loadUsers(): Promise<void> {
       newGroup.members.push(newGroup.founder);
       const groupRef = await addDoc(collection(this.firestore, 'groups'), newGroup);
       console.log('Group created with ID: ' + groupRef.id); 
+      this.router.navigate(['group/' + groupRef.id]);
     } catch (error) {
       console.error('Error creating group: ', error);
     }
@@ -78,7 +80,8 @@ private async loadUsers(): Promise<void> {
   //Gruppe bearbeiten (nur als Gründer*in möglich):
   async updateGroup(uid: string, groupId: string, name: string, template: string, photo: string): Promise<void> 
   {
-    if(uid == (await this.getGroupById(groupId)).founder)
+    const group = await this.getGroupById(groupId);
+    if (group && uid === group.founder)
     {
       try {
         const groupRef = doc(this.firestore, 'groups', groupId);
@@ -160,14 +163,19 @@ private async loadUsers(): Promise<void> {
   }
 
   //Bestimmte Gruppe finden:
-  async getGroupById(id: string): Promise<Group> {
-    const groupsRef = collection(this.firestore, 'groups');
-    const q = query(groupsRef, where('id', '==', id));
-    const groupSnapshot = await getDocs(q);
-    // if (groupSnapshot.empty) {
-    //   return undefined;
-    // }
-    const group = groupSnapshot.docs[0].data() as Group;
-    return group;
+  async getGroupById(id: string): Promise<Group | null> {
+    try {
+      const groupsRef = collection(this.firestore, 'groups');
+      const q = query(groupsRef, where('id', '==', id));
+      const groupSnapshot = await getDocs(q);
+      // if (groupSnapshot.empty) {
+      //   return undefined;
+      // }
+      const group = groupSnapshot.docs[0].data() as Group;
+      return group;
+    } catch (e) {
+      console.log("Error fetching Groups by id! " + e);
+      return null;
+    }
   }
 }
