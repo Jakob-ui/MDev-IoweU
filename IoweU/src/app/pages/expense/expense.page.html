@@ -21,13 +21,11 @@
 <ion-content [fullscreen]="true">
 
   <div class="page-container">
-    <h4>Gruppenname</h4>
+    <h4>{{ groupname }}</h4>
     <h1>Ausgaben</h1>
 
     <ion-card
-      class="expance-card"
-      [ngClass]="{ 'negative': balance < 0, 'positive': balance >= 0 }"
-    >
+      class="expense-card">
       <div class="card-content-expance">
         <h2>{{ balance | currency: 'EUR' }}</h2>
         <p>
@@ -36,11 +34,11 @@
       </div>
     </ion-card>
 
-    <ion-list class="expance-list">
-      <ion-item class="info-item" *ngFor="let expense of expances">
+    <ion-list class="expense-list">
+      <ion-item class="info-item" *ngFor="let expense of expenses" [routerLink]="['/expense-details', expense.id]">
         <div class="profile-placeholder"></div>
-        <h5>{{ expense.expace }}</h5>
-        <div class="expance-details">
+        <h5>{{ expense.expense }}</h5>
+        <div class="expense-item">
           <div class="Ausgabepreis">
             <h5 class="Gesamtpreis">
               {{ expense.totalAmount | currency: 'EUR' }}
@@ -55,6 +53,7 @@
         </div>
       </ion-item>
     </ion-list>
+
 
     <ion-button class="main-button" expand="block" [routerLink]="'/create-expense'">Neue Ausgabe hinzufügen +</ion-button>
   </div>

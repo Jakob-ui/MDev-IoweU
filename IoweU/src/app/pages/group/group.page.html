@@ -45,11 +45,11 @@
       <div class="card-content">
         <ion-card-title>Finanzübersicht</ion-card-title>
         <ion-card-subtitle
-          [ngClass]="{ 'negative': balance < 0, 'positive': balance >= 0 }"
+          [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }"
         >
-          <span *ngIf="balance >= 0">Mein Guthaben:</span>
-          <span *ngIf="balance < 0">Meine Schulden:</span>
-          {{ balance | currency: 'EUR' }}
+          <span *ngIf="myBalance >= 0">Mein Guthaben:</span>
+          <span *ngIf="myBalance < 0">Meine Schulden:</span>
+          {{ myBalance | currency: 'EUR' }}
         </ion-card-subtitle>
       </div>
     </ion-card>

@@ -1,14 +1,14 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonDatetime } from '@ionic/angular/standalone';
+import { IonContent, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonDatetime, IonList } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-create-expense',
   templateUrl: './create-expense.page.html',
   styleUrls: ['./create-expense.page.scss'],
   standalone: true,
-  imports: [
+  imports: [IonList, 
     IonContent,
     IonItem,
     IonLabel,
@@ -32,9 +32,9 @@ export class CreateExpensePage {
   };
 
   groupMembers = [
-    { name: 'ich' },
-    { name: 'Lila' },
-    { name: 'Grün' }
+    { name: 'ich', split: null, amountperperson: null },
+    { name: 'Lila', split: null, amountperperson: null },
+    { name: 'Grün', split: null, amountperperson: null }
   ];
 
   invoiceImage: string | null = null; // Variable zum Speichern des Bildes
@@ -44,6 +44,7 @@ export class CreateExpensePage {
   openDatePicker() {
     this.isDatePickerOpen = true;
   }
+
   // Methode zum Schließen des Datepickers
   closeDatePicker() {
     this.isDatePickerOpen = false;
@@ -64,6 +65,7 @@ export class CreateExpensePage {
 
   saveExpense() {
     console.log('Expense saved:', this.expense);
+    console.log('Members with their expenses:', this.groupMembers);
   }
 
   cancel() {

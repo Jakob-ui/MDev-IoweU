@@ -53,6 +53,7 @@ export class GroupPage implements OnInit {
   private route = inject(ActivatedRoute);
   private groupService = inject(GroupService);
 
+  groupname: string = '';
   loading: boolean = true;
   timeout: any;
 
@@ -62,6 +63,9 @@ export class GroupPage implements OnInit {
   currentGroup: Group | null = null;
   balance: number = -20;
   totalCost: number = 120.5;
+  displayName: string | null = null;
+  groupImage: string = '';
+  myBalance: number = +200;
   currentMonth: string = 'März 2025';
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];

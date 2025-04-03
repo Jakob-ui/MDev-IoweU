@@ -20,17 +20,16 @@
 
 <ion-content [fullscreen]="true">
   <div class="page-container">
-    <h4>Gruppenname</h4>
+    <h4>{{ groupname }}</h4>
     <h1>Finanzübersicht</h1>
 
     <ion-card
       class="finance-card"
-      [ngClass]="{ 'negative': balance < 0, 'positive': balance >= 0 }"
-    >
+      [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }">
       <div class="card-content-finance">
-        <h2>{{ balance | currency: 'EUR' }}</h2>
+        <h2>{{ myBalance | currency: 'EUR' }}</h2>
         <p>
-          {{ balance < 0 ? 'Schulden' : 'Guthaben' }} | seit dem {{
+          {{ myBalance < 0 ? 'Schulden' : 'Guthaben' }} | seit dem {{
           lastTransactionDate | date:'dd.MM.yyyy' }}
         </p>
       </div>

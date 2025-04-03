@@ -155,4 +155,23 @@ input {
   padding: 10px;
 }
 
+ion-input:focus {
+  --caret-color: transparent;
+}
 
+ion-input:focus::after {
+  --caret-color: transparent;
+}
+
+/* Styling für ion-item und ion-input (für normale Eingabefelder) */
+ion-item.input-item::part(native),
+ion-input::part(native) {
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  font-size: 14px;
+  background: var(--ion-color-secondary) !important;
+  border-radius: 50px;
+  --border-style: none !important;
+  border: none !important;
+  background: var(--ion-color-secondary) !important;
+}

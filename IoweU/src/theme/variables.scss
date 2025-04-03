@@ -206,6 +206,7 @@
   --ion-color-dark-shade: #292929;
   --ion-color-dark-tint: #444444;
 
+ //--ion-background-color: transparent; //Hintergrund wird transparent 
 }
 
 @media (prefers-color-scheme: dark) {
@@ -244,5 +245,8 @@
     --ion-color-dark-contrast-rgb: 255,255,255;
     --ion-color-dark-shade: #292929;
     --ion-color-dark-tint: #444444;
+
+    
+    --ion-background-color: transparent;
   }
 }

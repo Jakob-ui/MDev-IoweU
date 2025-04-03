@@ -159,7 +159,7 @@ ion-card-subtitle h6 {
 
 
 .finance-card,
-.expance-card {
+.expense-card {
   width: 60%;
   max-width: 300px;
   margin: auto;
@@ -190,7 +190,7 @@ ion-card-subtitle h6 {
   margin: 0px;
 }
 
-.expance-details {
+.expense-item {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -204,8 +204,8 @@ ion-card-subtitle h6 {
 
 .Ausgabepreis {
   display: flex;
-  flex-direction: column; /* Preise untereinander anordnen */
-  align-items: flex-end; /* Preise rechtsbündig */
+  flex-direction: column;
+  align-items: flex-end;
   gap: 5px;
 }
 
@@ -222,7 +222,15 @@ ion-card-subtitle h6 {
   font-size: 14px;
   border-radius: 50px;
   margin: 0;
-  margin-top: -5px;
+}
+
+.detailedprice{
+  margin-left: auto;
+  font-weight: 700;
+  padding: 10px 15px;
+  font-size: 20px;
+  border-radius: 50px;
+  margin: 0;
 }
 
 .negative {
@@ -247,14 +255,14 @@ ion-toolbar {
 .left-container {
   display: flex;
   align-items: center;
-  gap: 10px; /* Abstand zwischen den Elementen */
-  flex-grow: 1; /* Lässt die linke Seite so viel Platz wie möglich einnehmen */
+  gap: 10px;
+  flex-grow: 1;
 }
 
 .right-container {
   display: flex;
   align-items: center;
-  gap: 10px; /* Abstand zwischen den Elementen */
+  gap: 10px;
 }
 
 ion-title {
@@ -382,6 +390,10 @@ ion-select {
   --padding-end: 40px;
 }
 
+ion-select::part(native) {
+  background: transparent !important;
+}
+
 ion-select::part(icon) {
   position: absolute;
   right: 10px;
@@ -393,8 +405,18 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   display: none;
 }
 
+//* Styling für die Optionen im Dropdown-Menü */
+ion-item.select-interface-option::part(native) {
+  background: transparent !important; /* Hintergrund transparent */
+  --ion-background-color: transparent !important; /* Alternative für Hintergrundfarbe */
+  border-radius: 0 !important; /* Entfernt abgerundete Ecken */
+  color: var(--ion-color-dark); /* Textfarbe */
+  font-size: 14px; /* Schriftgröße */
+  padding: 10px; /* Polsterung */ 
+}
+
 .bilance-list,
-.expance-list {
+.expense-list {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -424,8 +446,8 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   height: 40px;
   border-radius: 50px;
   gap: 10px;
-  background: rgb(228, 228, 228);
-  border: 2px solid #1a65eb;
+  background: var(--user-color-background, rgba(252, 238, 238, 0.84));
+  border: 2px solid var(--user-color, #1a65eb);
   padding: 5px 10px 5px 5px;
 }
 
@@ -435,7 +457,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   height: 30px;
   border-radius: 50px;
   gap: 10px;
-  background: var(--user-color-background, #c7c7c7d6);
+  background: var(--user-color-background, rgba(252, 238, 238, 0.84));
   border: 2px solid var(--user-color, #1a65eb);
   padding: 5px 10px 5px 5px;
 }
@@ -450,7 +472,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   font-weight: bold;
   color: var(--ion-color-dark);
   font-size: 18px;
-  border: 2px solid var(--ion-color-primary);
+  border: 1px solid var(--user-color);
 }
 
 .profile-placeholder {
@@ -464,7 +486,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   font-weight: bold;
   color: var(--ion-color-dark);
   font-size: 18px;
-  border: 2px solid var(--ion-color-primary);
+  border: 2px solid var(--user-color, #1a65eb);
 }
 
 .member-name {
@@ -474,7 +496,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
 }
 
 .balance-info {
-  min-width: 80px; /* Damit das Badge immer eine feste Größe hat */
+  min-width: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -592,18 +614,40 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   z-index: 100;
 }
 
+.space{
+  height: 40px;
+  background-color: transparent;
+
+}
+
 /* Styling für den Color Picker */
 .colorinput {
-  width: 40px; 
+  width: 40px;
   height: 40px;
   border: none;
   border-radius: 50%;
-  display: block; 
+  display: block;
   top: 0; /* Entfernt mögliche Verschiebungen nach unten */
 }
 
 .colorinput::-webkit-color-swatch {
-  border-radius: 50%; 
+  border-radius: 50%;
+}
+
+.ion-valid.sc-ion-input-md-h {
+  --highlight-color: balck;
+}
+
+.ion-valid.sc-ion-input-ios-h {
+  --highlight-color: black;
+}
+
+:host .ionicon {
+  stroke: black;
+}
+
+ion-input:focus ~ .ionicon {
+  stroke: black;
 }
 
 
