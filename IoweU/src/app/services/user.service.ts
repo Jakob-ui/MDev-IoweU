@@ -26,7 +26,6 @@ export class UserService {
     const username = await this.getUserthingsByUid(uid, 'name');
     const color = await this.getUserthingsByUid(uid, 'color');
     const email = this.auth.currentUser.email || '';
-    const img = await this.getUserthingsByUid(uid, 'img');
     const lastedited = await this.getUserthingsByUid(uid, 'lastedited');
     
     return {
@@ -34,7 +33,6 @@ export class UserService {
       name: username,
       email: email,
       color: color,
-      img: img,
       lastedited: lastedited,
     };
   }

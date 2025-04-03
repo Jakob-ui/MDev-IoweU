@@ -94,7 +94,7 @@
         id="save-alert"
         class="main-button save-button"
         expand="block"
-        [disabled]="userEditing"
+        [disabled]="!hasChanges() || userEditing"
       >
         Änderungen speichern
       </ion-button>

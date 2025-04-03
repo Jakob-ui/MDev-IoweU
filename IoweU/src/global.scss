@@ -390,6 +390,10 @@ ion-select {
   --padding-end: 40px;
 }
 
+ion-select::part(native) {
+  background: transparent !important;
+}
+
 ion-select::part(icon) {
   position: absolute;
   right: 10px;
@@ -399,6 +403,16 @@ ion-select::part(icon) {
 
 ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   display: none;
+}
+
+//* Styling für die Optionen im Dropdown-Menü */
+ion-item.select-interface-option::part(native) {
+  background: transparent !important; /* Hintergrund transparent */
+  --ion-background-color: transparent !important; /* Alternative für Hintergrundfarbe */
+  border-radius: 0 !important; /* Entfernt abgerundete Ecken */
+  color: var(--ion-color-dark); /* Textfarbe */
+  font-size: 14px; /* Schriftgröße */
+  padding: 10px; /* Polsterung */ 
 }
 
 .bilance-list,
