@@ -1,14 +1,14 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonDatetime } from '@ionic/angular/standalone';
+import { IonContent, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonDatetime, IonList } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-create-expense',
   templateUrl: './create-expense.page.html',
   styleUrls: ['./create-expense.page.scss'],
   standalone: true,
-  imports: [
+  imports: [IonList, 
     IonContent,
     IonItem,
     IonLabel,

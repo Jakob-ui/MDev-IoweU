@@ -173,14 +173,5 @@ ion-input::part(native) {
   border-radius: 50px;
   --border-style: none !important;
   border: none !important;
+  background: var(--ion-color-secondary) !important;
 }
-
-.ion-select-option{
-  --background-color: transparent;
-}
-
-
-
-
-
-

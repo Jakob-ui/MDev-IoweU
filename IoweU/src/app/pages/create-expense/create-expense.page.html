@@ -62,9 +62,9 @@
           <span class="input-label">bezahlt von</span>
           <ion-item class="input-item">
             <ion-select [(ngModel)]="expense.paidBy" interface="popover">
-              <ion-select-option value="mir">mir</ion-select-option>
-              <ion-select-option value="Lila">Lila</ion-select-option>
-              <ion-select-option value="Grün">Grün</ion-select-option>
+              <ion-select-option class="custom-select-option" value="mir">mir</ion-select-option>
+              <ion-select-option class="custom-select-option" value="Lila">Lila</ion-select-option>
+              <ion-select-option class="custom-select-option" value="Grün">Grün</ion-select-option>
             </ion-select>
           </ion-item>
         </div>
@@ -85,10 +85,10 @@
           <span class="input-label">Wiederholung</span>
           <ion-item class="input-item">
             <ion-select [(ngModel)]="expense.repeat" interface="popover">
-              <ion-select-option value="nein">nein</ion-select-option>
-              <ion-select-option value="täglich">täglich</ion-select-option>
-              <ion-select-option value="wöchentlich">wöchentlich</ion-select-option>
-              <ion-select-option value="monatlich">monatlich</ion-select-option>
+              <ion-select-option class="custom-select-option" value="nein">nein</ion-select-option>
+              <ion-select-option class="custom-select-option" value="täglich">täglich</ion-select-option>
+              <ion-select-option class="custom-select-option" value="wöchentlich">wöchentlich</ion-select-option>
+              <ion-select-option class="custom-select-option" value="monatlich">monatlich</ion-select-option>
             </ion-select>
           </ion-item>
         </div>
@@ -102,8 +102,8 @@
           <span class="input-label">Aufteilung</span>
           <ion-item class="input-item">
             <ion-select [(ngModel)]="expense.splitType" interface="popover">
-              <ion-select-option value="alle">Anteile</ion-select-option>
-              <ion-select-option value="alle">Prozent</ion-select-option>
+              <ion-select-option class="custom-select-option" value="alle">Anteile</ion-select-option>
+              <ion-select-option class="custom-select-option" value="prozent">Prozent</ion-select-option>
             </ion-select>
           </ion-item>
         </div>
@@ -111,7 +111,7 @@
           <span class="input-label">teilen durch</span>
           <ion-item class="input-item">
             <ion-select [(ngModel)]="expense.splitType" interface="popover">
-              <ion-select-option value="alle">alle</ion-select-option>
+              <ion-select-option class="custom-select-option" value="alle">alle</ion-select-option>
             </ion-select>
           </ion-item>
         </div>
