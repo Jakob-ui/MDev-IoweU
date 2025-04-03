@@ -60,9 +60,11 @@ export class AccountSettingsPage implements OnInit {
   changeMessage: string = '';
   userEditing: boolean = false;
 
-  oldPassword: string = '';
-  newPassword: string = '';
-  confirmPassword: string = '';
+  passwordInput: string = '';
+  emailInput: string = '';
+
+  originalName: string = '';
+  originalColor: string = '';
 
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false;
@@ -80,8 +82,10 @@ export class AccountSettingsPage implements OnInit {
   async loadUserData() {
     try {
       this.name = sessionStorage.getItem('username') || '';
+      this.originalName = this.name;
       const userColor = sessionStorage.getItem('usercolor');
       this.color = userColor || '';
+      this.originalColor = this.color;
       this.email = sessionStorage.getItem('email') || '';
       const lastedited = sessionStorage.getItem('lastedited');
 
@@ -114,6 +118,10 @@ export class AccountSettingsPage implements OnInit {
     }
   }
 
+  hasChanges(): boolean {
+    return this.name !== this.originalName || this.color !== this.originalColor;
+  }
+
   public alertButtons = [
     {
       text: 'Abbrechen',
@@ -125,17 +133,21 @@ export class AccountSettingsPage implements OnInit {
     {
       text: 'Löschen',
       role: 'destructive',
-      handler: () => {
-        this.deleteAccount();
+      handler: (data: { email: string; password: string }) => {
+        this.emailInput = data.email;
+        this.passwordInput = data.password;
+        this.deleteLogin(this.emailInput, this.passwordInput);
       },
     },
   ];
   public alertInputs = [
     {
+      name: 'email',
       placeholder: 'E-Mail',
       type: 'email',
     },
     {
+      name: 'password',
       placeholder: 'Passwort',
       type: 'password',
     },
@@ -160,6 +172,16 @@ export class AccountSettingsPage implements OnInit {
 
   setResult(event: CustomEvent<OverlayEventDetail>) {
     console.log(`Dialog geschlossen mit Rolle: ${event.detail.role}`);
+  }
+
+  async deleteLogin(email: string, password: string) {
+    try {
+      await this.authService.login(email, password, false);
+      await this.acc.userdelete();
+      this.router.navigate(['home']);
+    } catch (e) {
+      console.log('delete has failed: ' + e);
+    }
   }
 
   async deleteAccount() {
