@@ -35,7 +35,7 @@
     </ion-card>
 
     <ion-list class="expense-list">
-      <ion-item class="info-item" *ngFor="let expense of expenses" [routerLink]="['/expense-details', expense.id]">
+      <ion-item class="info-item" *ngFor="let expense of expenses" (click)="goToExpenseDetails(expense.id)">
         <div class="profile-placeholder"></div>
         <h5>{{ expense.expense }}</h5>
         <div class="expense-item">

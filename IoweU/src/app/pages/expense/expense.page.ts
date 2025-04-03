@@ -83,7 +83,7 @@ export class ExpensePage implements OnInit {
     },
     {
       id: 3,
-      expense: 'Kino',
+      expense: 'Einkauf bei Lidl',
       totalAmount: 40,
       amountToPay: -5,
       paidBy: this.groupMembers[2],
@@ -112,6 +112,14 @@ export class ExpensePage implements OnInit {
     } catch (e) {
       console.log(e);
     }
+  }
+
+  goToExpenseDetails(expenseId: number) {
+    this.router.navigate(['expense-details', expenseId]);  // Navigiert zur ExpenseDetailsPage mit dem entsprechenden Parameter
+  }
+
+  goToCreateExpense() {
+    this.router.navigate(['create-expense']); // Navigiert zur CreateExpensePage
   }
 
   goBack() {

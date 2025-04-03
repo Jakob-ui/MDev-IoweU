@@ -51,11 +51,35 @@
 }
 
 .member-list {
-  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  width: 100%;
+  margin-bottom: 10px;
 }
+
+.product-input-fields{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.product-input-fields .top-container,
+.product-input-fields .bottom-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.product-input-fields ion-item::part(native) {
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  font-size: 12px;
+  background: var(--ion-color-secondary) !important;
+  border-radius: 50px;
+  --border-style: none !important;
+  border: none !important;
+}
+
 
 .member-info {
   display: flex;
@@ -100,7 +124,7 @@ ion-datetime {
   margin-left: 10px;
 }
 
-.member-list {
+.member-list-input {
   display: flex;
   align-items: center;
   width: 100%;
