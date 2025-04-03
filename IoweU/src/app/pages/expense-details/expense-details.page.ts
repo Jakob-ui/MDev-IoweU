@@ -4,6 +4,9 @@ import { IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardContent, I
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from "../../services/auth.service";
 import { NavController, Platform } from "@ionic/angular";
+import { Expense } from "../../services/objects/Expense";  // 👈 Import aus eigener Datei
+import { Group } from "../../services/objects/Group";
+import { Product } from "../../services/objects/Product";  // 👈 Import aus eigener Datei
 
 @Component({
   selector: 'app-expense-details',
@@ -17,10 +20,10 @@ export class ExpenseDetailsPage implements OnInit {
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
+  private route = inject(ActivatedRoute);
 
   expenseId: number | null = null;
-  expenseDetails: any = {}; // Detaillierte Ausgabe
-
+  expenseDetails: Expense | undefined;
   iosIcons: boolean = false;
   user: string | null = "";
 
@@ -32,30 +35,58 @@ export class ExpenseDetailsPage implements OnInit {
     { name: 'Mateusz', profileImage: 'assets/profiles/mateusz.jpg' },
   ];
 
-  expances = [
-    { id: 1, expense: 'Pizza', totalAmount: 50, amountToPay: -10, paidBy: 'Livia', date: new Date(2025, 2, 20) },
-    { id: 2, expense: 'Einkauf bei Hofer', totalAmount: 70, amountToPay: -20, paidBy: 'Michaela', date: new Date(2025, 3, 5) },
-    { id: 3, expense: 'Kino', totalAmount: 40, amountToPay: -5, paidBy: 'Jakob', date: new Date(2025, 3, 5) },
+  expenses: Expense[] = [
+    {
+      id: 1,
+      expense: 'Pizza',
+      totalAmount: 50,
+      amountToPay: -10,
+      paidBy: 'Livia',
+      date: "2025-03-20T00:00:00.000Z", // Datum als String im ISO 8601-Format
+      products: [
+        { member: 'Livia', name: 'Pizza Margherita', quantity: 1, unit: 'Stk', price: 8.50 },
+        { member: 'Livia', name: 'Cola', quantity: 1, unit: 'Flasche', price: 1.50 },
+        { member: 'Jakob', name: 'Pizza Salami', quantity: 1, unit: 'Stk', price: 9.00 },
+        { member: 'Jakob', name: 'Fanta', quantity: 1, unit: 'Stk', price: 1.50 },
+        { member: 'Michaela', name: 'Cola', quantity: 2, unit: 'Flaschen', price: 2.50 },
+        { member: 'Sophie', name: 'Pizza Salami', quantity: 1, unit: 'Stk', price: 8.50 },
+        { member: 'Sophie', name: 'Cola', quantity: 1, unit: 'Flasche', price: 1.50 },
+        { member: 'Mateusz', name: 'Pizza Salami', quantity: 1, unit: 'Stk', price: 9.00 },
+        { member: 'Mateusz', name: 'Fanta', quantity: 1, unit: 'Stk', price: 1.50 },
+      ]
+    },
+    {
+      id: 2,
+      expense: 'Einkauf bei Hofer',
+      totalAmount: 70,
+      amountToPay: -20,
+      paidBy: 'Michaela',
+      date: "2025-04-05T00:00:00.000Z", // Datum als String im ISO 8601-Format
+      products: [
+        { member: 'Michaela', name: 'Milch', quantity: 2, unit: 'L', price: 2.00 },
+        { member: 'Sophie', name: 'Brot', quantity: 1, unit: 'Stk', price: 1.50 },
+        { member: 'Livia', name: 'Kaffee', quantity: 1, unit: 'Packung', price: 4.00 }
+      ]
+    },
+    {
+      id: 3,
+      expense: 'Einkauf bei Lidl',
+      totalAmount: 40,
+      amountToPay: -4,
+      paidBy: 'Michaela',
+      date: "2025-04-05T00:00:00.000Z", // Datum als String im ISO 8601-Format
+      products: [
+        { member: 'Michaela', name: 'Fanta', quantity: 2, unit: 'Flaschen', price: 5.00 },
+        { member: 'Sophie', name: 'Brot', quantity: 1, unit: 'Stk', price: 1.50 },
+        { member: 'Livia', name: 'Kaffee', quantity: 1, unit: 'Packung', price: 4.00 }
+      ]
+    }
   ];
 
-  // Neue Eigenschaft für die Sichtbarkeit der Produktliste
+
   private visibleProducts: { [memberName: string]: boolean } = {};
 
-  // Beispiel für gekaufte Produkte für jedes Mitglied (dies kann dynamisch geladen werden)
-  private purchasedProducts: { [memberName: string]: any[] } = {
-    Livia: [
-      { name: 'Pizza', quantity: 1, price: 50 },
-      { name: 'Cola', quantity: 2, price: 2.5 }
-    ],
-    Michaela: [
-      { name: 'Hofer Einkauf', quantity: 1, price: 70 }
-    ],
-    Jakob: [
-      { name: 'Kino Ticket', quantity: 1, price: 40 }
-    ]
-  };
-
-  constructor(private route: ActivatedRoute) { }
+  constructor() { }
 
   ngOnInit() {
     this.user = sessionStorage.getItem('username');
@@ -63,64 +94,54 @@ export class ExpenseDetailsPage implements OnInit {
     const userColor = sessionStorage.getItem('usercolor');
     document.documentElement.style.setProperty('--user-color', userColor);
 
-    // Hole die ID aus der URL
     this.expenseId = Number(this.route.snapshot.paramMap.get('id'));
-
-    // Details der Ausgabe basierend auf der ID laden
     this.loadExpenseDetails();
   }
 
-  // Lade Details der Ausgabe basierend auf der ID
   loadExpenseDetails() {
     if (this.expenseId) {
-      // Suche die Ausgabe anhand der ID
-      this.expenseDetails = this.expances.find(expense => expense.id === this.expenseId);
+      this.expenseDetails = this.expenses.find(expense => expense.id === this.expenseId);
     }
   }
 
-  // Berechne den Anteil jedes Mitglieds an der Gesamtsumme
-  calculateShare(totalAmount: number) {
-    const numberOfMembers = this.groupMembers.length;
-    return totalAmount / numberOfMembers;
+  calculateShare(totalAmount: number): number {
+    return totalAmount / this.groupMembers.length;
   }
 
-  // Hole das Mitglied basierend auf dem Namen (bezahlt von)
   getMemberByName(name: string) {
     return this.groupMembers.find(member => member.name === name);
   }
 
-  // Überprüfe, ob der Betrag für den eingeloggten Benutzer negativ ist (Schulden)
   isNegativeAmountForUser(name: string): boolean {
-    return this.expenseDetails.amountToPay < 0 && this.user === name;
+    return this.expenseDetails?.amountToPay! < 0 && this.user === name;
   }
 
-  // Überprüfe, ob der eingeloggte Benutzer für alle anderen Mitglieder bezahlt hat und ob diese ihm Geld schulden
   isPositiveAmountForUser(name: string): boolean {
-    if (this.expenseDetails.paidBy === this.user) {
+    if (this.expenseDetails?.paidBy === this.user) {
       return this.expenseDetails.amountToPay < 0 && name !== this.user;
     }
     return false;
   }
 
-  // Überprüfe, ob der Betrag für das Mitglied relevant ist (für andere Mitglieder grau)
   isRelevantForUser(name: string): boolean {
-    return this.user === name || this.expenseDetails.paidBy === name;
+    return this.user === name || this.expenseDetails?.paidBy === name;
   }
 
-  // Funktion zum Umschalten der Sichtbarkeit der Produktliste
   toggleProducts(memberName: string) {
     this.visibleProducts[memberName] = !this.visibleProducts[memberName];
   }
 
-  // Überprüft, ob die Produktliste für ein Mitglied sichtbar ist
   isProductsVisibleForMember(memberName: string): boolean {
     return !!this.visibleProducts[memberName];
   }
 
-  // Holt die gekauften Produkte für das Mitglied
-  getPurchasedProductsForMember(memberName: string) {
-    return this.purchasedProducts[memberName] || [];
+  getPurchasedProductsForMember(memberName: string): Product[] {
+    if (this.expenseDetails && this.expenseDetails.products) {
+      return this.expenseDetails.products.filter(product => product.member === memberName);
+    }
+    return [];
   }
+
 
   async logout() {
     try {
@@ -132,6 +153,6 @@ export class ExpenseDetailsPage implements OnInit {
   }
 
   goBack() {
-    this.navCtrl.back(); // Navigiert zur vorherigen Seite
+    this.navCtrl.back();
   }
 }
