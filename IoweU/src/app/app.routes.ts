@@ -45,6 +45,12 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'group/:id',
+    loadComponent: () =>
+      import('./pages/group/group.page').then((m) => m.GroupPage),
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'finance',
     loadComponent: () =>
       import('./pages/finance/finance.page').then((m) => m.FinancePage),
@@ -82,23 +88,21 @@ export const routes: Routes = [
   {
     path: 'edit-group',
     loadComponent: () =>
-      import('./pages/edit-group/edit-group.page').then(
-        m => m.EditGroupPage
-      ),
+      import('./pages/edit-group/edit-group.page').then((m) => m.EditGroupPage),
     canActivate: [AuthGuard],
   },
   {
     path: 'join-group',
     loadComponent: () =>
-      import('./pages/join-group/join-group.page').then(
-        m => m.JoinGroupPage),
+      import('./pages/join-group/join-group.page').then((m) => m.JoinGroupPage),
     canActivate: [AuthGuard],
   },
   {
     path: 'expense-details/:id',
     loadComponent: () =>
       import('./pages/expense-details/expense-details.page').then(
-        m => m.ExpenseDetailsPage),
+        (m) => m.ExpenseDetailsPage
+      ),
     canActivate: [AuthGuard],
   },
   {
@@ -106,8 +110,4 @@ export const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full',
   },
-
-
-
-
 ];

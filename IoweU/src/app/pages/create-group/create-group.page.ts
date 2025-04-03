@@ -28,7 +28,6 @@ import { Group } from 'src/app/services/objects/Group';
     IonItem,
     IonLabel,
     IonInput,
-    IonList,
     IonSelect,
     IonSelectOption,
     RouterModule,
