@@ -1,4 +1,4 @@
-import { User } from './User';
+import { Users } from './User';
 import { Group } from './Group';
 import { Expense } from './Expense';
 export interface Product {

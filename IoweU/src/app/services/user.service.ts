@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
-import { User } from './objects/User';
+import { Users } from './objects/User';
 import {
   collection,
   Firestore,
@@ -17,7 +17,7 @@ export class UserService {
   private firestore = inject(Firestore);
   constructor() {}
 
-  async getUserData(): Promise<User> {
+  async getUserData(): Promise<Users> {
     if (!this.auth.currentUser) {
       throw new Error('Benutzer ist nicht authentifiziert.');
     }
@@ -27,7 +27,7 @@ export class UserService {
     const color = await this.getUserthingsByUid(uid, 'color');
     const email = this.auth.currentUser.email || '';
     const lastedited = await this.getUserthingsByUid(uid, 'lastedited');
-    
+
     return {
       id: uid,
       name: username,

@@ -1,5 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { Auth, reauthenticateWithCredential, EmailAuthProvider } from '@angular/fire/auth';
+import {
+  Auth,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from '@angular/fire/auth';
 import { Firestore, updateDoc } from '@angular/fire/firestore';
 import {
   collection,
@@ -8,7 +12,7 @@ import {
   getDocs,
   deleteDoc,
 } from 'firebase/firestore';
-import { User } from './objects/User';
+import { Users } from './objects/User';
 
 @Injectable({
   providedIn: 'root',
@@ -50,7 +54,7 @@ export class AccountService {
     }
   }
 
-  async userupdate(updateData: Partial<User>): Promise<void> {
+  async userupdate(updateData: Partial<Users>): Promise<void> {
     if (this.auth.currentUser) {
       const uid = this.auth.currentUser.uid;
 

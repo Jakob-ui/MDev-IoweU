@@ -1,4 +1,4 @@
-import { User } from './User';
+import { Users } from './User';
 export interface Group {
   id: string;
   name: string;
@@ -7,4 +7,4 @@ export interface Group {
   members: string[];
   accessCode: number;
   features: string[];
-  }
+}

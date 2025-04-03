@@ -28,7 +28,7 @@
 
     <!-- Gruppenliste -->
     <ng-container class="group-list" *ngIf="groups.length > 0">
-      <ion-card class="my-groups" *ngFor="let group of groups" (click)="navigateToGroup(group.name)">
+      <ion-card class="my-groups" *ngFor="let group of groups" (click)="navigateToGroup(group.link)">
         <div class="card-content">
           <ion-card-title class="groupname">{{ group.name }}</ion-card-title>
           <ion-card-subtitle

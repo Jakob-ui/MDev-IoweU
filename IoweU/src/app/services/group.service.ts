@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Group } from './objects/Group';
-import { User } from './objects/User';
+import { Users } from './objects/User';
 import {
   Firestore,
   collection,
@@ -71,9 +71,12 @@ private async loadUsers(): Promise<void> {
       };
       // Add the founder to the members list:
       newGroup.members.push(newGroup.founder);
-      console.log(template);
-      if (template === 'Standart') {
+      if (template === 'Standard') {
         newGroup.features.push('Finanzübersicht');
+      } else if (template === 'Projekt') {
+        newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Anlagegüter');
+      } else if (template === 'Reise') {
+        newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Einkaufsliste');
       }
       const groupRef = await addDoc(
         collection(this.firestore, 'groups'),

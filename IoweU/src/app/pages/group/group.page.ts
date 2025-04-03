@@ -86,8 +86,8 @@ export class GroupPage {
     this.route.params.subscribe((params) => {
       this.goupid = params['id'];
     });
-    this.getGroup(this.goupid);
-    this.loadData();
+    this.loadGroupData(this.goupid);
+    this.isLoading();
   }
 
   async logout() {
@@ -105,12 +105,13 @@ export class GroupPage {
 
   constructor() {}
 
-  async getGroup(id: string): Promise<void> {
+  async loadGroupData(id: string): Promise<void> {
     try {
       const group = await this.groupService.getGroupById(id);
       if (group) {
         this.groupname = group.name;
         this.goupid = group.id;
+        this.features = group.features;
         console.log('Group data loaded:', group);
       } else {
         console.warn('Group not found!');
@@ -120,9 +121,8 @@ export class GroupPage {
     }
   }
 
-  async loadData() {
+  async isLoading() {
     try {
-      // Simuliertes Datenladen (z. B. API-Aufruf)
       await new Promise((resolve) => setTimeout(resolve, 2000));
       this.loading = false;
       clearTimeout(this.timeout);
