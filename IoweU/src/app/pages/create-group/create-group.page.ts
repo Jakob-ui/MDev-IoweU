@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { GroupService } from 'src/app/services/group.service';
 import { Auth } from '@angular/fire/auth';
-import { Firestore } from '@angular/fire/firestore';
+import { doc, Firestore, getDoc, onSnapshot } from '@angular/fire/firestore';
 import { Group } from 'src/app/services/objects/Group';
 import { Router } from '@angular/router';
 
@@ -64,38 +64,44 @@ export class CreateGroupPage {
   //   this.members = this.members.filter((m) => m !== member);
   // }
 
-  async saveGroup() 
-  {
+  async saveGroup() {
     if (!this.groupname || !this.selectedTemplate) {
       console.error('Group name and template are required!');
       return;
     }
-    // if (this.members.length === 0) {
-    //   console.error('At least one member is required!');
-    //   return;
-    // }
-
+  
     const user = this.auth.currentUser;
     if (!user) {
       console.error('User is not logged in!');
       return;
     }
-    const founder = user.uid; // Get the logged-in user's ID
-
-    if (!user) {
-      console.error('User is not logged in!');
-      return;
-    }
-
+  
+    const founder = user.uid;
+  
     try {
-      await this.groupService.createGroup(this.groupname, founder, this.selectedTemplate, this.groupImage as string);
+      const newGroupId = await this.groupService.createGroup(this.groupname, founder, this.selectedTemplate, this.groupImage as string);
       console.log('Group successfully created!');
-      sessionStorage.setItem('groupId', groupId); // Store the group ID in session storage
-      this.router.navigate(['/group']); // Navigate to the group page after creation
+  
+      sessionStorage.setItem('groupId', newGroupId); // Store group ID in session storage
+      
+    // **Wait for Firestore to confirm the group exists**
+    const groupDocRef = doc(this.firestore, 'groups', newGroupId);
+    const unsubscribe = onSnapshot(groupDocRef, (doc) => {
+    if (doc.exists()) {
+      console.log("Group is now available in Firestore, proceeding to group page.");
+      unsubscribe(); // Stop listening
+      this.router.navigate(['/group']);
+      }});
+
+    console.log('Group successfully created with ID:', groupDocRef.id);
+
+    // Wait for Firestore to reflect the changes
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay for Firestore sync
     } catch (error) {
       console.error('Error creating group:', error);
     }
   }
+  
 
   selectImage() {
     this.fileInput.nativeElement.click();

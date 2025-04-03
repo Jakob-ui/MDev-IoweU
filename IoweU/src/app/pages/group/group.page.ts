@@ -89,19 +89,19 @@ export class GroupPage implements OnInit {
 
   async loadData() {
     try {
-      // Simuliertes Datenladen (z. B. API-Aufruf)
       this.iosIcons = this.platform.is('ios');
-      this.timeout = setTimeout(() => {this.loading = false}, 3000);
+      this.timeout = setTimeout(() => { this.loading = false }, 3000);
       this.user = sessionStorage.getItem('username');
-      const groupId = sessionStorage.getItem('GroupId')!;
+      const groupId = sessionStorage.getItem('groupId')!;
+      console.log(sessionStorage.getItem('groupId'));
       this.currentGroup = await this.groupService.getGroupById(groupId);
-    // if (!this.currentGroup) {
-    //   console.error('Failed to load group. Redirecting to home.');
-    //   this.router.navigate(['home']); // Redirect if group is not found
-    //   return;
-    // }
+      if (!this.currentGroup) {
+        console.error('Failed to load group. Redirecting to home.');
+        this.router.navigate(['home']); // Redirect if group is not found
+        return;
+      }
     } catch (error) {
-      console.error('Fehler beim Laden der Daten', error);
+      console.error('Error loading group data:', error);
       this.loading = false;
     }
   }

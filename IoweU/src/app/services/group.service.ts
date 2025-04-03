@@ -5,6 +5,7 @@ import {
   Firestore,
   collection,
   getDocs,
+  setDoc,
   addDoc,
   query,
   where,
@@ -12,6 +13,7 @@ import {
   doc,
   getDoc,
   updateDoc,
+  onSnapshot,
 } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 
@@ -24,27 +26,33 @@ public firestore: Firestore = inject(Firestore);
 public router = inject(Router);
 
 //Gruppe erstellen:
-  async createGroup(name: string, founder: string, template: string, groupImage: string): Promise<void> 
+async createGroup(name: string, founder: string, template: string, groupImage: string): Promise<string> 
+{
+  try 
   {
-    try {
-      const newGroup: Group = {
-        id: doc(collection(this.firestore, 'groups')).id, // Generate a new document ID
-        name: name,
-        foundationdate: new Date(), // Set the foundation date to the current date
-        founder: founder,
-        template: template,
-        members: [], // Initialize with an empty array
-        accessCode: Math.floor(10000 + Math.random() * 90000),
-        groupImage: groupImage, // Set the group image
-      };
-      // Add the founder to the members list:
-      newGroup.members.push(newGroup.founder);
-      const groupRef = await addDoc(collection(this.firestore, 'groups'), newGroup);
-      console.log('Group created with ID: ' + groupRef.id); 
-    } catch (error) {
-      console.error('Error creating group: ', error);
-    }
+    const groupCollection = collection(this.firestore, 'groups');
+    const newGroupRef = doc(groupCollection);
+    
+    const newGroup: Group = {
+      id: newGroupRef.id,
+      name: name,
+      foundationdate: new Date(),
+      founder: founder,
+      template: template,
+      members: [founder], // Include founder in members array
+      accessCode: Math.floor(10000 + Math.random() * 90000),
+      groupImage: groupImage,
+    };
+
+    await setDoc(newGroupRef, newGroup); // Ensure data is set before proceeding
+    return newGroupRef.id;
+  } 
+  catch (error) 
+  {
+    console.error('Error creating group:', error);
+    throw error;
   }
+}
 
   //Gruppe bearbeiten (nur als Gründer*in möglich):
   async updateGroup(uid: string, groupId: string, name: string, template: string, photo: string): Promise<void> 
@@ -140,12 +148,12 @@ public router = inject(Router);
     //   return undefined;
     // }
     const group = groupSnapshot.docs[0].data() as Group;
-    console.log("Hier erwarten wir group: "+group);
+    console.log("Hier erwarten wir group: " + group);
     return group;
     }
     catch(e)
     {
-      console.log("Error getting group:" + e)
+      console.log("Error getting group: " + e)
       return {
         id: '2137',
         name: 'Error',
