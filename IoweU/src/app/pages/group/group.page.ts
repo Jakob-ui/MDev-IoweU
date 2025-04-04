@@ -67,7 +67,7 @@ export class GroupPage {
   myBalance: number = +200;
   totalCost: number = 120.5;
   currentMonth: string = 'März 2025';
-  features: string [] = []; 
+  features: string[] = [];
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
 
@@ -77,17 +77,14 @@ export class GroupPage {
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
     this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
-    /*
-    this.timeout = setTimeout(() => {
-      this.loading = false;
-    }, 3000);
-    */
-    
+
     this.route.params.subscribe((params) => {
       this.goupid = params['id'];
+      this.loading = true;
+      this.loadGroupData(this.goupid).finally(() => {
+        this.loading = false;
+      });
     });
-    this.loadGroupData(this.goupid);
-    this.isLoading();
   }
 
   async logout() {
@@ -106,18 +103,22 @@ export class GroupPage {
   constructor() {}
 
   async loadGroupData(id: string): Promise<void> {
+    this.loading = true;
     try {
       const group = await this.groupService.getGroupById(id);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       if (group) {
         this.groupname = group.name;
         this.goupid = group.id;
         this.features = group.features;
-        console.log('Group data loaded:', group);
       } else {
         console.warn('Group not found!');
       }
     } catch (e) {
       console.log('Error getting Groups: ' + e);
+    } finally {
+      this.loading = false;
     }
   }
 
