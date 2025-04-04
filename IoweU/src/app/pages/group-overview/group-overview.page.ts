@@ -103,10 +103,10 @@ export class GroupOverviewPage implements OnInit {
     }
   }
 
-  navigateToGroup(groupName: string) {
+  navigateToGroup(link: string, groupName: string) {
     sessionStorage.setItem('groupname', groupName);
     console.log(groupName);
-    this.router.navigate(['group/' + groupName]);
+    this.router.navigate(['group/' + link]);
   }
 
   goBack() {
