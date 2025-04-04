@@ -19,6 +19,7 @@ import { RouterModule } from '@angular/router';
 import { NavController, Platform } from '@ionic/angular';
 import { AccountService } from 'src/app/services/account.service';
 import { UserService } from 'src/app/services/user.service';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-account-settings',
@@ -47,6 +48,7 @@ export class AccountSettingsPage implements OnInit {
   private navCtrl = inject(NavController);
   private acc = inject(AccountService);
   private userService = inject(UserService);
+  private alertController = inject(AlertController);
 
   iosIcons: boolean = false;
 
@@ -62,6 +64,7 @@ export class AccountSettingsPage implements OnInit {
 
   passwordInput: string = '';
   emailInput: string = '';
+  isLoginVerified: boolean = false;
 
   originalName: string = '';
   originalColor: string = '';
@@ -122,6 +125,114 @@ export class AccountSettingsPage implements OnInit {
     return this.name !== this.originalName || this.color !== this.originalColor;
   }
 
+  edit(message: string) {
+    this.userEditing = true;
+    this.changeMessage = message;
+    this.newname = '';
+    console.log(this.userEditing);
+  }
+  cancel() {
+    this.userEditing = false;
+    this.newname = sessionStorage.getItem('username') || '';
+  }
+  confirm() {
+    this.userEditing = false;
+  }
+
+  goBack() {
+    this.navCtrl.back();
+  }
+
+  proofTime(): boolean {
+    const lastedited = sessionStorage.getItem('lastedited');
+    if (!lastedited) {
+      return true;
+    }
+
+    const lastEditDate = new Date(lastedited);
+    const currentDate = new Date();
+
+    const differenceInMs = currentDate.getTime() - lastEditDate.getTime();
+
+    return differenceInMs > 5 * 60 * 1000;
+  }
+  async saveChanges() {
+    try {
+      if (!this.proofTime()) {
+        const alert = await this.alertController.create({
+          header: 'Änderung nicht möglich',
+          message:
+            'Sie können den Benutzernamen nur alle 5 Minuten ändern. Bitte versuchen Sie es später erneut.',
+          buttons: ['OK'],
+        });
+
+        await alert.present();
+        return;
+      }
+
+      await this.acc.userupdate({
+        name: this.newname,
+        color: this.color,
+        lastedited: new Date().toISOString(),
+      });
+
+      sessionStorage.setItem('username', this.newname);
+      sessionStorage.setItem('usercolor', this.color);
+      sessionStorage.setItem('lastedited', new Date().toISOString());
+
+      console.log('Änderungen erfolgreich gespeichert.');
+
+      this.loadUserData();
+    } catch (e) {
+      console.error('Fehler beim Speichern der Änderungen:', e);
+    }
+  }
+
+  public loginAlertButtons = [
+    {
+      text: 'Abbrechen',
+      role: 'cancel',
+      handler: () => {
+        console.log('Löschung abgebrochen');
+      },
+    },
+    {
+      text: 'Einloggen',
+      role: 'confirm',
+      handler: async (data: { email: string; password: string }) => {
+        try {
+          await this.authService.login(data.email, data.password, false);
+          // Nach erfolgreichem Login das Bestätigungs-Alert anzeigen
+          const confirmDelete = await this.alertController.create({
+            header: 'Konto endgültig löschen',
+            message: 'Sind Sie sicher, dass Sie Ihr Konto unwiderruflich löschen möchten?',
+            buttons: [
+              {
+                text: 'Abbrechen',
+                role: 'cancel'
+              },
+              {
+                text: 'Löschen',
+                role: 'destructive',
+                handler: () => this.deleteAccount()
+              }
+            ]
+          });
+          await confirmDelete.present();
+        } catch (e) {
+          console.log('Login fehlgeschlagen:', e);
+          // Optional: Fehlermeldung anzeigen
+          const errorAlert = await this.alertController.create({
+            header: 'Fehler',
+            message: 'Login fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.',
+            buttons: ['OK']
+          });
+          await errorAlert.present();
+        }
+      },
+    },
+  ];
+
   public alertButtons = [
     {
       text: 'Abbrechen',
@@ -178,20 +289,55 @@ export class AccountSettingsPage implements OnInit {
   async deleteLogin(email: string, password: string) {
     try {
       await this.authService.login(email, password, false);
-      await this.acc.userdelete();
-      this.router.navigate(['home']);
+      this.isLoginVerified = true;
+
+      console.log('Login erfolgreich. Zweiter Alert wird geöffnet...');
+
+      // Falls der Login erfolgreich war, erstelle das zweite Bestätigungs-Alert
+      const confirmDeleteAlert = await this.alertController.create({
+        header: 'Konto endgültig löschen',
+        message: 'Sind Sie sicher, dass Sie Ihr Konto unwiderruflich löschen möchten?',
+        buttons: [
+          { text: 'Abbrechen', role: 'cancel' },
+          { text: 'Löschen', role: 'destructive', handler: () => this.deleteAccount() },
+        ],
+      });
+
+      // Öffne den Bestätigungs-Alert
+      await confirmDeleteAlert.present();
     } catch (e) {
-      console.log('delete has failed: ' + e);
+      console.log('Login fehlgeschlagen:', e);
+      this.isLoginVerified = false;
     }
   }
 
+
   async deleteAccount() {
-    console.log('Konto wird gelöscht...');
     try {
       await this.acc.userdelete();
       this.router.navigate(['home']);
     } catch (e) {
-      console.log('error: ' + e);
+      console.log('Fehler beim Löschen des Kontos:', e);
+      // Optional: Fehlermeldung anzeigen
+      const errorAlert = await this.alertController.create({
+        header: 'Fehler',
+        message: 'Beim Löschen des Kontos ist ein Fehler aufgetreten.',
+        buttons: ['OK']
+      });
+      await errorAlert.present();
+    }
+  }
+
+
+
+  async verifyLogin() {
+    try {
+      await this.authService.login(this.emailInput, this.passwordInput, false);
+      this.isLoginVerified = true;
+      console.log('Login erfolgreich. Jetzt kann das Konto gelöscht werden.');
+    } catch (e) {
+      console.log('Login fehlgeschlagen: ' + e);
+      this.isLoginVerified = false;
     }
   }
 
@@ -204,66 +350,5 @@ export class AccountSettingsPage implements OnInit {
     }
   }
 
-  edit(message: string) {
-    this.userEditing = true;
-    this.changeMessage = message;
-    this.newname = '';
-    console.log(this.userEditing);
-  }
-  cancel() {
-    this.userEditing = false;
-    this.newname = sessionStorage.getItem('username') || '';
-  }
-  confirm() {
-    this.userEditing = false;
-  }
 
-  goBack() {
-    this.navCtrl.back();
-  }
-
-  proofTime(): boolean {
-    const lastedited = sessionStorage.getItem('lastedited');
-    if (!lastedited) {
-      return true;
-    }
-
-    const lastEditDate = new Date(lastedited);
-    const currentDate = new Date();
-
-    const differenceInMs = currentDate.getTime() - lastEditDate.getTime();
-
-    return differenceInMs > 5 * 60 * 1000;
-  }
-
-  async saveChanges() {
-    try {
-      if (!this.proofTime()) {
-        const alert = document.createElement('ion-alert');
-        alert.header = 'Änderung nicht möglich';
-        alert.message =
-          'Sie können den Benutzernamen nur alle 5 Minuten ändern. Bitte versuchen Sie es später erneut.';
-        alert.buttons = ['OK'];
-
-        document.body.appendChild(alert);
-        await alert.present();
-        return;
-      }
-
-      await this.acc.userupdate({
-        name: this.newname,
-        color: this.color,
-        lastedited: new Date().toISOString(),
-      });
-
-      sessionStorage.setItem('username', this.newname);
-      sessionStorage.setItem('usercolor', this.color);
-
-      console.log('Änderungen erfolgreich gespeichert.');
-
-      this.loadUserData();
-    } catch (e) {
-      console.error('Fehler beim Speichern der Änderungen:', e);
-    }
-  }
 }
