@@ -145,6 +145,7 @@ export class AccountSettingsPage implements OnInit {
       name: 'email',
       placeholder: 'E-Mail',
       type: 'email',
+      value: sessionStorage.getItem('email') || '',
     },
     {
       name: 'password',
