@@ -51,8 +51,16 @@
       </ion-select>
     </ion-item>
 
+    <!-- Button, um den QR-Code zu generieren -->
+    <ion-button class="main-button" expand="block" (click)="generateGroupLink()">
+      QR-Code generieren
+    </ion-button>
 
-
+    <!-- QR-Code wird angezeigt, wenn groupLink gesetzt ist -->
+    <div *ngIf="groupLink">
+      <qrcode [qrdata]="groupLink" [width]="256"></qrcode>
+    </div>
+    
     <ion-button
       class="main-button"
       expand="block"
@@ -63,4 +71,6 @@
     >Speichern</ion-button
     >
   </div>
+
+  
 </ion-content>

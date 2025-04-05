@@ -62,7 +62,13 @@ export class GroupPage {
   displayName: string | null = null;
 
   groupname: string = '';
-  goupid: string = '';
+  private _groupId: string = '';
+  public get goupid(): string {
+    return this._groupId;
+  }
+  public set goupid(value: string) {
+    this._groupId = value;
+  }
   groupImage: string = '';
   myBalance: number = +200;
   totalCost: number = 120.5;
@@ -83,8 +89,11 @@ export class GroupPage {
     }, 3000);
     */
     
-    this.route.params.subscribe((params) => {
-      this.goupid = params['id'];
+    this.route.queryParams.subscribe((queryParams) => {
+      if (queryParams['id']) {
+        this.goupid = queryParams['id'];
+        this.loadGroupData(this.goupid);
+      }
     });
     this.loadGroupData(this.goupid);
     this.isLoading();
