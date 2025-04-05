@@ -11,16 +11,17 @@ import {
   IonInput,
   IonList,
   IonSelect,
-  IonSelectOption,
-} from '@ionic/angular/standalone';
+  IonSelectOption, IonModal } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { QRCodeComponent } from 'angularx-qrcode';
+
 @Component({
   selector: 'app-edit-group',
   templateUrl: './edit-group.page.html',
   styleUrls: ['./edit-group.page.scss'],
   standalone: true,
-  imports: [
+  imports: [IonModal, 
     IonContent,
     IonButton,
     IonItem,
@@ -32,8 +33,10 @@ import { RouterModule } from '@angular/router';
     RouterModule,
     FormsModule,
     CommonModule,
+    QRCodeComponent,
   ],
 })
+
 export class EditGroupPage{
   groupname: string = '';
   newMember: string = '';
@@ -42,6 +45,7 @@ export class EditGroupPage{
   templates: string[] = ['Standard', 'Projekt', 'Reise'];
   groupImage: string | ArrayBuffer | null = null;
   showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige
+  groupLink: string = '';
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
@@ -77,4 +81,11 @@ export class EditGroupPage{
   onSelectChange() {
     this.showLabel = !this.selectedTemplate;
   }
+
+   // Funktion, die den Gruppen-Link erstellt, z.B. durch den Gruppennamen oder eine ID
+   generateGroupLink() {
+    // Falls du lieber die ID nehmen willst:
+    this.groupLink = `http://localhost:8100/group?id=${this.groupname}`;
+  }
+  
 }

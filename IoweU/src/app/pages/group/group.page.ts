@@ -62,7 +62,13 @@ export class GroupPage {
   displayName: string | null = null;
 
   groupname: string = '';
-  goupid: string = '';
+  private _groupId: string = '';
+  public get goupid(): string {
+    return this._groupId;
+  }
+  public set goupid(value: string) {
+    this._groupId = value;
+  }
   groupImage: string = '';
   myBalance: number = +200;
   totalCost: number = 120.5;
