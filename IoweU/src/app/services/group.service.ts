@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { Group } from './objects/Group';
-import { Users } from './objects/User';
+import { Groups } from './objects/Groups';
+import { Users } from './objects/Users';
 import {
   Firestore,
   collection,
@@ -60,7 +60,7 @@ private async loadUsers(): Promise<void> {
     template: string
   ): Promise<void> {
     try {
-      const newGroup: Group = {
+      const newGroup: Groups = {
         id: doc(collection(this.firestore, 'groups')).id, // Generate a new document ID
         name: name,
         foundationdate: new Date(), // Set the foundation date to the current date
@@ -82,7 +82,7 @@ private async loadUsers(): Promise<void> {
         collection(this.firestore, 'groups'),
         newGroup
       );
-      console.log('Group created with ID: ' + groupRef.id);
+      console.log('Groups created with ID: ' + groupRef.id);
       this.router.navigate(['group/' + newGroup.id]);
     } catch (error) {
       console.error('Error creating group: ', error);
@@ -110,7 +110,7 @@ private async loadUsers(): Promise<void> {
           'groupImage',
           photo
         );
-        console.log('Group updated successfully!');
+        console.log('Groups updated successfully!');
       } catch (error) {
         console.error('Error updating group: ', error);
       }
@@ -120,13 +120,13 @@ private async loadUsers(): Promise<void> {
   }
 
   //Gruppe löschen (nur als Gründer*in möglich):
-  async deleteGroup(uid: string, group: Group): Promise<void> {
+  async deleteGroup(uid: string, group: Groups): Promise<void> {
     try {
       const groupRef = doc(this.firestore, 'groups', group.id);
       // Delete the group document from Firestore
       if (uid === group.founder) {
         await deleteDoc(groupRef);
-        console.log('Group deleted successfully!');
+        console.log('Groups deleted successfully!');
       } else {
         console.log('Only the founder can delete the group!');
       }
@@ -143,7 +143,7 @@ private async loadUsers(): Promise<void> {
       const groupRef = doc(this.firestore, 'groups', groupId);
       const groupSnapshot = await getDoc(groupRef);
       if (groupSnapshot.exists()) {
-        const groupData = groupSnapshot.data() as Group;
+        const groupData = groupSnapshot.data() as Groups;
         if (groupData.accessCode === accessCode) {
           // Add the user to the group's members list
           await addDoc(collection(groupRef, 'members'), { id: userId });
@@ -152,7 +152,7 @@ private async loadUsers(): Promise<void> {
           console.error('Invalid access code!');
         }
       } else {
-        console.error('Group not found!');
+        console.error('Groups not found!');
       }
     } catch (error) {
       console.error('Error joining group: ', error);
@@ -165,19 +165,19 @@ private async loadUsers(): Promise<void> {
   }
 
   //Eigene Gruppen finden:
-  async getGroupsByUserId(uid: string): Promise<Group[]> {
+  async getGroupsByUserId(uid: string): Promise<Groups[]> {
     const groupsRef = collection(this.firestore, 'groups');
     const q = query(groupsRef, where('members', 'array-contains', uid));
     const groupSnapshot = await getDocs(q);
-    const groups: Group[] = groupSnapshot.docs.map((doc) => ({
+    const groups: Groups[] = groupSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    })) as Group[];
+    })) as Groups[];
     return groups;
   }
 
   //Bestimmte Gruppe finden:
-  async getGroupById(id: string): Promise<Group | null> {
+  async getGroupById(id: string): Promise<Groups | null> {
     try {
       const groupsRef = collection(this.firestore, 'groups');
       const q = query(groupsRef, where('id', '==', id));
@@ -186,7 +186,7 @@ private async loadUsers(): Promise<void> {
         console.warn(`No group found with ID: ${id}`);
         return null;
       }
-      const group = groupSnapshot.docs[0].data() as Group;
+      const group = groupSnapshot.docs[0].data() as Groups;
       return group;
     } catch (e) {
       console.log('Error fetching Groups by id! ' + e);

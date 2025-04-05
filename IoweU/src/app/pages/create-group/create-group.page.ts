@@ -15,7 +15,7 @@ import { RouterModule } from '@angular/router';
 import { GroupService } from 'src/app/services/group.service';
 import { Auth } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
-import { Group } from 'src/app/services/objects/Group';
+import { Groups } from 'src/app/services/objects/Groups';
 
 @Component({
   selector: 'app-create-group',
@@ -46,7 +46,7 @@ export class CreateGroupPage {
   templates: string[] = ['Standard', 'Projekt', 'Reise'];
   groupImage: string | ArrayBuffer | null = null;
   showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige
-  newGroup: Group | null = null; // Initialisierung der newGroup-Variable
+  newGroup: Groups | null = null; // Initialisierung der newGroup-Variable
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
@@ -61,10 +61,10 @@ export class CreateGroupPage {
   //   this.members = this.members.filter((m) => m !== member);
   // }
 
-  async saveGroup() 
+  async saveGroup()
   {
     if (!this.groupname || !this.selectedTemplate) {
-      console.error('Group name and template are required!');
+      console.error('Groups name and template are required!');
       return;
     }
     // if (this.members.length === 0) {
@@ -86,7 +86,7 @@ export class CreateGroupPage {
 
     try {
       await this.groupService.createGroup(this.groupname, founder, this.selectedTemplate);
-      console.log('Group successfully created!');
+      console.log('Groups successfully created!');
     } catch (error) {
       console.error('Error creating group:', error);
     }

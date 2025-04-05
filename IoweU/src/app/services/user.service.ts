@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
-import { Users } from './objects/User';
+import { Users } from './objects/Users';
 import {
   collection,
   Firestore,

@@ -20,7 +20,7 @@ import {
   onAuthStateChanged,
   User,
 } from '@angular/fire/auth';
-import { Users } from './objects/User';
+import { Users } from './objects/Users';
 import { UserService } from './user.service';
 
 @Injectable({

@@ -17,7 +17,7 @@ import {
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
-import { Group } from 'src/app/services/objects/Group';
+import { Groups } from 'src/app/services/objects/Groups';
 import { GroupService } from 'src/app/services/group.service';
 
 @Component({
@@ -50,7 +50,7 @@ export class GroupOverviewPage implements OnInit {
   displayName: string | null = null;
   groupName: string = '';
   iosIcons: boolean = false;
-  group: Group[] = [];
+  group: Groups[] = [];
 
   groups: { name: string; myBalance: number; link: string }[] = [];
 
@@ -59,7 +59,7 @@ export class GroupOverviewPage implements OnInit {
   ngOnInit() {
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
-    
+
 
     const userColor = sessionStorage.getItem('usercolor');
     document.documentElement.style.setProperty('--user-color', userColor);
@@ -84,7 +84,7 @@ export class GroupOverviewPage implements OnInit {
     }
   }
 
-  async loadMyGroups(): Promise<Group[] | null> {
+  async loadMyGroups(): Promise<Groups[] | null> {
     try {
       const currentUser = await this.auth.getCurrentUser();
       if (!currentUser) {

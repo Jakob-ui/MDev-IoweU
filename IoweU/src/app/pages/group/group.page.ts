@@ -24,7 +24,7 @@ import {
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
-import { Group } from 'src/app/services/objects/Group';
+import { Groups } from 'src/app/services/objects/Groups';
 
 @Component({
   selector: 'app-group',
@@ -113,7 +113,7 @@ export class GroupPage {
         this.goupid = group.id;
         this.features = group.features;
       } else {
-        console.warn('Group not found!');
+        console.warn('Groups not found!');
       }
     } catch (e) {
       console.log('Error getting Groups: ' + e);

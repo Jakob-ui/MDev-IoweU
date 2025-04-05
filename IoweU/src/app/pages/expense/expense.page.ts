@@ -66,7 +66,7 @@ export class ExpensePage implements OnInit {
 
   expenses = [
     {
-      id: 1, // Füge eine ID für jedes Expense hinzu
+      id: 1, // Füge eine ID für jedes Expenses hinzu
       expense: 'Pizza',
       totalAmount: 50,
       amountToPay: -10,

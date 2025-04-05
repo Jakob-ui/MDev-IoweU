@@ -4,9 +4,9 @@ import { IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardContent, I
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from "../../services/auth.service";
 import { NavController, Platform } from "@ionic/angular";
-import { Expense } from "../../services/objects/Expense";  // 👈 Import aus eigener Datei
-import { Group } from "../../services/objects/Group";
-import { Product } from "../../services/objects/Product";  // 👈 Import aus eigener Datei
+import { Expenses } from "../../services/objects/Expenses";  // 👈 Import aus eigener Datei
+import { Groups } from "../../services/objects/Groups";
+import { Products } from "../../services/objects/Products";  // 👈 Import aus eigener Datei
 
 @Component({
   selector: 'app-expense-details',
@@ -23,7 +23,7 @@ export class ExpenseDetailsPage implements OnInit {
   private route = inject(ActivatedRoute);
 
   expenseId: number | null = null;
-  expenseDetails: Expense | undefined;
+  expenseDetails: Expenses | undefined;
   iosIcons: boolean = false;
   user: string | null = "";
 
@@ -35,7 +35,7 @@ export class ExpenseDetailsPage implements OnInit {
     { name: 'Mateusz', profileImage: 'assets/profiles/mateusz.jpg' },
   ];
 
-  expenses: Expense[] = [
+  expenses: Expenses[] = [
     {
       id: 1,
       expense: 'Pizza',
@@ -135,7 +135,7 @@ export class ExpenseDetailsPage implements OnInit {
     return !!this.visibleProducts[memberName];
   }
 
-  getPurchasedProductsForMember(memberName: string): Product[] {
+  getPurchasedProductsForMember(memberName: string): Products[] {
     if (this.expenseDetails && this.expenseDetails.products) {
       return this.expenseDetails.products.filter(product => product.member === memberName);
     }

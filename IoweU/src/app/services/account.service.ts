@@ -12,7 +12,7 @@ import {
   getDocs,
   deleteDoc,
 } from 'firebase/firestore';
-import { Users } from './objects/User';
+import { Users } from './objects/Users';
 
 @Injectable({
   providedIn: 'root',
