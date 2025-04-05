@@ -78,16 +78,16 @@
     </ion-button>
 
     <div class="fixed-bottom">
-      <ion-button id="delete-alert" class="delete-button" color="danger"
-        >Konto löschen</ion-button
-      >
+      <ion-button id="delete-alert" class="delete-button" color="danger">
+        Konto löschen
+      </ion-button>
+
       <ion-alert
         trigger="delete-alert"
-        header="Konto löschen?"
-        message="Möchtest du dein Konto wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
-        [buttons]="alertButtons"
+        header="Einloggen erforderlich"
+        message="Bitte logge dich erneut ein, um deine Identität zu bestätigen und dein Konto zu löschen."
+        [buttons]="loginAlertButtons"
         [inputs]="alertInputs"
-        (didDismiss)="setResult($event)"
       ></ion-alert>
 
       <ion-button

@@ -22,6 +22,8 @@ export class LoginPage {
   password: string = '';
   rememberMe: boolean = false;
   loginFailed: boolean = false;
+  loading: boolean = false;
+  timeout: any;
 
   inputChange() {
     this.error = '';
@@ -39,14 +41,27 @@ export class LoginPage {
       this.loginFailed = true;
       return;
     }
-
+    this.loading = true;
     try {
       await this.authService.login(this.email, this.password, this.rememberMe);
       this.router.navigate(['/group-overview']);
     } catch (error) {
       console.error('Fehler beim Login:', error);
       this.error = 'Fehler beim Login, bitte versuchen Sie es erneut.';
-      this.loginFailed = true; // Login fehlgeschlagen
+      this.loginFailed = true;
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async isLoading() {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      this.loading = false;
+      clearTimeout(this.timeout);
+    } catch (error) {
+      console.error('Fehler beim Laden der Daten', error);
+      this.loading = false;
     }
   }
 }

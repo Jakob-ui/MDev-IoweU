@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {Router, RouterLink} from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   IonContent,
@@ -14,6 +14,7 @@ import {
   IonListHeader,
   IonButton,
   IonLabel,
+  IonSpinner,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
 @Component({
@@ -22,6 +23,7 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./register.page.scss'],
   standalone: true,
   imports: [
+    IonSpinner,
     IonLabel,
     IonButton,
     IonItem,
@@ -45,6 +47,8 @@ export class RegisterPage {
   img: string = '';
   color = '';
   error = '';
+  loading: boolean = false;
+  timeout: any;
 
   inputChange() {
     this.failed = false;
@@ -73,7 +77,7 @@ export class RegisterPage {
       this.registerFailed = true;
       return;
     }
-
+    this.loading = true;
     try {
       const usercolor =
         this.color === '' ? this.generateRandomHexColor() : this.color;
@@ -87,14 +91,28 @@ export class RegisterPage {
       if (userCredential.user) {
         sessionStorage.setItem('username', this.name);
         sessionStorage.setItem('usercolor', usercolor);
+        sessionStorage.setItem('email', this.email);
         console.log('Registrierung erfolgreich:', userCredential.user);
         this.router.navigate(['/group-overview']);
       }
     } catch (error) {
       console.error('Registrierung fehlgeschlagen:', error);
-      this.error = 'Fehler bei der Registrierung. Bitte versuchen Sie es erneut.';
-      this.registerFailed = true; // Fehlerstatus setzen
+      this.error =
+        'Fehler bei der Registrierung. Bitte versuchen Sie es erneut.';
+      this.registerFailed = true;
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async isLoading() {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      this.loading = false;
+      clearTimeout(this.timeout);
+    } catch (error) {
+      console.error('Fehler beim Laden der Daten', error);
+      this.loading = false;
     }
   }
 }
-
