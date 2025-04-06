@@ -1,8 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <div class="left-container" slot="start">
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
-                class="back-button" (click)="goBack()"></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+        class="back-button"
+        (click)="goBack()"
+      ></ion-icon>
       <div class="divider"></div>
       <div class="pagename">Gruppe</div>
     </div>
@@ -12,14 +15,14 @@
         <div class="profile-placeholder"></div>
         <span class="member-name">{{ user }}</span>
       </div>
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
-                (click)="logout()" class="logout-button"></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
+        (click)="logout()"
+        class="logout-button"
+      ></ion-icon>
     </div>
   </ion-toolbar>
 </ion-header>
-
-
-
 
 <ion-content [fullscreen]="true">
   <div *ngIf="loading" class="loading-overlay">
@@ -27,8 +30,10 @@
     <p>Loading ...</p>
   </div>
 
-    <div class="page-container">
-    <ion-button class="edit-button" [routerLink]="'/edit-group'">bearbeiten</ion-button>
+  <div class="page-container">
+    <ion-button class="edit-button" [routerLink]="'/edit-group'"
+      >bearbeiten</ion-button
+    >
     <div class="image-upload">
       <ng-container *ngIf="currentGroup?.groupImage; else placeholder">
         <img [src]="currentGroup?.groupImage" alt="Gruppenbild" class="group-image" />
@@ -37,22 +42,54 @@
         <div class="upload-placeholder"></div>
       </ng-template>
     </div>
-      <ion-icon name="logo-ionic"></ion-icon>
-    <h1>{{currentGroup?.name}}</h1>
+    <ion-icon name="logo-ionic"></ion-icon>
+    <h1>{{ groupname }}</h1>
     <div class="separator"></div>
 
-    <ion-card class="Finanzübersicht" [routerLink]="'/finance'">
-      <div class="card-content">
-        <ion-card-title>Finanzübersicht</ion-card-title>
-        <ion-card-subtitle
-          [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }"
-        >
-          <span *ngIf="myBalance >= 0">Mein Guthaben:</span>
-          <span *ngIf="myBalance < 0">Meine Schulden:</span>
-          {{ myBalance | currency: 'EUR' }}
-        </ion-card-subtitle>
-      </div>
-    </ion-card>
+    <ion-card
+  *ngFor="let feature of features; let i = index"
+  class="feature-card"
+  [routerLink]="'/expense'"
+>
+  <div class="card-content">
+    <ion-card-title>{{ feature }}</ion-card-title>
+    <ion-card-subtitle>
+      <ng-container [ngSwitch]="feature">
+        <!-- Finanzübersicht -->
+        <div *ngSwitchCase="'Finanzübersicht'">
+          <span [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }">
+            <span *ngIf="myBalance >= 0">Mein Guthaben:</span>
+            <span *ngIf="myBalance < 0">Meine Schulden:</span>
+            {{ myBalance | currency: 'EUR' }}
+          </span>
+        </div>
+
+        <!-- Ausgaben -->
+        <div *ngSwitchCase="'Ausgaben'">
+          <p>Gesamtausgaben | {{ currentMonth }}</p>
+          <h6>{{ totalCost | currency: 'EUR' }}</h6>
+        </div>
+
+        <!-- Einkaufsliste -->
+        <div *ngSwitchCase="'Einkaufsliste'">
+          <p>{{ shoppingList.length }} Produkte auf der Liste.</p>
+        </div>
+
+        <!-- Anlagegüter -->
+        <div *ngSwitchCase="'Anlagegüter'">
+          <p>{{ assetsList.length }} Güter eingetragen.</p>
+        </div>
+
+        <!-- Standardfall -->
+        <div *ngSwitchDefault>
+          <p>Keine Daten verfügbar.</p>
+        </div>
+      </ng-container>
+    </ion-card-subtitle>
+  </div>
+</ion-card>
+    <!--
+    
 
     <ion-card class="Ausgaben" [routerLink]="'/expense'">
       <div class="card-content">
@@ -81,5 +118,6 @@
         </ion-card-subtitle>
       </div>
     </ion-card>
+    -->
   </div>
 </ion-content>

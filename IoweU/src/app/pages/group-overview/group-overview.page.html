@@ -9,8 +9,11 @@
         <div class="profile-placeholder"></div>
         <span class="member-name">{{ user }}</span>
       </div>
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
-                (click)="logout()" class="logout-button"></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
+        (click)="logout()"
+        class="logout-button"
+      ></ion-icon>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -28,7 +31,11 @@
 
     <!-- Gruppenliste -->
     <ng-container class="group-list" *ngIf="groups.length > 0">
-      <ion-card class="my-groups" *ngFor="let group of groups" (click)="navigateToGroup(group.name)">
+      <ion-card
+        class="my-groups"
+        *ngFor="let group of groups"
+        (click)="navigateToGroup(group.link, group.name)"
+      >
         <div class="card-content">
           <ion-card-title class="groupname">{{ group.name }}</ion-card-title>
           <ion-card-subtitle
@@ -44,8 +51,14 @@
 
     <div class="space"></div>
 
-    <ion-button class="main-button" expand="block" [routerLink]="'/create-group'">Neue Gruppe erstellen +</ion-button>
-    <ion-button class="main-button" expand="block" [routerLink]="'/join-group'">Gruppe beitreten</ion-button>
-
+    <ion-button
+      class="main-button"
+      expand="block"
+      [routerLink]="'/create-group'"
+      >Neue Gruppe erstellen +</ion-button
+    >
+    <ion-button class="main-button" expand="block" [routerLink]="'/join-group'"
+      >Gruppe beitreten</ion-button
+    >
   </div>
 </ion-content>

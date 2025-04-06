@@ -41,8 +41,10 @@
             <ion-input
               type="number"
               placeholder="0,00"
-              [(ngModel)]="expense.amount"
-            ></ion-input>
+              [(ngModel)]="expense.totalAmount"
+              (ionInput)="onTotalAmountChange()">
+            </ion-input>
+
           </ion-item>
         </div>
         <div class="Währung">
@@ -104,13 +106,14 @@
             <ion-select [(ngModel)]="expense.splitType" interface="popover">
               <ion-select-option class="custom-select-option" value="alle">Anteile</ion-select-option>
               <ion-select-option class="custom-select-option" value="prozent">Prozent</ion-select-option>
+              <ion-select-option class="custom-select-option" value="produkte">nach Produkten</ion-select-option>
             </ion-select>
           </ion-item>
         </div>
         <div class="split">
           <span class="input-label">teilen durch</span>
           <ion-item class="input-item">
-            <ion-select [(ngModel)]="expense.splitType" interface="popover">
+            <ion-select [(ngModel)]="expense.splitBy" (ngModelChange)="onSplitByChange()" interface="popover">
               <ion-select-option class="custom-select-option" value="alle">alle</ion-select-option>
             </ion-select>
           </ion-item>
@@ -118,31 +121,84 @@
       </div>
     </div>
 
+    <!-- Mitglieder -->
     <div class="section">
       <div class="member-list" *ngFor="let member of groupMembers">
-        <div class="member-info">
-          <div class="profile-placeholder"></div>
-          <span class="member-name">{{ member.name }}</span>
+        <div class="member-list-input">
+          <div class="member-info">
+            <div class="profile-placeholder"></div>
+            <span class="member-name">{{ member.name }}</span>
+          </div>
+          <div *ngIf="expense.splitType === 'produkte'" class="toggle-arrow" (click)="toggleProducts(member.name)">
+            <ion-icon
+              [src]="productInputs[member.name] ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'">
+            </ion-icon>
+          </div>
+          <div class="right-container">
+            <div class="input-field">
+              <ion-input
+                type="number"
+                placeholder="1x"
+                [(ngModel)]="member.split"
+              ></ion-input>
+            </div>
+            <div class="input-field">
+              <ion-input
+                type="number"
+                placeholder="0,00"
+                [(ngModel)]="member.amountPerPerson"
+              ></ion-input>
+            </div>
+
+          </div>
         </div>
-        <div class="right-container">
-          <div class="input-field">
-            <ion-input
-              type="number"
-              placeholder="1x"
-              [(ngModel)]="member.split"
-            ></ion-input>
+
+        <div *ngIf="productInputs[member.name]" class="product-input-fields">
+          <div class="product-list" *ngIf="productInputs[member.name].products.length">
+            <ul>
+              <li *ngFor="let product of productInputs[member.name].products">
+                <div class="left-container">
+                  <span class="product-quantity">{{ product.quantity }} {{ product.unit }}</span>
+                  <span class="product">{{ product.name }}</span>
+                </div>
+                <ion-badge class="product-price">{{ product.price | currency: 'EUR' }}</ion-badge>
+                <ion-icon
+                  class="delete-icon"
+                  [src]="'assets/icon/ionicons/ios-close.svg'"
+                  (click)="removeProduct(member.name, product)">
+                </ion-icon>
+              </li>
+            </ul>
           </div>
-          <div class="input-field">
+
+          <div class="top-container">
             <ion-input
-              type="number"
-              placeholder="0,00"
-              [(ngModel)]="member.amountperperson"
-            ></ion-input>
+              [(ngModel)]="productInputs[member.name].input.quantity"
+              placeholder="Menge"
+              type="number">
+            </ion-input>
+            <ion-input
+              [(ngModel)]="productInputs[member.name].input.unit"
+              placeholder="Einheit">
+            </ion-input>
           </div>
+          <div class="bottom-container">
+            <ion-input
+              [(ngModel)]="productInputs[member.name].input.name"
+              placeholder="Produktname">
+            </ion-input>
+            <ion-input
+              [(ngModel)]="productInputs[member.name].input.price"
+              placeholder="Preis"
+              type="number">
+            </ion-input>
+          </div>
+          <ion-button class="main-button" (click)="addProduct(member.name)">
+            Produkt hinzufügen
+          </ion-button>
         </div>
       </div>
     </div>
-
 
     <!-- Buttons -->
     <div class="button-row">
@@ -165,6 +221,4 @@
     (ionChange)="onDateChange($event)"
     (ionCancel)="closeDatePicker()">
   </ion-datetime>
-
-
 </ion-content>

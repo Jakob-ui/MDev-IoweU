@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,8 +26,21 @@ export class JoinGroupPage {
   joinFailed: boolean = false;
 
   private validJoinCodes: string[] = ['abc123', 'xyz456', 'test123']; // Beispiel gültiger Codes
+  private qrCodeScanner: Html5QrcodeScanner | null = null;  // Verweis auf den QR-Code-Scanner
 
   constructor(private router: Router) {}
+
+  ngOnInit() {
+    // Den QR-Code-Scanner initialisieren
+    // Wir initialisieren ihn hier, aber er wird nur aktiviert, wenn der Benutzer auf den Button klickt
+  }
+
+  ngOnDestroy() {
+    // Zerstöre den Scanner, wenn die Komponente zerstört wird
+    if (this.qrCodeScanner) {
+      this.qrCodeScanner.clear();
+    }
+  }
 
   inputChange() {
     this.joinFailed = false;
@@ -41,4 +55,31 @@ export class JoinGroupPage {
       this.error = 'Fehler beim Beitreten, bitte versuchen Sie es erneut.';
     }
   }
+
+  // Funktion zum Scannen von QR-Codes, die bei Button-Klick ausgelöst wird
+  initializeQRCodeScanner() {
+    const qrScannerContainer = document.getElementById("qr-code-scanner");
+    if (!qrScannerContainer) {
+      console.error('QR-Code-Scanner Container nicht gefunden.');
+      return;
+    }
+  
+    const scanner = new Html5QrcodeScanner("qr-code-scanner", {
+      fps: 10,
+      qrbox: 250
+    }, false);
+  
+    scanner.render(
+      (result: string) => {
+        this.qrCodeScanner?.clear();
+        this.router.navigate(['/group'], { queryParams: { id: result } });
+      },
+      (error: string) => {
+        console.warn(error);
+      }
+    );
+  
+    this.qrCodeScanner = scanner;
+  }
+  
 }

@@ -21,10 +21,10 @@ import {
   IonIcon,
   IonSpinner,
 } from '@ionic/angular/standalone';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { GroupService } from '../../services/group.service';
-import { Group } from 'src/app/services/objects/Group';
+import { GroupService } from 'src/app/services/group.service';
+import { Groups } from 'src/app/services/objects/Groups';
 
 @Component({
   selector: 'app-group',
@@ -53,27 +53,46 @@ export class GroupPage implements OnInit {
   private route = inject(ActivatedRoute);
   private groupService = inject(GroupService);
 
-  groupname: string = '';
   loading: boolean = true;
   timeout: any;
 
   iosIcons: boolean = false;
 
   user: string | null = '';
-  currentGroup: Group | null = null;
+  currentGroup: Groups | null = null;
   balance: number = -20;
   totalCost: number = 120.5;
   displayName: string | null = null;
+
+  groupname: string = '';
+  private _groupId: string = '';
+  public get goupid(): string {
+    return this._groupId;
+  }
+  public set goupid(value: string) {
+    this._groupId = value;
+  }
   groupImage: string = '';
   myBalance: number = +200;
   currentMonth: string = 'März 2025';
+  features: string[] = [];
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
 
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
 
-  async ngOnInit() {
-    this.loadData();
+  ngOnInit() {
+    this.user = sessionStorage.getItem('username');
+    this.iosIcons = this.platform.is('ios');
+    this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
+
+    this.route.params.subscribe((params) => {
+      this.goupid = params['id'];
+      this.loading = true;
+      this.loadGroupData(this.goupid).finally(() => {
+        this.loading = false;
+      });
+    });
   }
 
   async logout() {
@@ -91,19 +110,31 @@ export class GroupPage implements OnInit {
 
   constructor() {}
 
-  async loadData() {
+  async loadGroupData(id: string): Promise<void> {
+    this.loading = true;
     try {
-      this.iosIcons = this.platform.is('ios');
-      this.timeout = setTimeout(() => { this.loading = false }, 3000);
-      this.user = sessionStorage.getItem('username');
-      const groupId = sessionStorage.getItem('groupId')!;
-      console.log(sessionStorage.getItem('groupId'));
-      this.currentGroup = await this.groupService.getGroupById(groupId);
-      if (!this.currentGroup) {
-        console.error('Failed to load group. Redirecting to home.');
-        this.router.navigate(['home']); // Redirect if group is not found
-        return;
+      const group = await this.groupService.getGroupById(id);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (group) {
+        this.groupname = group.name;
+        this.goupid = group.id;
+        this.features = group.features;
+      } else {
+        console.warn('Groups not found!');
       }
+    } catch (e) {
+      console.log('Error getting Groups: ' + e);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async isLoading() {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      this.loading = false;
+      clearTimeout(this.timeout);
     } catch (error) {
       console.error('Error loading group data:', error);
       this.loading = false;

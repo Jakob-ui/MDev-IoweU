@@ -12,11 +12,13 @@ import {
   IonIcon,
   IonCard,
   IonCardSubtitle,
-  IonCardTitle
+  IonCardTitle,
 } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
+import { Groups } from 'src/app/services/objects/Groups';
+import { GroupService } from 'src/app/services/group.service';
 
 @Component({
   selector: 'app-group-overview',
@@ -29,9 +31,6 @@ import { AuthService } from 'src/app/services/auth.service';
     IonToolbar,
     IonContent,
     IonButton,
-    IonItem,
-    IonLabel,
-    IonList,
     RouterModule,
     IonIcon,
     IonCard,
@@ -45,18 +44,15 @@ export class GroupOverviewPage implements OnInit {
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
+  private groupService = inject(GroupService);
 
-  // 🔹 Variablen für die Seite
   user: string | null = '';
   displayName: string | null = null;
   groupName: string = '';
   iosIcons: boolean = false;
+  group: Groups[] = [];
 
-  groups: { name: string; myBalance: number }[] = [
-    { name: 'Unsere WG', myBalance: 200 },
-    { name: 'Reise nach Rom', myBalance: -50 },
-    { name: 'Freunde', myBalance: -20 },
-  ];
+  groups: { name: string; myBalance: number; link: string }[] = [];
 
   constructor() {}
 
@@ -64,8 +60,19 @@ export class GroupOverviewPage implements OnInit {
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
 
+
     const userColor = sessionStorage.getItem('usercolor');
     document.documentElement.style.setProperty('--user-color', userColor);
+    this.loadMyGroups().then((group) => {
+      if (group) {
+        this.group = group;
+        this.groups = this.group.map((g) => ({
+          name: g.name,
+          myBalance: Math.floor(Math.random() * (200 - -200 + 1)) + -200,
+          link: g.id,
+        }));
+      }
+    });
   }
 
   async logout() {
@@ -77,9 +84,30 @@ export class GroupOverviewPage implements OnInit {
     }
   }
 
-  navigateToGroup(groupName: string) {
+  async loadMyGroups(): Promise<Groups[] | null> {
+    try {
+      const currentUser = await this.auth.getCurrentUser();
+      if (!currentUser) {
+        console.error('No user is currently logged in.');
+        return null;
+      }
+
+      const uid = currentUser.uid;
+      console.log('User UID:', uid);
+
+      const groups = await this.groupService.getGroupsByUserId(uid);
+      console.log('Loaded groups:', groups);
+      return groups;
+    } catch (e) {
+      console.log('Error loading Groups:', e);
+      return null;
+    }
+  }
+
+  navigateToGroup(link: string, groupName: string) {
     sessionStorage.setItem('groupname', groupName);
-    this.router.navigate(['/group']);
+    console.log(groupName);
+    this.router.navigate(['group/' + link]);
   }
 
   goBack() {

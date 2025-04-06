@@ -18,8 +18,9 @@ import {
   browserSessionPersistence,
   browserLocalPersistence,
   onAuthStateChanged,
+  User,
 } from '@angular/fire/auth';
-import { User } from './objects/User';
+import { Users } from './objects/Users';
 import { UserService } from './user.service';
 
 @Injectable({
@@ -48,7 +49,7 @@ export class AuthService {
     );
 
     if (userCredential.user) {
-      const userData: User = {
+      const userData: Users = {
         id: userCredential.user.uid,
         name: name,
         email: email,
@@ -69,7 +70,7 @@ export class AuthService {
     return userCredential;
   }
 
-  private async saveUserData(uid: string, data: User): Promise<boolean> {
+  private async saveUserData(uid: string, data: Users): Promise<boolean> {
     if (!this.auth.currentUser) {
       throw new Error('Benutzer ist nicht authentifiziert.');
     }
@@ -105,8 +106,14 @@ export class AuthService {
       .then(async (userCredential) => {
         if (userCredential.user) {
           const uid = userCredential.user.uid;
-          const username = await this.userService.getUserthingsByUid(uid, 'name');
-          const userColor = await this.userService.getUserthingsByUid(uid, 'color');
+          const username = await this.userService.getUserthingsByUid(
+            uid,
+            'name'
+          );
+          const userColor = await this.userService.getUserthingsByUid(
+            uid,
+            'color'
+          );
           sessionStorage.setItem('username', username);
           sessionStorage.setItem('email', email);
           sessionStorage.setItem('usercolor', userColor);
@@ -137,6 +144,14 @@ export class AuthService {
       } else {
         console.log('Kein Benutzer eingeloggt.');
       }
+    });
+  }
+
+  getCurrentUser(): Promise<User | null> {
+    return new Promise((resolve) => {
+      onAuthStateChanged(this.auth, (user) => {
+        resolve(user);
+      });
     });
   }
 

@@ -16,14 +16,26 @@
     <ion-button
       class="main-button"
       expand="block"
-      [routerLink]="'/group-overview'">Abbrechen</ion-button>
+      [routerLink]="'/group-overview'"
+    >Abbrechen</ion-button>
 
     <ion-button
       class="main-button"
       expand="block"
       [class.error-button]="joinFailed"
-    (click)="joinGroup()">Beitreten
+      (click)="joinGroup()"
+    >
+      Beitreten
     </ion-button>
+
+    <!-- Button zum Scannen des QR-Codes -->
+    <ion-button class="main-button" expand="block" (click)="initializeQRCodeScanner()">
+      QR-Code scannen
+    </ion-button>
+
+    <!-- Container für den QR-Code-Scanner -->
+    <div id="qr-code-scanner" style="width: 100%; height: 300px; margin-top: 20px;"></div>
+
 
     <p *ngIf="joinFailed" class="error-message">{{ error }}</p> <!-- Fehlermeldung anzeigen, wenn joinFailed true ist -->
   </div>
