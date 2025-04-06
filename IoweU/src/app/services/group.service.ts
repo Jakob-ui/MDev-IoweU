@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Groups } from './objects/Groups';
 import { Users } from './objects/Users';
+import { Members } from './objects/Members';
 import {
   Firestore,
   collection,
@@ -58,7 +59,7 @@ private async loadUsers(): Promise<void> {
   //Gruppe erstellen:
   async createGroup(
     name: string,
-    founder: string,
+    founder: Members,
     template: string
   ): Promise<void> {
     try {
@@ -66,13 +67,14 @@ private async loadUsers(): Promise<void> {
         id: doc(collection(this.firestore, 'groups')).id, // Generate a new document ID
         name: name,
         foundationdate: new Date(), // Set the foundation date to the current date
-        founder: founder,
+        founder: founder.userId,
         members: [], // Initialize with an empty array
         accessCode: Math.floor(10000 + Math.random() * 90000), // Initialize with a default value
         features: [],
+        expenses: [],
       };
       // Add the founder to the members list:
-      newGroup.members.push(newGroup.founder);
+      newGroup.members.push(founder);
       if (template === 'Standard') {
         newGroup.features.push('Finanzübersicht');
       } else if (template === 'Projekt') {
