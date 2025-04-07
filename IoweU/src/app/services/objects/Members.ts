@@ -5,9 +5,9 @@ import { Products } from './Products';
 
 export interface Members {
   memberId: string;
-  guid: string;
+  uid: string;
   username: string;
-  role: 'member';
+  role: 'member' | 'founder';
   color: string;
   joinedAt: string;
 }

@@ -49,7 +49,7 @@ export class CreateExpensePage {
   groupMembers: (Members & {})[] = [
     {
       memberId: 'user123',
-      guid: 'ae2qe',
+      uid: 'ae2qe',
       username: 'Ich',
       color: 'grün',
       role: 'member',
@@ -57,7 +57,7 @@ export class CreateExpensePage {
     },
     {
       memberId: 'user456',
-      guid: 'ae2qe',
+      uid: 'ae2qe',
       username: 'Lila',
       color: 'grün',
       role: 'member',
@@ -65,7 +65,7 @@ export class CreateExpensePage {
     },
     {
       memberId: 'user789',
-      guid: 'ae2qe',
+      uid: 'ae2qe',
       username: 'Grün',
       color: 'grün',
       role: 'member',

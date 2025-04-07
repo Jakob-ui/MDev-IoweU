@@ -3,7 +3,7 @@ import { Expenses } from './Expenses';
 import { Products } from './Products';
 
 export interface Users {
-  guId: string;
+  uid: string;
   username: string;
   email: string;
   color: string;

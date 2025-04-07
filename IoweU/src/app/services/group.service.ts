@@ -68,18 +68,23 @@ private async loadUsers(): Promise<void> {
         groupname: name,
         foundationdate: new Date().toISOString(),
         founder: founder,
-        members: [], // Initialize with an empty array
+        memberIds: [founder], // __________--------------------nur temporär!!!
+        members: [
+          {
+            memberId: '23131',
+            uid: founder,
+            username: 'Founder', // Replace with the actual username if available
+            role: 'member',
+            color: '#000000', // Default color or fetch from user data
+            joinedAt: new Date().toISOString(),
+          },
+        ], // Store the founder as a Members object
         groupimage: '',
         accessCode: Math.floor(10000 + Math.random() * 90000), // Initialize with a default value
         features: [],
         expenses: [],
       };
-      // Add the founder to the members list:
-      newGroup.members.push({
-        userId: founder,
-        role: 'founder',
-        joinedAt: new Date(),
-      } as unknown as Members);
+
       if (template === 'Standard') {
         newGroup.features.push('Finanzübersicht');
       } else if (template === 'Projekt') {
@@ -87,6 +92,7 @@ private async loadUsers(): Promise<void> {
       } else if (template === 'Reise') {
         newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Einkaufsliste');
       }
+
       const groupRef = await addDoc(
         collection(this.firestore, 'groups'),
         newGroup
@@ -176,7 +182,7 @@ private async loadUsers(): Promise<void> {
   //Eigene Gruppen finden:
   async getGroupsByUserId(uid: string): Promise<Groups[]> {
     const groupsRef = collection(this.firestore, 'groups');
-    const q = query(groupsRef, where('members', 'array-contains', uid));
+    const q = query(groupsRef, where('memberIds', 'array-contains', uid));
     const groupSnapshot = await getDocs(q);
     const groups: Groups[] = groupSnapshot.docs.map((doc) => ({
       groupId: doc.id,

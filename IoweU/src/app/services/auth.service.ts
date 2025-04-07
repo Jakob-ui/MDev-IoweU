@@ -50,7 +50,7 @@ export class AuthService {
 
     if (userCredential.user) {
       const userData: Users = {
-        guId: userCredential.user.uid,
+        uid: userCredential.user.uid,
         username: name,
         email: email,
         color: color,

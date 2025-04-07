@@ -12,4 +12,5 @@ export interface Groups {
   features: string[]; // Liste von Funktionen (optional)
   expenses: Expenses[]; // Liste der Ausgaben in der Gruppe
   SumExpenses?: number;
+  memberIds: string[]; //----------------nur temporär!!!!!!!!!!!!!
 }
