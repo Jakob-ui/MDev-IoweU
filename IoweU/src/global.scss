@@ -554,6 +554,9 @@ ion-item.select-interface-option::part(native) {
   margin-top: 10px;
   margin-bottom: 20px;
   width: 80%;
+  @media (prefers-color-scheme: dark) {
+    background-color: white; // Weiß im Dark Theme
+  }
 }
 
 .menu {
