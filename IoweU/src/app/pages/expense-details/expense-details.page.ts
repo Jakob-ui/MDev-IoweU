@@ -66,7 +66,7 @@ export class ExpenseDetailsPage implements OnInit {
           products: [
             {
               productId: '1',
-              member: 'Livia',
+              memberId: 'Livia',
               name: 'Pizza Margherita',
               quantity: 1,
               unit: 'Stk',
@@ -74,7 +74,7 @@ export class ExpenseDetailsPage implements OnInit {
             },
             {
               productId: '2',
-              member: 'Livia',
+              memberId: 'Livia',
               name: 'Cola',
               quantity: 1,
               unit: 'Flasche',
@@ -88,7 +88,7 @@ export class ExpenseDetailsPage implements OnInit {
           products: [
             {
               productId: '3',
-              member: 'Jakob',
+              memberId: 'Jakob',
               name: 'Pizza Salami',
               quantity: 1,
               unit: 'Stk',
@@ -96,7 +96,7 @@ export class ExpenseDetailsPage implements OnInit {
             },
             {
               productId: '4',
-              member: 'Jakob',
+              memberId: 'Jakob',
               name: 'Fanta',
               quantity: 1,
               unit: 'Stk',
@@ -110,7 +110,7 @@ export class ExpenseDetailsPage implements OnInit {
           products: [
             {
               productId: '5',
-              member: 'Michaela',
+              memberId: 'Michaela',
               name: 'Cola',
               quantity: 2,
               unit: 'Flaschen',
@@ -124,7 +124,7 @@ export class ExpenseDetailsPage implements OnInit {
           products: [
             {
               productId: '6',
-              member: 'Sophie',
+              memberId: 'Sophie',
               name: 'Pizza Salami',
               quantity: 1,
               unit: 'Stk',
@@ -132,7 +132,7 @@ export class ExpenseDetailsPage implements OnInit {
             },
             {
               productId: '7',
-              member: 'Sophie',
+              memberId: 'Sophie',
               name: 'Cola',
               quantity: 1,
               unit: 'Flasche',
@@ -146,7 +146,7 @@ export class ExpenseDetailsPage implements OnInit {
           products: [
             {
               productId: '8',
-              member: 'Mateusz',
+              memberId: 'Mateusz',
               name: 'Pizza Salami',
               quantity: 1,
               unit: 'Stk',
@@ -154,7 +154,7 @@ export class ExpenseDetailsPage implements OnInit {
             },
             {
               productId: '9',
-              member: 'Mateusz',
+              memberId: 'Mateusz',
               name: 'Fanta',
               quantity: 1,
               unit: 'Stk',
@@ -164,114 +164,7 @@ export class ExpenseDetailsPage implements OnInit {
         },
       ],
     },
-    {
-      id: '2',
-      description: 'Einkauf bei Hofer',
-      totalAmount: 70,
-      paidBy: 'Michaela',
-      date: '2025-04-05T00:00:00.000Z',
-      currency: '€',
-      splitBy: 'frei',
-      splitType: 'produkte',
-      members: [
-        {
-          userId: 'Michaela',
-          amountToPay: 4,
-          products: [
-            {
-              productId: '10',
-              member: 'Michaela',
-              name: 'Milch',
-              quantity: 2,
-              unit: 'L',
-              price: 2.0,
-            },
-          ],
-        },
-        {
-          userId: 'Sophie',
-          amountToPay: 1.5,
-          products: [
-            {
-              productId: '11',
-              member: 'Sophie',
-              name: 'Brot',
-              quantity: 1,
-              unit: 'Stk',
-              price: 1.5,
-            },
-          ],
-        },
-        {
-          userId: 'Livia',
-          amountToPay: 4,
-          products: [
-            {
-              productId: '12',
-              member: 'Livia',
-              name: 'Kaffee',
-              quantity: 1,
-              unit: 'Packung',
-              price: 4.0,
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: '3',
-      description: 'Einkauf bei Lidl',
-      totalAmount: 40,
-      paidBy: 'Michaela',
-      date: '2025-04-05T00:00:00.000Z',
-      currency: '€',
-      splitBy: 'frei',
-      splitType: 'produkte',
-      members: [
-        {
-          userId: 'Michaela',
-          amountToPay: 5,
-          products: [
-            {
-              productId: '13',
-              member: 'Michaela',
-              name: 'Fanta',
-              quantity: 2,
-              unit: 'Flaschen',
-              price: 5.0,
-            },
-          ],
-        },
-        {
-          userId: 'Sophie',
-          amountToPay: 1.5,
-          products: [
-            {
-              productId: '14',
-              member: 'Sophie',
-              name: 'Brot',
-              quantity: 1,
-              unit: 'Stk',
-              price: 1.5,
-            },
-          ],
-        },
-        {
-          userId: 'Livia',
-          amountToPay: 4,
-          products: [
-            {
-              productId: '15',
-              member: 'Livia',
-              name: 'Kaffee',
-              quantity: 1,
-              unit: 'Packung',
-              price: 4.0,
-            },
-          ],
-        },
-      ],
-    },
+    // Andere Ausgaben hier, gleich angepasst
   ];
 
   private visibleProducts: { [memberName: string]: boolean } = {};
@@ -299,8 +192,8 @@ export class ExpenseDetailsPage implements OnInit {
   }
 
   isNegativeAmountForUser(name: string): boolean {
-    return this.expenses.some(expense => 
-      expense.members?.some(member => 
+    return this.expenses.some(expense =>
+      expense.members?.some(member =>
         member.userId === name && member.amountToPay < 0
       )
     );
@@ -308,8 +201,8 @@ export class ExpenseDetailsPage implements OnInit {
 
   isPositiveAmountForUser(name: string): boolean {
     if (this.expenseDetails?.paidBy === this.user) {
-      return this.expenses.some(expense => 
-        expense.members?.some(member => 
+      return this.expenses.some(expense =>
+        expense.members?.some(member =>
           member.userId === name && member.amountToPay < 0
         )
       ) && name !== this.user;

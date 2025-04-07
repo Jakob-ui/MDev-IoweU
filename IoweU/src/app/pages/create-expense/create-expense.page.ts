@@ -78,7 +78,7 @@ export class CreateExpensePage {
   ];
 
   expense: Expenses = {
-    id: Date.now().toString(),
+    id: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
     description: 'Einkauf von Lebensmitteln',
     totalAmount: 150,
     paidBy: 'user123',
@@ -95,6 +95,7 @@ export class CreateExpensePage {
         amountToPay: 75,
         products: [
           {
+            productId: 'p123',
             memberId: 'user123',
             name: 'Brot',
             quantity: 2,
@@ -108,6 +109,7 @@ export class CreateExpensePage {
         amountToPay: 75,
         products: [
           {
+            productId: 'p124',
             memberId: 'user456',
             name: 'Milch',
             quantity: 1,
@@ -155,6 +157,7 @@ export class CreateExpensePage {
   private createEmptyProduct(memberName: string): Products {
     const member = this.groupMembers.find((m) => m.name === memberName);
     return {
+      productId: Date.now().toString(),
       memberId: member ? member.userId : '',
       name: '',
       quantity: 1,
@@ -171,50 +174,86 @@ export class CreateExpensePage {
     if (product.name.trim() && !isNaN(product.price)) {
       const newProduct: Products = {
         ...product,
+        productId: Date.now().toString(),
         price: Number(product.price),
       };
 
-      // Produkt zu den Mitgliedsdaten hinzufügen
-      entry.products.push(newProduct);
-      const member = this.expense.members.find(
-        (m) => m.userId === entry.input.memberId
-      );
-      if (member) {
-        member.products.push(newProduct);
+      // Initialize products array if undefined
+      if (!entry.products) {
+        entry.products = [];
       }
 
-      // Gesamtbetrag und Mitgliederaktualisierung durchführen
+      entry.products.push(newProduct);
+
+      // Ensure members array is initialized
+      if (!this.expense.members) {
+        this.expense.members = [];
+      }
+
+      const member = this.expense.members.find((m) => m.userId === entry.input.memberId);
+
+      if (member) {
+        // Ensure products array is initialized
+        if (!member.products) {
+          member.products = [];
+        }
+        member.products.push(newProduct);
+      } else {
+        // If member doesn't exist, add it to the expense
+        this.expense.members.push({
+          userId: entry.input.memberId,
+          amountToPay: 0,
+          products: [newProduct],
+        });
+      }
+
+      // Reset input and update totals
       entry.input = this.createEmptyProduct(memberName);
       this.updateTotals();
     }
   }
 
+
   removeProduct(memberName: string, productToRemove: Products) {
     const entry = this.productInputs[memberName];
     if (!entry) return;
 
-    entry.products = entry.products.filter((p) => p !== productToRemove);
+    // Ensure products is an array before filtering
+    if (entry.products) {
+      entry.products = entry.products.filter((p) => p !== productToRemove);
+    }
 
-    const member = this.expense.members.find(
-      (m) => m.userId === productToRemove.memberId
-    );
-    if (member) {
-      member.products = member.products.filter((p) => p !== productToRemove);
+    // Check if members array is defined
+    if (this.expense.members) {
+      const member = this.expense.members.find((m) => m.userId === productToRemove.memberId);
+      if (member && member.products) {
+        // Ensure member's products is an array before calling filter
+        member.products = member.products.filter((p) => p !== productToRemove);
+      }
     }
 
     this.updateTotals();
   }
 
   private calculateTotal(): number {
+    // Ensure this.expense.members is an array
+    if (!this.expense.members || !Array.isArray(this.expense.members)) {
+      return 0;
+    }
+
     return this.expense.members.reduce((sum, member) => {
+      // Ensure member.products is an array and not undefined
+      const products = member.products || [];
       return (
         sum +
-        member.products.reduce((productSum, product) => {
-          return productSum + product.price * product.quantity;
+        products.reduce((productSum, product) => {
+          // Ensure each product has valid price and quantity
+          return productSum + (product.price * product.quantity || 0);
         }, 0)
       );
     }, 0);
   }
+
 
   private updateMembers() {
     this.expense.members = this.groupMembers.map((member) => ({
@@ -228,14 +267,10 @@ export class CreateExpensePage {
     const total = this.calculateTotal();
     this.expense.totalAmount = total;
 
-    // Falls der Split-Typ "alle" ist, wird der Betrag gleichmäßig auf alle Mitglieder aufgeteilt
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
-    } else {
-      // Hier können wir eine zusätzliche Logik für andere Split-Typen hinzufügen, falls nötig
     }
 
-    // Sicherstellen, dass die Mitglieder aktualisiert werden
     this.updateMembers();
   }
 
@@ -243,15 +278,12 @@ export class CreateExpensePage {
     const total = this.expense.totalAmount;
     const amountPerPerson = total / this.groupMembers.length;
 
-    // Aufteilen des Gesamtbetrags gleichmäßig auf alle Mitglieder
     this.groupMembers.forEach((member) => {
       member.amountPerPerson = amountPerPerson;
     });
   }
 
   onTotalAmountChange() {
-    const total = this.expense.totalAmount;
-    const amountPerPerson = total / this.groupMembers.length;
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
@@ -266,7 +298,7 @@ export class CreateExpensePage {
   saveExpense() {
     this.updateTotals();
     this.expense.totalAmount = Number(this.expense.totalAmount);
-    this.expense.members.forEach((member) => {
+    this.expense.members?.forEach((member) => {
       member.amountToPay = Number(member.amountToPay);
     });
 
