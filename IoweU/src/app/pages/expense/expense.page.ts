@@ -1,47 +1,40 @@
-import {Component, inject, OnInit} from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonFooter,
-    IonButtons,
-    IonButton,
-    IonItem,
-    IonLabel,
-    IonList,
-    IonBadge,
-    IonInput,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardSubtitle,
-    IonCardContent, IonIcon,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonList,
+  IonBadge,
+  IonCard,
+  IonButton,
+  IonIcon,
 } from '@ionic/angular/standalone';
-import {Router, RouterModule} from '@angular/router';
-import {AuthService} from "../../services/auth.service";
-import {NavController, Platform} from "@ionic/angular";
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from "../../services/auth.service";
+import { NavController, Platform } from "@ionic/angular";
 
 @Component({
   selector: 'app-expense',
   templateUrl: './expense.page.html',
   styleUrls: ['./expense.page.scss'],
   standalone: true,
-    imports: [
-        CommonModule,
-        IonHeader,
-        IonToolbar,
-        IonTitle,
-        IonContent,
-        IonItem,
-        IonList,
-        IonBadge,
-        IonCard,
-        RouterModule,
-        IonButton,
-        IonIcon,
-    ],
+  imports: [
+    CommonModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonItem,
+    IonList,
+    IonBadge,
+    IonCard,
+    RouterModule,
+    IonButton,
+    IonIcon,
+  ],
 })
 export class ExpensePage implements OnInit {
   private auth = inject(AuthService);
@@ -53,7 +46,7 @@ export class ExpensePage implements OnInit {
 
   iosIcons: boolean = false;
 
-  user: string | null ="";
+  user: string | null = "";
   displayName: string | null = null;
 
   groupMembers = [
@@ -66,7 +59,7 @@ export class ExpensePage implements OnInit {
 
   expenses = [
     {
-      id: 1, // Füge eine ID für jedes Expenses hinzu
+      id: 1,
       expense: 'Pizza',
       totalAmount: 50,
       amountToPay: -10,
@@ -75,24 +68,23 @@ export class ExpensePage implements OnInit {
     },
     {
       id: 2,
-      expense: 'Einkauf bei Hofer',
-      totalAmount: 70,
-      amountToPay: -20,
+      expense: 'Kinoabend',
+      totalAmount: 40,
+      amountToPay: -8,
       paidBy: this.groupMembers[1],
       date: new Date(2025, 3, 5),
     },
     {
       id: 3,
-      expense: 'Einkauf bei Lidl',
-      totalAmount: 40,
-      amountToPay: -5,
+      expense: 'Restaurantbesuch',
+      totalAmount: 100,
+      amountToPay: -25,
       paidBy: this.groupMembers[2],
       date: new Date(2025, 3, 5),
     },
   ];
 
-
-  balance = 50;
+  balance: number = 0;
   lastTransactionDate = new Date(2025, 2, 20);
 
   constructor() {}
@@ -103,6 +95,13 @@ export class ExpensePage implements OnInit {
     const userColor = sessionStorage.getItem('usercolor');
     document.documentElement.style.setProperty('--user-color', userColor);
     this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
+
+    // Berechne die Balance
+    this.calculateBalance();
+  }
+
+  calculateBalance() {
+    this.balance = this.expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
   }
 
   async logout() {
@@ -115,14 +114,14 @@ export class ExpensePage implements OnInit {
   }
 
   goToExpenseDetails(expenseId: number) {
-    this.router.navigate(['expense-details', expenseId]);  // Navigiert zur ExpenseDetailsPage mit dem entsprechenden Parameter
+    this.router.navigate(['expense-details', expenseId]);
   }
 
   goToCreateExpense() {
-    this.router.navigate(['create-expense']); // Navigiert zur CreateExpensePage
+    this.router.navigate(['create-expense']);
   }
 
   goBack() {
-    this.navCtrl.back(); // Navigiert zur letzten Seite
+    this.navCtrl.back();
   }
 }

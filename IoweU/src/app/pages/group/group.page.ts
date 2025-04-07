@@ -130,6 +130,21 @@ export class GroupPage implements OnInit {
     }
   }
 
+  getFeatureLink(feature: string): string {
+    switch (feature) {
+      case 'Finanzübersicht':
+        return '/finance';
+      case 'Ausgaben':
+        return '/expense';
+      case 'Einkaufsliste':
+        return '/shopping-list';
+      case 'Anlagegüter':
+        return '/assets';
+      default:
+        return '/'; // Rückfalloption für unbekannte Features
+    }
+  }
+
   async isLoading() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));

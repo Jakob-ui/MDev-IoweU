@@ -64,108 +64,147 @@ export class ExpenseDetailsPage implements OnInit {
           userId: 'Livia',
           amountToPay: 10,
           products: [
-            {
-              productId: '1',
-              memberId: 'Livia',
-              name: 'Pizza Margherita',
-              quantity: 1,
-              unit: 'Stk',
-              price: 8.5,
-            },
-            {
-              productId: '2',
-              memberId: 'Livia',
-              name: 'Cola',
-              quantity: 1,
-              unit: 'Flasche',
-              price: 1.5,
-            },
+            { productId: '1', memberId: 'Livia', name: 'Pizza Margherita', quantity: 1, unit: 'Stk', price: 8.5 },
+            { productId: '2', memberId: 'Livia', name: 'Cola', quantity: 1, unit: 'Flasche', price: 1.5 },
           ],
         },
         {
           userId: 'Jakob',
           amountToPay: 10.5,
           products: [
-            {
-              productId: '3',
-              memberId: 'Jakob',
-              name: 'Pizza Salami',
-              quantity: 1,
-              unit: 'Stk',
-              price: 9.0,
-            },
-            {
-              productId: '4',
-              memberId: 'Jakob',
-              name: 'Fanta',
-              quantity: 1,
-              unit: 'Stk',
-              price: 1.5,
-            },
+            { productId: '3', memberId: 'Jakob', name: 'Pizza Salami', quantity: 1, unit: 'Stk', price: 9.0 },
+            { productId: '4', memberId: 'Jakob', name: 'Fanta', quantity: 1, unit: 'Stk', price: 1.5 },
           ],
         },
         {
           userId: 'Michaela',
           amountToPay: 5,
           products: [
-            {
-              productId: '5',
-              memberId: 'Michaela',
-              name: 'Cola',
-              quantity: 2,
-              unit: 'Flaschen',
-              price: 2.5,
-            },
+            { productId: '5', memberId: 'Michaela', name: 'Cola', quantity: 2, unit: 'Flaschen', price: 2.5 },
           ],
         },
         {
           userId: 'Sophie',
           amountToPay: 10,
           products: [
-            {
-              productId: '6',
-              memberId: 'Sophie',
-              name: 'Pizza Salami',
-              quantity: 1,
-              unit: 'Stk',
-              price: 8.5,
-            },
-            {
-              productId: '7',
-              memberId: 'Sophie',
-              name: 'Cola',
-              quantity: 1,
-              unit: 'Flasche',
-              price: 1.5,
-            },
+            { productId: '6', memberId: 'Sophie', name: 'Pizza Salami', quantity: 1, unit: 'Stk', price: 8.5 },
+            { productId: '7', memberId: 'Sophie', name: 'Cola', quantity: 1, unit: 'Flasche', price: 1.5 },
           ],
         },
         {
           userId: 'Mateusz',
           amountToPay: 10.5,
           products: [
-            {
-              productId: '8',
-              memberId: 'Mateusz',
-              name: 'Pizza Salami',
-              quantity: 1,
-              unit: 'Stk',
-              price: 9.0,
-            },
-            {
-              productId: '9',
-              memberId: 'Mateusz',
-              name: 'Fanta',
-              quantity: 1,
-              unit: 'Stk',
-              price: 1.5,
-            },
+            { productId: '8', memberId: 'Mateusz', name: 'Pizza Salami', quantity: 1, unit: 'Stk', price: 9.0 },
+            { productId: '9', memberId: 'Mateusz', name: 'Fanta', quantity: 1, unit: 'Stk', price: 1.5 },
           ],
         },
       ],
     },
-    // Andere Ausgaben hier, gleich angepasst
+    {
+      id: '2',
+      description: 'Kinoabend',
+      totalAmount: 40,
+      paidBy: 'Michaela',
+      date: '2025-03-25T00:00:00.000Z',
+      currency: '€',
+      splitBy: 'alle',
+      splitType: 'prozent',
+      members: [
+        {
+          userId: 'Livia',
+          amountToPay: 8,
+          products: [
+            { productId: '10', memberId: 'Livia', name: 'Karten', quantity: 1, unit: 'Stück', price: 8 },
+          ],
+        },
+        {
+          userId: 'Jakob',
+          amountToPay: 8,
+          products: [
+            { productId: '11', memberId: 'Jakob', name: 'Karten', quantity: 1, unit: 'Stück', price: 8 },
+          ],
+        },
+        {
+          userId: 'Michaela',
+          amountToPay: 8,
+          products: [
+            { productId: '12', memberId: 'Michaela', name: 'Karten', quantity: 1, unit: 'Stück', price: 8 },
+          ],
+        },
+        {
+          userId: 'Sophie',
+          amountToPay: 8,
+          products: [
+            { productId: '13', memberId: 'Sophie', name: 'Karten', quantity: 1, unit: 'Stück', price: 8 },
+          ],
+        },
+        {
+          userId: 'Mateusz',
+          amountToPay: 8,
+          products: [
+            { productId: '14', memberId: 'Mateusz', name: 'Karten', quantity: 1, unit: 'Stück', price: 8 },
+          ],
+        },
+      ],
+    },
+    {
+      id: '3',
+      description: 'Restaurantbesuch',
+      totalAmount: 100,
+      paidBy: 'Jakob',
+      date: '2025-03-27T00:00:00.000Z',
+      currency: '€',
+      splitBy: 'frei',
+      splitType: 'produkte',
+      members: [
+        {
+          userId: 'Livia',
+          amountToPay: -25,
+          products: [
+            { productId: '15', memberId: 'Livia', name: 'Steak', quantity: 1, unit: 'Stk', price: 18 },
+            { productId: '16', memberId: 'Livia', name: 'Wein', quantity: 1, unit: 'Glas', price: 7 },
+          ],
+        },
+        {
+          userId: 'Jakob',
+          amountToPay: -30,
+          products: [
+            { productId: '17', memberId: 'Jakob', name: 'Nudeln', quantity: 1, unit: 'Stk', price: 15 },
+            { productId: '18', memberId: 'Jakob', name: 'Wein', quantity: 2, unit: 'Gläser', price: 6 },
+          ],
+        },
+        {
+          userId: 'Michaela',
+          amountToPay: -20,
+          products: [
+            { productId: '19', memberId: 'Michaela', name: 'Pizza', quantity: 1, unit: 'Stk', price: 14 },
+            { productId: '20', memberId: 'Michaela', name: 'Cola', quantity: 1, unit: 'Flasche', price: 3 },
+            { productId: '21', memberId: 'Michaela', name: 'Wein', quantity: 1, unit: 'Glas', price: 3 },
+          ],
+        },
+        {
+          userId: 'Sophie',
+          amountToPay: -25,
+          products: [
+            { productId: '22', memberId: 'Sophie', name: 'Pizza', quantity: 1, unit: 'Stk', price: 14 },
+            { productId: '23', memberId: 'Sophie', name: 'Fanta', quantity: 1, unit: 'Flasche', price: 3 },
+            { productId: '24', memberId: 'Sophie', name: 'Wein', quantity: 1, unit: 'Glas', price: 3 },
+          ],
+        },
+        {
+          userId: 'Mateusz',
+          amountToPay: -20,
+          products: [
+            { productId: '25', memberId: 'Mateusz', name: 'Schnitzel', quantity: 1, unit: 'Stk', price: 12 },
+            { productId: '26', memberId: 'Mateusz', name: 'Cola', quantity: 1, unit: 'Flasche', price: 3 },
+            { productId: '27', memberId: 'Mateusz', name: 'Mineralwasser', quantity: 1, unit: 'Glas', price: 3 },
+          ],
+        },
+      ],
+    },
   ];
+
 
   private visibleProducts: { [memberName: string]: boolean } = {};
 
@@ -181,7 +220,9 @@ export class ExpenseDetailsPage implements OnInit {
     this.loadExpenseDetails();
   }
 
-  loadExpenseDetails() {}
+  loadExpenseDetails() {
+    this.expenseDetails = this.expenses.find(expense => expense.id === String(this.expenseId));
+  }
 
   calculateShare(totalAmount: number): number {
     return totalAmount / this.groupMembers.length;
@@ -192,27 +233,39 @@ export class ExpenseDetailsPage implements OnInit {
   }
 
   isNegativeAmountForUser(name: string): boolean {
-    return this.expenses.some(expense =>
-      expense.members?.some(member =>
-        member.userId === name && member.amountToPay < 0
-      )
-    );
-  }
+    console.log('isNegativeAmountForUser called');
+    if (!this.expenseDetails || !this.expenseDetails.members) {
+      return false;
+    }
 
-  isPositiveAmountForUser(name: string): boolean {
-    if (this.expenseDetails?.paidBy === this.user) {
-      return this.expenses.some(expense =>
-        expense.members?.some(member =>
-          member.userId === name && member.amountToPay < 0
-        )
-      ) && name !== this.user;
+    const member = this.expenseDetails.members.find(member => member.userId === name);
+    console.log('Checking member:', member);
+
+    if (member) {
+      const isNegative = member.amountToPay < 0;
+      console.log('isNegativeAmountForUser:', isNegative);
+      return isNegative && this.expenseDetails.paidBy === this.user && name === this.user;
     }
     return false;
   }
 
+  isPositiveAmountForUser(name: string): boolean {
+    console.log('isPositiveAmountForUser called');
+    if (!this.expenseDetails || !this.expenseDetails.members) {
+      return false;
+    }
+
+    const member = this.expenseDetails.members.find(member => member.userId === name);
+    console.log('Checking member:', member);
+    return this.expenseDetails?.paidBy === this.user && name !== this.user;
+  }
+
+
   isRelevantForUser(name: string): boolean {
+    console.log('Checking relevance for:', name);
     return this.user === name || this.expenseDetails?.paidBy === name;
   }
+
 
   toggleProducts(memberName: string) {
     this.visibleProducts[memberName] = !this.visibleProducts[memberName];
@@ -222,14 +275,32 @@ export class ExpenseDetailsPage implements OnInit {
     return !!this.visibleProducts[memberName];
   }
 
-  getPurchasedProductsForMember(memberName: string): Products[] {
-    if (this.expenseDetails && this.expenseDetails.members) {
-      const member = this.expenseDetails.members.find(
-        (m) => m.userId === memberName
-      );
-      return member?.products || [];
+  getPurchasedProductsForMember(expenseId: number, memberName: string): Products[] {
+    // Finde das Expense-Objekt anhand der ID
+    const expense = this.expenses.find(e => e.id === String(expenseId)); // Hier als String vergleichen, da `e.id` ein string ist
+
+    // Prüfen, ob das Expense-Objekt gefunden wurde und dann nach dem Mitglied suchen
+    if (!expense) {
+      console.error(`Expense mit ID ${expenseId} nicht gefunden`);
+      return [];
     }
-    return [];
+
+    // Sicherstellen, dass 'members' nicht undefined ist
+    if (!expense.members) {
+      console.error(`Keine Mitglieder für Expense mit ID ${expenseId} gefunden`);
+      return [];
+    }
+
+    // Finde das Mitglied mit der userId
+    const member = expense.members.find(m => m.userId === memberName);
+
+    // Wenn das Mitglied gefunden wurde, gebe die Produkte zurück, andernfalls ein leeres Array
+    if (!member) {
+      console.error(`Mitglied mit userId ${memberName} nicht gefunden`);
+      return [];
+    }
+
+    return member.products || [];
   }
 
   async logout() {

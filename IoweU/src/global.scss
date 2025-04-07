@@ -44,6 +44,7 @@ h1 {
   font-weight: 700;
   font-size: 40px;
   color: var(--ion-color-dark);
+  width: 90%;
 }
 
 h2 {
@@ -59,6 +60,10 @@ ion-card-title {
   font-weight: 700;
   font-size: 32px;
   color: var(--ion-color-dark);
+}
+
+ion-card-title{
+  text-align: left;
 }
 
 h4 {
@@ -412,7 +417,7 @@ ion-item.select-interface-option::part(native) {
   border-radius: 0 !important; /* Entfernt abgerundete Ecken */
   color: var(--ion-color-dark); /* Textfarbe */
   font-size: 14px; /* Schriftgröße */
-  padding: 10px; /* Polsterung */ 
+  padding: 10px; /* Polsterung */
 }
 
 .bilance-list,

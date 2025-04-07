@@ -30,42 +30,42 @@
       </div>
     </div>
 
-    <h2>{{ expenseDetails }}</h2>
+    <h2>{{ expenseDetails.description }}</h2>
     <ion-badge class="detailedprice">{{ expenseDetails.totalAmount | currency: 'EUR' }}</ion-badge>
 
     <ion-button class="edit-button" expand="block">Rechnung ansehen</ion-button>
     <div class="separator"></div>
 
-    <div class="detailedprice-overview" *ngFor="let member of groupMembers">
+    <div class="detailedprice-overview" *ngFor="let member of expenseDetails.members">
       <div class="detailedprice-list">
         <div class="left-container">
           <div class="member-info">
-            <div class="profile-placeholder" [style.background-image]="'url(' + member.profileImage + ')'"></div>
+            <div class="profile-placeholder" [style.background-image]="'url(' + getMemberByName(member.userId)?.profileImage + ')'"></div>
             <div class="member-details">
-              <span class="member-name">{{ member.name }}</span>
+              <span class="member-name">{{ getMemberByName(member.userId)?.name }}</span>
             </div>
           </div>
-          <div class="toggle-arrow" (click)="toggleProducts(member.name)">
+          <div class="toggle-arrow" (click)="toggleProducts(member.userId)">
             <ion-icon
-              [src]="isProductsVisibleForMember(member.name)
+              [src]="isProductsVisibleForMember(member.userId)
                 ? 'assets/icon/ionicons/ios-arrow-down.svg'
                 : 'assets/icon/ionicons/ios-arrow-up.svg'">
             </ion-icon>
           </div>
         </div>
         <ion-badge class="detailedprice" [ngClass]="{
-          'negative': isNegativeAmountForUser(member.name),
-          'positive': isPositiveAmountForUser(member.name),
-          'gray-amount': !isRelevantForUser(member.name)
+          'negative': isNegativeAmountForUser(member.userId),
+          'positive': isPositiveAmountForUser(member.userId),
+          'gray-amount': !isRelevantForUser(member.userId)
         }">
-          {{ calculateShare(expenseDetails.totalAmount) | currency: 'EUR' }}
+          {{ member.amountToPay | currency: 'EUR' }}
         </ion-badge>
       </div>
 
       <!-- Produktliste, die bei Klick angezeigt wird -->
-      <div *ngIf="isProductsVisibleForMember(member.name)" class="product-list">
+      <div *ngIf="isProductsVisibleForMember(member.userId)" class="product-list">
         <ul>
-          <li class="products" *ngFor="let product of getPurchasedProductsForMember(member.name)">
+          <li class="products" *ngFor="let product of getPurchasedProductsForMember(member.userId)">
             <div class="left-container">
               <span class="product-quantity">{{ product.quantity }} {{ product.unit }}</span>
               <span class="product">{{ product.name }}</span>
