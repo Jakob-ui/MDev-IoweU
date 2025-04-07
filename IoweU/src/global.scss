@@ -554,6 +554,9 @@ ion-item.select-interface-option::part(native) {
   margin-top: 10px;
   margin-bottom: 20px;
   width: 80%;
+  @media (prefers-color-scheme: dark) {
+    background-color: white; // Weiß im Dark Theme
+  }
 }
 
 .menu {
@@ -655,6 +658,10 @@ ion-input:focus ~ .ionicon {
   stroke: black;
 }
 
+.logo {
+  content: url('/assets/logo/Logo_lang.png');
+}
+
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
   h1,
@@ -671,7 +678,20 @@ ion-input:focus ~ .ionicon {
   ion-card-content,
   ion-card-title,
   ion-card-subtitle,
+  ion-input,
+  ion-card.expense-card h2,
+  ion-card.expense-card p,
+  ion-list.expense-list,
+  ion-item.info-item,
+  ion-item.info-item h5,
+  ion-item.info-item h5.Gesamtpreis,
+  ion-item.info-item ion-badge.Preis
   ion-item::part(native),
+  .product-list,
+  .product-quantity,
+  .product,
+  ion-card.finance-card h2,
+  ion-card.finance-card p,
   ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
   }
@@ -679,6 +699,27 @@ ion-input:focus ~ .ionicon {
     color: var(--ion-color-light);
     background: var(--ion-background-color);
   }
+
+  .logo{
+    content: url('/assets/logo/LogoWeiss.png');
+  }
+
+  /* Schriftfarbe der Optionen im Dark Mode */
+  ion-item.select-interface-option::part(native) {
+    color: var(--ion-color-light) !important; /* Textfarbe auf Weiß setzen */
+  }
+
+  /* Schriftfarbe für den ausgewählten Text im Dropdown */
+  ion-select::part(text) {
+    color: var(--ion-color-dark) !important; /* Textfarbe auf Weiß setzen */
+  }
+  
 }
 
 
+.loading-video {
+  width: 150px; /* Breite des Videos */
+  height: auto; /* Beibehaltung des Seitenverhältnisses */
+  max-width: 100%; /* Optional: Begrenzung der maximalen Breite */
+  border-radius: 10px; /* Optional: Abgerundete Ecken */
+}

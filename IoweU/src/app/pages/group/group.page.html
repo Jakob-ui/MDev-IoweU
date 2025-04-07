@@ -26,8 +26,10 @@
 
 <ion-content [fullscreen]="true">
   <div *ngIf="loading" class="loading-overlay">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Loading ...</p>
+    <video autoplay muted loop class="loading-video">
+      <source src="assets/videos/loading.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
   </div>
 
   <div class="page-container">
