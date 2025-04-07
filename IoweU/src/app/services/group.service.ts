@@ -59,22 +59,27 @@ private async loadUsers(): Promise<void> {
   //Gruppe erstellen:
   async createGroup(
     name: string,
-    founder: Members,
+    founder: string,
     template: string
   ): Promise<void> {
     try {
       const newGroup: Groups = {
         id: doc(collection(this.firestore, 'groups')).id, // Generate a new document ID
         name: name,
-        foundationdate: new Date(), // Set the foundation date to the current date
-        founder: founder.userId,
+        foundationdate: new Date(),
+        founder: founder,
         members: [], // Initialize with an empty array
+        groupImage: '',
         accessCode: Math.floor(10000 + Math.random() * 90000), // Initialize with a default value
         features: [],
         expenses: [],
       };
       // Add the founder to the members list:
-      newGroup.members.push(founder);
+      newGroup.members.push({
+        userId: founder,
+        role: 'founder',
+        joinedAt: new Date(),
+      } as unknown as Members);
       if (template === 'Standard') {
         newGroup.features.push('Finanzübersicht');
       } else if (template === 'Projekt') {

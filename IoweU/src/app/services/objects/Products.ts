@@ -3,8 +3,8 @@ import { Groups } from './Groups';
 import { Expenses } from './Expenses';
 
 export interface Products {
-  productId: number;
-  memberId: string;
+  productId: string;
+  member: string;
   name: string; // Name des Produkts
   quantity: number; // Menge des Produkts
   unit: string; // Einheit des Produkts (z.B. "kg", "Stück")

@@ -1,7 +1,4 @@
-import { Users } from './Users';
-import { Groups } from './Groups';
 import { Products } from './Products';
-import { Members } from './Members';
 import { ExpenseMember } from './ExpenseMember';
 
 export interface Expenses {
@@ -16,6 +13,5 @@ export interface Expenses {
   repeat?: string;
   splitBy?: 'alle' | 'frei';
   splitType?: 'prozent' | 'produkte';
-  members: ExpenseMember[];
-  products: Products[];
+  members?: ExpenseMember[];
 }

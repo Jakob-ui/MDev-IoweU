@@ -1,6 +1,3 @@
-import { Users } from './Users';
-import { Groups } from './Groups';
-import { Expenses } from './Expenses';
 import { Products } from './Products';
 export interface ExpenseMember {
   userId: string; // Benutzer, dem der Anteil gehört
