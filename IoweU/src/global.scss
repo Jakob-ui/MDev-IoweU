@@ -655,6 +655,10 @@ ion-input:focus ~ .ionicon {
   stroke: black;
 }
 
+.logo {
+  content: url('/assets/logo/Logo_lang.png');
+}
+
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
   h1,
@@ -671,6 +675,7 @@ ion-input:focus ~ .ionicon {
   ion-card-content,
   ion-card-title,
   ion-card-subtitle,
+  ion-input,
   ion-item::part(native),
   ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
@@ -678,6 +683,10 @@ ion-input:focus ~ .ionicon {
   .loading-overlay {
     color: var(--ion-color-light);
     background: var(--ion-background-color);
+  }
+
+  .logo{
+    content: url('/assets/logo/LogoWeiss.png');
   }
 }
 
