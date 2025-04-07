@@ -275,19 +275,19 @@ export class ExpenseDetailsPage implements OnInit {
     return !!this.visibleProducts[memberName];
   }
 
-  getPurchasedProductsForMember(expenseId: number, memberName: string): Products[] {
-    // Finde das Expense-Objekt anhand der ID
-    const expense = this.expenses.find(e => e.id === String(expenseId)); // Hier als String vergleichen, da `e.id` ein string ist
+  getPurchasedProductsForMember(memberName: string): Products[] {
+    // Finde das Expense-Objekt anhand der ID, die in der Klasse gespeichert ist
+    const expense = this.expenses.find(e => e.id === String(this.expenseId)); // Verwende `this.expenseId`, nicht `expenseId`
 
     // Prüfen, ob das Expense-Objekt gefunden wurde und dann nach dem Mitglied suchen
     if (!expense) {
-      console.error(`Expense mit ID ${expenseId} nicht gefunden`);
+      console.error(`Expense mit ID ${this.expenseId} nicht gefunden`);
       return [];
     }
 
     // Sicherstellen, dass 'members' nicht undefined ist
     if (!expense.members) {
-      console.error(`Keine Mitglieder für Expense mit ID ${expenseId} gefunden`);
+      console.error(`Keine Mitglieder für Expense mit ID ${this.expenseId} gefunden`);
       return [];
     }
 
@@ -302,6 +302,7 @@ export class ExpenseDetailsPage implements OnInit {
 
     return member.products || [];
   }
+
 
   async logout() {
     try {
