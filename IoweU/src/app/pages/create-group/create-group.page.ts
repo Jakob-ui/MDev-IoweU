@@ -16,7 +16,7 @@ import { GroupService } from 'src/app/services/group.service';
 import { Auth } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
 import { Groups } from 'src/app/services/objects/Groups';
-
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-create-group',
   templateUrl: './create-group.page.html',

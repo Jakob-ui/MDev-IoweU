@@ -1,10 +1,8 @@
 import { Users } from './Users';
 import { Groups } from './Groups';
-import { Expenses } from './Expenses';
 import { Products } from './Products';
-import { GroupMemberships } from './GroupMemberships';
 import { Members } from './Members';
-import { ExpenseMembers } from './ExpenseMembers';
+import { ExpenseMember } from './ExpenseMember';
 
 export interface Expenses {
   id: string;
@@ -18,6 +16,6 @@ export interface Expenses {
   repeat?: string;
   splitBy?: 'alle' | 'frei';
   splitType?: 'prozent' | 'produkte';
-  members: ExpenseMembers[]; // Optional, aber dann musst du es im Code immer füllen
+  members: ExpenseMember[];
+  products: Products[];
 }
-
