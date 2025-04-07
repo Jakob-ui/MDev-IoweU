@@ -39,7 +39,7 @@ export class UserService {
 
   async getUserthingsByUid(uid: string, search: string): Promise<string> {
     const usersCollection = collection(this.firestore, 'users');
-    const q = query(usersCollection, where('uId', '==', uid));
+    const q = query(usersCollection, where('uid', '==', uid));
     const snapshot = await getDocs(q);
 
     if (!snapshot.empty) {
