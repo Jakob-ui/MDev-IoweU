@@ -679,7 +679,19 @@ ion-input:focus ~ .ionicon {
   ion-card-title,
   ion-card-subtitle,
   ion-input,
+  ion-card.expense-card h2,
+  ion-card.expense-card p,
+  ion-list.expense-list,
+  ion-item.info-item,
+  ion-item.info-item h5,
+  ion-item.info-item h5.Gesamtpreis,
+  ion-item.info-item ion-badge.Preis
   ion-item::part(native),
+  .product-list,
+  .product-quantity,
+  .product,
+  ion-card.finance-card h2,
+  ion-card.finance-card p,
   ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
   }
@@ -700,11 +712,6 @@ ion-input:focus ~ .ionicon {
   /* Schriftfarbe für den ausgewählten Text im Dropdown */
   ion-select::part(text) {
     color: var(--ion-color-dark) !important; /* Textfarbe auf Weiß setzen */
-  }
-
-  /* Hintergrund des Dropdown-Menüs im Dark Mode */
-  ion-select-popover::part(content) {
-    background: var(--ion-color-dark) !important; /* Hintergrund dunkel */
   }
   
 }
