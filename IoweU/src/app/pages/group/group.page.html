@@ -31,11 +31,17 @@
   </div>
 
   <div class="page-container">
-    <ion-button class="edit-button" [routerLink]="'/edit-group'">bearbeiten</ion-button>
+    <ion-button class="edit-button" [routerLink]="'/edit-group'"
+      >bearbeiten</ion-button
+    >
 
     <div class="image-upload">
-      <ng-container *ngIf="currentGroup?.groupImage; else placeholder">
-        <img [src]="currentGroup?.groupImage" alt="Gruppenbild" class="group-image" />
+      <ng-container *ngIf="currentGroup?.groupimage; else placeholder">
+        <img
+          [src]="currentGroup?.groupimage"
+          alt="Gruppenbild"
+          class="group-image"
+        />
       </ng-container>
       <ng-template #placeholder>
         <div class="upload-placeholder"></div>
@@ -46,14 +52,21 @@
     <h1>{{ groupname }}</h1>
     <div class="separator"></div>
 
-    <ion-card *ngFor="let feature of features; let i = index" class="feature-card" [routerLink]="getFeatureLink(feature)">
+    <ion-card
+      *ngFor="let feature of features; let i = index"
+      class="feature-card"
+      [routerLink]="getFeatureLink(feature)"
+    >
       <div class="card-content">
         <ion-card-title>{{ feature }}</ion-card-title>
         <ion-card-subtitle>
           <ng-container [ngSwitch]="feature">
             <!-- Finanzübersicht -->
             <div *ngSwitchCase="'Finanzübersicht'">
-              <span class="myBalance" [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }">
+              <span
+                class="myBalance"
+                [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }"
+              >
                 <span *ngIf="myBalance >= 0">Mein Guthaben:</span>
                 <span *ngIf="myBalance < 0">Meine Schulden:</span>
                 {{ myBalance | currency: 'EUR' }}

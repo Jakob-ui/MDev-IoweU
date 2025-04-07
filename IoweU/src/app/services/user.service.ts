@@ -29,8 +29,8 @@ export class UserService {
     const lastedited = await this.getUserthingsByUid(uid, 'lastedited');
 
     return {
-      id: uid,
-      name: username,
+      guId: uid,
+      username: username,
       email: email,
       color: color,
       lastedited: lastedited,
@@ -39,7 +39,7 @@ export class UserService {
 
   async getUserthingsByUid(uid: string, search: string): Promise<string> {
     const usersCollection = collection(this.firestore, 'users');
-    const q = query(usersCollection, where('id', '==', uid));
+    const q = query(usersCollection, where('guId', '==', uid));
     const snapshot = await getDocs(q);
 
     if (!snapshot.empty) {

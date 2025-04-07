@@ -64,12 +64,12 @@ private async loadUsers(): Promise<void> {
   ): Promise<void> {
     try {
       const newGroup: Groups = {
-        id: doc(collection(this.firestore, 'groups')).id, // Generate a new document ID
-        name: name,
-        foundationdate: new Date(),
+        groupId: doc(collection(this.firestore, 'groups')).id, // Generate a new document ID
+        groupname: name,
+        foundationdate: new Date().toISOString(),
         founder: founder,
         members: [], // Initialize with an empty array
-        groupImage: '',
+        groupimage: '',
         accessCode: Math.floor(10000 + Math.random() * 90000), // Initialize with a default value
         features: [],
         expenses: [],
@@ -92,7 +92,7 @@ private async loadUsers(): Promise<void> {
         newGroup
       );
       console.log('Groups created with ID: ' + groupRef.id);
-      this.router.navigate(['group/' + newGroup.id]);
+      this.router.navigate(['group/' + newGroup.groupId]);
     } catch (error) {
       console.error('Error creating group: ', error);
     }
@@ -131,7 +131,7 @@ private async loadUsers(): Promise<void> {
   //Gruppe löschen (nur als Gründer*in möglich):
   async deleteGroup(uid: string, group: Groups): Promise<void> {
     try {
-      const groupRef = doc(this.firestore, 'groups', group.id);
+      const groupRef = doc(this.firestore, 'groups', group.groupId);
       // Delete the group document from Firestore
       if (uid === group.founder) {
         await deleteDoc(groupRef);
@@ -179,7 +179,7 @@ private async loadUsers(): Promise<void> {
     const q = query(groupsRef, where('members', 'array-contains', uid));
     const groupSnapshot = await getDocs(q);
     const groups: Groups[] = groupSnapshot.docs.map((doc) => ({
-      id: doc.id,
+      groupId: doc.id,
       ...doc.data(),
     })) as Groups[];
     return groups;
@@ -189,7 +189,7 @@ private async loadUsers(): Promise<void> {
   async getGroupById(id: string): Promise<Groups | null> {
     try {
       const groupsRef = collection(this.firestore, 'groups');
-      const q = query(groupsRef, where('id', '==', id));
+      const q = query(groupsRef, where('groupId', '==', id));
       const groupSnapshot = await getDocs(q);
       if (groupSnapshot.empty) {
         console.warn(`No group found with ID: ${id}`);
@@ -203,4 +203,3 @@ private async loadUsers(): Promise<void> {
     }
   }
 }
-

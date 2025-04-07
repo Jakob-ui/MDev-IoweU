@@ -46,39 +46,35 @@ import { Members } from 'src/app/services/objects/Members';
 export class CreateExpensePage {
   private router = inject(Router);
 
-  groupMembers: (Members & {
-    name: string;
-    amountPerPerson: number;
-    split: number;
-  })[] = [
+  groupMembers: (Members & {})[] = [
     {
-      userId: 'user123',
-      name: 'Ich',
-      role: 'admin',
-      joinedAt: new Date().toISOString(),
-      amountPerPerson: 0,
-      split: 1,
-    },
-    {
-      userId: 'user456',
-      name: 'Lila',
+      memberId: 'user123',
+      guid: 'ae2qe',
+      username: 'Ich',
+      color: 'grün',
       role: 'member',
       joinedAt: new Date().toISOString(),
-      amountPerPerson: 0,
-      split: 1,
     },
     {
-      userId: 'user789',
-      name: 'Grün',
+      memberId: 'user456',
+      guid: 'ae2qe',
+      username: 'Lila',
+      color: 'grün',
       role: 'member',
       joinedAt: new Date().toISOString(),
-      amountPerPerson: 0,
-      split: 1,
+    },
+    {
+      memberId: 'user789',
+      guid: 'ae2qe',
+      username: 'Grün',
+      color: 'grün',
+      role: 'member',
+      joinedAt: new Date().toISOString(),
     },
   ];
 
   expense: Expenses = {
-    id: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
+    expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
     description: 'Einkauf von Lebensmitteln',
     totalAmount: 150,
     paidBy: 'user123',
@@ -91,13 +87,15 @@ export class CreateExpensePage {
     splitType: 'prozent',
     members: [
       {
-        userId: 'user123',
+        expenseMemberId: 'aw3da123',
+        memberId: 'user123',
         amountToPay: 75,
+        split: 1,
         products: [
           {
             productId: 'p123',
             memberId: 'user123',
-            name: 'Brot',
+            productname: 'Brot',
             quantity: 2,
             unit: 'Stück',
             price: 3,
@@ -105,13 +103,15 @@ export class CreateExpensePage {
         ],
       },
       {
-        userId: 'user456',
+        expenseMemberId: 'aw3da123',
+        memberId: 'user456',
         amountToPay: 75,
+        split: 1,
         products: [
           {
             productId: 'p124',
             memberId: 'user456',
-            name: 'Milch',
+            productname: 'Milch',
             quantity: 1,
             unit: 'Liter',
             price: 1.5,
@@ -155,11 +155,11 @@ export class CreateExpensePage {
   }
 
   private createEmptyProduct(memberName: string): Products {
-    const member = this.groupMembers.find((m) => m.name === memberName);
+    const member = this.groupMembers.find((m) => m.username === memberName);
     return {
       productId: Date.now().toString(),
-      memberId: member ? member.userId : '',
-      name: '',
+      memberId: member ? member.memberId : '',
+      productname: '',
       quantity: 1,
       unit: '',
       price: 0,
@@ -171,7 +171,7 @@ export class CreateExpensePage {
     if (!entry) return;
 
     const product = entry.input;
-    if (product.name.trim() && !isNaN(product.price)) {
+    if (product.productname.trim() && !isNaN(product.price)) {
       const newProduct: Products = {
         ...product,
         productId: Date.now().toString(),
@@ -190,7 +190,9 @@ export class CreateExpensePage {
         this.expense.members = [];
       }
 
-      const member = this.expense.members.find((m) => m.userId === entry.input.memberId);
+      const member = this.expense.members.find(
+        (m) => m.memberId === entry.input.memberId
+      );
 
       if (member) {
         // Ensure products array is initialized
@@ -201,8 +203,10 @@ export class CreateExpensePage {
       } else {
         // If member doesn't exist, add it to the expense
         this.expense.members.push({
-          userId: entry.input.memberId,
+          expenseMemberId: 'awdawd2weq2w34e',
+          memberId: entry.input.memberId,
           amountToPay: 0,
+          split: 1,
           products: [newProduct],
         });
       }
@@ -212,7 +216,6 @@ export class CreateExpensePage {
       this.updateTotals();
     }
   }
-
 
   removeProduct(memberName: string, productToRemove: Products) {
     const entry = this.productInputs[memberName];
@@ -225,7 +228,9 @@ export class CreateExpensePage {
 
     // Check if members array is defined
     if (this.expense.members) {
-      const member = this.expense.members.find((m) => m.userId === productToRemove.memberId);
+      const member = this.expense.members.find(
+        (m) => m.memberId === productToRemove.memberId
+      );
       if (member && member.products) {
         // Ensure member's products is an array before calling filter
         member.products = member.products.filter((p) => p !== productToRemove);
@@ -254,12 +259,15 @@ export class CreateExpensePage {
     }, 0);
   }
 
-
   private updateMembers() {
     this.expense.members = this.groupMembers.map((member) => ({
-      userId: member.userId,
-      amountToPay: member.amountPerPerson,
-      products: this.productInputs[member.name]?.products || [],
+      expenseMemberId: 'aw3da123',
+      memberId: member.memberId,
+      amountToPay:
+        this.expense.members?.find((m) => m.memberId === member.memberId)
+          ?.amountToPay || 0,
+      split: 1,
+      products: this.productInputs[member.username]?.products || [],
     }));
   }
 
@@ -279,7 +287,8 @@ export class CreateExpensePage {
     const amountPerPerson = total / this.groupMembers.length;
 
     this.groupMembers.forEach((member) => {
-      member.amountPerPerson = amountPerPerson;
+      this.expense.members?.find((m) => m.memberId === member.memberId)
+        ?.amountToPay || 0;
     });
   }
 

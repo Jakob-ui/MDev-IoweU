@@ -50,8 +50,8 @@ export class AuthService {
 
     if (userCredential.user) {
       const userData: Users = {
-        id: userCredential.user.uid,
-        name: name,
+        guId: userCredential.user.uid,
+        username: name,
         email: email,
         color: color,
         lastedited: new Date().toISOString(),
@@ -108,7 +108,7 @@ export class AuthService {
           const uid = userCredential.user.uid;
           const username = await this.userService.getUserthingsByUid(
             uid,
-            'name'
+            'username'
           );
           const userColor = await this.userService.getUserthingsByUid(
             uid,

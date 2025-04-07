@@ -60,16 +60,15 @@ export class GroupOverviewPage implements OnInit {
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
 
-
     const userColor = sessionStorage.getItem('usercolor');
     document.documentElement.style.setProperty('--user-color', userColor);
     this.loadMyGroups().then((group) => {
       if (group) {
         this.group = group;
         this.groups = this.group.map((g) => ({
-          name: g.name,
+          name: g.groupname,
           myBalance: Math.floor(Math.random() * (200 - -200 + 1)) + -200,
-          link: g.id,
+          link: g.groupId,
         }));
       }
     });

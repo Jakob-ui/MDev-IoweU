@@ -66,10 +66,10 @@ export class GroupPage implements OnInit {
 
   groupname: string = '';
   private _groupId: string = '';
-  public get goupid(): string {
+  public get groupid(): string {
     return this._groupId;
   }
-  public set goupid(value: string) {
+  public set groupid(value: string) {
     this._groupId = value;
   }
   groupImage: string = '';
@@ -87,9 +87,9 @@ export class GroupPage implements OnInit {
     this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
 
     this.route.params.subscribe((params) => {
-      this.goupid = params['id'];
+      this.groupid = params['id'];
       this.loading = true;
-      this.loadGroupData(this.goupid).finally(() => {
+      this.loadGroupData(this.groupid).finally(() => {
         this.loading = false;
       });
     });
@@ -112,13 +112,14 @@ export class GroupPage implements OnInit {
 
   async loadGroupData(id: string): Promise<void> {
     this.loading = true;
+    console.log('searching for groupId' + id);
     try {
       const group = await this.groupService.getGroupById(id);
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
       if (group) {
-        this.groupname = group.name;
-        this.goupid = group.id;
+        this.groupname = group.groupname;
+        this.groupid = group.groupId;
         this.features = group.features;
       } else {
         console.warn('Groups not found!');

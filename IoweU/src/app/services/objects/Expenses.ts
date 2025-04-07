@@ -2,7 +2,7 @@ import { Products } from './Products';
 import { ExpenseMember } from './ExpenseMember';
 
 export interface Expenses {
-  id: string;
+  expenseId: string;
   description: string;
   totalAmount: number;
   paidBy: string;
@@ -10,8 +10,8 @@ export interface Expenses {
   currency: string;
   category?: string;
   invoice?: string;
-  repeat?: string;
-  splitBy?: 'alle' | 'frei';
-  splitType?: 'prozent' | 'produkte';
-  members?: ExpenseMember[];
+  repeat: string;
+  splitType: 'prozent' | 'produkte';
+  splitBy: 'alle' | 'frei';
+  members: ExpenseMember[];
 }

@@ -97,7 +97,7 @@ export class AccountSettingsPage implements OnInit {
 
         if (uid) {
           const userData = await this.userService.getUserData();
-          this.name = userData.name;
+          this.name = userData.username;
           this.email = userData.email;
           this.color = userData.color;
           this.lastedited = userData.lastedited;
@@ -171,7 +171,7 @@ export class AccountSettingsPage implements OnInit {
       }
 
       await this.acc.userupdate({
-        name: this.newname,
+        username: this.newname,
         color: this.color,
         lastedited: new Date().toISOString(),
       });
@@ -205,18 +205,19 @@ export class AccountSettingsPage implements OnInit {
           // Nach erfolgreichem Login das Bestätigungs-Alert anzeigen
           const confirmDelete = await this.alertController.create({
             header: 'Konto endgültig löschen',
-            message: 'Sind Sie sicher, dass Sie Ihr Konto unwiderruflich löschen möchten?',
+            message:
+              'Sind Sie sicher, dass Sie Ihr Konto unwiderruflich löschen möchten?',
             buttons: [
               {
                 text: 'Abbrechen',
-                role: 'cancel'
+                role: 'cancel',
               },
               {
                 text: 'Löschen',
                 role: 'destructive',
-                handler: () => this.deleteAccount()
-              }
-            ]
+                handler: () => this.deleteAccount(),
+              },
+            ],
           });
           await confirmDelete.present();
         } catch (e) {
@@ -224,8 +225,9 @@ export class AccountSettingsPage implements OnInit {
           // Optional: Fehlermeldung anzeigen
           const errorAlert = await this.alertController.create({
             header: 'Fehler',
-            message: 'Login fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.',
-            buttons: ['OK']
+            message:
+              'Login fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.',
+            buttons: ['OK'],
           });
           await errorAlert.present();
         }
@@ -296,10 +298,15 @@ export class AccountSettingsPage implements OnInit {
       // Falls der Login erfolgreich war, erstelle das zweite Bestätigungs-Alert
       const confirmDeleteAlert = await this.alertController.create({
         header: 'Konto endgültig löschen',
-        message: 'Sind Sie sicher, dass Sie Ihr Konto unwiderruflich löschen möchten?',
+        message:
+          'Sind Sie sicher, dass Sie Ihr Konto unwiderruflich löschen möchten?',
         buttons: [
           { text: 'Abbrechen', role: 'cancel' },
-          { text: 'Löschen', role: 'destructive', handler: () => this.deleteAccount() },
+          {
+            text: 'Löschen',
+            role: 'destructive',
+            handler: () => this.deleteAccount(),
+          },
         ],
       });
 
@@ -311,7 +318,6 @@ export class AccountSettingsPage implements OnInit {
     }
   }
 
-
   async deleteAccount() {
     try {
       await this.acc.userdelete();
@@ -322,13 +328,11 @@ export class AccountSettingsPage implements OnInit {
       const errorAlert = await this.alertController.create({
         header: 'Fehler',
         message: 'Beim Löschen des Kontos ist ein Fehler aufgetreten.',
-        buttons: ['OK']
+        buttons: ['OK'],
       });
       await errorAlert.present();
     }
   }
-
-
 
   async verifyLogin() {
     try {
@@ -349,6 +353,4 @@ export class AccountSettingsPage implements OnInit {
       console.log(e);
     }
   }
-
-
 }

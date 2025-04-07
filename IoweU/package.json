@@ -35,7 +35,7 @@
     "@types/date-fns": "^2.6.3",
     "angularx-qrcode": "^19.0.0",
     "date-fns": "^4.1.0",
-    "firebase": "^11.5.0",
+    "firebase": "^11.6.0",
     "html5-qrcode": "^2.3.8",
     "ionicons": "^7.4.0",
     "rxjs": "~7.8.0",

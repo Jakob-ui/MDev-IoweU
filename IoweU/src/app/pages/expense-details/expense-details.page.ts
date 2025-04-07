@@ -1,12 +1,24 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardContent, IonCardTitle, IonLabel, IonIcon, IonButton, IonBadge } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonHeader,
+  IonTitle,
+  IonToolbar,
+  IonCard,
+  IonCardContent,
+  IonCardTitle,
+  IonLabel,
+  IonIcon,
+  IonButton,
+  IonBadge,
+} from '@ionic/angular/standalone';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService } from "../../services/auth.service";
-import { NavController, Platform } from "@ionic/angular";
-import { Expenses } from "../../services/objects/Expenses";  // 👈 Import aus eigener Datei
-import { Groups } from "../../services/objects/Groups";
-import { Products } from "../../services/objects/Products";  // 👈 Import aus eigener Datei
+import { AuthService } from '../../services/auth.service';
+import { NavController, Platform } from '@ionic/angular';
+import { Expenses } from '../../services/objects/Expenses'; // 👈 Import aus eigener Datei
+import { Groups } from '../../services/objects/Groups';
+import { Products } from '../../services/objects/Products'; // 👈 Import aus eigener Datei
 
 @Component({
   selector: 'app-expense-details',
@@ -51,7 +63,7 @@ export class ExpenseDetailsPage implements OnInit {
 
   expenses: Expenses[] = [
     {
-      id: '1',
+      expenseId: '1',
       description: 'Pizza',
       totalAmount: 50,
       paidBy: 'Livia',
@@ -59,50 +71,119 @@ export class ExpenseDetailsPage implements OnInit {
       currency: '€',
       splitBy: 'frei',
       splitType: 'produkte',
+      repeat: 'nein',
       members: [
         {
-          userId: 'Livia',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Livia',
           amountToPay: 10,
           products: [
-            { productId: '1', memberId: 'Livia', name: 'Pizza Margherita', quantity: 1, unit: 'Stk', price: 8.5 },
-            { productId: '2', memberId: 'Livia', name: 'Cola', quantity: 1, unit: 'Flasche', price: 1.5 },
+            {
+              productId: '1',
+              memberId: 'Livia',
+              productname: 'Pizza Margherita',
+              quantity: 1,
+              unit: 'Stk',
+              price: 8.5,
+            },
+            {
+              productId: '2',
+              memberId: 'Livia',
+              productname: 'Cola',
+              quantity: 1,
+              unit: 'Flasche',
+              price: 1.5,
+            },
           ],
         },
         {
-          userId: 'Jakob',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Jakob',
           amountToPay: 10.5,
           products: [
-            { productId: '3', memberId: 'Jakob', name: 'Pizza Salami', quantity: 1, unit: 'Stk', price: 9.0 },
-            { productId: '4', memberId: 'Jakob', name: 'Fanta', quantity: 1, unit: 'Stk', price: 1.5 },
+            {
+              productId: '3',
+              memberId: 'Jakob',
+              productname: 'Pizza Salami',
+              quantity: 1,
+              unit: 'Stk',
+              price: 9.0,
+            },
+            {
+              productId: '4',
+              memberId: 'Jakob',
+              productname: 'Fanta',
+              quantity: 1,
+              unit: 'Stk',
+              price: 1.5,
+            },
           ],
         },
         {
-          userId: 'Michaela',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Michaela',
           amountToPay: 5,
           products: [
-            { productId: '5', memberId: 'Michaela', name: 'Cola', quantity: 2, unit: 'Flaschen', price: 2.5 },
+            {
+              productId: '5',
+              memberId: 'Michaela',
+              productname: 'Cola',
+              quantity: 2,
+              unit: 'Flaschen',
+              price: 2.5,
+            },
           ],
         },
         {
-          userId: 'Sophie',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Sophie',
           amountToPay: 10,
           products: [
-            { productId: '6', memberId: 'Sophie', name: 'Pizza Salami', quantity: 1, unit: 'Stk', price: 8.5 },
-            { productId: '7', memberId: 'Sophie', name: 'Cola', quantity: 1, unit: 'Flasche', price: 1.5 },
+            {
+              productId: '6',
+              memberId: 'Sophie',
+              productname: 'Pizza Salami',
+              quantity: 1,
+              unit: 'Stk',
+              price: 8.5,
+            },
+            {
+              productId: '7',
+              memberId: 'Sophie',
+              productname: 'Cola',
+              quantity: 1,
+              unit: 'Flasche',
+              price: 1.5,
+            },
           ],
         },
         {
-          userId: 'Mateusz',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Mateusz',
           amountToPay: 10.5,
           products: [
-            { productId: '8', memberId: 'Mateusz', name: 'Pizza Salami', quantity: 1, unit: 'Stk', price: 9.0 },
-            { productId: '9', memberId: 'Mateusz', name: 'Fanta', quantity: 1, unit: 'Stk', price: 1.5 },
+            {
+              productId: '8',
+              memberId: 'Mateusz',
+              productname: 'Pizza Salami',
+              quantity: 1,
+              unit: 'Stk',
+              price: 9.0,
+            },
+            {
+              productId: '9',
+              memberId: 'Mateusz',
+              productname: 'Fanta',
+              quantity: 1,
+              unit: 'Stk',
+              price: 1.5,
+            },
           ],
         },
       ],
     },
     {
-      id: '2',
+      expenseId: '2',
       description: 'Kinoabend',
       totalAmount: 40,
       paidBy: 'Michaela',
@@ -110,46 +191,87 @@ export class ExpenseDetailsPage implements OnInit {
       currency: '€',
       splitBy: 'alle',
       splitType: 'prozent',
+      repeat: 'nein',
       members: [
         {
-          userId: 'Livia',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Livia',
           amountToPay: 8,
           products: [
-            { productId: '10', memberId: 'Livia', name: 'Karten', quantity: 1, unit: 'Stück', price: 8 },
+            {
+              productId: '10',
+              memberId: 'Livia',
+              productname: 'Karten',
+              quantity: 1,
+              unit: 'Stück',
+              price: 8,
+            },
           ],
         },
         {
-          userId: 'Jakob',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Jakob',
           amountToPay: 8,
           products: [
-            { productId: '11', memberId: 'Jakob', name: 'Karten', quantity: 1, unit: 'Stück', price: 8 },
+            {
+              productId: '11',
+              memberId: 'Jakob',
+              productname: 'Karten',
+              quantity: 1,
+              unit: 'Stück',
+              price: 8,
+            },
           ],
         },
         {
-          userId: 'Michaela',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Michaela',
           amountToPay: 8,
           products: [
-            { productId: '12', memberId: 'Michaela', name: 'Karten', quantity: 1, unit: 'Stück', price: 8 },
+            {
+              productId: '12',
+              memberId: 'Michaela',
+              productname: 'Karten',
+              quantity: 1,
+              unit: 'Stück',
+              price: 8,
+            },
           ],
         },
         {
-          userId: 'Sophie',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Sophie',
           amountToPay: 8,
           products: [
-            { productId: '13', memberId: 'Sophie', name: 'Karten', quantity: 1, unit: 'Stück', price: 8 },
+            {
+              productId: '13',
+              memberId: 'Sophie',
+              productname: 'Karten',
+              quantity: 1,
+              unit: 'Stück',
+              price: 8,
+            },
           ],
         },
         {
-          userId: 'Mateusz',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Mateusz',
           amountToPay: 8,
           products: [
-            { productId: '14', memberId: 'Mateusz', name: 'Karten', quantity: 1, unit: 'Stück', price: 8 },
+            {
+              productId: '14',
+              memberId: 'Mateusz',
+              productname: 'Karten',
+              quantity: 1,
+              unit: 'Stück',
+              price: 8,
+            },
           ],
         },
       ],
     },
     {
-      id: '3',
+      expenseId: '3',
       description: 'Restaurantbesuch',
       totalAmount: 100,
       paidBy: 'Jakob',
@@ -157,54 +279,155 @@ export class ExpenseDetailsPage implements OnInit {
       currency: '€',
       splitBy: 'frei',
       splitType: 'produkte',
+      repeat: 'nein',
       members: [
         {
-          userId: 'Livia',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Livia',
           amountToPay: -25,
+          split: 1,
           products: [
-            { productId: '15', memberId: 'Livia', name: 'Steak', quantity: 1, unit: 'Stk', price: 18 },
-            { productId: '16', memberId: 'Livia', name: 'Wein', quantity: 1, unit: 'Glas', price: 7 },
+            {
+              productId: '15',
+              memberId: 'Livia',
+              productname: 'Steak',
+              quantity: 1,
+              unit: 'Stk',
+              price: 18,
+            },
+            {
+              productId: '16',
+              memberId: 'Livia',
+              productname: 'Wein',
+              quantity: 1,
+              unit: 'Glas',
+              price: 7,
+            },
           ],
         },
         {
-          userId: 'Jakob',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Jakob',
           amountToPay: -30,
+          split: 1,
           products: [
-            { productId: '17', memberId: 'Jakob', name: 'Nudeln', quantity: 1, unit: 'Stk', price: 15 },
-            { productId: '18', memberId: 'Jakob', name: 'Wein', quantity: 2, unit: 'Gläser', price: 6 },
+            {
+              productId: '17',
+              memberId: 'Jakob',
+              productname: 'Nudeln',
+              quantity: 1,
+              unit: 'Stk',
+              price: 15,
+            },
+            {
+              productId: '18',
+              memberId: 'Jakob',
+              productname: 'Wein',
+              quantity: 2,
+              unit: 'Gläser',
+              price: 6,
+            },
           ],
         },
         {
-          userId: 'Michaela',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Michaela',
           amountToPay: -20,
+          split: 1,
           products: [
-            { productId: '19', memberId: 'Michaela', name: 'Pizza', quantity: 1, unit: 'Stk', price: 14 },
-            { productId: '20', memberId: 'Michaela', name: 'Cola', quantity: 1, unit: 'Flasche', price: 3 },
-            { productId: '21', memberId: 'Michaela', name: 'Wein', quantity: 1, unit: 'Glas', price: 3 },
+            {
+              productId: '19',
+              memberId: 'Michaela',
+              productname: 'Pizza',
+              quantity: 1,
+              unit: 'Stk',
+              price: 14,
+            },
+            {
+              productId: '20',
+              memberId: 'Michaela',
+              productname: 'Cola',
+              quantity: 1,
+              unit: 'Flasche',
+              price: 3,
+            },
+            {
+              productId: '21',
+              memberId: 'Michaela',
+              productname: 'Wein',
+              quantity: 1,
+              unit: 'Glas',
+              price: 3,
+            },
           ],
         },
         {
-          userId: 'Sophie',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Sophie',
           amountToPay: -25,
+          split: 1,
           products: [
-            { productId: '22', memberId: 'Sophie', name: 'Pizza', quantity: 1, unit: 'Stk', price: 14 },
-            { productId: '23', memberId: 'Sophie', name: 'Fanta', quantity: 1, unit: 'Flasche', price: 3 },
-            { productId: '24', memberId: 'Sophie', name: 'Wein', quantity: 1, unit: 'Glas', price: 3 },
+            {
+              productId: '22',
+              memberId: 'Sophie',
+              productname: 'Pizza',
+              quantity: 1,
+              unit: 'Stk',
+              price: 14,
+            },
+            {
+              productId: '23',
+              memberId: 'Sophie',
+              productname: 'Fanta',
+              quantity: 1,
+              unit: 'Flasche',
+              price: 3,
+            },
+            {
+              productId: '24',
+              memberId: 'Sophie',
+              productname: 'Wein',
+              quantity: 1,
+              unit: 'Glas',
+              price: 3,
+            },
           ],
         },
         {
-          userId: 'Mateusz',
+          expenseMemberId: 'aw3da123',
+          memberId: 'Mateusz',
           amountToPay: -20,
+          split: 1,
           products: [
-            { productId: '25', memberId: 'Mateusz', name: 'Schnitzel', quantity: 1, unit: 'Stk', price: 12 },
-            { productId: '26', memberId: 'Mateusz', name: 'Cola', quantity: 1, unit: 'Flasche', price: 3 },
-            { productId: '27', memberId: 'Mateusz', name: 'Mineralwasser', quantity: 1, unit: 'Glas', price: 3 },
+            {
+              productId: '25',
+              memberId: 'Mateusz',
+              productname: 'Schnitzel',
+              quantity: 1,
+              unit: 'Stk',
+              price: 12,
+            },
+            {
+              productId: '26',
+              memberId: 'Mateusz',
+              productname: 'Cola',
+              quantity: 1,
+              unit: 'Flasche',
+              price: 3,
+            },
+            {
+              productId: '27',
+              memberId: 'Mateusz',
+              productname: 'Mineralwasser',
+              quantity: 1,
+              unit: 'Glas',
+              price: 3,
+            },
           ],
         },
       ],
     },
   ];
-
 
   private visibleProducts: { [memberName: string]: boolean } = {};
 
@@ -221,7 +444,9 @@ export class ExpenseDetailsPage implements OnInit {
   }
 
   loadExpenseDetails() {
-    this.expenseDetails = this.expenses.find(expense => expense.id === String(this.expenseId));
+    this.expenseDetails = this.expenses.find(
+      (expense) => expense.expenseId === String(this.expenseId)
+    );
   }
 
   calculateShare(totalAmount: number): number {
@@ -238,13 +463,19 @@ export class ExpenseDetailsPage implements OnInit {
       return false;
     }
 
-    const member = this.expenseDetails.members.find(member => member.userId === name);
+    const member = this.expenseDetails.members.find(
+      (member) => member.memberId === name
+    );
     console.log('Checking member:', member);
 
     if (member) {
       const isNegative = member.amountToPay < 0;
       console.log('isNegativeAmountForUser:', isNegative);
-      return isNegative && this.expenseDetails.paidBy === this.user && name === this.user;
+      return (
+        isNegative &&
+        this.expenseDetails.paidBy === this.user &&
+        name === this.user
+      );
     }
     return false;
   }
@@ -255,17 +486,17 @@ export class ExpenseDetailsPage implements OnInit {
       return false;
     }
 
-    const member = this.expenseDetails.members.find(member => member.userId === name);
+    const member = this.expenseDetails.members.find(
+      (member) => member.memberId === name
+    );
     console.log('Checking member:', member);
     return this.expenseDetails?.paidBy === this.user && name !== this.user;
   }
-
 
   isRelevantForUser(name: string): boolean {
     console.log('Checking relevance for:', name);
     return this.user === name || this.expenseDetails?.paidBy === name;
   }
-
 
   toggleProducts(memberName: string) {
     this.visibleProducts[memberName] = !this.visibleProducts[memberName];
@@ -277,7 +508,9 @@ export class ExpenseDetailsPage implements OnInit {
 
   getPurchasedProductsForMember(memberName: string): Products[] {
     // Finde das Expense-Objekt anhand der ID, die in der Klasse gespeichert ist
-    const expense = this.expenses.find(e => e.id === String(this.expenseId)); // Verwende `this.expenseId`, nicht `expenseId`
+    const expense = this.expenses.find(
+      (e) => e.expenseId === String(this.expenseId)
+    ); // Verwende `this.expenseId`, nicht `expenseId`
 
     // Prüfen, ob das Expense-Objekt gefunden wurde und dann nach dem Mitglied suchen
     if (!expense) {
@@ -287,12 +520,14 @@ export class ExpenseDetailsPage implements OnInit {
 
     // Sicherstellen, dass 'members' nicht undefined ist
     if (!expense.members) {
-      console.error(`Keine Mitglieder für Expense mit ID ${this.expenseId} gefunden`);
+      console.error(
+        `Keine Mitglieder für Expense mit ID ${this.expenseId} gefunden`
+      );
       return [];
     }
 
     // Finde das Mitglied mit der userId
-    const member = expense.members.find(m => m.userId === memberName);
+    const member = expense.members.find((m) => m.memberId === memberName);
 
     // Wenn das Mitglied gefunden wurde, gebe die Produkte zurück, andernfalls ein leeres Array
     if (!member) {
@@ -302,7 +537,6 @@ export class ExpenseDetailsPage implements OnInit {
 
     return member.products || [];
   }
-
 
   async logout() {
     try {

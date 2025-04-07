@@ -3,8 +3,8 @@ import { Expenses } from './Expenses';
 import { Products } from './Products';
 
 export interface Users {
-  id: string;
-  name: string;
+  guId: string;
+  username: string;
   email: string;
   color: string;
   lastedited: string;

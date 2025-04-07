@@ -4,7 +4,10 @@ import { Expenses } from './Expenses';
 import { Products } from './Products';
 
 export interface Members {
-  userId: string; 
-  role: 'admin' | 'member'; 
-  joinedAt: string; 
+  memberId: string;
+  guid: string;
+  username: string;
+  role: 'member';
+  color: string;
+  joinedAt: string;
 }

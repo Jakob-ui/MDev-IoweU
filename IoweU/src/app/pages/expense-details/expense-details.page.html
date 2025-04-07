@@ -1,8 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <div class="left-container" slot="start">
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
-                class="back-button" (click)="goBack()"></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+        class="back-button"
+        (click)="goBack()"
+      ></ion-icon>
       <div class="divider"></div>
       <div class="pagename">Ausgabendetails</div>
     </div>
@@ -12,8 +15,11 @@
         <div class="profile-placeholder"></div>
         <span class="member-name">{{ user }}</span>
       </div>
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
-                (click)="logout()" class="logout-button"></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
+        (click)="logout()"
+        class="logout-button"
+      ></ion-icon>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -23,60 +29,91 @@
     <div class="payed-by">
       <span>bezahlt von</span>
       <div class="member-info">
-        <div class="profile-placeholder" [style.background-image]="'url(' + getMemberByName(expenseDetails.paidBy)?.profileImage + ')'"></div>
+        <div
+          class="profile-placeholder"
+          [style.background-image]="'url(' + getMemberByName(expenseDetails.paidBy)?.profileImage + ')'"
+        ></div>
         <div class="member-details">
-          <span class="member-name">{{ getMemberByName(expenseDetails.paidBy)?.name }}</span>
+          <span class="member-name"
+            >{{ getMemberByName(expenseDetails.paidBy)?.name }}</span
+          >
         </div>
       </div>
     </div>
 
     <h2>{{ expenseDetails.description }}</h2>
-    <ion-badge class="detailedprice">{{ expenseDetails.totalAmount | currency: 'EUR' }}</ion-badge>
+    <ion-badge class="detailedprice"
+      >{{ expenseDetails.totalAmount | currency: 'EUR' }}</ion-badge
+    >
 
     <ion-button class="edit-button" expand="block">Rechnung ansehen</ion-button>
     <div class="separator"></div>
 
-    <div class="detailedprice-overview" *ngFor="let member of expenseDetails.members">
+    <div
+      class="detailedprice-overview"
+      *ngFor="let member of expenseDetails.members"
+    >
       <div class="detailedprice-list">
         <div class="left-container">
           <div class="member-info">
-            <div class="profile-placeholder" [style.background-image]="'url(' + getMemberByName(member.userId)?.profileImage + ')'"></div>
+            <div
+              class="profile-placeholder"
+              [style.background-image]="'url(' + getMemberByName(member.memberId)?.profileImage + ')'"
+            ></div>
             <div class="member-details">
-              <span class="member-name">{{ getMemberByName(member.userId)?.name }}</span>
+              <span class="member-name"
+                >{{ getMemberByName(member.memberId)?.name }}</span
+              >
             </div>
           </div>
-          <div class="toggle-arrow" (click)="toggleProducts(member.userId)">
+          <div class="toggle-arrow" (click)="toggleProducts(member.memberId)">
             <ion-icon
-              [src]="isProductsVisibleForMember(member.userId)
+              [src]="isProductsVisibleForMember(member.memberId)
                 ? 'assets/icon/ionicons/ios-arrow-down.svg'
-                : 'assets/icon/ionicons/ios-arrow-up.svg'">
+                : 'assets/icon/ionicons/ios-arrow-up.svg'"
+            >
             </ion-icon>
           </div>
         </div>
-        <ion-badge class="detailedprice" [ngClass]="{
-          'negative': isNegativeAmountForUser(member.userId),
-          'positive': isPositiveAmountForUser(member.userId),
-          'gray-amount': !isRelevantForUser(member.userId)
-        }">
+        <ion-badge
+          class="detailedprice"
+          [ngClass]="{
+          'negative': isNegativeAmountForUser(member.memberId),
+          'positive': isPositiveAmountForUser(member.memberId),
+          'gray-amount': !isRelevantForUser(member.memberId)
+        }"
+        >
           {{ member.amountToPay | currency: 'EUR' }}
         </ion-badge>
       </div>
 
       <!-- Produktliste, die bei Klick angezeigt wird -->
-      <div *ngIf="isProductsVisibleForMember(member.userId)" class="product-list">
+      <div
+        *ngIf="isProductsVisibleForMember(member.memberId)"
+        class="product-list"
+      >
         <ul>
-          <li class="products" *ngFor="let product of getPurchasedProductsForMember(member.userId)">
+          <li
+            class="products"
+            *ngFor="let product of getPurchasedProductsForMember(member.memberId)"
+          >
             <div class="left-container">
-              <span class="product-quantity">{{ product.quantity }} {{ product.unit }}</span>
-              <span class="product">{{ product.name }}</span>
+              <span class="product-quantity"
+                >{{ product.quantity }} {{ product.unit }}</span
+              >
+              <span class="product">{{ product.productname }}</span>
             </div>
-            <ion-badge class="product-price">{{ product.price | currency: 'EUR' }}</ion-badge>
+            <ion-badge class="product-price"
+              >{{ product.price | currency: 'EUR' }}</ion-badge
+            >
           </li>
         </ul>
       </div>
     </div>
 
     <div class="space"></div>
-    <ion-button class="main-button" expand="block">Schulden begleichen</ion-button>
+    <ion-button class="main-button" expand="block"
+      >Schulden begleichen</ion-button
+    >
   </div>
 </ion-content>
