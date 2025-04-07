@@ -717,3 +717,9 @@ ion-input:focus ~ .ionicon {
 }
 
 
+.loading-video {
+  width: 150px; /* Breite des Videos */
+  height: auto; /* Beibehaltung des Seitenverhältnisses */
+  max-width: 100%; /* Optional: Begrenzung der maximalen Breite */
+  border-radius: 10px; /* Optional: Abgerundete Ecken */
+}
