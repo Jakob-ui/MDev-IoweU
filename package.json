@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "html5-qrcode": "^2.3.8",
     "http": "^0.0.1-security"
   }
 }
