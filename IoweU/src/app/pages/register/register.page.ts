@@ -85,8 +85,7 @@ export class RegisterPage {
         this.email,
         this.password,
         this.name,
-        usercolor,
-        this.img
+        usercolor
       );
       if (userCredential.user) {
         sessionStorage.setItem('username', this.name);

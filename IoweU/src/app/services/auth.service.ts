@@ -38,9 +38,8 @@ export class AuthService {
   async signup(
     email: string,
     password: string,
-    name: string,
-    color: string,
-    img: string
+    username: string,
+    color: string
   ): Promise<UserCredential> {
     const userCredential = await createUserWithEmailAndPassword(
       this.auth,
@@ -51,7 +50,7 @@ export class AuthService {
     if (userCredential.user) {
       const userData: Users = {
         uid: userCredential.user.uid,
-        username: name,
+        username: username,
         email: email,
         color: color,
         lastedited: new Date().toISOString(),

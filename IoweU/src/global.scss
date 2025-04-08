@@ -671,7 +671,9 @@ ion-input:focus ~ .ionicon {
   h5,
   h6,
   h7,
-  p {
+  p,
+  ion-item.select-interface-option::part(native) //Das Dropdown Menü zb in create-expense
+  {
     color: var(--ion-color-light) !important;
   }
 
@@ -692,6 +694,10 @@ ion-input:focus ~ .ionicon {
   .product,
   ion-card.finance-card h2,
   ion-card.finance-card p,
+  .label, 
+  ion-item .Dropdown-label,
+  ion-select::part(text),
+  .brush-icon,
   ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
   }
@@ -706,18 +712,14 @@ ion-input:focus ~ .ionicon {
 
   .error-container h1 {
     color: var(--ion-color-danger) !important;
+  }  
+
+  //zb bei create-expense, Dropdown Menü bei den Groupmembers
+  .top-container ion-input,
+  .bottom-container ion-input {
+    color: var(--ion-color-light) !important; 
   }
 
-  /* Schriftfarbe der Optionen des Dropdown Menüs im Dark Mode */
-  ion-item.select-interface-option::part(native) {
-    color: var(--ion-color-light) !important; /* Textfarbe auf Weiß setzen */
-  }
-
-  /* Schriftfarbe für den ausgewählten Text im Dropdown */
-  ion-select::part(text) {
-    color: var(--ion-color-dark) !important; /* Textfarbe auf Weiß setzen */
-  }
-  
 }
 
 .loading-overlay {
