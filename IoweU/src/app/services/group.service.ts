@@ -201,7 +201,7 @@ private async loadUsers(): Promise<void> {
   async getGroupById(id: string): Promise<Groups | null> {
     try {
       const groupsRef = collection(this.firestore, 'groups');
-      const q = query(groupsRef, where('id', '==', id));
+      const q = query(groupsRef, where('groupId', '==', id));
       const groupSnapshot = await getDocs(q);
       if (groupSnapshot.empty) {
         console.warn(`No group found with ID: ${id}`);
