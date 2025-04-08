@@ -62,29 +62,32 @@ export class CreateGroupPage {
   //   this.members = this.members.filter((m) => m !== member);
   // }
 
-  async saveGroup()
-  {
+  async saveGroup() {
     if (!this.groupname || !this.selectedTemplate) {
       console.error('Groups name and template are required!');
+      alert('Wähle ein template aus!');
       return;
     }
-  
+
     const user = this.auth.currentUser;
     if (!user) {
       console.error('User is not logged in!');
       return;
     }
-  
+
     const founder = user.uid;
-  
+
     try {
-      await this.groupService.createGroup(this.groupname, founder, this.selectedTemplate);
+      await this.groupService.createGroup(
+        this.groupname,
+        founder,
+        this.selectedTemplate
+      );
       console.log('Groups successfully created!');
     } catch (error) {
       console.error('Error creating group:', error);
     }
   }
-  
 
   selectImage() {
     this.fileInput.nativeElement.click();

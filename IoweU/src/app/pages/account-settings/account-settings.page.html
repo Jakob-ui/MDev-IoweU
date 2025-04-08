@@ -50,6 +50,7 @@
         (click)="cancel()"
       ></ion-icon>
       <ion-icon
+        class="brush-icon"
         *ngIf="!userEditing"
         [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'"
         (click)="edit('Schreibe deinen neuen Usernamen')"
