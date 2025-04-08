@@ -59,11 +59,11 @@ export class GroupOverviewPage implements OnInit {
   ngOnInit() {
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
-  
+    console.log(this.auth.currentUser);
     const userColor = sessionStorage.getItem('usercolor');
     document.documentElement.style.setProperty('--user-color', userColor);
-  
-    this.loadingService.show(); 
+
+    this.loadingService.show();
     this.loadMyGroups().then((group) => {
       if (group) {
         this.group = group;
@@ -73,12 +73,11 @@ export class GroupOverviewPage implements OnInit {
           link: g.groupId,
         }));
       }
-      this.loadingService.hide(); 
+      this.loadingService.hide();
     });
   }
 
   async logout() {
-
     try {
       await this.auth.logout();
       this.router.navigate(['home']);
@@ -90,16 +89,17 @@ export class GroupOverviewPage implements OnInit {
   async loadMyGroups(): Promise<Groups[] | null> {
     this.loadingService.show(); // Lade-Overlay aktivieren
     try {
-      const currentUser = await this.auth.getCurrentUser();
+      const currentUser = this.auth.currentUser;
+      console.log(this.auth.currentUser);
       if (!currentUser) {
         console.error('No user is currently logged in.');
         return null;
       }
-  
+
       const uid = currentUser.uid;
       console.log('User UID:', uid);
-  
-      const groups = await this.groupService.getGroupsByUserId(uid);
+
+      const groups = await this.groupService.getGroupsByFounder(uid);
       console.log('Loaded groups:', groups);
       return groups;
     } catch (e) {
@@ -113,7 +113,7 @@ export class GroupOverviewPage implements OnInit {
   navigateToGroup(link: string, groupName: string) {
     sessionStorage.setItem('groupname', groupName);
     console.log(groupName);
-    this.router.navigate(['group/' + link]);
+    this.router.navigate(['group/', link]);
   }
 
   goBack() {

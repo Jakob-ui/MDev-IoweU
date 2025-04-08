@@ -117,8 +117,8 @@ private async loadUsers(): Promise<void> {
           : [newGroup.groupId];
 
         await updateDoc(userDoc.ref, { groupId: updatedGroupIds });
-        console.log('User updated with new group ID:', newGroup.groupId);
-        this.router.navigate(['/groups/' + newGroup.groupId]);
+        console.log('Navigating to:', ['/group', newGroup.groupId]);
+        this.router.navigate(['/group', newGroup.groupId]);
       } else {
         console.error(`User with UID ${founder.uid} not found in Firestore!`);
       }
@@ -217,6 +217,30 @@ private async loadUsers(): Promise<void> {
     return groups;
   }
 
+  async getGroupsByFounder(uid: string): Promise<Groups[]> {
+    try {
+      const groupsRef = collection(this.firestore, 'groups');
+      const q = query(groupsRef, where('founder', '==', uid));
+      const groupSnapshot = await getDocs(q);
+
+      if (groupSnapshot.empty) {
+        console.log(`No groups found for founder with UID: ${uid}`);
+        return [];
+      }
+
+      const groups: Groups[] = groupSnapshot.docs.map((doc) => ({
+        groupId: doc.id,
+        ...doc.data(),
+      })) as Groups[];
+
+      console.log('Groups where user is founder:', groups);
+      return groups;
+    } catch (error) {
+      console.error('Error fetching groups by founder:', error);
+      return [];
+    }
+  }
+
   //Bestimmte Gruppe finden:
   async getGroupById(id: string): Promise<Groups | null> {
     try {
@@ -224,17 +248,18 @@ private async loadUsers(): Promise<void> {
         console.warn('Invalid group ID: ', id);
         return null; // Return early if the ID is invalid
       }
-      const groupsRef = collection(this.firestore, 'groups');
-      const q = query(groupsRef, where('groupId', '==', id));
-      const groupSnapshot = await getDocs(q);
-      if (groupSnapshot.empty) {
+      const groupRef = doc(this.firestore, 'groups', id);
+      const groupSnapshot = await getDoc(groupRef);
+      if (!groupSnapshot.exists()) {
         console.warn(`No group found with ID: ${id}`);
         return null;
       }
-      const group = groupSnapshot.docs[0].data() as Groups;
+      // Daten des Dokuments abrufen und als Groups-Objekt zurückgeben
+      const group = groupSnapshot.data() as Groups;
+      group.groupId = groupSnapshot.id; // Dokument-ID hinzufügen, falls benötigt
       return group;
     } catch (e) {
-      console.log('Error fetching Groups by id! ' + e);
+      console.error('Error fetching group by ID: ', e);
       return null;
     }
   }

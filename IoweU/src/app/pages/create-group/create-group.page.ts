@@ -6,7 +6,6 @@ import {
   IonItem,
   IonLabel,
   IonInput,
-  IonList,
   IonSelect,
   IonSelectOption,
 } from '@ionic/angular/standalone';
