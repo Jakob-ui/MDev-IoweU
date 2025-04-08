@@ -17,6 +17,7 @@ import { Auth } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
 import { Groups } from 'src/app/services/objects/Groups';
 import { Router } from '@angular/router';
+import { LoadingService } from 'src/app/services/loading.service';
 @Component({
   selector: 'app-create-group',
   templateUrl: './create-group.page.html',
@@ -36,6 +37,7 @@ import { Router } from '@angular/router';
   ],
 })
 export class CreateGroupPage {
+  private loadingService = inject(LoadingService);
   groupService = inject(GroupService);
   auth = inject(Auth);
   firestore = inject(Firestore);
@@ -68,15 +70,16 @@ export class CreateGroupPage {
       alert('Wähle ein template aus!');
       return;
     }
-
+  
     const user = this.auth.currentUser;
     if (!user) {
       console.error('User is not logged in!');
       return;
     }
-
+  
     const founder = user.uid;
-
+  
+    this.loadingService.show(); // Lade-Overlay aktivieren
     try {
       await this.groupService.createGroup(
         this.groupname,
@@ -84,8 +87,11 @@ export class CreateGroupPage {
         this.selectedTemplate
       );
       console.log('Groups successfully created!');
+      this.router.navigate(['/group-overview']); // Nach erfolgreicher Erstellung weiterleiten
     } catch (error) {
       console.error('Error creating group:', error);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
 

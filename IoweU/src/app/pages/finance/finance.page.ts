@@ -23,7 +23,7 @@ import {
 import {Router, RouterModule} from '@angular/router';
 import {AuthService} from "../../services/auth.service";
 import {NavController, Platform} from "@ionic/angular";
-
+import {LoadingService} from "../../services/loading.service";
 @Component({
   selector: 'app-finance',
   templateUrl: './finance.page.html',
@@ -48,6 +48,7 @@ export class FinancePage {
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
+  private loadingService = inject(LoadingService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -67,20 +68,23 @@ export class FinancePage {
     { name: 'Mateusz', amount: 0 },
   ];
 
-  ngOnInit() {
-    this.user = sessionStorage.getItem('username');
-    this.iosIcons = this.platform.is('ios');
-    const userColor = sessionStorage.getItem('usercolor');
-    document.documentElement.style.setProperty('--user-color', userColor);
-    this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
-
+  goToCreateExpense() {
+    this.loadingService.show(); // Lade-Overlay aktivieren
+    try {
+      this.router.navigate(['create-expense']);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
+    }
   }
   async logout() {
+    this.loadingService.show(); // Lade-Overlay aktivieren
     try {
       await this.auth.logout();
       this.router.navigate(['home']);
     } catch (e) {
-      console.log(e);
+      console.error('Fehler beim Logout:', e);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
 

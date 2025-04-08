@@ -19,7 +19,7 @@ import { NavController, Platform } from '@ionic/angular';
 import { Expenses } from '../../services/objects/Expenses'; // 👈 Import aus eigener Datei
 import { Groups } from '../../services/objects/Groups';
 import { Products } from '../../services/objects/Products'; // 👈 Import aus eigener Datei
-
+import { LoadingService } from '../../services/loading.service';
 @Component({
   selector: 'app-expense-details',
   templateUrl: './expense-details.page.html',
@@ -47,7 +47,8 @@ export class ExpenseDetailsPage implements OnInit {
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private route = inject(ActivatedRoute);
-
+  private loadingService = inject(LoadingService);
+  
   expenseId: number | null = null;
   expenseDetails: Expenses | undefined;
   iosIcons: boolean = false;
@@ -434,6 +435,7 @@ export class ExpenseDetailsPage implements OnInit {
   constructor() {}
 
   ngOnInit() {
+   
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
     const userColor = sessionStorage.getItem('usercolor');
