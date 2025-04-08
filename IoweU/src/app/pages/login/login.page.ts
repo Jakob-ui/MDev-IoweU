@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { ROUTER_CONFIGURATION, RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-login',
@@ -16,6 +17,7 @@ import { AuthService } from '../../services/auth.service';
 export class LoginPage {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private loadingService = inject(LoadingService);
 
   error: string = '';
   email: string = '';
@@ -41,7 +43,8 @@ export class LoginPage {
       this.loginFailed = true;
       return;
     }
-    this.loading = true;
+  
+    this.loadingService.show(); // Lade-Overlay aktivieren
     try {
       await this.authService.login(this.email, this.password, this.rememberMe);
       this.router.navigate(['/group-overview']);
@@ -50,7 +53,7 @@ export class LoginPage {
       this.error = 'Fehler beim Login, bitte versuchen Sie es erneut.';
       this.loginFailed = true;
     } finally {
-      this.loading = false;
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
 

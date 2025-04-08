@@ -20,7 +20,7 @@ import { NavController, Platform } from '@ionic/angular';
 import { AccountService } from 'src/app/services/account.service';
 import { UserService } from 'src/app/services/user.service';
 import { AlertController } from '@ionic/angular';
-
+import { LoadingService } from 'src/app/services/loading.service';
 @Component({
   selector: 'app-account-settings',
   templateUrl: './account-settings.page.html',
@@ -49,7 +49,7 @@ export class AccountSettingsPage implements OnInit {
   private acc = inject(AccountService);
   private userService = inject(UserService);
   private alertController = inject(AlertController);
-
+  private loadingService = inject(LoadingService); 
   iosIcons: boolean = false;
 
   displayName: string | null = null;
@@ -77,12 +77,16 @@ export class AccountSettingsPage implements OnInit {
   constructor() {}
 
   ngOnInit() {
-    this.loadUserData();
+    this.loadingService.show(); 
+    this.loadUserData().finally(() => {
+      this.loadingService.hide();
+    });
     this.iosIcons = this.platform.is('ios');
     this.newname = this.name;
   }
 
   async loadUserData() {
+    this.loadingService.show(); // Lade-Overlay aktivieren
     try {
       this.name = sessionStorage.getItem('username') || '';
       this.originalName = this.name;
@@ -91,17 +95,17 @@ export class AccountSettingsPage implements OnInit {
       this.originalColor = this.color;
       this.email = sessionStorage.getItem('email') || '';
       const lastedited = sessionStorage.getItem('lastedited');
-
+  
       if (!this.name || !this.email) {
         const uid = this.authService.currentUser?.uid;
-
+  
         if (uid) {
           const userData = await this.userService.getUserData();
           this.name = userData.username;
           this.email = userData.email;
           this.color = userData.color;
           this.lastedited = userData.lastedited;
-
+  
           sessionStorage.setItem('username', this.name);
           sessionStorage.setItem('email', this.email);
           sessionStorage.setItem('usercolor', this.color);
@@ -110,14 +114,16 @@ export class AccountSettingsPage implements OnInit {
           console.error('Kein Benutzer ist aktuell eingeloggt.');
         }
       }
-
+  
       if (this.color) {
         document.documentElement.style.setProperty('--user-color', this.color);
       }
-
+  
       console.log('Benutzerdaten erfolgreich geladen.');
     } catch (error) {
       console.error('Fehler beim Laden der Benutzerdaten:', error);
+    } finally {
+      this.loadingService.hide();
     }
   }
 
@@ -157,6 +163,7 @@ export class AccountSettingsPage implements OnInit {
     return differenceInMs > 5 * 60 * 1000;
   }
   async saveChanges() {
+    this.loadingService.show(); // Lade-Overlay aktivieren
     try {
       if (!this.proofTime()) {
         const alert = await this.alertController.create({
@@ -165,26 +172,28 @@ export class AccountSettingsPage implements OnInit {
             'Sie können den Benutzernamen nur alle 5 Minuten ändern. Bitte versuchen Sie es später erneut.',
           buttons: ['OK'],
         });
-
+  
         await alert.present();
         return;
       }
-
+  
       await this.acc.userupdate({
         username: this.newname,
         color: this.color,
         lastedited: new Date().toISOString(),
       });
-
+  
       sessionStorage.setItem('username', this.newname);
       sessionStorage.setItem('usercolor', this.color);
       sessionStorage.setItem('lastedited', new Date().toISOString());
-
+  
       console.log('Änderungen erfolgreich gespeichert.');
-
+  
       this.loadUserData();
     } catch (e) {
       console.error('Fehler beim Speichern der Änderungen:', e);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
 
@@ -319,18 +328,20 @@ export class AccountSettingsPage implements OnInit {
   }
 
   async deleteAccount() {
+    this.loadingService.show(); 
     try {
       await this.acc.userdelete();
       this.router.navigate(['home']);
     } catch (e) {
       console.log('Fehler beim Löschen des Kontos:', e);
-      // Optional: Fehlermeldung anzeigen
       const errorAlert = await this.alertController.create({
         header: 'Fehler',
         message: 'Beim Löschen des Kontos ist ein Fehler aufgetreten.',
         buttons: ['OK'],
       });
       await errorAlert.present();
+    } finally {
+      this.loadingService.hide(); 
     }
   }
 
