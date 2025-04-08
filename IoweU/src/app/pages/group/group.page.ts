@@ -112,7 +112,7 @@ export class GroupPage implements OnInit {
 
   async loadGroupData(id: string): Promise<void> {
     this.loading = true;
-    console.log('searching for groupId' + id);
+    console.log(`searching for groupId: ${id}`);
     try {
       const group = await this.groupService.getGroupById(id);
 
