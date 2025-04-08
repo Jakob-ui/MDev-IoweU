@@ -1,3 +1,10 @@
 <ion-app>
+  <div *ngIf="loading" class="loading-overlay">
+    <video autoplay muted loop class="loading-video"> 
+      <source src="assets/videos/loading.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+    <p>loading...</p>
+  </div>
   <ion-router-outlet></ion-router-outlet>
 </ion-app>

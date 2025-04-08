@@ -34,7 +34,7 @@
     </ion-item>
 
     <ion-list>
-      <ion-item *ngFor="let member of members">
+      <ion-item class="member-item" *ngFor="let member of members">
         <ion-label>{{ member }}</ion-label>
         <ion-button fill="clear" color="danger" (click)="removeMember(member)"
         >X</ion-button
