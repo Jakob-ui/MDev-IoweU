@@ -65,7 +65,6 @@ export class AuthService {
         throw new Error('Fehler beim Speichern der Benutzerdaten.');
       }
     }
-
     return userCredential;
   }
 
