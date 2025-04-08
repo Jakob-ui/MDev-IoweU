@@ -77,6 +77,11 @@ export class RegisterPage {
       this.registerFailed = true;
       return;
     }
+    if (this.name === '') {
+      this.error = 'Der Benutzername darf nicht leer sein!';
+      this.registerFailed = true;
+      return;
+    }
     this.loading = true;
     try {
       const usercolor =
@@ -94,10 +99,17 @@ export class RegisterPage {
         console.log('Registrierung erfolgreich:', userCredential.user);
         this.router.navigate(['/group-overview']);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registrierung fehlgeschlagen:', error);
-      this.error =
-        'Fehler bei der Registrierung. Bitte versuchen Sie es erneut.';
+      if (error.code === 'auth/email-already-in-use') {
+        this.error = 'Diese E-Mail-Adresse wird bereits verwendet.';
+      } else if (error.code === 'auth/weak-password') {
+        this.error =
+          'Das Passwort ist zu schwach. Bitte wählen Sie ein stärkeres Passwort.';
+      } else {
+        this.error =
+          'Fehler bei der Registrierung. Bitte versuchen Sie es erneut.';
+      }
       this.registerFailed = true;
     } finally {
       this.loading = false;
