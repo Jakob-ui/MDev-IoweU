@@ -714,6 +714,12 @@ ion-input:focus ~ .ionicon {
     color: var(--ion-color-danger) !important;
   }  
 
+  //zb bei create-expense, Dropdown Menü bei den Groupmembers
+  .top-container ion-input,
+  .bottom-container ion-input {
+    color: var(--ion-color-light) !important; 
+  }
+
 }
 
 
