@@ -55,7 +55,6 @@ export class AuthService {
         email: email,
         color: color,
         lastedited: new Date().toISOString(),
-        groupId: "groupId",
       };
 
       const success = await this.saveUserData(

@@ -35,7 +35,6 @@ export class UserService {
       email: email,
       color: color,
       lastedited: lastedited,
-      groupId: groupid,
     };
   }
 

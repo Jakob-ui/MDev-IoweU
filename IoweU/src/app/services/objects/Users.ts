@@ -8,5 +8,5 @@ export interface Users {
   email: string;
   color: string;
   lastedited: string;
-  groupId: string;
+  groupId?: string[];
 }
