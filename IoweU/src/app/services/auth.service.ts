@@ -7,6 +7,8 @@ import {
   query,
   where,
   deleteDoc,
+  setDoc,
+  doc,
 } from '@angular/fire/firestore';
 import {
   Auth,
@@ -50,13 +52,15 @@ export class AuthService {
 
     if (userCredential.user) {
       const userData: Users = {
-        uid: userCredential.user.uid,
+        uid: userCredential.user.uid, // UID des Benutzers
         username: username,
         email: email,
         color: color,
         lastedited: new Date().toISOString(),
+        groupId: [], // Initialisiere groupId als leeres Array
       };
 
+      // Speichere die Benutzerdaten in Firestore
       const success = await this.saveUserData(
         userCredential.user.uid,
         userData
@@ -66,25 +70,22 @@ export class AuthService {
         throw new Error('Fehler beim Speichern der Benutzerdaten.');
       }
     }
+
     return userCredential;
   }
 
   private async saveUserData(uid: string, data: Users): Promise<boolean> {
-    if (!this.auth.currentUser) {
-      throw new Error('Benutzer ist nicht authentifiziert.');
-    }
-
-    if (this.auth.currentUser.uid !== uid) {
-      throw new Error(
-        'Die UID des authentifizierten Benutzers stimmt nicht mit der Dokument-ID überein.'
-      );
-    }
     try {
-      const docRef = await addDoc(collection(this.firestore, 'users'), data);
-      console.log('Dokument erfolgreich hinzugefügt:', docRef.id);
+      // Verwende setDoc, um die UID als Dokument-ID zu setzen
+      const userRef = doc(this.firestore, 'users', uid);
+      await setDoc(userRef, data);
+      console.log(
+        'Benutzerdaten erfolgreich gespeichert mit UID als Dokument-ID:',
+        uid
+      );
       return true;
     } catch (e) {
-      console.error('Fehler beim Hinzufügen des Dokuments:', e);
+      console.error('Fehler beim Speichern der Benutzerdaten:', e);
       return false;
     }
   }
