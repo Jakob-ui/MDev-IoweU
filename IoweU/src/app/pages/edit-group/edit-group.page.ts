@@ -14,7 +14,7 @@ import {
   IonSelectOption, IonModal } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { QRCodeComponent } from 'angularx-qrcode';
+//import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
   selector: 'app-edit-group',
@@ -33,7 +33,7 @@ import { QRCodeComponent } from 'angularx-qrcode';
     RouterModule,
     FormsModule,
     CommonModule,
-    QRCodeComponent,
+    //QRCodeComponent,
   ],
 })
 

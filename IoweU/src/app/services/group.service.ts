@@ -80,7 +80,7 @@ private async loadUsers(): Promise<void> {
           },
         ], // Store the founder as a Members object
         groupimage: '',
-        accessCode: Math.floor(10000 + Math.random() * 90000), // Initialize with a default value
+        accessCode: Math.floor(10000 + Math.random() * 90000).toString(), // Initialize with a default value
         features: [],
         expenses: [],
       };
@@ -150,12 +150,15 @@ private async loadUsers(): Promise<void> {
     }
   }
   async joinGroup(
-    groupId: string,
     userId: string,
-    accessCode: number
-  ): Promise<void> {
+    accessCode: string
+  ): Promise<boolean> {
     try {
-      const groupRef = doc(this.firestore, 'groups', groupId);
+      const groupToJoin = await this.getGroupByAccessCode(accessCode);
+      if (!groupToJoin?.groupId) {
+        throw new Error('Group ID is undefined');
+      }
+      const groupRef = doc(this.firestore, 'groups', groupToJoin.groupId);
       const groupSnapshot = await getDoc(groupRef);
       if (groupSnapshot.exists()) {
         const groupData = groupSnapshot.data() as Groups;
@@ -163,14 +166,18 @@ private async loadUsers(): Promise<void> {
           // Add the user to the group's members list
           await addDoc(collection(groupRef, 'members'), { id: userId });
           console.log('User joined the group successfully!');
+          return true;
         } else {
           console.error('Invalid access code!');
+          return false;
         }
       } else {
         console.error('Groups not found!');
+        return false;
       }
     } catch (error) {
       console.error('Error joining group: ', error);
+      return false;
     }
   }
 
@@ -195,7 +202,7 @@ private async loadUsers(): Promise<void> {
   async getGroupById(id: string): Promise<Groups | null> {
     try {
       const groupsRef = collection(this.firestore, 'groups');
-      const q = query(groupsRef, where('groupId', '==', id));
+      const q = query(groupsRef, where('id', '==', id));
       const groupSnapshot = await getDocs(q);
       if (groupSnapshot.empty) {
         console.warn(`No group found with ID: ${id}`);
@@ -205,6 +212,23 @@ private async loadUsers(): Promise<void> {
       return group;
     } catch (e) {
       console.log('Error fetching Groups by id! ' + e);
+      return null;
+    }
+  }
+
+  async getGroupByAccessCode(accessCode: string): Promise<Groups | null> {
+    try {
+      const groupsRef = collection(this.firestore, 'groups');
+      const q = query(groupsRef, where('accessCode', '==', accessCode));
+      const groupSnapshot = await getDocs(q);
+      if (groupSnapshot.empty) {
+        console.warn(`No group found with access code: ${accessCode}`);
+        return null;
+      }
+      const group = groupSnapshot.docs[0].data() as Groups;
+      return group;
+    } catch (e) {
+      console.log('Error fetching Groups by access code! ' + e);
       return null;
     }
   }

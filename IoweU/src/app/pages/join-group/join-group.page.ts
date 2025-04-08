@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonButton, IonContent, IonInput, IonItem } from '@ionic/angular/standalone';
+import { GroupService } from 'src/app/services/group.service';
+import { Auth } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-join-group',
@@ -22,10 +24,12 @@ import { IonButton, IonContent, IonInput, IonItem } from '@ionic/angular/standal
 })
 export class JoinGroupPage {
   joinCode: string = '';
+  auth = inject(Auth);
   error: string = '';
   joinFailed: boolean = false;
+  groupService = inject(GroupService);
 
-  private validJoinCodes: string[] = ['abc123', 'xyz456', 'test123']; // Beispiel gültiger Codes
+  //private validJoinCodes: string[] = ['abc123', 'xyz456', 'test123']; // Beispiel gültiger Codes
   private qrCodeScanner: Html5QrcodeScanner | null = null;  // Verweis auf den QR-Code-Scanner
 
   constructor(private router: Router) {}
@@ -48,11 +52,19 @@ export class JoinGroupPage {
   }
 
   joinGroup() {
-    if (this.validJoinCodes.includes(this.joinCode.trim())) {
-      this.router.navigate(['/group']);
+    // if (this.validJoinCodes.includes(this.joinCode.trim())) {
+    //   this.router.navigate(['/group']);
+    // } else {
+    //   this.joinFailed = true;
+    //   this.error = 'Fehler beim Beitreten, bitte versuchen Sie es erneut.';
+    // }
+    if (this.auth.currentUser) {
+      this.groupService.joinGroup(this.auth.currentUser.uid, this.joinCode);
+      const groupId = this.groupService.getGroupByAccessCode(this.joinCode);
+      this.router.navigate(['/group'], { queryParams: { id: groupId } });
     } else {
+      this.error = 'User is not authenticated.';
       this.joinFailed = true;
-      this.error = 'Fehler beim Beitreten, bitte versuchen Sie es erneut.';
     }
   }
 
