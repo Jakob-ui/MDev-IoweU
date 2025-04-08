@@ -60,8 +60,18 @@ export class JoinGroupPage {
     // }
     if (this.auth.currentUser) {
       this.groupService.joinGroup(this.auth.currentUser.uid, this.joinCode);
-      const groupId = this.groupService.getGroupByAccessCode(this.joinCode);
-      this.router.navigate(['/group'], { queryParams: { id: groupId } });
+      this.groupService.getGroupByAccessCode(this.joinCode).then((joinedGroup) => {
+        if (joinedGroup) {
+          this.router.navigate(['/group/' + joinedGroup.groupId]);
+        } else {
+          this.error = 'Group not found.';
+          this.joinFailed = true;
+        }
+      }).catch((err) => {
+        console.error(err);
+        this.error = 'An error occurred while joining the group.';
+        this.joinFailed = true;
+      });
     } else {
       this.error = 'User is not authenticated.';
       this.joinFailed = true;

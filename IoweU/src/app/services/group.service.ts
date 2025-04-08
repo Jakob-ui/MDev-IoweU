@@ -161,9 +161,9 @@ private async loadUsers(): Promise<void> {
       const groupSnapshot = await getDoc(groupRef);
       if (groupSnapshot.exists()) {
         const groupData = groupSnapshot.data() as Groups;
-        if (groupData.accessCode === accessCode) {
+        if (groupData.accessCode == accessCode) {
           // Add the user to the group's members list
-          await addDoc(collection(groupRef, 'members'), { id: userId });
+          await addDoc(collection(groupRef, 'membersIds'), { id: userId });
           console.log('User joined the group successfully!');
           return true;
         } else {
@@ -200,6 +200,10 @@ private async loadUsers(): Promise<void> {
   //Bestimmte Gruppe finden:
   async getGroupById(id: string): Promise<Groups | null> {
     try {
+      if (!id) {
+        console.warn('Invalid group ID: ', id);
+        return null; // Return early if the ID is invalid
+      }
       const groupsRef = collection(this.firestore, 'groups');
       const q = query(groupsRef, where('groupId', '==', id));
       const groupSnapshot = await getDocs(q);
