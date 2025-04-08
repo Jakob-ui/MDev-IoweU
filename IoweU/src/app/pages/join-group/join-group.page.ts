@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { IonButton, IonContent, IonInput, IonItem } from '@ionic/angular/standalone';
 import { GroupService } from 'src/app/services/group.service';
 import { Auth } from '@angular/fire/auth';
+import { AuthService } from 'src/app/services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
@@ -54,10 +55,12 @@ export class JoinGroupPage {
   }
 
   joinGroup() {
+    //console.log(this.auth.getAppUser());
+    //console.log(this.auth.currentUser);
     this.loadingService.show(); // Lade-Overlay aktivieren
     if (this.auth.currentUser) {
       this.groupService
-        .joinGroup(this.auth.currentUser.uid, this.joinCode)
+        .joinGroup(this.auth.currentUser, this.joinCode)
         .then(() => {
           return this.groupService.getGroupByAccessCode(this.joinCode);
         })

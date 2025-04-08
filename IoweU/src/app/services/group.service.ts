@@ -25,37 +25,6 @@ export class GroupService {
   public router = inject(Router);
   public firestore: Firestore = inject(Firestore);
 
-  /*
-private idToName(id: string)
-{
-  const user = this.userList.find(user => user.id === id);
-  if (user) {
-    return user.name;
-  } else {
-    console.error('User with ID ' + id + ' not found in userList.');
-    return id; // Return the ID itself if the user is not found
-  }
-}
-*/
-
-  /*
-private async loadUsers(): Promise<void> {
-  try {
-    const usersRef = collection(this.firestore, 'users');
-    const userSnapshot = await getDocs(usersRef);
-
-    // Map each document to a User object and save it to userList
-    this.userList = userSnapshot.docs.map(doc => ({
-      ...doc.data() // Spread the document data into the object
-    })) as User[];
-
-    console.log('Loaded users: ', this.userList);
-  } catch (error) {
-    console.error('Error loading users: ', error);
-  }
-}
-*/
-
   //Gruppe erstellen:
   async createGroup(
     name: string,
@@ -171,32 +140,46 @@ private async loadUsers(): Promise<void> {
       console.error('Error deleting group: ', error);
     }
   }
-  async joinGroup(userId: string, accessCode: string): Promise<boolean> {
+  async joinGroup(joinee: Users, accessCode: string): Promise<void> {
     try {
       const groupToJoin = await this.getGroupByAccessCode(accessCode);
       if (!groupToJoin?.groupId) {
         throw new Error('Group ID is undefined');
       }
+      //1. Adding the member to the group
       const groupRef = doc(this.firestore, 'groups', groupToJoin.groupId);
       const groupSnapshot = await getDoc(groupRef);
       if (groupSnapshot.exists()) {
         const groupData = groupSnapshot.data() as Groups;
-        if (groupData.accessCode == accessCode) {
-          // Add the user to the group's members list
-          //await addDoc(collection(groupRef, 'membersIds'), { id: userId });
-          console.log('User joined the group successfully!');
-          return true;
-        } else {
-          console.error('Invalid access code!');
-          return false;
-        }
+        const groupMembers = groupData.members;
+        const newMember: Members = {
+          memberId: (groupMembers.length + 1).toString(), // Generate a new member ID
+          uid: joinee.uid,
+          username: joinee.username,
+          role: 'member',
+          color: joinee.color,
+          joinedAt: new Date().toISOString(),
+        };
+        groupMembers.push(newMember);
+        await setDoc(groupRef, { members: groupMembers});
+        console.log('New member added, and his name is:' + newMember.username);
       } else {
         console.error('Groups not found!');
-        return false;
+      }
+      //2. Adding the group to the user's group list
+      const userRef = doc(this.firestore, 'users', joinee.uid);
+      const userSnapshot = await getDoc(userRef);
+      if (userSnapshot.exists()) {
+        const userData = userSnapshot.data() as Users;
+        const userGroupIds = userData.groupId || []; // Initialize as empty array if undefined
+        userGroupIds.push(groupToJoin.groupId);
+        await setDoc(userRef, { groupId: userGroupIds });
+        console.log('User updated with new group ID:', groupToJoin.groupId);
+      } else {
+        console.error(`User with UID ${joinee.uid} not found in Firestore!`);
       }
     } catch (error) {
       console.error('Error joining group: ', error);
-      return false;
     }
   }
 
