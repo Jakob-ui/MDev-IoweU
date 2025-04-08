@@ -105,7 +105,7 @@ export class GroupPage implements OnInit {
   }
 
   goBack() {
-    this.navCtrl.back();
+    this.router.navigate(['group-overview']);
   }
 
   constructor() {}

@@ -106,6 +106,22 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'repeating-expenses',
+    loadComponent: () =>
+      import('./pages/repeating-expenses/repeating-expenses.page').then(
+        m => m.RepeatingExpensesPage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'edit-expense',
+    loadComponent: () =>
+      import('./pages/edit-expense/edit-expense.page').then(
+        m => m.EditExpensePage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'not-found',
     loadComponent: () => import('./pages/not-found/not-found.page').then( m => m.NotFoundPage)
   },
@@ -113,4 +129,8 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'not-found',
   },
+
+
+
+
 ];
