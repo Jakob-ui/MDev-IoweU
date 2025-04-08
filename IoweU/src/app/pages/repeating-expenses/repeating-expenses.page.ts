@@ -129,10 +129,8 @@ export class RepeatingExpensesPage implements OnInit {
     return this.expenses.filter(expense => expense.repeat && expense.repeat !== '');
   }
 
-  saveExpense(expense: any) {
-    // Hier könntest du später Firebase-Update einbauen
-    console.log('Gespeicherte Ausgabe:', expense);
-    // Du kannst auch eine Erfolgsmeldung anzeigen
+  goToExpenseDetails(expenseId: number) {
+    this.router.navigate(['expense-details', expenseId]);
   }
 
 

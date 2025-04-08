@@ -32,7 +32,8 @@
     <ion-list class="expense-list">
       <ion-item
         class="info-item"
-        *ngFor="let expense of repeatingExpenses">
+        *ngFor="let expense of repeatingExpenses"
+        (click)="goToExpenseDetails(expense.id)">
         <div class="profile-placeholder"></div>
         <h5>{{ expense.expense }}</h5>
         <div class="expense-item">
