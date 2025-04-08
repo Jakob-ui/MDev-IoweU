@@ -17,6 +17,7 @@ import { Auth } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
 import { Groups } from 'src/app/services/objects/Groups';
 import { Router } from '@angular/router';
+import { UserService } from 'src/app/services/user.service';
 @Component({
   selector: 'app-create-group',
   templateUrl: './create-group.page.html',
@@ -40,6 +41,8 @@ export class CreateGroupPage {
   auth = inject(Auth);
   firestore = inject(Firestore);
   router = inject(Router);
+  private userService = inject(UserService);
+
   groupname: string = '';
   //newMember: string = '';
   //members: string[] = [];
@@ -64,8 +67,8 @@ export class CreateGroupPage {
 
   async saveGroup() {
     if (!this.groupname || !this.selectedTemplate) {
-      console.error('Groups name and template are required!');
-      alert('Wähle ein template aus!');
+      console.error('Group name and template are required!');
+      alert('Wähle ein Template aus!');
       return;
     }
 
@@ -75,15 +78,18 @@ export class CreateGroupPage {
       return;
     }
 
-    const founder = user.uid;
-
     try {
+      // Hole das vollständige Benutzerobjekt mit getUserData()
+      const founder = await this.userService.getUserData();
+
+      // Erstelle die Gruppe mit dem Benutzerobjekt
       await this.groupService.createGroup(
         this.groupname,
         founder,
         this.selectedTemplate
       );
-      console.log('Groups successfully created!');
+
+      console.log('Group successfully created!');
     } catch (error) {
       console.error('Error creating group:', error);
     }

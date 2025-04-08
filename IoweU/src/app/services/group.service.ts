@@ -59,35 +59,33 @@ private async loadUsers(): Promise<void> {
   //Gruppe erstellen:
   async createGroup(
     name: string,
-    founder: string,
+    founder: Users, // Der Benutzer, der die Gruppe erstellt
     template: string
   ): Promise<void> {
     try {
+      // Neue Gruppe erstellen
       const newGroup: Groups = {
-        groupId: doc(collection(this.firestore, 'groups')).id, // Generate a new document ID
+        groupId: doc(collection(this.firestore, 'groups')).id, // Generiere eine neue Dokument-ID
         groupname: name,
         foundationdate: new Date().toISOString(),
-        founder: founder,
+        founder: founder.uid, // UID des Gründers
         groupimage: '',
         members: [
           {
-            memberId: '23131',
-            uid: founder,
-            username: 'Founder', // Replace with the actual username if available
-            role: 'member',
-            color: '#000000', // Default color or fetch from user data
+            memberId: '1', // Beispiel-ID, kann angepasst werden
+            uid: founder.uid,
+            username: founder.username,
+            role: 'founder',
+            color: founder.color,
             joinedAt: new Date().toISOString(),
           },
-        ], // Store the founder as a Members object
-        accessCode: Math.floor(10000 + Math.random() * 90000).toString(), // Initialize with a default value
+        ],
+        accessCode: Math.floor(10000 + Math.random() * 90000).toString(), // Zufälliger Zugangscode
         features: [],
         expenseId: [],
-        sumTotalExpenses: 0,
-        countTotalExpenses: 0,
-        sumTotalExpensesMembers: 0,
-        countTotalExpensesMembers: 0,
       };
 
+      // Features basierend auf dem Template hinzufügen
       if (template === 'Standard') {
         newGroup.features.push('Finanzübersicht');
       } else if (template === 'Projekt') {
@@ -97,18 +95,37 @@ private async loadUsers(): Promise<void> {
       } else {
         newGroup.features.push('Finanzübersicht');
       }
-
-      const groupRef = await addDoc(
-        collection(this.firestore, 'groups'),
+      console.log('New group data:', newGroup);
+      // Gruppe in Firestore speichern
+      const groupRef = await setDoc(
+        doc(this.firestore, 'groups', newGroup.groupId),
         newGroup
       );
-      console.log('Groups created with ID: ' + groupRef.id);
-      this.router.navigate(['group/' + newGroup.groupId]);
+      console.log('Group created with ID:', newGroup.groupId);
+
+      // Benutzer aktualisieren, um die groupId hinzuzufügen
+      const usersRef = collection(this.firestore, 'users');
+      const q = query(usersRef, where('uid', '==', founder.uid));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0]; // Nimm das erste gefundene Dokument
+        const userData = userDoc.data() as Users;
+
+        const updatedGroupIds = userData.groupId
+          ? [...userData.groupId, newGroup.groupId]
+          : [newGroup.groupId];
+
+        await updateDoc(userDoc.ref, { groupId: updatedGroupIds });
+        console.log('User updated with new group ID:', newGroup.groupId);
+        this.router.navigate(['/groups/' + newGroup.groupId]);
+      } else {
+        console.error(`User with UID ${founder.uid} not found in Firestore!`);
+      }
     } catch (error) {
-      console.error('Error creating group: ', error);
+      console.error('Error creating group:', error);
     }
   }
-
   //Gruppe bearbeiten (nur als Gründer*in möglich):
   async updateGroup(
     uid: string,
