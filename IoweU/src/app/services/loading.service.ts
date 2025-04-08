@@ -9,10 +9,10 @@ export class LoadingService {
   loading$ = this.loadingSubject.asObservable();
 
   show() {
-    this.loadingSubject.next(true); // Lade-Overlay aktivieren
+    this.loadingSubject.next(true); 
   }
 
   hide() {
-    this.loadingSubject.next(false); // Lade-Overlay deaktivieren
+    this.loadingSubject.next(false); 
   }
 }

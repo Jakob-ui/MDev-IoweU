@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { IonButton, IonContent, IonInput, IonItem } from '@ionic/angular/standalone';
 import { GroupService } from 'src/app/services/group.service';
 import { Auth } from '@angular/fire/auth';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-join-group',
@@ -28,6 +29,7 @@ export class JoinGroupPage {
   error: string = '';
   joinFailed: boolean = false;
   groupService = inject(GroupService);
+  private loadingService = inject(LoadingService);
 
   //private validJoinCodes: string[] = ['abc123', 'xyz456', 'test123']; // Beispiel gültiger Codes
   private qrCodeScanner: Html5QrcodeScanner | null = null;  // Verweis auf den QR-Code-Scanner
@@ -52,56 +54,71 @@ export class JoinGroupPage {
   }
 
   joinGroup() {
-    // if (this.validJoinCodes.includes(this.joinCode.trim())) {
-    //   this.router.navigate(['/group']);
-    // } else {
-    //   this.joinFailed = true;
-    //   this.error = 'Fehler beim Beitreten, bitte versuchen Sie es erneut.';
-    // }
+    this.loadingService.show(); // Lade-Overlay aktivieren
     if (this.auth.currentUser) {
-      this.groupService.joinGroup(this.auth.currentUser.uid, this.joinCode);
-      this.groupService.getGroupByAccessCode(this.joinCode).then((joinedGroup) => {
-        if (joinedGroup) {
-          this.router.navigate(['/group/' + joinedGroup.groupId]);
-        } else {
-          this.error = 'Group not found.';
+      this.groupService
+        .joinGroup(this.auth.currentUser.uid, this.joinCode)
+        .then(() => {
+          return this.groupService.getGroupByAccessCode(this.joinCode);
+        })
+        .then((joinedGroup) => {
+          if (joinedGroup) {
+            this.router.navigate(['/group/' + joinedGroup.groupId]);
+          } else {
+            this.error = 'Group not found.';
+            this.joinFailed = true;
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          this.error = 'An error occurred while joining the group.';
           this.joinFailed = true;
-        }
-      }).catch((err) => {
-        console.error(err);
-        this.error = 'An error occurred while joining the group.';
-        this.joinFailed = true;
-      });
+        })
+        .finally(() => {
+          this.loadingService.hide(); // Lade-Overlay deaktivieren
+        });
     } else {
       this.error = 'User is not authenticated.';
       this.joinFailed = true;
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
 
   // Funktion zum Scannen von QR-Codes, die bei Button-Klick ausgelöst wird
   initializeQRCodeScanner() {
-    const qrScannerContainer = document.getElementById("qr-code-scanner");
-    if (!qrScannerContainer) {
-      console.error('QR-Code-Scanner Container nicht gefunden.');
-      return;
-    }
-  
-    const scanner = new Html5QrcodeScanner("qr-code-scanner", {
-      fps: 10,
-      qrbox: 250
-    }, false);
-  
-    scanner.render(
-      (result: string) => {
-        this.qrCodeScanner?.clear();
-        this.router.navigate(['/group'], { queryParams: { id: result } });
-      },
-      (error: string) => {
-        console.warn(error);
+    this.loadingService.show(); // Lade-Overlay aktivieren
+    try {
+      const qrScannerContainer = document.getElementById('qr-code-scanner');
+      if (!qrScannerContainer) {
+        console.error('QR-Code-Scanner Container nicht gefunden.');
+        return;
       }
-    );
   
-    this.qrCodeScanner = scanner;
+      const scanner = new Html5QrcodeScanner(
+        'qr-code-scanner',
+        {
+          fps: 10,
+          qrbox: 250,
+        },
+        false
+      );
+  
+      scanner.render(
+        (result: string) => {
+          this.qrCodeScanner?.clear();
+          this.router.navigate(['/group'], { queryParams: { id: result } });
+        },
+        (error: string) => {
+          console.warn(error);
+        }
+      );
+  
+      this.qrCodeScanner = scanner;
+    } catch (error) {
+      console.error('Fehler beim Initialisieren des QR-Code-Scanners:', error);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
+    }
   }
   
 }
