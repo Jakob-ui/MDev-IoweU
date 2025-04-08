@@ -21,6 +21,7 @@ import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { Members } from 'src/app/services/objects/Members';
+import {NavController} from "@ionic/angular";
 
 @Component({
   selector: 'app-create-expense',
@@ -45,6 +46,7 @@ import { Members } from 'src/app/services/objects/Members';
 })
 export class CreateExpensePage {
   private router = inject(Router);
+  private navCtrl = inject(NavController);
 
   groupMembers: (Members & {})[] = [
     {
@@ -316,6 +318,6 @@ export class CreateExpensePage {
   }
 
   cancel() {
-    this.router.navigate(['/expense']);
+    this.navCtrl.back();
   }
 }
