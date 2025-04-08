@@ -658,6 +658,14 @@ ion-input:focus ~ .ionicon {
   stroke: black;
 }
 
+.member-item {
+  margin-bottom: 5%; /* Abstand zwischen den Feldern */
+}
+
+.member-item:last-child {
+  margin-bottom: 10%; /* Mehr Abstand für das letzte Element */
+}
+
 .logo {
   content: url('/assets/logo/Logo_lang.png');
 }
@@ -700,9 +708,11 @@ ion-input:focus ~ .ionicon {
   ion-item .Dropdown-label,
   ion-select::part(text),
   .brush-icon,
+  .member-item,
   ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
   }
+  
   .loading-overlay {
     color: var(--ion-color-light);
     background: var(--ion-background-color);
