@@ -704,7 +704,11 @@ ion-input:focus ~ .ionicon {
     content: url('/assets/logo/LogoWeiss.png');
   }
 
-  /* Schriftfarbe der Optionen im Dark Mode */
+  .error-container h1 {
+    color: var(--ion-color-danger) !important;
+  }
+
+  /* Schriftfarbe der Optionen des Dropdown Menüs im Dark Mode */
   ion-item.select-interface-option::part(native) {
     color: var(--ion-color-light) !important; /* Textfarbe auf Weiß setzen */
   }
