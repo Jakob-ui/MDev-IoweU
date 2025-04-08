@@ -10,7 +10,10 @@ export interface Groups {
   members: Members[]; // Eine Liste von Mitgliedern in der Gruppe
   accessCode: string; // Zugangscode zur Gruppe
   features: string[]; // Liste von Funktionen (optional)
-  expenses: Expenses[]; // Liste der Ausgaben in der Gruppe
-  SumExpenses?: number;
-  memberIds: string[]; //----------------nur temporär!!!!!!!!!!!!!
+  expenseId: string[]; // Liste der Ausgaben in der Gruppe
+  sumTotalExpenses?: number;
+  countTotalExpenses?: number;
+  sumTotalExpensesMembers?: number;
+  countTotalExpensesMembers?: number;
+
 }

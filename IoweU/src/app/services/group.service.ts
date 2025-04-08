@@ -68,7 +68,7 @@ private async loadUsers(): Promise<void> {
         groupname: name,
         foundationdate: new Date().toISOString(),
         founder: founder,
-        memberIds: [founder], // __________--------------------nur temporär!!!
+        groupimage: '',
         members: [
           {
             memberId: '23131',
@@ -79,10 +79,13 @@ private async loadUsers(): Promise<void> {
             joinedAt: new Date().toISOString(),
           },
         ], // Store the founder as a Members object
-        groupimage: '',
         accessCode: Math.floor(10000 + Math.random() * 90000).toString(), // Initialize with a default value
         features: [],
-        expenses: [],
+        expenseId: [],
+        sumTotalExpenses: 0,
+        countTotalExpenses: 0,
+        sumTotalExpensesMembers: 0,
+        countTotalExpensesMembers: 0,
       };
 
       if (template === 'Standard') {
@@ -163,7 +166,7 @@ private async loadUsers(): Promise<void> {
         const groupData = groupSnapshot.data() as Groups;
         if (groupData.accessCode == accessCode) {
           // Add the user to the group's members list
-          await addDoc(collection(groupRef, 'membersIds'), { id: userId });
+          //await addDoc(collection(groupRef, 'membersIds'), { id: userId });
           console.log('User joined the group successfully!');
           return true;
         } else {

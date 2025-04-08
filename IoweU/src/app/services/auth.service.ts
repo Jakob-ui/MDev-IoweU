@@ -39,7 +39,8 @@ export class AuthService {
     email: string,
     password: string,
     username: string,
-    color: string
+    color: string,
+    groupId: string
   ): Promise<UserCredential> {
     const userCredential = await createUserWithEmailAndPassword(
       this.auth,
@@ -54,6 +55,7 @@ export class AuthService {
         email: email,
         color: color,
         lastedited: new Date().toISOString(),
+        groupId: "groupId",
       };
 
       const success = await this.saveUserData(
