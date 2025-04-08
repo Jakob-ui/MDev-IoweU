@@ -1,23 +1,15 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Platform } from '@ionic/angular';
 import { NavController } from '@ionic/angular';
 import {
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
-  IonFooter,
-  IonButtons,
   IonButton,
-  IonItem,
-  IonLabel,
-  IonInput,
   IonCard,
-  IonCardHeader,
   IonCardTitle,
   IonCardSubtitle,
-  IonCardContent,
   IonIcon,
   IonSpinner,
 } from '@ionic/angular/standalone';
@@ -25,6 +17,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
 import { Groups } from 'src/app/services/objects/Groups';
+import { LoadingService } from '../../services/loading.service';
 
 @Component({
   selector: 'app-group',
@@ -52,9 +45,7 @@ export class GroupPage implements OnInit {
   private navCtrl = inject(NavController);
   private route = inject(ActivatedRoute);
   private groupService = inject(GroupService);
-
-  loading: boolean = true;
-  timeout: any;
+  private loadingService = inject(LoadingService); // Inject LoadingService
 
   iosIcons: boolean = false;
 
@@ -88,9 +79,9 @@ export class GroupPage implements OnInit {
 
     this.route.params.subscribe((params) => {
       this.groupid = params['id'];
-      this.loading = true;
+      this.loadingService.show(); // Lade-Overlay aktivieren
       this.loadGroupData(this.groupid).finally(() => {
-        this.loading = false;
+        this.loadingService.hide(); // Lade-Overlay deaktivieren
       });
     });
   }
@@ -105,18 +96,12 @@ export class GroupPage implements OnInit {
   }
 
   goBack() {
-    this.navCtrl.back();
+    this.router.navigate(['group-overview']);
   }
 
-  constructor() {}
-
   async loadGroupData(id: string): Promise<void> {
-    this.loading = true;
-    console.log(`searching for groupId: ${id}`); // Debug log to confirm the id value
-    if (!id) {
-      console.error('Group ID is undefined or invalid!');
-      return; // Exit early if id is invalid
-    }
+    this.loadingService.show(); // Lade-Overlay aktivieren
+    console.log('searching for groupId' + id);
     try {
       const group = await this.groupService.getGroupById(id);
 
@@ -131,7 +116,7 @@ export class GroupPage implements OnInit {
     } catch (e) {
       console.log('Error getting Groups: ' + e);
     } finally {
-      this.loading = false;
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
 
@@ -152,12 +137,12 @@ export class GroupPage implements OnInit {
 
   async isLoading() {
     try {
+      this.loadingService.show(); // Lade-Overlay aktivieren
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      this.loading = false;
-      clearTimeout(this.timeout);
     } catch (error) {
       console.error('Error loading group data:', error);
-      this.loading = false;
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
 }

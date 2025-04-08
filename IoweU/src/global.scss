@@ -658,6 +658,14 @@ ion-input:focus ~ .ionicon {
   stroke: black;
 }
 
+.member-item {
+  margin-bottom: 5%; /* Abstand zwischen den Feldern */
+}
+
+.member-item:last-child {
+  margin-bottom: 10%; /* Mehr Abstand für das letzte Element */
+}
+
 .logo {
   content: url('/assets/logo/Logo_lang.png');
 }
@@ -700,9 +708,11 @@ ion-input:focus ~ .ionicon {
   ion-item .Dropdown-label,
   ion-select::part(text),
   .brush-icon,
+  .member-item,
   ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
   }
+  
   .loading-overlay {
     color: var(--ion-color-light);
     background: var(--ion-background-color);
@@ -716,6 +726,10 @@ ion-input:focus ~ .ionicon {
     color: var(--ion-color-danger) !important;
   }  
 
+  .divider {
+    background-color: var(--ion-color-light) !important;
+  }
+
   //zb bei create-expense, Dropdown Menü bei den Groupmembers
   .top-container ion-input,
   .bottom-container ion-input {
@@ -724,10 +738,20 @@ ion-input:focus ~ .ionicon {
 
 }
 
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 
 .loading-video {
-  width: 150px; /* Breite des Videos */
-  height: auto; /* Beibehaltung des Seitenverhältnisses */
-  max-width: 100%; /* Optional: Begrenzung der maximalen Breite */
+  width: 200px; /* Passe die Größe des Videos an */
+  height: auto;
   border-radius: 10px; /* Optional: Abgerundete Ecken */
 }

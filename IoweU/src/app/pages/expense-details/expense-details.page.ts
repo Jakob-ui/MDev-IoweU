@@ -550,4 +550,8 @@ export class ExpenseDetailsPage implements OnInit {
   goBack() {
     this.navCtrl.back();
   }
+
+  editExpense() {
+    this.router.navigate(['/edit-expense', { id: this.expenseId }]);
+  }
 }

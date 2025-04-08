@@ -16,7 +16,6 @@ import {
   IonBadge,
 } from '@ionic/angular/standalone';
 
-// Import interfaces
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
@@ -24,9 +23,9 @@ import { Members } from 'src/app/services/objects/Members';
 import {NavController} from "@ionic/angular";
 
 @Component({
-  selector: 'app-create-expense',
-  templateUrl: './create-expense.page.html',
-  styleUrls: ['./create-expense.page.scss'],
+  selector: 'app-edit-expense',
+  templateUrl: './edit-expense.page.html',
+  styleUrls: ['./edit-expense.page.scss'],
   standalone: true,
   imports: [
     IonList,
@@ -44,10 +43,11 @@ import {NavController} from "@ionic/angular";
     IonBadge,
   ],
 })
-export class CreateExpensePage {
+export class EditExpensePage {
   private router = inject(Router);
   private navCtrl = inject(NavController);
 
+  // Mock-Daten für die Mitglieder und Ausgaben
   groupMembers: (Members & {})[] = [
     {
       memberId: 'user123',
@@ -75,23 +75,24 @@ export class CreateExpensePage {
     },
   ];
 
+  // Mock-Daten für eine Ausgabe
   expense: Expenses = {
-    expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
-    description: '',
-    totalAmount: 0,
-    paidBy: '',
+    expenseId: 'mock123',
+    description: 'Einkauf von Lebensmitteln',
+    totalAmount: 150,
+    paidBy: 'Grün',
     date: new Date().toISOString().split('T')[0],
     currency: 'EUR',
-    category: '',
-    invoice: '',
-    repeat: '',
+    category: 'Lebensmittel',
+    invoice: '2025/001',
+    repeat: 'monatlich',
     splitBy: 'alle',
     splitType: 'prozent',
     members: [
       {
         expenseMemberId: 'aw3da123',
         memberId: 'user123',
-        amountToPay: 0,
+        amountToPay: 75,
         split: 1,
         products: [
           {
@@ -105,9 +106,9 @@ export class CreateExpensePage {
         ],
       },
       {
-        expenseMemberId: 'aw3da123',
+        expenseMemberId: 'aw3da124',
         memberId: 'user456',
-        amountToPay: 0,
+        amountToPay: 75,
         split: 1,
         products: [
           {
@@ -180,14 +181,12 @@ export class CreateExpensePage {
         price: Number(product.price),
       };
 
-      // Initialize products array if undefined
       if (!entry.products) {
         entry.products = [];
       }
 
       entry.products.push(newProduct);
 
-      // Ensure members array is initialized
       if (!this.expense.members) {
         this.expense.members = [];
       }
@@ -197,13 +196,11 @@ export class CreateExpensePage {
       );
 
       if (member) {
-        // Ensure products array is initialized
         if (!member.products) {
           member.products = [];
         }
         member.products.push(newProduct);
       } else {
-        // If member doesn't exist, add it to the expense
         this.expense.members.push({
           expenseMemberId: 'awdawd2weq2w34e',
           memberId: entry.input.memberId,
@@ -213,7 +210,6 @@ export class CreateExpensePage {
         });
       }
 
-      // Reset input and update totals
       entry.input = this.createEmptyProduct(memberName);
       this.updateTotals();
     }
@@ -223,18 +219,15 @@ export class CreateExpensePage {
     const entry = this.productInputs[memberName];
     if (!entry) return;
 
-    // Ensure products is an array before filtering
     if (entry.products) {
       entry.products = entry.products.filter((p) => p !== productToRemove);
     }
 
-    // Check if members array is defined
     if (this.expense.members) {
       const member = this.expense.members.find(
         (m) => m.memberId === productToRemove.memberId
       );
       if (member && member.products) {
-        // Ensure member's products is an array before calling filter
         member.products = member.products.filter((p) => p !== productToRemove);
       }
     }
@@ -243,18 +236,15 @@ export class CreateExpensePage {
   }
 
   private calculateTotal(): number {
-    // Ensure this.expense.members is an array
     if (!this.expense.members || !Array.isArray(this.expense.members)) {
       return 0;
     }
 
     return this.expense.members.reduce((sum, member) => {
-      // Ensure member.products is an array and not undefined
       const products = member.products || [];
       return (
         sum +
         products.reduce((productSum, product) => {
-          // Ensure each product has valid price and quantity
           return productSum + (product.price * product.quantity || 0);
         }, 0)
       );
@@ -306,14 +296,19 @@ export class CreateExpensePage {
     }
   }
 
-  saveExpense() {
-    this.updateTotals();
-    this.expense.totalAmount = Number(this.expense.totalAmount);
-    this.expense.members?.forEach((member) => {
-      member.amountToPay = Number(member.amountToPay);
-    });
+  ngOnInit() {
+    // Initialisiere die Mock-Daten (hier simulieren wir, dass wir eine Ausgabe laden)
+    this.loadExpense();
+  }
 
-    console.log('Saving expense:', this.expense);
+  loadExpense() {
+    // Hier laden wir einfach die Mock-Daten direkt
+    this.expense = { ...this.expense };
+  }
+
+  saveChanges() {
+    // Da wir hier keine echte Backend-Verbindung haben, simulieren wir nur das Speichern
+    console.log('Changes saved', this.expense);
     this.router.navigate(['/expense']);
   }
 
