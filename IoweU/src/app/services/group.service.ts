@@ -91,6 +91,8 @@ private async loadUsers(): Promise<void> {
         newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Anlagegüter');
       } else if (template === 'Reise') {
         newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Einkaufsliste');
+      } else {
+        newGroup.features.push('Finanzübersicht');
       }
 
       const groupRef = await addDoc(
@@ -149,10 +151,7 @@ private async loadUsers(): Promise<void> {
       console.error('Error deleting group: ', error);
     }
   }
-  async joinGroup(
-    userId: string,
-    accessCode: string
-  ): Promise<boolean> {
+  async joinGroup(userId: string, accessCode: string): Promise<boolean> {
     try {
       const groupToJoin = await this.getGroupByAccessCode(accessCode);
       if (!groupToJoin?.groupId) {
