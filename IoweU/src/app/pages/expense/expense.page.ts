@@ -16,6 +16,8 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from "../../services/auth.service";
 import { NavController, Platform } from "@ionic/angular";
 import { LoadingService } from "../../services/loading.service";
+import { GroupService } from "../../services/group.service"; // Importiere den GroupService
+import { Groups } from '../../services/objects/Groups'; // Falls benötigt, um Gruppentyp zu definieren
 
 @Component({
   selector: 'app-expense',
@@ -43,12 +45,14 @@ export class ExpensePage implements OnInit {
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
-  groupname: string = '';
+  private groupService = inject(GroupService); // Inject GroupService
 
   iosIcons: boolean = false;
 
   user: string | null = "";
   displayName: string | null = null;
+  groupname: string = '';
+  groupId: string = ''; // ID der Gruppe, um Daten zu laden
 
   groupMembers = [
     { name: 'Livia', profileImage: 'assets/profiles/livia.jpg' },
@@ -92,26 +96,57 @@ export class ExpensePage implements OnInit {
 
   ngOnInit() {
     this.loadingService.show(); // Lade-Overlay aktivieren
-    try {
-      this.user = sessionStorage.getItem('username');
-      this.iosIcons = this.platform.is('ios');
-      const userColor = sessionStorage.getItem('usercolor');
-      document.documentElement.style.setProperty('--user-color', userColor);
-      this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
-  
-      // Berechne die Balance
-      this.calculateBalance();
-    } catch (error) {
-      console.error('Fehler beim Initialisieren der Seite:', error);
-    } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
-    }
+
+    setTimeout(async () => {
+      try {
+        // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
+        if (this.auth.currentUser) {
+          this.user = this.auth.currentUser.username;
+          this.displayName = this.auth.currentUser.username;
+          console.log('Benutzerdaten:', this.auth.currentUser); // Logge die Benutzerdaten zur Überprüfung
+
+          const userColor = this.auth.currentUser.color || '#000000'; // Standardfarbe setzen, falls nicht verfügbar
+          document.documentElement.style.setProperty('--user-color', userColor); // Benutzerfarbe setzen
+
+          // Holen der groupId als String aus dem AuthService
+          const groupId = String(this.auth.currentUser.groupId || ''); // Sicherstellen, dass groupId ein String ist
+
+          if (groupId) {
+            // Holen der Gruppendaten über den GroupService
+            const currentGroup = await this.groupService.getGroupById(groupId); // Verwenden der tatsächlichen groupId hier
+
+            if (currentGroup) {
+              this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+              this.groupId = currentGroup.groupId || '';
+            } else {
+              console.error('Gruppe nicht gefunden');
+              this.groupname = 'Unbekannte Gruppe';
+            }
+          } else {
+            console.error('Kein GroupId für den Benutzer gefunden');
+            this.groupname = 'Unbekannte Gruppe';
+          }
+        } else {
+          console.error('Kein Benutzer eingeloggt.');
+        }
+
+        this.iosIcons = this.platform.is('ios');
+        // Berechne die Balance
+        this.calculateBalance();
+      } catch (error) {
+        console.error('Fehler beim Initialisieren der Seite:', error);
+      } finally {
+        this.loadingService.hide(); // Lade-Overlay deaktivieren
+      }
+    }, 500); // Verzögerung von 500ms, bevor der Prozess gestartet wird
   }
 
+  // Berechnet den Kontostand basierend auf den Ausgaben
   calculateBalance() {
     this.balance = this.expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
   }
 
+  // Logout-Funktion
   async logout() {
     this.loadingService.show(); // Lade-Overlay aktivieren
     try {
@@ -124,6 +159,7 @@ export class ExpensePage implements OnInit {
     }
   }
 
+  // Navigation zu den Details einer Ausgabe
   goToExpenseDetails(expenseId: number) {
     this.loadingService.show(); // Lade-Overlay aktivieren
     try {
@@ -132,6 +168,8 @@ export class ExpensePage implements OnInit {
       this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
+
+  // Navigation zur Seite zum Erstellen einer neuen Ausgabe
   goToCreateExpense() {
     this.loadingService.show(); // Lade-Overlay aktivieren
     try {
@@ -141,6 +179,7 @@ export class ExpensePage implements OnInit {
     }
   }
 
+  // Zurück zur vorherigen Seite
   goBack() {
     this.navCtrl.back();
   }

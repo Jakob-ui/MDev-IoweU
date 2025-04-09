@@ -34,9 +34,7 @@ import { AlertController } from '@ionic/angular';
   ],
 })
 export class JoinGroupPage {
-  scanQRCode() {
-    throw new Error('Method not implemented.');
-  }
+  showScanner: any;
   joinCode: string = '';
   auth = inject(Auth);
   authService = inject(AuthService);
@@ -57,7 +55,7 @@ export class JoinGroupPage {
     // Den QR-Code-Scanner initialisieren
     // Wir initialisieren ihn hier, aber er wird nur aktiviert, wenn der Benutzer auf den Button klickt
     // Überprüfen, ob der Barcode Scanner unterstützt wird
-    BarcodeScanner.isSupported().then((result) => {
+    BarcodeScanner.isSupported().then((result: { supported: boolean | undefined; }) => {
       this.isSupported = result.supported;
     });
   }
@@ -114,6 +112,22 @@ export class JoinGroupPage {
       this.loadingService.hide();
     }
   }
+
+  scanQRCode() {
+    if (this.platformIsNative) {
+      this.scanNativeQRCode(); // Nutze die native Scanner-Methode
+    } else {
+      if (this.qrCodeScanner) return; // Verhindere doppelte Initialisierung
+      this.showScanner = true;
+      setTimeout(() => {
+        this.initializeQRCodeScanner(); // Initialisiere den Web-QR-Code-Scanner
+      });
+    }
+  }
+  scanNativeQRCode() {
+    throw new Error('Method not implemented.');
+  }
+  
 
   // Funktion zum Scannen von QR-Codes, die bei Button-Klick ausgelöst wird
   initializeQRCodeScanner() {
