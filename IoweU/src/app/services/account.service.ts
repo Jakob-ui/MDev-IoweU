@@ -27,7 +27,6 @@ export class AccountService {
     if (this.auth.currentUser) {
       try {
         const uid = this.auth.currentUser.uid;
-
         const usersCollection = collection(this.firestore, 'users');
         const q = query(usersCollection, where('uid', '==', uid));
         const snapshot = await getDocs(q);

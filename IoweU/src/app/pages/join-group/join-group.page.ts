@@ -85,6 +85,7 @@ export class JoinGroupPage {
         lastedited: '',
         groupId: [],
       };
+      console.log('userData', userData);
 
       this.groupService
         .joinGroup(userData, this.joinCode)
