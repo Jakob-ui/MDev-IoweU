@@ -45,25 +45,25 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'group/:id',
+    path: 'group/:groupId',
     loadComponent: () =>
       import('./pages/group/group.page').then((m) => m.GroupPage),
     canActivate: [AuthGuard],
   },
   {
-    path: 'finance/:groupId',  // groupId wird hier erwartet
+    path: 'finance/:groupId', // groupId wird hier erwartet
     loadComponent: () =>
       import('./pages/finance/finance.page').then((m) => m.FinancePage),
     canActivate: [AuthGuard],
   },
   {
-    path: 'expense/:groupId',  // groupId wird hier erwartet
+    path: 'expense/:groupId', // groupId wird hier erwartet
     loadComponent: () =>
       import('./pages/expense/expense.page').then((m) => m.ExpensePage),
     canActivate: [AuthGuard],
   },
   {
-    path: 'create-expense/:groupId',  // groupId wird hier erwartet
+    path: 'create-expense/:groupId', // groupId wird hier erwartet
     loadComponent: () =>
       import('./pages/create-expense/create-expense.page').then(
         (m) => m.CreateExpensePage
@@ -71,7 +71,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'expense-details/:id',
+    path: 'expense-details/:groupId',
     loadComponent: () =>
       import('./pages/expense-details/expense-details.page').then(
         (m) => m.ExpenseDetailsPage
@@ -79,7 +79,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'repeating-expenses/:groupId',  // groupId wird hier erwartet
+    path: 'repeating-expenses/:groupId', // groupId wird hier erwartet
     loadComponent: () =>
       import('./pages/repeating-expenses/repeating-expenses.page').then(
         (m) => m.RepeatingExpensesPage
@@ -97,9 +97,7 @@ export const routes: Routes = [
   {
     path: 'edit-group/:id',
     loadComponent: () =>
-      import('./pages/edit-group/edit-group.page').then(
-        (m) => m.EditGroupPage
-      ),
+      import('./pages/edit-group/edit-group.page').then((m) => m.EditGroupPage),
     canActivate: [AuthGuard],
   },
   {

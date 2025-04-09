@@ -17,14 +17,16 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonCardSubtitle,
-  IonCardContent, IonIcon,
+  IonCardContent,
+  IonIcon,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from "../../services/auth.service";
-import { NavController, Platform } from "@ionic/angular";
-import { LoadingService } from "../../services/loading.service";
-import { GroupService } from "../../services/group.service"; // GroupService importieren
-import { Groups } from "../../services/objects/Groups"; // Typisierung hinzufügen
+import { AuthService } from '../../services/auth.service';
+import { NavController, Platform } from '@ionic/angular';
+import { LoadingService } from '../../services/loading.service';
+import { GroupService } from '../../services/group.service'; // GroupService importieren
+import { Groups } from '../../services/objects/Groups'; // Typisierung hinzufügen
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-finance',
@@ -48,6 +50,7 @@ import { Groups } from "../../services/objects/Groups"; // Typisierung hinzufüg
 export class FinancePage implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
+  private activeRoute = inject(ActivatedRoute);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
@@ -56,7 +59,7 @@ export class FinancePage implements OnInit {
   groupname: string = '';
   iosIcons: boolean = false;
 
-  user: string | null = "";
+  user: string | null = '';
   displayName: string | null = null;
   groupId: string | null = null; // Variable für die groupId hinzufügen
 
@@ -79,7 +82,7 @@ export class FinancePage implements OnInit {
         document.documentElement.style.setProperty('--user-color', userColor); // Benutzerfarbe setzen
 
         // Holen der groupId als String aus dem AuthService
-        const groupId = String(this.auth.currentUser.groupId || ''); // Sicherstellen, dass groupId ein String ist
+        const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
 
         console.log('Benutzer GroupId:', groupId); // Debug: Ausgabe der GroupId
 

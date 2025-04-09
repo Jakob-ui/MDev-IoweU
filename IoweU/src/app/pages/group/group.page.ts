@@ -92,7 +92,7 @@ export class GroupPage implements OnInit {
 
         // Holen der Gruppen-ID aus den Routenparametern
         this.route.params.subscribe((params) => {
-          this.groupid = params['id'];
+          this.groupid = params['groupId'];
           this.loadGroupData(this.groupid).finally(() => {
             this.loadingService.hide(); // Lade-Overlay deaktivieren
           });
@@ -103,7 +103,6 @@ export class GroupPage implements OnInit {
       }
     })();
   }
-
 
   // Logout-Funktion
   async logout() {
@@ -160,11 +159,11 @@ export class GroupPage implements OnInit {
       case 'Ausgaben':
         return `/expense/${this.groupid}`;
       case 'Einkaufsliste':
-        return `/shopping-list/${this.groupid}`;  // Beispiel-Link für Shopping-List
+        return `/shopping-list/${this.groupid}`; // Beispiel-Link für Shopping-List
       case 'Anlagegüter':
-        return `/assets/${this.groupid}`;  // Beispiel-Link für Assets
+        return `/assets/${this.groupid}`; // Beispiel-Link für Assets
       default:
-        return '/';  // Rückfalloption für unbekannte Features
+        return '/'; // Rückfalloption für unbekannte Features
     }
   }
 
