@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -13,17 +13,19 @@ import {
   IonLabel,
   IonList,
   IonBadge,
-  IonInput,
   IonCard,
   IonCardHeader,
   IonCardTitle,
   IonCardSubtitle,
   IonCardContent, IonIcon,
 } from '@ionic/angular/standalone';
-import {Router, RouterModule} from '@angular/router';
-import {AuthService} from "../../services/auth.service";
-import {NavController, Platform} from "@ionic/angular";
-import {LoadingService} from "../../services/loading.service";
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from "../../services/auth.service";
+import { NavController, Platform } from "@ionic/angular";
+import { LoadingService } from "../../services/loading.service";
+import { GroupService } from "../../services/group.service"; // GroupService importieren
+import { Groups } from "../../services/objects/Groups"; // Typisierung hinzufügen
+
 @Component({
   selector: 'app-finance',
   templateUrl: './finance.page.html',
@@ -43,30 +45,73 @@ import {LoadingService} from "../../services/loading.service";
     IonIcon,
   ],
 })
-export class FinancePage {
+export class FinancePage implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
+  private groupService = inject(GroupService); // GroupService injizieren
 
   groupname: string = '';
   iosIcons: boolean = false;
 
-  user: string | null ="";
+  user: string | null = "";
   displayName: string | null = null;
-
+  groupId: string | null = null; // Variable für die groupId hinzufügen
 
   myBalance: number = +200;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
-  groupMembers = [
-    { name: 'Livia', amount: 460 },
-    { name: 'Michaela', amount: -150 },
-    { name: 'Jakob', amount: -50 },
-    { name: 'Sophie', amount: -10 },
-    { name: 'Mateusz', amount: 0 },
-  ];
+  groupMembers: any[] = []; // Mitglieder als Array deklarieren
+
+  ngOnInit() {
+    this.loadingService.show(); // Lade-Overlay aktivieren
+
+    (async () => {
+      try {
+        // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
+        if (this.auth.currentUser) {
+          this.user = this.auth.currentUser.username;
+          this.displayName = this.auth.currentUser.username;
+          console.log('Benutzerdaten:', this.auth.currentUser); // Logge die Benutzerdaten zur Überprüfung
+
+          const userColor = this.auth.currentUser.color || '#000000'; // Standardfarbe setzen, falls nicht verfügbar
+          document.documentElement.style.setProperty('--user-color', userColor); // Benutzerfarbe setzen
+
+          // Holen der groupId als String aus dem AuthService
+          const groupId = String(this.auth.currentUser.groupId || ''); // Sicherstellen, dass groupId ein String ist
+
+          if (groupId) {
+            // Holen der Gruppendaten über den GroupService
+            const currentGroup = await this.groupService.getGroupById(groupId); // Verwenden der tatsächlichen groupId hier
+
+            if (currentGroup) {
+              this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+              this.groupId = currentGroup.groupId || '';
+
+              // Holen der Mitglieder für diese Gruppe
+              this.groupMembers = currentGroup.members || []; // Mitglieder aus der Gruppe laden
+            } else {
+              console.error('Gruppe nicht gefunden');
+              this.groupname = 'Unbekannte Gruppe';
+            }
+          } else {
+            console.error('Kein GroupId für den Benutzer gefunden');
+            this.groupname = 'Unbekannte Gruppe';
+          }
+        } else {
+          console.error('Kein Benutzer eingeloggt.');
+        }
+
+        this.iosIcons = this.platform.is('ios');
+      } catch (error) {
+        console.error('Fehler beim Initialisieren der Seite:', error);
+      } finally {
+        this.loadingService.hide(); // Lade-Overlay deaktivieren
+      }
+    })();
+  }
 
   goToCreateExpense() {
     this.loadingService.show(); // Lade-Overlay aktivieren
@@ -76,6 +121,7 @@ export class FinancePage {
       this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
+
   async logout() {
     this.loadingService.show(); // Lade-Overlay aktivieren
     try {
@@ -91,7 +137,6 @@ export class FinancePage {
   goBack() {
     this.navCtrl.back(); // Navigiert zur letzten Seite
   }
-
 
   constructor() {}
 }

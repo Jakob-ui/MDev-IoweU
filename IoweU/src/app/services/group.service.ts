@@ -259,18 +259,30 @@ export class GroupService {
 
 
   //Bestimmte Gruppe finden:
-  async getGroupById(id: string): Promise<Groups | null> {
+  async getGroupById(groupId: string): Promise<Groups | null> {
     try {
-      if (!id) return null;
-      const groupRef = doc(this.firestore, 'groups', id);
-      const groupSnapshot = await getDoc(groupRef);
-      if (!groupSnapshot.exists()) return null;
+      if (!groupId) return null;
 
+      // Referenz auf das Gruppen-Dokument
+      const groupRef = doc(this.firestore, 'groups', groupId);
+
+      // Abrufen des Snapshots der Gruppe
+      const groupSnapshot = await getDoc(groupRef);
+
+      // Überprüfen, ob das Dokument existiert
+      if (!groupSnapshot.exists()) {
+        console.warn('Gruppe nicht gefunden');
+        return null;
+      }
+
+      // Die Daten aus dem Snapshot extrahieren und sicherstellen, dass sie dem Groups-Interface entsprechen
       const group = groupSnapshot.data() as Groups;
-      group.groupId = groupSnapshot.id;
+      group.groupId = groupSnapshot.id; // Gruppennummer hinzufügen (Firestore ID)
+
+      // Gib die Gruppe zurück
       return group;
     } catch (e) {
-      console.error('Error fetching group by ID: ', e);
+      console.error('Fehler beim Abrufen der Gruppe nach ID: ', e);
       return null;
     }
   }

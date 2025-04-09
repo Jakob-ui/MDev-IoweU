@@ -34,7 +34,7 @@
     </ion-button>
 
     <!-- Container für den Web-QR-Code-Scanner -->
-    <div id="qr-code-scanner" *ngIf="!isSupported && !platformIsNative" class="qr-code-scanner"></div>
+    <div id="qr-code-scanner" *ngIf="showScanner" class="qr-code-scanner"></div>
 
 
     <p *ngIf="joinFailed" class="error-message">{{ error }}</p> <!-- Fehlermeldung anzeigen, wenn joinFailed true ist -->
