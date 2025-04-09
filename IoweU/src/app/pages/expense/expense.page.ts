@@ -13,11 +13,12 @@ import {
   IonIcon,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from "../../services/auth.service";
-import { NavController, Platform } from "@ionic/angular";
-import { LoadingService } from "../../services/loading.service";
-import { GroupService } from "../../services/group.service"; // Importiere den GroupService
+import { AuthService } from '../../services/auth.service';
+import { NavController, Platform } from '@ionic/angular';
+import { LoadingService } from '../../services/loading.service';
+import { GroupService } from '../../services/group.service'; // Importiere den GroupService
 import { Groups } from '../../services/objects/Groups'; // Falls benötigt, um Gruppentyp zu definieren
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-expense',
@@ -28,7 +29,6 @@ import { Groups } from '../../services/objects/Groups'; // Falls benötigt, um G
     CommonModule,
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonContent,
     IonItem,
     IonList,
@@ -42,6 +42,7 @@ import { Groups } from '../../services/objects/Groups'; // Falls benötigt, um G
 export class ExpensePage implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
+  private activeRoute = inject(ActivatedRoute);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
@@ -49,7 +50,7 @@ export class ExpensePage implements OnInit {
 
   iosIcons: boolean = false;
 
-  user: string | null = "";
+  user: string | null = '';
   displayName: string | null = null;
   groupname: string = '';
   groupId: string = ''; // ID der Gruppe, um Daten zu laden
@@ -97,7 +98,7 @@ export class ExpensePage implements OnInit {
   ngOnInit() {
     this.loadingService.show(); // Lade-Overlay aktivieren
 
-    (async () => {
+    setTimeout(async () => {
       try {
         // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
         if (this.auth.currentUser) {
@@ -109,8 +110,7 @@ export class ExpensePage implements OnInit {
           document.documentElement.style.setProperty('--user-color', userColor); // Benutzerfarbe setzen
 
           // Holen der groupId als String aus dem AuthService
-          const groupId = String(this.auth.currentUser.groupId || ''); // Sicherstellen, dass groupId ein String ist
-
+          const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
           if (groupId) {
             // Holen der Gruppendaten über den GroupService
             const currentGroup = await this.groupService.getGroupById(groupId); // Verwenden der tatsächlichen groupId hier
@@ -138,15 +138,15 @@ export class ExpensePage implements OnInit {
       } finally {
         this.loadingService.hide(); // Lade-Overlay deaktivieren
       }
-    })();
+    }, 500); // Verzögerung von 500ms, bevor der Prozess gestartet wird
   }
-
-
-
 
   // Berechnet den Kontostand basierend auf den Ausgaben
   calculateBalance() {
-    this.balance = this.expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
+    this.balance = this.expenses.reduce(
+      (sum, expense) => sum + expense.totalAmount,
+      0
+    );
   }
 
   // Logout-Funktion

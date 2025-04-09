@@ -420,7 +420,7 @@ ion-item.select-interface-option::part(native) {
   padding: 10px; /* Polsterung */
 }
 
-.bilance-list,
+.balance-list,
 .expense-list {
   width: 100%;
   display: flex;
@@ -445,27 +445,17 @@ ion-item.select-interface-option::part(native) {
   border-radius: 15px;
 }
 
-.member-info {
-  display: inline-flex;
-  align-items: center;
-  height: 40px;
-  border-radius: 50px;
-  gap: 10px;
-  background: var(--user-color-background, rgba(252, 238, 238, 0.84));
-  border: 2px solid var(--user-color, #1a65eb);
-  padding: 5px 10px 5px 5px;
-}
-
 .user-info {
   display: inline-flex;
   align-items: center;
   height: 30px;
   border-radius: 50px;
   gap: 10px;
-  background: var(--user-color-background, rgba(252, 238, 238, 0.84));
+  background: var(--user-color-background, rgba(218, 218, 218, 0.84));
   border: 2px solid var(--user-color, #1a65eb);
   padding: 5px 10px 5px 5px;
 }
+
 .user-info .profile-placeholder {
   width: 20px;
   height: 20px;
@@ -480,18 +470,30 @@ ion-item.select-interface-option::part(native) {
   border: 1px solid var(--user-color);
 }
 
+
+.member-info {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  border-radius: 50px;
+  gap: 10px;
+  background: var(--member-color-background, rgba(252, 238, 238, 0.84));
+  border: 2px solid var(--member-color, #1a65eb);
+  padding: 5px 10px 5px 5px;
+}
+
 .profile-placeholder {
   width: 25px;
   height: 25px;
   border-radius: 50%;
-  background: var(--user-color, #1a65eb);
+  background: var(--member-color, #1a65eb);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   color: var(--ion-color-dark);
   font-size: 18px;
-  border: 2px solid var(--user-color, #1a65eb);
+  border: 2px solid var(--member-color, #1a65eb);
 }
 
 .member-name {
@@ -704,7 +706,7 @@ ion-input:focus ~ .ionicon {
   ion-card.finance-card p,
   .card-content h6,
   .card-content p,
-  .label, 
+  .label,
   ion-item .Dropdown-label,
   ion-select::part(text),
   .brush-icon,
@@ -712,7 +714,7 @@ ion-input:focus ~ .ionicon {
   ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
   }
-  
+
   .loading-overlay {
     color: var(--ion-color-light);
     background: var(--ion-background-color);
@@ -724,7 +726,7 @@ ion-input:focus ~ .ionicon {
 
   .error-container h1 {
     color: var(--ion-color-danger) !important;
-  }  
+  }
 
   .divider {
     background-color: var(--ion-color-light) !important;
@@ -733,7 +735,7 @@ ion-input:focus ~ .ionicon {
   //zb bei create-expense, Dropdown Menü bei den Groupmembers
   .top-container ion-input,
   .bottom-container ion-input {
-    color: var(--ion-color-light) !important; 
+    color: var(--ion-color-light) !important;
   }
 
 }
@@ -754,4 +756,7 @@ ion-input:focus ~ .ionicon {
   width: 200px; /* Passe die Größe des Videos an */
   height: auto;
   border-radius: 10px; /* Optional: Abgerundete Ecken */
+}
+.member-username{
+  color: #2f2f2f;
 }

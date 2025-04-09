@@ -1,30 +1,15 @@
 import { inject, Injectable } from '@angular/core';
-import {
-  Firestore,
-  collection,
-  getDocs,
-  addDoc,
-  query,
-  where,
-  deleteDoc,
-  setDoc,
-  doc,
-} from '@angular/fire/firestore';
+import { Firestore, setDoc, doc, getDoc } from '@angular/fire/firestore';
 import {
   Auth,
-  UserCredential,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  setPersistence,
-  browserSessionPersistence,
   browserLocalPersistence,
-  onAuthStateChanged,
-  User,
+  browserSessionPersistence,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  UserCredential,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
-import { UserService } from './user.service';
-import { getDoc } from '@firebase/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -35,11 +20,11 @@ export class AuthService {
   }
   private auth = inject(Auth);
   private firestore = inject(Firestore);
-  private userService = inject(UserService);
   currentUser: Users | null = null;
 
+  //Holt alle Daten vom user aus der Datenbank
   constructor() {
-    onAuthStateChanged(this.auth, (user) => {
+    this.auth.onAuthStateChanged((user) => {
       if (user) {
         this.currentUser = {
           uid: user.uid,
@@ -50,7 +35,8 @@ export class AuthService {
           groupId: [],
         };
         const groupRef = doc(this.firestore, 'users', user.uid);
-        const docsnap = getDoc(groupRef).then((docsnap) => {
+        getDoc(groupRef).then((docsnap) => {
+          this.firestore;
           if (docsnap.exists()) {
             this.currentUser = {
               uid: user.uid,
@@ -78,6 +64,7 @@ export class AuthService {
     });
   }
 
+  //Erstellt einen neuen User im Firebase Auth und der Datenbank
   async signup(
     email: string,
     password: string,
@@ -90,6 +77,15 @@ export class AuthService {
       email.trim(),
       password.trim()
     );
+    /* versuch user in User Auth zu speichern
+    const db = getDatabase();
+    update(ref(db, 'users/' + userCredential.user.uid), {
+      username: username,
+      color: color,
+      lastedited: new Date().toISOString(),
+      groupId: [],
+    });
+    */
 
     if (userCredential.user) {
       const userData: Users = {
@@ -115,6 +111,7 @@ export class AuthService {
     return userCredential;
   }
 
+  //Updated den User in Users in Firestore
   private async saveUserData(uid: string, data: Users): Promise<boolean> {
     try {
       const userRef = doc(this.firestore, 'users', uid);
@@ -130,6 +127,7 @@ export class AuthService {
     }
   }
 
+  //Logged den User ein mithilfe der Auth von Firebase
   login(email: string, password: string, rememberMe: boolean): Promise<void> {
     const persistence = rememberMe
       ? browserLocalPersistence
@@ -142,9 +140,10 @@ export class AuthService {
           this.auth,
           email.trim(),
           password.trim()
-        );
+        ).then(() => {
+          console.log('Benutzer erfolgreich eingeloggt.');
+        });
       })
-      .then(async (userCredential) => {})
       .catch((error) => {
         console.error('Fehler beim Login:', error);
         throw error;
