@@ -7,6 +7,8 @@ import {
   query,
   where,
   deleteDoc,
+  setDoc,
+  doc,
 } from '@angular/fire/firestore';
 import {
   Auth,
@@ -22,6 +24,7 @@ import {
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { UserService } from './user.service';
+import { getDoc } from '@firebase/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -33,7 +36,47 @@ export class AuthService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private userService = inject(UserService);
-  currentUser: any;
+  currentUser: Users | null = null;
+
+  constructor() {
+    onAuthStateChanged(this.auth, (user) => {
+      if (user) {
+        this.currentUser = {
+          uid: user.uid,
+          username: '',
+          email: '',
+          color: '',
+          lastedited: '',
+          groupId: [],
+        };
+        const groupRef = doc(this.firestore, 'users', user.uid);
+        const docsnap = getDoc(groupRef).then((docsnap) => {
+          if (docsnap.exists()) {
+            this.currentUser = {
+              uid: user.uid,
+              username: docsnap.data()['username'],
+              email: docsnap.data()['email'],
+              color: docsnap.data()['color'],
+              lastedited: docsnap.data()['lastedited'],
+              groupId: docsnap.data()['groupId'],
+            };
+            console.log(
+              'Benutzer eingeloggt und in Datenbank geladen',
+              this.currentUser
+            );
+          } else {
+            this.currentUser = null;
+            console.log(
+              'Benutzer eingeloggt, aber nicht in der Datenbank gefunden'
+            );
+          }
+        });
+      } else {
+        this.currentUser = null;
+        console.log('Benutzer nicht eingeloggt');
+      }
+    });
+  }
 
   async signup(
     email: string,
@@ -50,13 +93,15 @@ export class AuthService {
 
     if (userCredential.user) {
       const userData: Users = {
-        uid: userCredential.user.uid,
+        uid: userCredential.user.uid, // UID des Benutzers
         username: username,
         email: email,
         color: color,
         lastedited: new Date().toISOString(),
+        groupId: [], // Initialisiere groupId als leeres Array
       };
 
+      //Speichere die Benutzerdaten in Firestore
       const success = await this.saveUserData(
         userCredential.user.uid,
         userData
@@ -66,25 +111,21 @@ export class AuthService {
         throw new Error('Fehler beim Speichern der Benutzerdaten.');
       }
     }
+
     return userCredential;
   }
 
   private async saveUserData(uid: string, data: Users): Promise<boolean> {
-    if (!this.auth.currentUser) {
-      throw new Error('Benutzer ist nicht authentifiziert.');
-    }
-
-    if (this.auth.currentUser.uid !== uid) {
-      throw new Error(
-        'Die UID des authentifizierten Benutzers stimmt nicht mit der Dokument-ID überein.'
-      );
-    }
     try {
-      const docRef = await addDoc(collection(this.firestore, 'users'), data);
-      console.log('Dokument erfolgreich hinzugefügt:', docRef.id);
+      const userRef = doc(this.firestore, 'users', uid);
+      await setDoc(userRef, data);
+      console.log(
+        'Benutzerdaten erfolgreich gespeichert mit UID als Dokument-ID:',
+        uid
+      );
       return true;
     } catch (e) {
-      console.error('Fehler beim Hinzufügen des Dokuments:', e);
+      console.error('Fehler beim Speichern der Benutzerdaten:', e);
       return false;
     }
   }
@@ -102,24 +143,7 @@ export class AuthService {
           password.trim()
         );
       })
-      .then(async (userCredential) => {
-        if (userCredential.user) {
-          const uid = userCredential.user.uid;
-          const username = await this.userService.getUserthingsByUid(
-            uid,
-            'username'
-          );
-          const userColor = await this.userService.getUserthingsByUid(
-            uid,
-            'color'
-          );
-          sessionStorage.setItem('username', username);
-          sessionStorage.setItem('email', email);
-          sessionStorage.setItem('usercolor', userColor);
-        } else {
-          throw new Error('Benutzer konnte nicht authentifiziert werden.');
-        }
-      })
+      .then(async (userCredential) => {})
       .catch((error) => {
         console.error('Fehler beim Login:', error);
         throw error;
@@ -134,24 +158,6 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     return !!this.auth.currentUser;
-  }
-
-  monitorAuthState(): void {
-    onAuthStateChanged(this.auth, (user) => {
-      if (user) {
-        console.log('Benutzer eingeloggt:', user);
-      } else {
-        console.log('Kein Benutzer eingeloggt.');
-      }
-    });
-  }
-
-  getCurrentUser(): Promise<User | null> {
-    return new Promise((resolve) => {
-      onAuthStateChanged(this.auth, (user) => {
-        resolve(user);
-      });
-    });
   }
 
   resetpassword(email: string): Promise<void> {

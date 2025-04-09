@@ -6,7 +6,6 @@ import {
   IonItem,
   IonLabel,
   IonInput,
-  IonList,
   IonSelect,
   IonSelectOption,
 } from '@ionic/angular/standalone';
@@ -17,6 +16,7 @@ import { Auth } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
 import { Groups } from 'src/app/services/objects/Groups';
 import { Router } from '@angular/router';
+import { UserService } from 'src/app/services/user.service';
 import { LoadingService } from 'src/app/services/loading.service';
 @Component({
   selector: 'app-create-group',
@@ -42,6 +42,8 @@ export class CreateGroupPage {
   auth = inject(Auth);
   firestore = inject(Firestore);
   router = inject(Router);
+  private userService = inject(UserService);
+
   groupname: string = '';
   //newMember: string = '';
   //members: string[] = [];
@@ -66,21 +68,26 @@ export class CreateGroupPage {
 
   async saveGroup() {
     if (!this.groupname || !this.selectedTemplate) {
-      console.error('Groups name and template are required!');
-      alert('Wähle ein template aus!');
+      console.error('Group name and template are required!');
+      alert('Wähle ein Template aus!');
       return;
     }
-  
+
     const user = this.auth.currentUser;
     if (!user) {
       console.error('User is not logged in!');
       return;
     }
-  
+
     const founder = user.uid;
-  
+
     this.loadingService.show(); // Lade-Overlay aktivieren
+
     try {
+      // Hole das vollständige Benutzerobjekt mit getUserData()
+      const founder = await this.userService.getUserData();
+
+      // Erstelle die Gruppe mit dem Benutzerobjekt
       await this.groupService.createGroup(
         this.groupname,
         founder,
@@ -88,6 +95,8 @@ export class CreateGroupPage {
       );
       console.log('Groups successfully created!');
       this.router.navigate(['/group-overview']); // Nach erfolgreicher Erstellung weiterleiten
+
+      console.log('Group successfully created!');
     } catch (error) {
       console.error('Error creating group:', error);
     } finally {

@@ -43,7 +43,7 @@ export class LoginPage {
       this.loginFailed = true;
       return;
     }
-  
+
     this.loadingService.show(); // Lade-Overlay aktivieren
     try {
       await this.authService.login(this.email, this.password, this.rememberMe);

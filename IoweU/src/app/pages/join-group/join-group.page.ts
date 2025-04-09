@@ -6,7 +6,10 @@ import { FormsModule } from '@angular/forms';
 import { IonButton, IonContent, IonInput, IonItem } from '@ionic/angular/standalone';
 import { GroupService } from 'src/app/services/group.service';
 import { Auth } from '@angular/fire/auth';
+import { AuthService } from 'src/app/services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
+import { Users } from 'src/app/services/objects/Users';
+
 
 @Component({
   selector: 'app-join-group',
@@ -54,10 +57,21 @@ export class JoinGroupPage {
   }
 
   joinGroup() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
-    if (this.auth.currentUser) {
+    this.loadingService.show();
+
+    const firebaseUser = this.auth.currentUser;
+    if (firebaseUser) {
+      const userData: Users = {
+        uid: firebaseUser.uid,
+        username: '', // da müssen noch die richtigen Daten übergeben werden
+        email: firebaseUser.email ?? '',
+        color: '',
+        lastedited: new Date().toISOString(),
+        groupId: []
+      };
+
       this.groupService
-        .joinGroup(this.auth.currentUser.uid, this.joinCode)
+        .joinGroup(userData, this.joinCode)
         .then(() => {
           return this.groupService.getGroupByAccessCode(this.joinCode);
         })
@@ -75,14 +89,15 @@ export class JoinGroupPage {
           this.joinFailed = true;
         })
         .finally(() => {
-          this.loadingService.hide(); // Lade-Overlay deaktivieren
+          this.loadingService.hide();
         });
     } else {
       this.error = 'User is not authenticated.';
       this.joinFailed = true;
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
+
 
   // Funktion zum Scannen von QR-Codes, die bei Button-Klick ausgelöst wird
   initializeQRCodeScanner() {
@@ -93,7 +108,7 @@ export class JoinGroupPage {
         console.error('QR-Code-Scanner Container nicht gefunden.');
         return;
       }
-  
+
       const scanner = new Html5QrcodeScanner(
         'qr-code-scanner',
         {
@@ -102,7 +117,7 @@ export class JoinGroupPage {
         },
         false
       );
-  
+
       scanner.render(
         (result: string) => {
           this.qrCodeScanner?.clear();
@@ -112,7 +127,7 @@ export class JoinGroupPage {
           console.warn(error);
         }
       );
-  
+
       this.qrCodeScanner = scanner;
     } catch (error) {
       console.error('Fehler beim Initialisieren des QR-Code-Scanners:', error);
@@ -120,5 +135,5 @@ export class JoinGroupPage {
       this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
-  
+
 }

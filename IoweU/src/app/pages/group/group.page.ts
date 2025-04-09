@@ -73,10 +73,16 @@ export class GroupPage implements OnInit {
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
 
   ngOnInit() {
-    this.user = sessionStorage.getItem('username');
-    this.iosIcons = this.platform.is('ios');
-    this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
+    // Holen der Benutzerdaten direkt aus AuthService
+    if (this.auth.currentUser) {
+      this.user = this.auth.currentUser.username; // Benutzername aus dem AuthService
+    } else {
+      console.error('Kein Benutzer eingeloggt.');
+    }
 
+    this.iosIcons = this.platform.is('ios');
+
+    // Holen des Gruppennamens direkt aus den Route-Parametern oder AuthService
     this.route.params.subscribe((params) => {
       this.groupid = params['id'];
       this.loadingService.show(); // Lade-Overlay aktivieren
