@@ -29,19 +29,23 @@ import { Users } from 'src/app/services/objects/Users';
   ],
 })
 export class JoinGroupPage {
+scanQRCode() {
+throw new Error('Method not implemented.');
+}
   joinCode: string = '';
   auth = inject(Auth);
-  platformIsNative = Capacitor.isNativePlatform();
   error: string = '';
   joinFailed: boolean = false;
   groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
+  platformIsNative = Capacitor.isNativePlatform();
 
   //private validJoinCodes: string[] = ['abc123', 'xyz456', 'test123']; // Beispiel gültiger Codes
   private qrCodeScanner: Html5QrcodeScanner | null = null;  // Verweis auf den QR-Code-Scanner
   Capacitor: any;
+  isSupported: boolean | undefined;
 
-  constructor(private router: Router, private alertController: AlertController) {}
+  constructor(private router: Router) {}
 
   ngOnInit() {
     // Den QR-Code-Scanner initialisieren
@@ -66,7 +70,7 @@ export class JoinGroupPage {
   }
 
   joinGroup() {
-    this.loadingService.show();
+      this.loadingService.show();
 
     const firebaseUser = this.auth.currentUser;
     if (firebaseUser) {
@@ -103,8 +107,9 @@ export class JoinGroupPage {
     } else {
       this.error = 'User is not authenticated.';
       this.joinFailed = true;
-      this.loadingService.hide();
-    }
+        this.loadingService.hide();
+      }
+  
   }
 
 
