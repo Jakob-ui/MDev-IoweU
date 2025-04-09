@@ -135,7 +135,8 @@ export class AuthService {
       ? browserLocalPersistence
       : browserSessionPersistence;
 
-    return setPersistence(this.auth, persistence)
+    return this.auth
+      .setPersistence(persistence)
       .then(() => {
         return signInWithEmailAndPassword(
           this.auth,
