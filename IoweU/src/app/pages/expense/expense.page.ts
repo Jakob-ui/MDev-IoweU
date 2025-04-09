@@ -15,6 +15,7 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from "../../services/auth.service";
 import { NavController, Platform } from "@ionic/angular";
+import { LoadingService } from "../../services/loading.service";
 
 @Component({
   selector: 'app-expense',
@@ -41,7 +42,7 @@ export class ExpensePage implements OnInit {
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
-
+  private loadingService = inject(LoadingService);
   groupname: string = '';
 
   iosIcons: boolean = false;
@@ -90,14 +91,21 @@ export class ExpensePage implements OnInit {
   constructor() {}
 
   ngOnInit() {
-    this.user = sessionStorage.getItem('username');
-    this.iosIcons = this.platform.is('ios');
-    const userColor = sessionStorage.getItem('usercolor');
-    document.documentElement.style.setProperty('--user-color', userColor);
-    this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
-
-    // Berechne die Balance
-    this.calculateBalance();
+    this.loadingService.show(); // Lade-Overlay aktivieren
+    try {
+      this.user = sessionStorage.getItem('username');
+      this.iosIcons = this.platform.is('ios');
+      const userColor = sessionStorage.getItem('usercolor');
+      document.documentElement.style.setProperty('--user-color', userColor);
+      this.groupname = sessionStorage.getItem('groupname') || 'Unbekannte Gruppe';
+  
+      // Berechne die Balance
+      this.calculateBalance();
+    } catch (error) {
+      console.error('Fehler beim Initialisieren der Seite:', error);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
+    }
   }
 
   calculateBalance() {
@@ -105,20 +113,32 @@ export class ExpensePage implements OnInit {
   }
 
   async logout() {
+    this.loadingService.show(); // Lade-Overlay aktivieren
     try {
       await this.auth.logout();
       this.router.navigate(['home']);
     } catch (e) {
-      console.log(e);
+      console.error('Fehler beim Logout:', e);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
 
   goToExpenseDetails(expenseId: number) {
-    this.router.navigate(['expense-details', expenseId]);
+    this.loadingService.show(); // Lade-Overlay aktivieren
+    try {
+      this.router.navigate(['expense-details', expenseId]);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
+    }
   }
-
   goToCreateExpense() {
-    this.router.navigate(['create-expense']);
+    this.loadingService.show(); // Lade-Overlay aktivieren
+    try {
+      this.router.navigate(['create-expense']);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
+    }
   }
 
   goBack() {

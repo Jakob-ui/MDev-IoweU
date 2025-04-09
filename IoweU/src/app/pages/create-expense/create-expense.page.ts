@@ -22,6 +22,7 @@ import { Products } from 'src/app/services/objects/Products';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { Members } from 'src/app/services/objects/Members';
 import {NavController} from "@ionic/angular";
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-create-expense',
@@ -47,7 +48,7 @@ import {NavController} from "@ionic/angular";
 export class CreateExpensePage {
   private router = inject(Router);
   private navCtrl = inject(NavController);
-
+  private loadingService = inject(LoadingService);
   groupMembers: (Members & {})[] = [
     {
       memberId: 'user123',
@@ -307,14 +308,22 @@ export class CreateExpensePage {
   }
 
   saveExpense() {
-    this.updateTotals();
-    this.expense.totalAmount = Number(this.expense.totalAmount);
-    this.expense.members?.forEach((member) => {
-      member.amountToPay = Number(member.amountToPay);
-    });
-
-    console.log('Saving expense:', this.expense);
-    this.router.navigate(['/expense']);
+    this.loadingService.show(); 
+    try {
+      this.updateTotals();
+      this.expense.totalAmount = Number(this.expense.totalAmount);
+      this.expense.members?.forEach((member) => {
+        member.amountToPay = Number(member.amountToPay);
+      });
+  
+      console.log('Saving expense:', this.expense);
+      this.router.navigate(['/expense']);
+    } catch (error) {
+      console.error('Fehler beim Speichern der Ausgabe:', error);
+    } finally {
+      this.loadingService.hide(); 
+    
+    }
   }
 
   cancel() {
