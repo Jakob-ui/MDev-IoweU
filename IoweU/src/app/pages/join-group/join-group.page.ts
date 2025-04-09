@@ -45,7 +45,6 @@ export class JoinGroupPage {
   joinFailed: boolean = false;
   groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
-  platformIsNative = Capacitor.isNativePlatform();
 
   //private validJoinCodes: string[] = ['abc123', 'xyz456', 'test123']; // Beispiel gültiger Codes
   private qrCodeScanner: Html5QrcodeScanner | null = null; // Verweis auf den QR-Code-Scanner
@@ -53,13 +52,12 @@ export class JoinGroupPage {
   isSupported: boolean | undefined;
 
   constructor(private router: Router) {}
-  constructor(private router: Router) {}
 
   ngOnInit() {
     // Den QR-Code-Scanner initialisieren
     // Wir initialisieren ihn hier, aber er wird nur aktiviert, wenn der Benutzer auf den Button klickt
     // Überprüfen, ob der Barcode Scanner unterstützt wird
-    BarcodeScanner.isSupported().then((result) => {
+    BarcodeScanner.isSupported().then((result: { supported: boolean | undefined; }) => {
       this.isSupported = result.supported;
     });
   }
