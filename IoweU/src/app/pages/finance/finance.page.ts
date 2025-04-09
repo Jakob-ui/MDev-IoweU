@@ -69,12 +69,12 @@ export class FinancePage implements OnInit {
     this.loadingService.show();
 
     try {
-      if (this.auth.currentUser) {
-        this.user = this.auth.currentUser.username;
-        this.displayName = this.auth.currentUser.username;
-        console.log('Benutzerdaten:', this.auth.currentUser);
+      if (this.authService.currentUser) {
+        this.user = this.authService.currentUser.username;
+        this.displayName = this.authService.currentUser.username;
+        console.log('Benutzerdaten:', this.authService.currentUser);
 
-        const userColor = this.auth.currentUser.color || '#000000';
+        const userColor = this.authService.currentUser.color || '#000000';
         const userBackgroundColor = this.lightenColor(userColor, 0.9);
         document.documentElement.style.setProperty('--user-color', userColor);
         document.documentElement.style.setProperty(

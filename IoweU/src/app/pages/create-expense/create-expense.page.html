@@ -15,7 +15,11 @@
           </ion-item>
         </div>
         <div class="Kategorie">
-          <ion-item class="input-item" (click)="toggleDropdown()" class="category-select">
+          <ion-item
+            class="input-item"
+            (click)="toggleDropdown()"
+            class="category-select"
+          >
             <ion-label>
               <div class="selected-category">
                 <img
@@ -23,7 +27,9 @@
                   [src]="selectedCategory.icon"
                   class="category-icon"
                 />
-                <span class="label">{{ selectedCategory?.name || 'Kategorie' }}</span>
+                <span class="label"
+                  >{{ selectedCategory?.name || 'Kategorie' }}</span
+                >
               </div>
             </ion-label>
           </ion-item>
@@ -36,7 +42,9 @@
                 (click)="selectCategory(category)"
               >
                 <img [src]="category.icon" class="category-icon" />
-                <ion-label class="dropDownFelder">{{ category.name }}</ion-label>
+                <ion-label class="dropDownFelder"
+                  >{{ category.name }}</ion-label
+                >
               </ion-item>
             </ion-list>
           </div>
@@ -169,9 +177,7 @@
         <div class="member-list-input">
           <div class="member-info">
             <div class="profile-placeholder"></div>
-            <span class="member-username"
-              >{{ groupMembers.username }}</span
-            >
+            <span class="member-username">{{ groupMembers.username }}</span>
           </div>
           <div
             *ngIf="expense.splitType === 'produkte'"

@@ -12,6 +12,8 @@ import {
   IonDatetime,
   IonIcon,
   IonBadge,
+  IonLabel,
+  IonList,
 } from '@ionic/angular/standalone';
 
 // Import interfaces
@@ -28,6 +30,8 @@ import { LoadingService } from 'src/app/services/loading.service';
   styleUrls: ['./create-expense.page.scss'],
   standalone: true,
   imports: [
+    IonList,
+    IonLabel,
     IonContent,
     IonItem,
     IonInput,
@@ -42,13 +46,12 @@ import { LoadingService } from 'src/app/services/loading.service';
   ],
 })
 export class CreateExpensePage {
-  
   private router = inject(Router);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
+
   groupMembers: (Members & {})[] = [
     {
-      memberId: 'user123',
       uid: 'ae2qe',
       username: 'Ich',
       color: 'grün',
@@ -56,7 +59,6 @@ export class CreateExpensePage {
       joinedAt: new Date().toISOString(),
     },
     {
-      memberId: 'user456',
       uid: 'ae2qe',
       username: 'Lila',
       color: 'grün',
@@ -64,7 +66,6 @@ export class CreateExpensePage {
       joinedAt: new Date().toISOString(),
     },
     {
-      memberId: 'user789',
       uid: 'ae2qe',
       username: 'Grün',
       color: 'grün',
@@ -87,7 +88,6 @@ export class CreateExpensePage {
     splitType: 'prozent',
     members: [
       {
-        expenseMemberId: 'aw3da123',
         memberId: 'user123',
         amountToPay: 0,
         split: 1,
@@ -103,7 +103,6 @@ export class CreateExpensePage {
         ],
       },
       {
-        expenseMemberId: 'aw3da123',
         memberId: 'user456',
         amountToPay: 0,
         split: 1,
@@ -132,17 +131,17 @@ export class CreateExpensePage {
     { name: 'Sonstiges', icon: 'assets/icon/other.svg' },
   ];
   selectedCategory: any = null;
-dropdownOpen = false;
+  dropdownOpen = false;
 
-toggleDropdown() {
-  this.dropdownOpen = !this.dropdownOpen;
-}
+  toggleDropdown() {
+    this.dropdownOpen = !this.dropdownOpen;
+  }
 
-selectCategory(category: any) {
-  this.selectedCategory = category;
-  this.expense.category = category.name;
-  this.dropdownOpen = false;
-}
+  selectCategory(category: any) {
+    this.selectedCategory = category;
+    this.expense.category = category.name;
+    this.dropdownOpen = false;
+  }
 
   productInputs: {
     [key: string]: {
@@ -181,7 +180,7 @@ selectCategory(category: any) {
     const member = this.groupMembers.find((m) => m.username === memberName);
     return {
       productId: Date.now().toString(),
-      memberId: member ? member.memberId : '',
+      memberId: member ? member.uid : '',
       productname: '',
       quantity: 1,
       unit: '',
@@ -226,7 +225,6 @@ selectCategory(category: any) {
       } else {
         // If member doesn't exist, add it to the expense
         this.expense.members.push({
-          expenseMemberId: 'awdawd2weq2w34e',
           memberId: entry.input.memberId,
           amountToPay: 0,
           split: 1,
@@ -281,13 +279,12 @@ selectCategory(category: any) {
       );
     }, 0);
   }
-
   private updateMembers() {
     this.expense.members = this.groupMembers.map((member) => ({
       expenseMemberId: 'aw3da123',
-      memberId: member.memberId,
+      memberId: member.uid,
       amountToPay:
-        this.expense.members?.find((m) => m.memberId === member.memberId)
+        this.expense.members?.find((m) => m.memberId === member.uid)
           ?.amountToPay || 0,
       split: 1,
       products: this.productInputs[member.username]?.products || [],
@@ -310,7 +307,7 @@ selectCategory(category: any) {
     const amountPerPerson = total / this.groupMembers.length;
 
     this.groupMembers.forEach((member) => {
-      this.expense.members?.find((m) => m.memberId === member.memberId)
+      this.expense.members?.find((m) => m.memberId === member.uid)
         ?.amountToPay || 0;
     });
   }

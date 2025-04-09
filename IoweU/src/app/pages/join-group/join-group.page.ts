@@ -49,15 +49,20 @@ export class JoinGroupPage {
   Capacitor: any;
   isSupported: boolean | undefined;
 
-  constructor(private router: Router, private alertCrontroller: AlertController) {}
+  constructor(
+    private router: Router,
+    private alertCrontroller: AlertController
+  ) {}
 
   ngOnInit() {
     // Den QR-Code-Scanner initialisieren
     // Wir initialisieren ihn hier, aber er wird nur aktiviert, wenn der Benutzer auf den Button klickt
     // Überprüfen, ob der Barcode Scanner unterstützt wird
-    BarcodeScanner.isSupported().then((result: { supported: boolean | undefined; }) => {
-      this.isSupported = result.supported;
-    });
+    BarcodeScanner.isSupported().then(
+      (result: { supported: boolean | undefined }) => {
+        this.isSupported = result.supported;
+      }
+    );
   }
 
   ngOnDestroy() {
@@ -127,7 +132,6 @@ export class JoinGroupPage {
   scanNativeQRCode() {
     throw new Error('Method not implemented.');
   }
-  
 
   // Funktion zum Scannen von QR-Codes, die bei Button-Klick ausgelöst wird
   initializeQRCodeScanner() {
@@ -166,21 +170,20 @@ export class JoinGroupPage {
     }
   }
 
-
   // Popup-Dialog zur Bestätigung des Beitritts zur Gruppe
   async confirmJoinGroup() {
     this.loadingService.show();
-  
+
     try {
       const group = await this.groupService.getGroupByAccessCode(this.joinCode);
-  
+
       if (!group) {
         this.error = 'Gruppe nicht gefunden.';
         this.joinFailed = true;
         return;
       }
-  
-      const alert = await inject(AlertController).create({
+
+      const alert = await this.alertCrontroller.create({
         header: 'Gruppe beitreten',
         message: `Möchtest du wirklich der Gruppe <strong>${group.groupname}</strong> beitreten?`,
         buttons: [
@@ -196,7 +199,7 @@ export class JoinGroupPage {
           },
         ],
       });
-  
+
       await alert.present();
     } catch (err) {
       console.error(err);
@@ -206,6 +209,4 @@ export class JoinGroupPage {
       this.loadingService.hide();
     }
   }
-  
-  
 }

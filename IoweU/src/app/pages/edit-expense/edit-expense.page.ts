@@ -46,7 +46,6 @@ export class EditExpensePage {
   // Mock-Daten für die Mitglieder und Ausgaben
   groupMembers: (Members & {})[] = [
     {
-      memberId: 'user123',
       uid: 'ae2qe',
       username: 'Ich',
       color: 'grün',
@@ -54,7 +53,6 @@ export class EditExpensePage {
       joinedAt: new Date().toISOString(),
     },
     {
-      memberId: 'user456',
       uid: 'ae2qe',
       username: 'Lila',
       color: 'grün',
@@ -62,7 +60,6 @@ export class EditExpensePage {
       joinedAt: new Date().toISOString(),
     },
     {
-      memberId: 'user789',
       uid: 'ae2qe',
       username: 'Grün',
       color: 'grün',
@@ -86,7 +83,6 @@ export class EditExpensePage {
     splitType: 'prozent',
     members: [
       {
-        expenseMemberId: 'aw3da123',
         memberId: 'user123',
         amountToPay: 75,
         split: 1,
@@ -102,7 +98,6 @@ export class EditExpensePage {
         ],
       },
       {
-        expenseMemberId: 'aw3da124',
         memberId: 'user456',
         amountToPay: 75,
         split: 1,
@@ -157,7 +152,7 @@ export class EditExpensePage {
     const member = this.groupMembers.find((m) => m.username === memberName);
     return {
       productId: Date.now().toString(),
-      memberId: member ? member.memberId : '',
+      memberId: member ? member.uid : '',
       productname: '',
       quantity: 1,
       unit: '',
@@ -198,7 +193,6 @@ export class EditExpensePage {
         member.products.push(newProduct);
       } else {
         this.expense.members.push({
-          expenseMemberId: 'awdawd2weq2w34e',
           memberId: entry.input.memberId,
           amountToPay: 0,
           split: 1,
@@ -250,9 +244,9 @@ export class EditExpensePage {
   private updateMembers() {
     this.expense.members = this.groupMembers.map((member) => ({
       expenseMemberId: 'aw3da123',
-      memberId: member.memberId,
+      memberId: member.uid,
       amountToPay:
-        this.expense.members?.find((m) => m.memberId === member.memberId)
+        this.expense.members?.find((m) => m.memberId === member.uid)
           ?.amountToPay || 0,
       split: 1,
       products: this.productInputs[member.username]?.products || [],
@@ -275,7 +269,7 @@ export class EditExpensePage {
     const amountPerPerson = total / this.groupMembers.length;
 
     this.groupMembers.forEach((member) => {
-      this.expense.members?.find((m) => m.memberId === member.memberId)
+      this.expense.members?.find((m) => m.memberId === member.uid)
         ?.amountToPay || 0;
     });
   }
