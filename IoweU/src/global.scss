@@ -38,7 +38,6 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
 
-
 h1 {
   font-family: var(--ion-font-family);
   font-weight: 700;
@@ -62,7 +61,7 @@ ion-card-title {
   color: var(--ion-color-dark);
 }
 
-ion-card-title{
+ion-card-title {
   text-align: left;
 }
 
@@ -147,7 +146,7 @@ ion-card-subtitle span {
   font-weight: 100;
 }
 
-ion-card-subtitle p{
+ion-card-subtitle p {
   margin: 0;
   margin-left: -5px;
 }
@@ -161,7 +160,6 @@ ion-card-subtitle h6 {
   margin-left: -5px;
   margin-bottom: 0;
 }
-
 
 .finance-card,
 .expense-card {
@@ -203,7 +201,7 @@ ion-card-subtitle h6 {
   flex-grow: 1;
 }
 
-.info-item h5{
+.info-item h5 {
   margin-left: 15px;
 }
 
@@ -229,7 +227,7 @@ ion-card-subtitle h6 {
   margin: 0;
 }
 
-.detailedprice{
+.detailedprice {
   margin-left: auto;
   font-weight: 700;
   padding: 10px 15px;
@@ -286,7 +284,7 @@ ion-title .pagename {
   padding: 0;
 }
 
-ion-title .username{
+ion-title .username {
   font-weight: 100;
   font-size: 16px;
   color: var(--ion-color-dark);
@@ -378,10 +376,9 @@ ion-item .input-label::part(native) {
   font-size: 12px;
   background: var(--ion-color-dark);
   color: var(--ion-color-dark);
-
 }
 
-ion-item .Dropdown-label{
+ion-item .Dropdown-label {
   font-family: var(--ion-font-family);
   font-weight: 100;
   font-size: 12px;
@@ -470,7 +467,6 @@ ion-item.select-interface-option::part(native) {
   border: 1px solid var(--user-color);
 }
 
-
 .member-info {
   display: inline-flex;
   align-items: center;
@@ -486,14 +482,14 @@ ion-item.select-interface-option::part(native) {
   width: 25px;
   height: 25px;
   border-radius: 50%;
-  background: var(--member-color, #1a65eb);
+  background: var(--user-color, #1a65eb);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   color: var(--ion-color-dark);
   font-size: 18px;
-  border: 2px solid var(--member-color, #1a65eb);
+  border: 2px solid var(--user-color, #1a65eb);
 }
 
 .member-name {
@@ -548,7 +544,6 @@ ion-item.select-interface-option::part(native) {
   margin-bottom: 10px;
 }
 
-
 .separator {
   border: none;
   height: 1px;
@@ -582,7 +577,6 @@ ion-item.select-interface-option::part(native) {
   flex: 1;
 }
 
-
 .menu-text.active {
   font-weight: 700; /* Aktive Menü-Option (Bilanz) */
 }
@@ -593,7 +587,7 @@ ion-item.select-interface-option::part(native) {
   height: 20px;
 }
 
-.remember-me{
+.remember-me {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -601,7 +595,7 @@ ion-item.select-interface-option::part(native) {
   margin: 10px 0;
 }
 
-.link-text{
+.link-text {
   font-size: 14px;
   font-weight: 100;
   cursor: pointer;
@@ -624,10 +618,9 @@ ion-item.select-interface-option::part(native) {
   z-index: 100;
 }
 
-.space{
+.space {
   height: 40px;
   background-color: transparent;
-
 }
 
 /* Styling für den Color Picker */
@@ -669,7 +662,7 @@ ion-input:focus ~ .ionicon {
 }
 
 .logo {
-  content: url('/assets/logo/Logo_lang.png');
+  content: url("/assets/logo/Logo_lang.png");
 }
 
 /* Anpassungen für den Dark Mode */
@@ -697,8 +690,7 @@ ion-input:focus ~ .ionicon {
   ion-item.info-item,
   ion-item.info-item h5,
   ion-item.info-item h5.Gesamtpreis,
-  ion-item.info-item ion-badge.Preis
-  ion-item::part(native),
+  ion-item.info-item ion-badge.Preis ion-item::part(native),
   .product-list,
   .product-quantity,
   .product,
@@ -720,8 +712,8 @@ ion-input:focus ~ .ionicon {
     background: var(--ion-background-color);
   }
 
-  .logo{
-    content: url('/assets/logo/LogoWeiss.png');
+  .logo {
+    content: url("/assets/logo/LogoWeiss.png");
   }
 
   .error-container h1 {
@@ -737,7 +729,6 @@ ion-input:focus ~ .ionicon {
   .bottom-container ion-input {
     color: var(--ion-color-light) !important;
   }
-
 }
 
 .loading-overlay {
@@ -757,6 +748,6 @@ ion-input:focus ~ .ionicon {
   height: auto;
   border-radius: 10px; /* Optional: Abgerundete Ecken */
 }
-.member-username{
+.member-username {
   color: #2f2f2f;
 }
