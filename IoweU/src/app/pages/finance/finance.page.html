@@ -45,11 +45,14 @@
       </div>
     </div>
 
-    <ion-list class="bilance-list">
+    <ion-list class="balance-list">
       <ion-item class="info-item" *ngFor="let member of groupMembers">
         <div class="member-info">
-          <div class="profile-placeholder"></div>
-          <span class="member-name">{{ member.name }}</span>
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{ 'background-color': member.color, 'border-color': member.color }">
+          </div>
+          <span class="member-name">{{ member.username }}</span>
         </div>
         <ion-badge
           class="balance-info"

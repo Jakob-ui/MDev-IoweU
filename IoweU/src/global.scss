@@ -420,7 +420,7 @@ ion-item.select-interface-option::part(native) {
   padding: 10px; /* Polsterung */
 }
 
-.bilance-list,
+.balance-list,
 .expense-list {
   width: 100%;
   display: flex;
@@ -704,7 +704,7 @@ ion-input:focus ~ .ionicon {
   ion-card.finance-card p,
   .card-content h6,
   .card-content p,
-  .label, 
+  .label,
   ion-item .Dropdown-label,
   ion-select::part(text),
   .brush-icon,
@@ -712,7 +712,7 @@ ion-input:focus ~ .ionicon {
   ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
   }
-  
+
   .loading-overlay {
     color: var(--ion-color-light);
     background: var(--ion-background-color);
@@ -724,7 +724,7 @@ ion-input:focus ~ .ionicon {
 
   .error-container h1 {
     color: var(--ion-color-danger) !important;
-  }  
+  }
 
   .divider {
     background-color: var(--ion-color-light) !important;
@@ -733,7 +733,7 @@ ion-input:focus ~ .ionicon {
   //zb bei create-expense, Dropdown Menü bei den Groupmembers
   .top-container ion-input,
   .bottom-container ion-input {
-    color: var(--ion-color-light) !important; 
+    color: var(--ion-color-light) !important;
   }
 
 }
