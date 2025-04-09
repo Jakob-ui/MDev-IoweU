@@ -5,13 +5,18 @@ import { Capacitor } from '@capacitor/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonButton, IonContent, IonInput, IonItem } from '@ionic/angular/standalone';
+import {
+  IonButton,
+  IonContent,
+  IonInput,
+  IonItem,
+} from '@ionic/angular/standalone';
 import { GroupService } from 'src/app/services/group.service';
 import { Auth } from '@angular/fire/auth';
 import { AuthService } from 'src/app/services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { Users } from 'src/app/services/objects/Users';
-
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-join-group',
@@ -31,6 +36,7 @@ import { Users } from 'src/app/services/objects/Users';
 export class JoinGroupPage {
   joinCode: string = '';
   auth = inject(Auth);
+  authService = inject(AuthService);
   platformIsNative = Capacitor.isNativePlatform();
   error: string = '';
   joinFailed: boolean = false;
@@ -38,10 +44,10 @@ export class JoinGroupPage {
   private loadingService = inject(LoadingService);
 
   //private validJoinCodes: string[] = ['abc123', 'xyz456', 'test123']; // Beispiel gültiger Codes
-  private qrCodeScanner: Html5QrcodeScanner | null = null;  // Verweis auf den QR-Code-Scanner
+  private qrCodeScanner: Html5QrcodeScanner | null = null; // Verweis auf den QR-Code-Scanner
   Capacitor: any;
 
-  constructor(private router: Router, private alertController: AlertController) {}
+  constructor(private router: Router) {}
 
   ngOnInit() {
     // Den QR-Code-Scanner initialisieren
@@ -57,7 +63,6 @@ export class JoinGroupPage {
     if (this.qrCodeScanner) {
       this.qrCodeScanner.clear();
     }
-    
   }
 
   inputChange() {
@@ -67,16 +72,14 @@ export class JoinGroupPage {
 
   joinGroup() {
     this.loadingService.show();
-
-    const firebaseUser = this.auth.currentUser;
-    if (firebaseUser) {
+    if (this.authService.currentUser) {
       const userData: Users = {
-        uid: firebaseUser.uid,
-        username: '', // da müssen noch die richtigen Daten übergeben werden
-        email: firebaseUser.email ?? '',
-        color: '',
-        lastedited: new Date().toISOString(),
-        groupId: []
+        uid: this.authService.currentUser?.uid || '',
+        username: this.authService.currentUser?.username || '',
+        email: this.authService.currentUser?.email || '',
+        color: this.authService.currentUser?.color || '',
+        lastedited: '',
+        groupId: [],
       };
 
       this.groupService
@@ -106,7 +109,6 @@ export class JoinGroupPage {
       this.loadingService.hide();
     }
   }
-
 
   // Funktion zum Scannen von QR-Codes, die bei Button-Klick ausgelöst wird
   initializeQRCodeScanner() {
@@ -144,5 +146,4 @@ export class JoinGroupPage {
       this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
-
 }

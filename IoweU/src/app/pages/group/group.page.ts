@@ -74,8 +74,8 @@ export class GroupPage implements OnInit {
 
   ngOnInit() {
     // Holen der Benutzerdaten direkt aus AuthService
-    if (this.auth.currentUser) {
-      this.user = this.auth.currentUser.username; // Benutzername aus dem AuthService
+    if (this.auth.loggedInUser) {
+      this.user = this.auth.loggedInUser.username; // Benutzername aus dem AuthService
     } else {
       console.error('Kein Benutzer eingeloggt.');
     }
