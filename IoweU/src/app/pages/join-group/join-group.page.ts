@@ -185,7 +185,7 @@ export class JoinGroupPage {
 
       const alert = await this.alertCrontroller.create({
         header: 'Gruppe beitreten',
-        message: `Möchtest du wirklich der Gruppe <strong>${group.groupname}</strong> beitreten?`,
+        message: `Möchtest du wirklich der Gruppe ${group.groupname} beitreten?`,
         buttons: [
           {
             text: 'Abbrechen',
