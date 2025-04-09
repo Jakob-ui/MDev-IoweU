@@ -15,10 +15,33 @@
           </ion-item>
         </div>
         <div class="Kategorie">
-          <ion-item class="input-item">
-            <ion-select type="text" [(ngModel)]="expense.category"></ion-select>
+          <ion-item class="input-item" (click)="toggleDropdown()" class="category-select">
+            <ion-label>
+              <div class="selected-category">
+                <img
+                  *ngIf="selectedCategory?.icon"
+                  [src]="selectedCategory.icon"
+                  class="category-icon"
+                />
+                <span class="label">{{ selectedCategory?.name || 'Kategorie' }}</span>
+              </div>
+            </ion-label>
           </ion-item>
+
+          <div *ngIf="dropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                button
+                *ngFor="let category of categories"
+                (click)="selectCategory(category)"
+              >
+                <img [src]="category.icon" class="category-icon" />
+                <ion-label class="dropDownFelder">{{ category.name }}</ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
+
         <div class="invoice-upload">
           <ion-item class="input-item">
             <ion-select type="text" [(ngModel)]="expense.invoice"></ion-select>
