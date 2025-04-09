@@ -12,12 +12,12 @@ import {
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { GroupService } from 'src/app/services/group.service';
-import { Auth } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
 import { Groups } from 'src/app/services/objects/Groups';
 import { Router } from '@angular/router';
 import { UserService } from 'src/app/services/user.service';
 import { LoadingService } from 'src/app/services/loading.service';
+import { AuthService } from 'src/app/services/auth.service';
 @Component({
   selector: 'app-create-group',
   templateUrl: './create-group.page.html',
@@ -39,14 +39,12 @@ import { LoadingService } from 'src/app/services/loading.service';
 export class CreateGroupPage {
   private loadingService = inject(LoadingService);
   groupService = inject(GroupService);
-  auth = inject(Auth);
+  private authService = inject(AuthService);
   firestore = inject(Firestore);
   router = inject(Router);
   private userService = inject(UserService);
 
   groupname: string = '';
-  //newMember: string = '';
-  //members: string[] = [];
   selectedTemplate: string = '';
   templates: string[] = ['Standard', 'Projekt', 'Reise'];
   groupImage: string | ArrayBuffer | null = null;
@@ -55,17 +53,6 @@ export class CreateGroupPage {
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
-  // addMember() {
-  //   if (this.newMember.trim() !== '') {
-  //     this.members.push(this.newMember.trim());
-  //     this.newMember = '';
-  //   }
-  // }
-
-  // removeMember(member: string) {
-  //   this.members = this.members.filter((m) => m !== member);
-  // }
-
   async saveGroup() {
     if (!this.groupname || !this.selectedTemplate) {
       console.error('Group name and template are required!');
@@ -73,7 +60,7 @@ export class CreateGroupPage {
       return;
     }
 
-    const user = this.auth.currentUser;
+    const user = this.authService.currentUser;
     if (!user) {
       console.error('User is not logged in!');
       return;
@@ -94,8 +81,6 @@ export class CreateGroupPage {
         this.selectedTemplate
       );
       console.log('Groups successfully created!');
-      this.router.navigate(['/group-overview']); // Nach erfolgreicher Erstellung weiterleiten
-
       console.log('Group successfully created!');
     } catch (error) {
       console.error('Error creating group:', error);

@@ -1,9 +1,6 @@
 import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonButton,
   IonItem,
@@ -11,7 +8,8 @@ import {
   IonInput,
   IonList,
   IonSelect,
-  IonSelectOption, IonModal } from '@ionic/angular/standalone';
+  IonSelectOption,
+} from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LoadingService } from 'src/app/services/loading.service';
@@ -22,7 +20,7 @@ import { LoadingService } from 'src/app/services/loading.service';
   templateUrl: './edit-group.page.html',
   styleUrls: ['./edit-group.page.scss'],
   standalone: true,
-  imports: [IonModal, 
+  imports: [
     IonContent,
     IonButton,
     IonItem,
@@ -37,8 +35,7 @@ import { LoadingService } from 'src/app/services/loading.service';
     //QRCodeComponent,
   ],
 })
-
-export class EditGroupPage{
+export class EditGroupPage {
   groupname: string = '';
   newMember: string = '';
   members: string[] = [];
@@ -84,10 +81,9 @@ export class EditGroupPage{
     this.showLabel = !this.selectedTemplate;
   }
 
-   // Funktion, die den Gruppen-Link erstellt, z.B. durch den Gruppennamen oder eine ID
-   generateGroupLink() {
+  // Funktion, die den Gruppen-Link erstellt, z.B. durch den Gruppennamen oder eine ID
+  generateGroupLink() {
     // Falls du lieber die ID nehmen willst:
     this.groupLink = `http://localhost:8100/group?id=${this.groupname}`;
   }
-  
 }

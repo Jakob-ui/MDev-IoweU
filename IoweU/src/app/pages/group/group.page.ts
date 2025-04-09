@@ -11,7 +11,6 @@ import {
   IonCardTitle,
   IonCardSubtitle,
   IonIcon,
-  IonSpinner,
 } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -35,11 +34,10 @@ import { LoadingService } from '../../services/loading.service';
     IonCardSubtitle,
     RouterModule,
     IonIcon,
-    IonSpinner,
   ],
 })
 export class GroupPage implements OnInit {
-  private auth = inject(AuthService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
@@ -78,11 +76,11 @@ export class GroupPage implements OnInit {
     (async () => {
       try {
         // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
-        if (this.auth.currentUser) {
+        if (this.authService.currentUser) {
           // Benutzername wird nur gesetzt, wenn der currentUser verfügbar ist
-          this.user = this.auth.currentUser.username;
-          this.displayName = this.auth.currentUser.username;
-          console.log('Benutzerdaten:', this.auth.currentUser); // Logge die Benutzerdaten zur Überprüfung
+          this.user = this.authService.currentUser.username;
+          this.displayName = this.authService.currentUser.username;
+          console.log('Benutzerdaten:', this.authService.currentUser); // Logge die Benutzerdaten zur Überprüfung
         } else {
           console.error('Kein Benutzer eingeloggt.');
           return; // Wenn kein Benutzer eingeloggt, wird der Rest des Codes nicht ausgeführt.
@@ -107,7 +105,7 @@ export class GroupPage implements OnInit {
   // Logout-Funktion
   async logout() {
     try {
-      this.auth.logout();
+      this.authService.logout();
       this.router.navigate(['home']);
     } catch (e) {
       console.log(e);

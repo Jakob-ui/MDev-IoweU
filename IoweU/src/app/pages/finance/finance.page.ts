@@ -6,18 +6,11 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
-  IonFooter,
-  IonButtons,
-  IonButton,
   IonItem,
   IonLabel,
   IonList,
   IonBadge,
   IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
-  IonCardContent,
   IonIcon,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule } from '@angular/router';
@@ -37,7 +30,6 @@ import { ActivatedRoute } from '@angular/router';
     CommonModule,
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonContent,
     IonItem,
     IonList,
@@ -48,7 +40,7 @@ import { ActivatedRoute } from '@angular/router';
   ],
 })
 export class FinancePage implements OnInit {
-  private auth = inject(AuthService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private activeRoute = inject(ActivatedRoute);
   private platform = inject(Platform);
@@ -73,12 +65,12 @@ export class FinancePage implements OnInit {
 
     try {
       // Warten auf die vollständige Initialisierung des Benutzers
-      if (this.auth.currentUser) {
-        this.user = this.auth.currentUser.username;
-        this.displayName = this.auth.currentUser.username;
-        console.log('Benutzerdaten:', this.auth.currentUser); // Logge die Benutzerdaten zur Überprüfung
+      if (this.authService.currentUser) {
+        this.user = this.authService.currentUser.username;
+        this.displayName = this.authService.currentUser.username;
+        console.log('Benutzerdaten:', this.authService.currentUser); // Logge die Benutzerdaten zur Überprüfung
 
-        const userColor = this.auth.currentUser.color || '#000000'; // Standardfarbe setzen, falls nicht verfügbar
+        const userColor = this.authService.currentUser.color || '#000000'; // Standardfarbe setzen, falls nicht verfügbar
         document.documentElement.style.setProperty('--user-color', userColor); // Benutzerfarbe setzen
 
         // Holen der groupId als String aus dem AuthService
@@ -140,7 +132,7 @@ export class FinancePage implements OnInit {
   async logout() {
     this.loadingService.show(); // Lade-Overlay aktivieren
     try {
-      await this.auth.logout();
+      this.authService.logout();
       this.router.navigate(['home']);
     } catch (e) {
       console.error('Fehler beim Logout:', e);

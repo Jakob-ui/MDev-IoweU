@@ -71,7 +71,6 @@ export class AccountSettingsPage implements OnInit {
 
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false;
-  auth: any;
   lastedited: string = '';
 
   constructor() {}
@@ -86,40 +85,27 @@ export class AccountSettingsPage implements OnInit {
   }
 
   async loadUserData() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+    this.loadingService.show();
     try {
-      this.name = sessionStorage.getItem('username') || '';
-      this.originalName = this.name;
-      const userColor = sessionStorage.getItem('usercolor');
-      this.color = userColor || '';
+      this.originalName = this.authService.currentUser?.username || '';
+      this.color = this.authService.currentUser?.color || '';
       this.originalColor = this.color;
-      this.email = sessionStorage.getItem('email') || '';
-      const lastedited = sessionStorage.getItem('lastedited');
 
-      if (!this.name || !this.email) {
-        const uid = this.authService.currentUser?.uid;
-
-        if (uid) {
-          const userData = await this.userService.getUserData();
-          this.name = userData.username;
-          this.email = userData.email;
-          this.color = userData.color;
-          this.lastedited = userData.lastedited;
-
-          sessionStorage.setItem('username', this.name);
-          sessionStorage.setItem('email', this.email);
-          sessionStorage.setItem('usercolor', this.color);
-          sessionStorage.setItem('lastedited', this.lastedited);
-        } else {
-          console.error('Kein Benutzer ist aktuell eingeloggt.');
+      if (this.authService.currentUser) {
+        this.name = this.authService.currentUser.username;
+        this.email = this.authService.currentUser.email;
+        this.color = this.authService.currentUser.color;
+        if (this.color) {
+          document.documentElement.style.setProperty(
+            '--user-color',
+            this.color
+          );
         }
+        this.lastedited = this.authService.currentUser.username;
+        console.log('Benutzerdaten erfolgreich geladen.');
+      } else {
+        console.log('User ist nicht eingeloggt');
       }
-
-      if (this.color) {
-        document.documentElement.style.setProperty('--user-color', this.color);
-      }
-
-      console.log('Benutzerdaten erfolgreich geladen.');
     } catch (error) {
       console.error('Fehler beim Laden der Benutzerdaten:', error);
     } finally {

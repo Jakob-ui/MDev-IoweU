@@ -5,22 +5,19 @@ import { Router } from '@angular/router';
 import {
   IonContent,
   IonItem,
-  IonLabel,
   IonInput,
   IonSelect,
   IonSelectOption,
   IonButton,
   IonDatetime,
-  IonList,
   IonIcon,
   IonBadge,
 } from '@ionic/angular/standalone';
 
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
-import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { Members } from 'src/app/services/objects/Members';
-import {NavController} from "@ionic/angular";
+import { NavController } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 @Component({
   selector: 'app-edit-expense',
@@ -28,10 +25,8 @@ import { LoadingService } from 'src/app/services/loading.service';
   styleUrls: ['./edit-expense.page.scss'],
   standalone: true,
   imports: [
-    IonList,
     IonContent,
     IonItem,
-    IonLabel,
     IonInput,
     IonSelect,
     IonSelectOption,
@@ -217,7 +212,6 @@ export class EditExpensePage {
   }
 
   removeProduct(memberName: string, productToRemove: Products) {
-
     const entry = this.productInputs[memberName];
     if (!entry) return;
 
@@ -304,31 +298,31 @@ export class EditExpensePage {
     this.loadingService.hide(); // Lade-Overlay deaktivieren
   }
 
- loadExpense() {
-  this.loadingService.show(); // Lade-Overlay aktivieren
-  try {
-    // Hier laden wir einfach die Mock-Daten direkt
-    this.expense = { ...this.expense };
-    console.log('Expense loaded:', this.expense);
-  } catch (error) {
-    console.error('Fehler beim Laden der Ausgabe:', error);
-  } finally {
-    this.loadingService.hide(); // Lade-Overlay deaktivieren
+  loadExpense() {
+    this.loadingService.show(); // Lade-Overlay aktivieren
+    try {
+      // Hier laden wir einfach die Mock-Daten direkt
+      this.expense = { ...this.expense };
+      console.log('Expense loaded:', this.expense);
+    } catch (error) {
+      console.error('Fehler beim Laden der Ausgabe:', error);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
+    }
   }
-}
 
-saveChanges() {
-  this.loadingService.show(); // Lade-Overlay aktivieren
-  try {
-    // Da wir hier keine echte Backend-Verbindung haben, simulieren wir nur das Speichern
-    console.log('Changes saved', this.expense);
-    this.router.navigate(['/expense']);
-  } catch (error) {
-    console.error('Fehler beim Speichern der Änderungen:', error);
-  } finally {
-    this.loadingService.hide(); // Lade-Overlay deaktivieren
+  saveChanges() {
+    this.loadingService.show(); // Lade-Overlay aktivieren
+    try {
+      // Da wir hier keine echte Backend-Verbindung haben, simulieren wir nur das Speichern
+      console.log('Changes saved', this.expense);
+      this.router.navigate(['/expense']);
+    } catch (error) {
+      console.error('Fehler beim Speichern der Änderungen:', error);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
+    }
   }
-}
 
   cancel() {
     this.navCtrl.back();

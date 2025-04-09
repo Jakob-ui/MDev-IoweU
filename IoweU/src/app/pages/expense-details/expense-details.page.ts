@@ -3,12 +3,7 @@ import { CommonModule } from '@angular/common';
 import {
   IonContent,
   IonHeader,
-  IonTitle,
   IonToolbar,
-  IonCard,
-  IonCardContent,
-  IonCardTitle,
-  IonLabel,
   IonIcon,
   IonButton,
   IonBadge,
@@ -16,9 +11,8 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NavController, Platform } from '@ionic/angular';
-import { Expenses } from '../../services/objects/Expenses'; // 👈 Import aus eigener Datei
-import { Groups } from '../../services/objects/Groups';
-import { Products } from '../../services/objects/Products'; // 👈 Import aus eigener Datei
+import { Expenses } from '../../services/objects/Expenses';
+import { Products } from '../../services/objects/Products';
 import { LoadingService } from '../../services/loading.service';
 @Component({
   selector: 'app-expense-details',
@@ -28,13 +22,8 @@ import { LoadingService } from '../../services/loading.service';
   imports: [
     IonContent,
     IonHeader,
-    IonTitle,
     IonToolbar,
     CommonModule,
-    IonCard,
-    IonCardContent,
-    IonCardTitle,
-    IonLabel,
     IonIcon,
     IonButton,
     IonBadge,
@@ -42,13 +31,13 @@ import { LoadingService } from '../../services/loading.service';
   ],
 })
 export class ExpenseDetailsPage implements OnInit {
-  private auth = inject(AuthService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private route = inject(ActivatedRoute);
   private loadingService = inject(LoadingService);
-  
+
   expenseId: number | null = null;
   expenseDetails: Expenses | undefined;
   iosIcons: boolean = false;
@@ -435,7 +424,6 @@ export class ExpenseDetailsPage implements OnInit {
   constructor() {}
 
   ngOnInit() {
-   
     this.user = sessionStorage.getItem('username');
     this.iosIcons = this.platform.is('ios');
     const userColor = sessionStorage.getItem('usercolor');
@@ -542,7 +530,7 @@ export class ExpenseDetailsPage implements OnInit {
 
   async logout() {
     try {
-      await this.auth.logout();
+      await this.authService.logout();
       this.router.navigate(['home']);
     } catch (e) {
       console.log(e);

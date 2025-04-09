@@ -3,21 +3,16 @@ import { CommonModule } from '@angular/common';
 import {
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
   IonItem,
   IonList,
-  IonBadge,
-  IonCard,
   IonButton,
   IonIcon,
-  IonSelect, IonSelectOption, IonLabel, IonInput,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from "../../services/auth.service";
-import { NavController, Platform } from "@ionic/angular";
+import { AuthService } from '../../services/auth.service';
+import { NavController, Platform } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
-
 
 @Component({
   selector: 'app-repeating-expenses',
@@ -28,24 +23,17 @@ import { FormsModule } from '@angular/forms';
     CommonModule,
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonContent,
     IonItem,
     IonList,
-    IonBadge,
-    IonCard,
     RouterModule,
     IonButton,
     IonIcon,
-    IonSelect,
-    IonSelectOption,
-    IonLabel,
-    IonInput,
     FormsModule,
   ],
 })
 export class RepeatingExpensesPage implements OnInit {
-  private auth = inject(AuthService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
@@ -54,7 +42,7 @@ export class RepeatingExpensesPage implements OnInit {
 
   iosIcons: boolean = false;
 
-  user: string | null = "";
+  user: string | null = '';
   displayName: string | null = null;
 
   groupMembers = [
@@ -95,7 +83,6 @@ export class RepeatingExpensesPage implements OnInit {
     },
   ];
 
-
   balance: number = 0;
   lastTransactionDate = new Date(2025, 2, 20);
 
@@ -113,12 +100,15 @@ export class RepeatingExpensesPage implements OnInit {
   }
 
   calculateBalance() {
-    this.balance = this.expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
+    this.balance = this.expenses.reduce(
+      (sum, expense) => sum + expense.totalAmount,
+      0
+    );
   }
 
   async logout() {
     try {
-      await this.auth.logout();
+      await this.authService.logout();
       this.router.navigate(['home']);
     } catch (e) {
       console.log(e);
@@ -126,13 +116,14 @@ export class RepeatingExpensesPage implements OnInit {
   }
 
   get repeatingExpenses() {
-    return this.expenses.filter(expense => expense.repeat && expense.repeat !== '');
+    return this.expenses.filter(
+      (expense) => expense.repeat && expense.repeat !== ''
+    );
   }
 
   goToExpenseDetails(expenseId: number) {
     this.router.navigate(['expense-details', expenseId]);
   }
-
 
   goBack() {
     this.navCtrl.back();

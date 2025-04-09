@@ -2,7 +2,7 @@ import { Component, inject, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { ROUTER_CONFIGURATION, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
@@ -43,28 +43,20 @@ export class LoginPage {
       this.loginFailed = true;
       return;
     }
-
-    this.loadingService.show(); // Lade-Overlay aktivieren
     try {
       await this.authService.login(this.email, this.password, this.rememberMe);
-      this.router.navigate(['/group-overview']);
+      while (!this.authService.currentUser) {
+        this.loadingService.show();
+      }
+      if (this.authService.currentUser) {
+        this.router.navigate(['/group-overview']);
+      }
     } catch (error) {
       console.error('Fehler beim Login:', error);
       this.error = 'Fehler beim Login, bitte versuchen Sie es erneut.';
       this.loginFailed = true;
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
-    }
-  }
-
-  async isLoading() {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      this.loading = false;
-      clearTimeout(this.timeout);
-    } catch (error) {
-      console.error('Fehler beim Laden der Daten', error);
-      this.loading = false;
+      this.loadingService.hide();
     }
   }
 }

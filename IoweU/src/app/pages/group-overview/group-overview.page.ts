@@ -1,14 +1,10 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
   IonToolbar,
   IonContent,
   IonButton,
-  IonItem,
-  IonLabel,
-  IonList,
   IonIcon,
   IonCard,
   IonCardSubtitle,
@@ -17,9 +13,10 @@ import {
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
-import { Groups } from 'src/app/services/objects/Groups';
 import { GroupService } from 'src/app/services/group.service';
 import { LoadingService } from 'src/app/services/loading.service';
+import { timeout } from 'rxjs';
+import { collection, onSnapshot, query, where } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-group-overview',
@@ -40,40 +37,71 @@ import { LoadingService } from 'src/app/services/loading.service';
   ],
 })
 export class GroupOverviewPage implements OnInit {
-  private auth = inject(AuthService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
 
-  user: string | null = '';
+  username: string | null = '';
   iosIcons: boolean = false;
   groups: { name: string; myBalance: number; link: string }[] = [];
 
   constructor() {}
 
-  ngOnInit() {
-    setTimeout(() => {
-      if (this.auth.currentUser) {
-        this.user = this.auth.currentUser.username;
+  async ngOnInit() {
+    this.loadingService.show();
+
+    try {
+      await this.waitForUser();
+
+      if (this.authService.currentUser) {
+        this.username = this.authService.currentUser.username;
         this.iosIcons = this.platform.is('ios');
-        console.log(this.auth.currentUser);
+        console.log(
+          'group overview lodaed: ' + this.authService.currentUser.username
+        );
 
-        const userColor = this.auth.currentUser.color;
+        const userColor = this.authService.currentUser.color;
         document.documentElement.style.setProperty('--user-color', userColor);
-
-        this.loadingService.show();
-        this.loadMyGroups();
+        // Gruppen laden
+        await this.loadMyGroups();
       } else {
         console.error('No user is logged in.');
       }
-    }, 500); // Warte 500ms, bevor du auf currentUser zugreifst
+    } catch (error) {
+      console.error('Fehler beim Laden des Benutzers oder der Gruppen:', error);
+    } finally {
+      this.loadingService.hide();
+    }
   }
 
+  //-------------Workaround---------------------muss besser gelöst werden!!!!!!
+  private async waitForUser(): Promise<void> {
+    const maxRetries = 50; // Maximale Anzahl von Versuchen
+    const delay = 100; // Wartezeit zwischen den Versuchen (in Millisekunden)
+    let retries = 0;
+
+    while (
+      (!this.authService.currentUser ||
+        this.authService.currentUser.username === '') &&
+      retries < maxRetries
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      retries++;
+    }
+
+    if (
+      !this.authService.currentUser ||
+      this.authService.currentUser.username === ''
+    ) {
+      throw new Error('Benutzer konnte nicht vollständig geladen werden.');
+    }
+  }
   async loadMyGroups() {
     try {
-      const currentUser = this.auth.currentUser;
+      const currentUser = this.authService.currentUser;
       if (!currentUser) {
         console.error('No user is currently logged in.');
         this.loadingService.hide();
@@ -82,7 +110,14 @@ export class GroupOverviewPage implements OnInit {
 
       const uid = currentUser.uid;
       console.log('User UID:', uid);
-
+      const groupsCollection = collection(
+        this.groupService.firestore,
+        'groups'
+      );
+      const groupsQuery = query(
+        groupsCollection,
+        where('members', 'array-contains', uid)
+      );
       // Gruppen abrufen, bei denen der Nutzer Mitglied ist
       const groupsAsMember = await this.groupService.getGroupsByUserId(uid);
       console.log('Groups as Member:', groupsAsMember);
@@ -100,8 +135,7 @@ export class GroupOverviewPage implements OnInit {
     }
   }
 
-  navigateToGroup(link: string, groupName: string) {
-    sessionStorage.setItem('groupname', groupName);
+  navigateToGroup(link: string) {
     this.router.navigate(['group/', link]);
   }
 
@@ -111,7 +145,7 @@ export class GroupOverviewPage implements OnInit {
 
   async logout() {
     try {
-      await this.auth.logout();
+      await this.authService.logout();
       this.router.navigate(['home']);
     } catch (e) {
       console.log(e);

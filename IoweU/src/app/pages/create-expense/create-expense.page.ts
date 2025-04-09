@@ -5,13 +5,11 @@ import { Router } from '@angular/router';
 import {
   IonContent,
   IonItem,
-  IonLabel,
   IonInput,
   IonSelect,
   IonSelectOption,
   IonButton,
   IonDatetime,
-  IonList,
   IonIcon,
   IonBadge,
 } from '@ionic/angular/standalone';
@@ -21,7 +19,7 @@ import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { Members } from 'src/app/services/objects/Members';
-import {NavController} from "@ionic/angular";
+import { NavController } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
@@ -30,10 +28,8 @@ import { LoadingService } from 'src/app/services/loading.service';
   styleUrls: ['./create-expense.page.scss'],
   standalone: true,
   imports: [
-    IonList,
     IonContent,
     IonItem,
-    IonLabel,
     IonInput,
     IonSelect,
     IonSelectOption,
@@ -308,21 +304,20 @@ export class CreateExpensePage {
   }
 
   saveExpense() {
-    this.loadingService.show(); 
+    this.loadingService.show();
     try {
       this.updateTotals();
       this.expense.totalAmount = Number(this.expense.totalAmount);
       this.expense.members?.forEach((member) => {
         member.amountToPay = Number(member.amountToPay);
       });
-  
+
       console.log('Saving expense:', this.expense);
       this.router.navigate(['/expense']);
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);
     } finally {
-      this.loadingService.hide(); 
-    
+      this.loadingService.hide();
     }
   }
 

@@ -15,5 +15,4 @@ export interface Groups {
   countTotalExpenses?: number;
   sumTotalExpensesMembers?: number;
   countTotalExpensesMembers?: number;
-
 }

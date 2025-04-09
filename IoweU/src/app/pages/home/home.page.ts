@@ -1,20 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
   IonTitle,
   IonContent,
-  IonFooter,
-  IonButtons,
   IonButton,
-  IonItem,
-  IonLabel,
-  IonInput,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
-  IonCardContent,
 } from '@ionic/angular/standalone';
 import { RouterModule } from '@angular/router';
 
@@ -28,19 +18,10 @@ import { RouterModule } from '@angular/router';
     IonTitle,
     IonContent,
     IonButton,
-    IonItem,
-    IonLabel,
-    IonInput,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardSubtitle,
-    IonCardContent,
     RouterModule,
   ],
   standalone: true,
 })
-export class HomePage{
+export class HomePage {
   constructor() {}
-
 }
