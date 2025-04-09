@@ -1,0 +1,100 @@
+.detailedprice-overview {
+  width: 80%;
+  }
+
+.detailedprice-list {
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* Setzt member-info und detailedprice an die Ränder */
+  align-items: center; /* Vertikale Zentrierung der Elemente */
+  padding: 10px 0; /* Etwas Abstand oben und unten */
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  flex-grow: 0; /* Verhindert, dass die member-info-Box wächst */
+}
+
+.detailedprice {
+  display: inline-block;
+  margin-left: 10px; /* Abstand zwischen den Elementen */
+  flex-grow: 0; /* Verhindert, dass die detailedprice-Box wächst */
+}
+
+.payed-by{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+.payed-by span{
+  margin-bottom: 5px;
+}
+
+.edit-button{
+  margin-top: 30px;
+}
+
+.toggle-arrow {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.rotated {
+  transform: rotate(180deg); /* Dreht den Pfeil um 180 Grad */
+}
+
+.product-list {
+  margin-top: -20px;
+  margin-bottom: 30px;
+  padding-left: 10px;
+  background-color: var(--ion-color-secondary);
+  border-radius: 10px;
+}
+
+.product-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.product-list li {
+  padding-top: 7px;
+  padding-bottom: 7px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.product-details {
+  width: 100%;
+  align-items: center;
+}
+
+.product-quantity {
+  flex-grow: 0;
+  border-right: solid 1px var(--ion-color-dark);
+  padding-right: 10px;
+  width: 100px;
+  text-align: end;
+}
+
+
+.product {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.product-price {
+  flex-grow: 0;
+  text-align: right;
+  margin-right: 10px;
+  background-color: white;
+  border-radius: 50px;
+  padding: 5px 10px;
+  font-weight: 200;
+}
+

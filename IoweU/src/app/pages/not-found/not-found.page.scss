@@ -1,0 +1,19 @@
+.error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   // Vertikal zentriert
+  align-items: center;       // Horizontal zentriert
+  min-height: 100vh;         // Ganze Höhe des Viewports
+
+  img {
+    max-width: 50%;
+    margin-bottom: 50px;
+  }
+
+  h1 {
+    font-size: 5rem;
+    color: var(--ion-color-danger);
+    text-align: center;
+    width: 100%;
+  }
+}

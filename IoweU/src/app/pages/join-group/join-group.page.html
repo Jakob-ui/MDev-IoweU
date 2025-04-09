@@ -1,0 +1,43 @@
+<ion-content [fullscreen]="true">
+  <div id="container" class="container">
+    <img src="'assets/logo/Logo_lang.png' : 'assets/logo/LogoWeiss.png'" alt="Logo" class="logo" />
+
+    <h3>Gruppe beitreten</h3>
+
+    <ion-item class="input-item">
+      <ion-input
+        type="text"
+        placeholder="Beitrittscode eingeben"
+        [(ngModel)]="joinCode"
+        (ngModelChange)="inputChange()"
+      ></ion-input>
+    </ion-item>
+
+    <ion-button
+      class="main-button"
+      expand="block"
+      [routerLink]="'/group-overview'"
+    >Abbrechen</ion-button>
+
+    <ion-button
+      class="main-button"
+      expand="block"
+      [class.error-button]="joinFailed"
+      (click)="confirmJoinGroup()"
+    >
+    Beitreten
+    </ion-button>
+
+
+    <!-- Button zum Scannen des QR-Codes -->
+    <ion-button class="main-button" expand="block" (click)="scanQRCode()">
+      QR-Code scannen
+    </ion-button>
+
+    <!-- Container für den Web-QR-Code-Scanner -->
+    <div id="qr-code-scanner" *ngIf="showScanner" class="qr-code-scanner"></div>
+
+
+    <p *ngIf="joinFailed" class="error-message">{{ error }}</p> <!-- Fehlermeldung anzeigen, wenn joinFailed true ist -->
+  </div>
+</ion-content>

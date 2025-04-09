@@ -1,0 +1,61 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <div class="left-container" slot="start">
+      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+                class="back-button" (click)="goBack()"></ion-icon>
+      <div class="divider"></div>
+      <div class="pagename">Ausgaben</div>
+    </div>
+
+    <div class="right-container" slot="end">
+      <div class="user-info" [routerLink]="'/account-settings'">
+        <div class="profile-placeholder"></div>
+        <span class="member-name">{{ user }}</span>
+      </div>
+      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
+                (click)="logout()" class="logout-button"></ion-icon>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-button class="edit-button" [routerLink]="'/repeating-expenses'">wiederkehrende Ausgaben</ion-button>
+
+  <div class="page-container">
+    <h4>{{ groupname }}</h4>
+    <h1>Ausgaben</h1>
+
+    <ion-card
+      class="expense-card">
+      <div class="card-content-expance">
+        <h2>{{ balance | currency: 'EUR' }}</h2>
+        <p>
+          Gesamtausgaben seit {{ lastTransactionDate | date:'dd.MM.yyyy' }}
+        </p>
+      </div>
+    </ion-card>
+
+    <ion-list class="expense-list">
+      <ion-item class="info-item" *ngFor="let expense of expenses" (click)="goToExpenseDetails(expense.id)">
+        <div class="profile-placeholder"></div>
+        <h5 class="einzelneAusgabe">{{ expense.expense }}</h5>
+        <div class="expense-item">
+          <div class="Ausgabepreis">
+            <h5 class="Gesamtpreis">
+              {{ expense.totalAmount | currency: 'EUR' }}
+            </h5>
+            <ion-badge
+              class="Preis"
+              [ngClass]="{ 'negative': expense.amountToPay < 0, 'positive': expense.amountToPay >= 0 }"
+            >
+              {{ expense.amountToPay | currency: 'EUR' }}
+            </ion-badge>
+          </div>
+        </div>
+      </ion-item>
+    </ion-list>
+
+
+    <ion-button class="main-button" expand="block" [routerLink]="'/create-expense'">Neue Ausgabe hinzufügen +</ion-button>
+  </div>
+</ion-content>

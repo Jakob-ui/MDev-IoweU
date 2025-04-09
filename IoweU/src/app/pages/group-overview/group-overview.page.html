@@ -1,41 +1,64 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Gruppenübersicht</ion-title>
-    <ion-title slot="end">Hi {{ user || 'NA' }}</ion-title>
+    <div class="left-container" slot="start">
+      <div class="pagename">Gruppenübersicht</div>
+    </div>
+
+    <div class="right-container" slot="end">
+      <div class="user-info" [routerLink]="'/account-settings'">
+        <div class="profile-placeholder"></div>
+        <span class="member-name">{{ username }}</span>
+      </div>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
+        (click)="logout()"
+        class="logout-button"
+      ></ion-icon>
+    </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Gruppenübersicht</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
   <div class="page-container">
     <div class="profile-placeholder"></div>
 
     <h2>Meine Gruppen</h2>
+    <div class="separator"></div>
 
     <div *ngIf="groups.length === 0" class="no-groups">
       <p>Noch keine Gruppen vorhanden.</p>
     </div>
 
     <!-- Gruppenliste -->
-    <ion-list *ngIf="groups.length > 0">
-      <ion-item *ngFor="let group of groups">
-        <ion-label>
-          <h2>{{ group.name }}</h2>
-          <p></p>
-        </ion-label>
-      </ion-item>
-    </ion-list>
+    <ng-container class="group-list" *ngIf="groups.length > 0">
+      <ion-card
+        class="my-groups"
+        *ngFor="let group of groups"
+        (click)="navigateToGroup(group.link)"
+      >
+        <div class="card-content">
+          <ion-card-title class="groupname">{{ group.name }}</ion-card-title>
+          <ion-card-subtitle
+            [ngClass]="{ 'negative': group.myBalance < 0, 'positive': group.myBalance >= 0 }"
+          >
+            <span *ngIf="group.myBalance >= 0">Mein Guthaben:</span>
+            <span *ngIf="group.myBalance < 0">Meine Schulden:</span>
+            {{ group.myBalance | currency: 'EUR' }}
+          </ion-card-subtitle>
+        </div>
+      </ion-card>
+    </ng-container>
+
+    <div class="space"></div>
 
     <ion-button
       class="main-button"
       expand="block"
       [routerLink]="'/create-group'"
       >Neue Gruppe erstellen +</ion-button
+    >
+    <ion-button class="main-button" expand="block" [routerLink]="'/join-group'"
+      >Gruppe beitreten</ion-button
     >
   </div>
 </ion-content>

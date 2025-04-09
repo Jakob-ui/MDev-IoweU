@@ -3,9 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
   IonItem,
   IonButton,
   IonInput,
@@ -23,27 +20,30 @@ import { Router } from '@angular/router';
     IonButton,
     IonItem,
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
     CommonModule,
     FormsModule,
   ],
 })
 export class ResetPasswordPage {
-  private authservice = inject(AuthService);
+  private authService = inject(AuthService);
   private router = inject(Router);
+
   email: string = '';
+
+  ngOnInit() {
+    const loggedEmail = sessionStorage.getItem('email');
+    this.email = loggedEmail || '';
+  }
 
   constructor() {}
 
   async resetPassword() {
     try {
-      await this.authservice.resetpassword(this.email);
+      await this.authService.resetpassword(this.email);
       alert(
         'Bitte schaue in dein Email Postfach um dein Passwort zurückzusetzen.'
       );
-      this.router.navigate(['/login'])
+      this.router.navigate(['/login']);
     } catch (error) {
       console.error('Error sending password reset email:', error);
     }

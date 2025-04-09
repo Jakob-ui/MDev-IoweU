@@ -1,20 +1,17 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Login</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Login</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
+  <div *ngIf="loading" class="loading-overlay">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Loading ...</p>
+  </div>
   <div id="container" class="container">
-    <img src="assets/logo/Logo_lang.png" alt="Logo" class="logo" />
+    <img
+      src="'assets/logo/Logo_lang.png' : 'assets/logo/LogoWeiss.png'"
+      alt="Logo"
+      class="logo"
+    />
 
     <h3>Login</h3>
+    <ion-icon name="apps"></ion-icon>
 
     <ion-item class="input-item">
       <ion-input
@@ -35,21 +32,33 @@
         (keyup.enter)="login()"
       >
         <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-    </ion-input>
+      </ion-input>
     </ion-item>
-
-    <ion-button class="main-button" expand="block" (click)="login()"
-      >Anmelden</ion-button
+    <div class="remember-me">
+      <ion-label>Remember Me</ion-label>
+      <ion-checkbox [(ngModel)]="rememberMe"></ion-checkbox>
+    </div>
+    <ion-button
+      class="main-button"
+      expand="block"
+      (click)="login()"
+      [class.error-button]="loginFailed"
     >
+      Anmelden
+    </ion-button>
 
     <ion-button class="main-button" expand="block" [routerLink]="'/register'"
       >Register</ion-button
     >
+
+    <p class="link-text" [routerLink]="'/reset-password'">
+      Passwort vergessen?
+    </p>
+
     <div class="error-Space">
-      <p *ngIf="failed === true" class="error">
-        Email oder Passwort falsch
+      <p *ngIf="error !== ''" class="error" [class.error-message]="loginFailed">
+        {{error}}
       </p>
     </div>
-    <p class="link-text"[routerLink]="'/reset-password'">Passwort vergessen</p>
-  </div> 
+  </div>
 </ion-content>

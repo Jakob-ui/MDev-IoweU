@@ -1,3 +1,5 @@
+@use "./theme/variables" as *;
+
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
@@ -36,13 +38,12 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
 
-@import "./theme/variables.scss";
-
 h1 {
   font-family: var(--ion-font-family);
   font-weight: 700;
   font-size: 40px;
   color: var(--ion-color-dark);
+  width: 90%;
 }
 
 h2 {
@@ -58,6 +59,10 @@ ion-card-title {
   font-weight: 700;
   font-size: 32px;
   color: var(--ion-color-dark);
+}
+
+ion-card-title {
+  text-align: left;
 }
 
 h4 {
@@ -97,6 +102,18 @@ ion-card-content {
   color: var(--ion-color-dark) !important;
 }
 
+ion-header::part(native) {
+  --box-shadow: none !important;
+}
+
+/*
+.header-md{
+  //--box-shadow: none !important;
+  //--webkit-box-shadow: none !important;
+  //border-bottom: solid 1px var(--ion-color-dark);
+
+} */
+
 ion-card {
   font-family: var(--ion-font-family);
   font-weight: 100;
@@ -129,7 +146,7 @@ ion-card-subtitle span {
   font-weight: 100;
 }
 
-ion-card-subtitle p{
+ion-card-subtitle p {
   margin: 0;
   margin-left: -5px;
 }
@@ -144,9 +161,8 @@ ion-card-subtitle h6 {
   margin-bottom: 0;
 }
 
-
 .finance-card,
-.expance-card {
+.expense-card {
   width: 60%;
   max-width: 300px;
   margin: auto;
@@ -177,7 +193,7 @@ ion-card-subtitle h6 {
   margin: 0px;
 }
 
-.expance-details {
+.expense-item {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -185,14 +201,14 @@ ion-card-subtitle h6 {
   flex-grow: 1;
 }
 
-.info-item h5{
+.info-item h5 {
   margin-left: 15px;
 }
 
 .Ausgabepreis {
   display: flex;
-  flex-direction: column; /* Preise untereinander anordnen */
-  align-items: flex-end; /* Preise rechtsbündig */
+  flex-direction: column;
+  align-items: flex-end;
   gap: 5px;
 }
 
@@ -209,17 +225,91 @@ ion-card-subtitle h6 {
   font-size: 14px;
   border-radius: 50px;
   margin: 0;
-  margin-top: -5px;
+}
+
+.detailedprice {
+  margin-left: auto;
+  font-weight: 700;
+  padding: 10px 15px;
+  font-size: 20px;
+  border-radius: 50px;
+  margin: 0;
 }
 
 .negative {
-  background: var(--ion-color-danger); /* Rote Farbe für negative Zahlen */
+  background: var(--ion-color-danger);
   color: var(--ion-color-dark);
 }
 
 .positive {
-  background: var(--ion-color-success); /* Grüne Farbe für positive Zahlen */
+  background: var(--ion-color-success);
   color: var(--ion-color-dark);
+}
+
+ion-toolbar {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  height: 56px;
+  padding: 0 10px;
+  justify-content: space-between;
+}
+
+.left-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-grow: 1;
+}
+
+.right-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+ion-title {
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  flex-grow: 1;
+  padding: 0;
+}
+
+ion-title .pagename {
+  font-weight: 100;
+  font-size: 16px;
+  color: var(--ion-color-dark);
+  border-bottom: solid 1px var(--ion-color-dark);
+  margin: 0;
+  padding: 0;
+}
+
+ion-title .username {
+  font-weight: 100;
+  font-size: 16px;
+  color: var(--ion-color-dark);
+  border-bottom: solid 1px var(--ion-color-dark);
+  margin: 0;
+  padding-right: 50px;
+}
+
+ion-button.back-button::part(native) {
+  --background: var(--ion-color-primary);
+  font-weight: 700;
+  font-size: 20px;
+  padding: 6px 10px;
+  margin-right: 5px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+}
+
+.divider {
+  width: 2px;
+  background-color: var(--ion-color-dark);
+  margin-right: 10px;
+  margin-left: 10px;
+  height: 24px;
 }
 
 ion-button.main-button::part(native) {
@@ -231,10 +321,39 @@ ion-button.main-button::part(native) {
   box-shadow: none !important;
 }
 
+ion-button.delete-button::part(native) {
+  --background: var(--ion-color-danger);
+  font-weight: 100;
+  padding: 12px 24px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+  width: 100% !important;
+}
+
 ion-button.edit-button::part(native) {
   --background: var(--ion-color-primary);
   font-weight: 100;
   font-size: 12px;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  box-shadow: none !important;
+}
+
+ion-button.main-button.error-button::part(native) {
+  --background: var(--ion-color-danger);
+  --color: white;
+}
+
+.error-message {
+  font-weight: bold;
+}
+
+ion-icon.logout-button::part(native) {
+  --background: var(--ion-color-primary);
+  font-weight: 100;
+  --font-size: 24px;
   padding: 10px 20px;
   text-transform: uppercase;
   border-radius: 50px;
@@ -257,10 +376,9 @@ ion-item .input-label::part(native) {
   font-size: 12px;
   background: var(--ion-color-dark);
   color: var(--ion-color-dark);
-
 }
 
-ion-item .Dropdown-label{
+ion-item .Dropdown-label {
   font-family: var(--ion-font-family);
   font-weight: 100;
   font-size: 12px;
@@ -274,6 +392,10 @@ ion-select {
   --padding-end: 40px;
 }
 
+ion-select::part(native) {
+  background: transparent !important;
+}
+
 ion-select::part(icon) {
   position: absolute;
   right: 10px;
@@ -285,8 +407,18 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   display: none;
 }
 
-.bilance-list,
-.expance-list {
+//* Styling für die Optionen im Dropdown-Menü */
+ion-item.select-interface-option::part(native) {
+  background: transparent !important; /* Hintergrund transparent */
+  --ion-background-color: transparent !important; /* Alternative für Hintergrundfarbe */
+  border-radius: 0 !important; /* Entfernt abgerundete Ecken */
+  color: var(--ion-color-dark); /* Textfarbe */
+  font-size: 14px; /* Schriftgröße */
+  padding: 10px; /* Polsterung */
+}
+
+.balance-list,
+.expense-list {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -310,14 +442,39 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   border-radius: 15px;
 }
 
+.user-info {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  border-radius: 50px;
+  gap: 10px;
+  background: var(--user-color-background, rgba(218, 218, 218, 0.84));
+  border: 2px solid var(--user-color, #1a65eb);
+  padding: 5px 10px 5px 5px;
+}
+
+.user-info .profile-placeholder {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--user-color, #1a65eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--ion-color-dark);
+  font-size: 18px;
+  border: 1px solid var(--user-color);
+}
+
 .member-info {
   display: inline-flex;
   align-items: center;
   height: 40px;
   border-radius: 50px;
   gap: 10px;
-  background: rgb(200, 221, 253);
-  border: 2px solid #1a65eb;
+  background: var(--member-color-background, rgba(252, 238, 238, 0.84));
+  border: 2px solid var(--member-color, #1a65eb);
   padding: 5px 10px 5px 5px;
 }
 
@@ -325,14 +482,14 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   width: 25px;
   height: 25px;
   border-radius: 50%;
-  background: #1a65eb;
+  background: var(--user-color, #1a65eb);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   color: var(--ion-color-dark);
   font-size: 18px;
-  border: 2px solid var(--ion-color-primary);
+  border: 2px solid var(--user-color, #1a65eb);
 }
 
 .member-name {
@@ -342,7 +499,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
 }
 
 .balance-info {
-  min-width: 80px; /* Damit das Badge immer eine feste Größe hat */
+  min-width: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -375,7 +532,7 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
 }
 
 .container .logo {
-  width: 20%;
+  width: 50%;
   margin-bottom: 10%;
   max-width: 100px;
 }
@@ -394,6 +551,9 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   margin-top: 10px;
   margin-bottom: 20px;
   width: 80%;
+  @media (prefers-color-scheme: dark) {
+    background-color: white; // Weiß im Dark Theme
+  }
 }
 
 .menu {
@@ -417,7 +577,6 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   flex: 1;
 }
 
-
 .menu-text.active {
   font-weight: 700; /* Aktive Menü-Option (Bilanz) */
 }
@@ -426,6 +585,84 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   border-left: 1px solid;
   border-color: var(--ion-color-dark);
   height: 20px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.link-text {
+  font-size: 14px;
+  font-weight: 100;
+  cursor: pointer;
+  text-align: center;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--ion-color-secondary);
+  font-size: 18px;
+  z-index: 100;
+}
+
+.space {
+  height: 40px;
+  background-color: transparent;
+}
+
+/* Styling für den Color Picker */
+.colorinput {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  display: block;
+  top: 0; /* Entfernt mögliche Verschiebungen nach unten */
+}
+
+.colorinput::-webkit-color-swatch {
+  border-radius: 50%;
+}
+
+.ion-valid.sc-ion-input-md-h {
+  --highlight-color: balck;
+}
+
+.ion-valid.sc-ion-input-ios-h {
+  --highlight-color: black;
+}
+
+:host .ionicon {
+  stroke: black;
+}
+
+ion-input:focus ~ .ionicon {
+  stroke: black;
+}
+
+.member-item {
+  margin-bottom: 5%; /* Abstand zwischen den Feldern */
+}
+
+.member-item:last-child {
+  margin-bottom: 10%; /* Mehr Abstand für das letzte Element */
+}
+
+.logo {
+  content: url("/assets/logo/Logo_lang.png");
 }
 
 /* Anpassungen für den Dark Mode */
@@ -437,17 +674,80 @@ ion-select:has(.select-text:not(:empty)) .Dropdown-label {
   h5,
   h6,
   h7,
-  p {
+  p,
+  ion-item.select-interface-option::part(native) //Das Dropdown Menü zb in create-expense
+  {
     color: var(--ion-color-light) !important;
   }
 
   ion-card-content,
   ion-card-title,
   ion-card-subtitle,
-  ion-item::part(native),
+  ion-input,
+  ion-card.expense-card h2,
+  ion-card.expense-card p,
+  ion-list.expense-list,
+  ion-item.info-item,
+  ion-item.info-item h5,
+  ion-item.info-item h5.Gesamtpreis,
+  ion-item.info-item ion-badge.Preis ion-item::part(native),
+  .product-list,
+  .product-quantity,
+  .product,
+  ion-card.finance-card h2,
+  ion-card.finance-card p,
+  .card-content h6,
+  .card-content p,
+  .label,
+  ion-item .Dropdown-label,
+  ion-select::part(text),
+  .brush-icon,
+  .member-item,
   ion-item .input-label::part(native) {
     color: var(--ion-color-dark) !important;
   }
+
+  .loading-overlay {
+    color: var(--ion-color-light);
+    background: var(--ion-background-color);
+  }
+
+  .logo {
+    content: url("/assets/logo/LogoWeiss.png");
+  }
+
+  .error-container h1 {
+    color: var(--ion-color-danger) !important;
+  }
+
+  .divider {
+    background-color: var(--ion-color-light) !important;
+  }
+
+  //zb bei create-expense, Dropdown Menü bei den Groupmembers
+  .top-container ion-input,
+  .bottom-container ion-input {
+    color: var(--ion-color-light) !important;
+  }
 }
 
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 
+.loading-video {
+  width: 200px; /* Passe die Größe des Videos an */
+  height: auto;
+  border-radius: 10px; /* Optional: Abgerundete Ecken */
+}
+.member-username {
+  color: #2f2f2f;
+}

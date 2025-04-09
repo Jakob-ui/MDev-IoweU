@@ -1,0 +1,303 @@
+<ion-content [fullscreen]="true">
+  <div id="container" class="container">
+    <h3>Neue Ausgaben</h3>
+    <div class="separator"></div>
+    <!-- Beschreibung -->
+    <div class="section">
+      <div class="amount-row">
+        <div class="Beschreibung">
+          <ion-item class="input-item">
+            <ion-input
+              type="text"
+              placeholder="Beschreibung"
+              [(ngModel)]="expense.description"
+            ></ion-input>
+          </ion-item>
+        </div>
+        <div class="Kategorie">
+          <ion-item
+            class="input-item"
+            (click)="toggleDropdown()"
+            class="category-select"
+          >
+            <ion-label>
+              <div class="selected-category">
+                <img
+                  *ngIf="selectedCategory?.icon"
+                  [src]="selectedCategory.icon"
+                  class="category-icon"
+                />
+                <span class="label"
+                  >{{ selectedCategory?.name || 'Kategorie' }}</span
+                >
+              </div>
+            </ion-label>
+          </ion-item>
+
+          <div *ngIf="dropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                button
+                *ngFor="let category of categories"
+                (click)="selectCategory(category)"
+              >
+                <img [src]="category.icon" class="category-icon" />
+                <ion-label class="dropDownFelder"
+                  >{{ category.name }}</ion-label
+                >
+              </ion-item>
+            </ion-list>
+          </div>
+        </div>
+
+        <div class="invoice-upload">
+          <ion-item class="input-item">
+            <ion-select type="text" [(ngModel)]="expense.invoice"></ion-select>
+          </ion-item>
+        </div>
+      </div>
+    </div>
+
+    <!-- Betrag und Bezahlt von -->
+    <div class="section">
+      <div class="amount-row">
+        <div class="betrag">
+          <ion-item class="input-item">
+            <ion-input
+              type="number"
+              placeholder="0,00"
+              [(ngModel)]="expense.totalAmount"
+              (ionInput)="onTotalAmountChange()"
+            >
+            </ion-input>
+          </ion-item>
+        </div>
+        <div class="Währung">
+          <ion-item class="input-item">
+            <ion-select type="text" [(ngModel)]="expense.currency"></ion-select>
+          </ion-item>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="amount-row">
+        <div class="paid-by">
+          <span class="input-label">bezahlt von</span>
+          <ion-item class="input-item">
+            <ion-select [(ngModel)]="expense.paidBy" interface="popover">
+              <ion-select-option class="custom-select-option" value="mir"
+                >mir</ion-select-option
+              >
+              <ion-select-option class="custom-select-option" value="Lila"
+                >Lila</ion-select-option
+              >
+              <ion-select-option class="custom-select-option" value="Grün"
+                >Grün</ion-select-option
+              >
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <div class="date">
+          <span class="input-label">Datum</span>
+          <ion-item class="input-item">
+            <ion-input
+              [(ngModel)]="expense.date"
+              [readonly]="true"
+              [placeholder]="expense.date"
+              (click)="openDatePicker()"
+            ></ion-input>
+          </ion-item>
+        </div>
+
+        <div class="wiederholung">
+          <span class="input-label">Wiederholung</span>
+          <ion-item class="input-item">
+            <ion-select [(ngModel)]="expense.repeat" interface="popover">
+              <ion-select-option class="custom-select-option" value="nein"
+                >nein</ion-select-option
+              >
+              <ion-select-option class="custom-select-option" value="täglich"
+                >täglich</ion-select-option
+              >
+              <ion-select-option
+                class="custom-select-option"
+                value="wöchentlich"
+                >wöchentlich</ion-select-option
+              >
+              <ion-select-option class="custom-select-option" value="monatlich"
+                >monatlich</ion-select-option
+              >
+            </ion-select>
+          </ion-item>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aufteilung -->
+    <div class="section">
+      <div class="amount-row">
+        <div class="split">
+          <span class="input-label">Aufteilung</span>
+          <ion-item class="input-item">
+            <ion-select [(ngModel)]="expense.splitType" interface="popover">
+              <ion-select-option class="custom-select-option" value="alle"
+                >Anteile</ion-select-option
+              >
+              <ion-select-option class="custom-select-option" value="prozent"
+                >Prozent</ion-select-option
+              >
+              <ion-select-option class="custom-select-option" value="produkte"
+                >nach Produkten</ion-select-option
+              >
+            </ion-select>
+          </ion-item>
+        </div>
+        <div class="split">
+          <span class="input-label">teilen durch</span>
+          <ion-item class="input-item">
+            <ion-select
+              [(ngModel)]="expense.splitBy"
+              (ngModelChange)="onSplitByChange()"
+              interface="popover"
+            >
+              <ion-select-option class="custom-select-option" value="alle"
+                >alle</ion-select-option
+              >
+            </ion-select>
+          </ion-item>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mitglieder -->
+    <div class="section">
+      <div class="member-list" *ngFor="let groupMembers of groupMembers">
+        <div class="member-list-input">
+          <div class="member-info">
+            <div class="profile-placeholder"></div>
+            <span class="member-username">{{ groupMembers.username }}</span>
+          </div>
+          <div
+            *ngIf="expense.splitType === 'produkte'"
+            class="toggle-arrow"
+            (click)="toggleProducts(groupMembers.username)"
+          >
+            <ion-icon
+              [src]="productInputs[groupMembers.username] ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
+            >
+            </ion-icon>
+          </div>
+          <div class="right-container">
+            <div class="input-field">
+              <ion-input
+                type="number"
+                placeholder="1x"
+                *ngIf="expense.members && expense.members[0]"
+                [(ngModel)]="expense.members[0].split"
+              ></ion-input>
+            </div>
+            <div class="input-field">
+              <ion-input
+                type="number"
+                placeholder="0,00"
+                *ngIf="expense.members && expense.members[0]"
+                [(ngModel)]="expense.members[0].amountToPay"
+              ></ion-input>
+            </div>
+          </div>
+        </div>
+
+        <div
+          *ngIf="productInputs[groupMembers.username]"
+          class="product-input-fields"
+        >
+          <div
+            class="product-list"
+            *ngIf="productInputs[groupMembers.username].products.length"
+          >
+            <ul>
+              <li
+                *ngFor="let product of productInputs[groupMembers.username].products"
+              >
+                <div class="left-container">
+                  <span class="product-quantity"
+                    >{{ product.quantity }} {{ product.unit }}</span
+                  >
+                  <span class="product">{{ product.productname }}</span>
+                </div>
+                <ion-badge class="product-price"
+                  >{{ product.price | currency: 'EUR' }}</ion-badge
+                >
+                <ion-icon
+                  class="delete-icon"
+                  [src]="'assets/icon/ionicons/ios-close.svg'"
+                  (click)="removeProduct(groupMembers.username, product)"
+                >
+                </ion-icon>
+              </li>
+            </ul>
+          </div>
+
+          <div class="top-container">
+            <ion-input
+              [(ngModel)]="productInputs[groupMembers.username].input.quantity"
+              placeholder="Menge"
+              type="number"
+            >
+            </ion-input>
+            <ion-input
+              [(ngModel)]="productInputs[groupMembers.username].input.unit"
+              placeholder="Einheit"
+            >
+            </ion-input>
+          </div>
+          <div class="bottom-container">
+            <ion-input
+              [(ngModel)]="productInputs[groupMembers.username].input.productname"
+              placeholder="Produktname"
+            >
+            </ion-input>
+            <ion-input
+              [(ngModel)]="productInputs[groupMembers.username].input.price"
+              placeholder="Preis"
+              type="number"
+            >
+            </ion-input>
+          </div>
+          <ion-button
+            class="main-button"
+            (click)="addProduct(groupMembers.username)"
+          >
+            Produkt hinzufügen
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="button-row">
+      <ion-button class="main-button" (click)="cancel()">Abbrechen</ion-button>
+      <ion-button class="main-button" (click)="saveExpense()"
+        >Speichern</ion-button
+      >
+    </div>
+  </div>
+
+  <!-- Datepicker Modal -->
+  <ion-datetime
+    class="datepicker"
+    presentation="date"
+    [formatOptions]="{
+      month: 'short',
+      year: 'numeric',
+      day: '2-digit'
+    }"
+    *ngIf="isDatePickerOpen"
+    [(ngModel)]="expense.date"
+    (ionChange)="onDateChange($event)"
+    (ionCancel)="closeDatePicker()"
+  >
+  </ion-datetime>
+</ion-content>

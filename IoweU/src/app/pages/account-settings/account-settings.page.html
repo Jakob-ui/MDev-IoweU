@@ -1,76 +1,111 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Account-Einstellungen</ion-title>
+    <div class="left-container" slot="start">
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+        class="back-button"
+        (click)="goBack()"
+      ></ion-icon>
+      <div class="divider"></div>
+      <div class="pagename">Accountsettings</div>
+    </div>
+
+    <div class="right-container" slot="end">
+      <div class="user-info">
+        <div class="profile-placeholder"></div>
+        <span class="member-name">{{ name }}</span>
+      </div>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
+        (click)="logout()"
+        class="logout-button"
+      ></ion-icon>
+    </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Account-Einstellungen</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
   <div id="container" class="container">
+    <div class="profilepic">
+      <img src="../../../assets/icon/person.svg" />
+    </div>
+
     <h2>Mein Account</h2>
 
     <ion-item class="input-item">
       <ion-input
         type="text"
-        placeholder="Name ändern"
-        [(ngModel)]="name"
-      ></ion-input>
+        placeholder="{{changeMessage}}"
+        [(ngModel)]="newname"
+      >
+      </ion-input>
+      <ion-icon
+        *ngIf="userEditing"
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/md-checkmark.svg'"
+        (click)="confirm()"
+      ></ion-icon>
+      <ion-icon
+        *ngIf="userEditing"
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-close.svg' : 'assets/icon/ionicons/md-close.svg'"
+        (click)="cancel()"
+      ></ion-icon>
+      <ion-icon
+        class="brush-icon"
+        *ngIf="!userEditing"
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'"
+        (click)="edit('Schreibe deinen neuen Usernamen')"
+      ></ion-icon>
     </ion-item>
 
     <ion-item class="input-item">
       <ion-input
         type="email"
-        placeholder="E-Mail ändern"
         [(ngModel)]="email"
+        placeholder="E-Mail ändern"
       ></ion-input>
     </ion-item>
 
-    <ion-item class="input-item" (click)="togglePasswordChange()">
-      <ion-label>Passwort ändern</ion-label>
-      <ion-icon
-        slot="end"
-        [name]="showPasswordFields ? 'chevron-up' : 'chevron-down'"
-        class="chevron-icon"
-      ></ion-icon>
+    <ion-item class="input-item">
+      <ion-label class="label">Profilfarbe:</ion-label>
+      <input type="color" [(ngModel)]="color" class="colorinput" />
     </ion-item>
 
-    <div *ngIf="showPasswordFields" class="password-change-container">
-      <ion-item class="input-item">
-        <ion-input
-          type="password"
-          placeholder="Altes Passwort"
-          [(ngModel)]="oldPassword"
-        ></ion-input>
-      </ion-item>
-
-      <ion-item class="input-item">
-        <ion-input
-          type="password"
-          placeholder="Neues Passwort"
-          [(ngModel)]="newPassword"
-        ></ion-input>
-      </ion-item>
-
-      <ion-item class="input-item">
-        <ion-input
-          type="password"
-          placeholder="Passwort wiederholen"
-          [(ngModel)]="confirmPassword"
-        ></ion-input>
-      </ion-item>
-
-      <ion-button class="main-button" expand="block" (click)="changePassword()"
-        >Bestätigen</ion-button
-      >
-    </div>
-
-    <ion-button class="main-button" expand="block"
-      >Änderungen speichern</ion-button
+    <ion-button
+      class="main-button"
+      expand="block"
+      [routerLink]="'/reset-password'"
     >
+      Passwort ändern
+    </ion-button>
+
+    <div class="fixed-bottom">
+      <ion-button id="delete-alert" class="delete-button" color="danger">
+        Konto löschen
+      </ion-button>
+
+      <ion-alert
+        trigger="delete-alert"
+        header="Einloggen erforderlich"
+        message="Bitte logge dich erneut ein, um deine Identität zu bestätigen und dein Konto zu löschen."
+        [buttons]="loginAlertButtons"
+        [inputs]="alertInputs"
+      ></ion-alert>
+
+      <ion-button
+        id="save-alert"
+        class="main-button save-button"
+        expand="block"
+        [disabled]="!hasChanges() || userEditing"
+      >
+        Änderungen speichern
+      </ion-button>
+      <ion-alert
+        trigger="save-alert"
+        header="Änderungen speichern"
+        message="Sie können nur einmal monatlich den Namen, die E-Mail oder andere Einstellungen ändern. Möchten Sie die Änderungen speichern?"
+        [buttons]="saveAlertButtons"
+        (didDismiss)="setResult($event)"
+      ></ion-alert>
+    </div>
   </div>
 </ion-content>
