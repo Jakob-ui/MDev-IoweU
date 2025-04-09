@@ -4,6 +4,7 @@ import { Expenses } from './Expenses';
 import { Products } from './Products';
 
 export interface Members {
+  memberId: string;
   uid: string;
   username: string;
   role: 'member' | 'founder';
