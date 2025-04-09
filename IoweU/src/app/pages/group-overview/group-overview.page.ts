@@ -55,12 +55,12 @@ export class GroupOverviewPage implements OnInit {
 
   ngOnInit() {
     setTimeout(() => {
-      if (this.auth.loggedInUser) {
-        this.user = this.auth.loggedInUser.username;
+      if (this.auth.currentUser) {
+        this.user = this.auth.currentUser.username;
         this.iosIcons = this.platform.is('ios');
-        console.log(this.auth.loggedInUser);
+        console.log(this.auth.currentUser);
 
-        const userColor = this.auth.loggedInUser.color;
+        const userColor = this.auth.currentUser.color;
         document.documentElement.style.setProperty('--user-color', userColor);
 
         this.loadingService.show();
@@ -73,7 +73,7 @@ export class GroupOverviewPage implements OnInit {
 
   async loadMyGroups() {
     try {
-      const currentUser = this.auth.loggedInUser;
+      const currentUser = this.auth.currentUser;
       if (!currentUser) {
         console.error('No user is currently logged in.');
         this.loadingService.hide();

@@ -97,7 +97,7 @@ export class AccountSettingsPage implements OnInit {
       const lastedited = sessionStorage.getItem('lastedited');
 
       if (!this.name || !this.email) {
-        const uid = this.authService.loggedInUser?.uid;
+        const uid = this.authService.currentUser?.uid;
 
         if (uid) {
           const userData = await this.userService.getUserData();
