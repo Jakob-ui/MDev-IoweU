@@ -65,52 +65,64 @@ export class FinancePage implements OnInit {
 
   groupMembers: any[] = []; // Mitglieder als Array deklarieren
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadingService.show(); // Lade-Overlay aktivieren
 
-    (async () => {
-      try {
-        // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
-        if (this.auth.currentUser) {
-          this.user = this.auth.currentUser.username;
-          this.displayName = this.auth.currentUser.username;
-          console.log('Benutzerdaten:', this.auth.currentUser); // Logge die Benutzerdaten zur Überprüfung
+    try {
+      // Warten auf die vollständige Initialisierung des Benutzers
+      if (this.auth.currentUser) {
+        this.user = this.auth.currentUser.username;
+        this.displayName = this.auth.currentUser.username;
+        console.log('Benutzerdaten:', this.auth.currentUser); // Logge die Benutzerdaten zur Überprüfung
 
-          const userColor = this.auth.currentUser.color || '#000000'; // Standardfarbe setzen, falls nicht verfügbar
-          document.documentElement.style.setProperty('--user-color', userColor); // Benutzerfarbe setzen
+        const userColor = this.auth.currentUser.color || '#000000'; // Standardfarbe setzen, falls nicht verfügbar
+        document.documentElement.style.setProperty('--user-color', userColor); // Benutzerfarbe setzen
 
-          // Holen der groupId als String aus dem AuthService
-          const groupId = String(this.auth.currentUser.groupId || ''); // Sicherstellen, dass groupId ein String ist
+        // Holen der groupId als String aus dem AuthService
+        const groupId = String(this.auth.currentUser.groupId || ''); // Sicherstellen, dass groupId ein String ist
 
-          if (groupId) {
-            // Holen der Gruppendaten über den GroupService
-            const currentGroup = await this.groupService.getGroupById(groupId); // Verwenden der tatsächlichen groupId hier
+        console.log('Benutzer GroupId:', groupId); // Debug: Ausgabe der GroupId
 
-            if (currentGroup) {
-              this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-              this.groupId = currentGroup.groupId || '';
+        if (groupId) {
+          // Holen der Gruppendaten über den GroupService
+          const currentGroup = await this.groupService.getGroupById(groupId); // Verwenden der tatsächlichen groupId hier
 
-              // Holen der Mitglieder für diese Gruppe
-              this.groupMembers = currentGroup.members || []; // Mitglieder aus der Gruppe laden
+          if (currentGroup) {
+            console.log('Alle Gruppendaten:', currentGroup); // Alle Gruppendaten ausgeben
+
+            // Einzelne Daten der Gruppe ausgeben
+            console.log('Gruppenname:', currentGroup.groupname);
+            console.log('Gruppen-ID:', currentGroup.groupId);
+            console.log('Gruppenmitglieder:', currentGroup.members);
+
+            this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+            this.groupId = currentGroup.groupId || '';
+
+            // Holen der Mitglieder für diese Gruppe
+            if (currentGroup.members && currentGroup.members.length > 0) {
+              this.groupMembers = currentGroup.members;
+              console.log('Mitglieder geladen:', this.groupMembers);
             } else {
-              console.error('Gruppe nicht gefunden');
-              this.groupname = 'Unbekannte Gruppe';
+              console.error('Keine Mitglieder in der Gruppe gefunden');
             }
           } else {
-            console.error('Kein GroupId für den Benutzer gefunden');
+            console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
             this.groupname = 'Unbekannte Gruppe';
           }
         } else {
-          console.error('Kein Benutzer eingeloggt.');
+          console.error('Kein GroupId für den Benutzer gefunden');
+          this.groupname = 'Unbekannte Gruppe';
         }
-
-        this.iosIcons = this.platform.is('ios');
-      } catch (error) {
-        console.error('Fehler beim Initialisieren der Seite:', error);
-      } finally {
-        this.loadingService.hide(); // Lade-Overlay deaktivieren
+      } else {
+        console.error('Kein Benutzer eingeloggt.');
       }
-    })();
+
+      this.iosIcons = this.platform.is('ios');
+    } catch (error) {
+      console.error('Fehler beim Initialisieren der Seite:', error);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
+    }
   }
 
   goToCreateExpense() {

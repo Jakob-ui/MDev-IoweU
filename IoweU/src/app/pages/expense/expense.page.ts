@@ -97,7 +97,7 @@ export class ExpensePage implements OnInit {
   ngOnInit() {
     this.loadingService.show(); // Lade-Overlay aktivieren
 
-    (async () => {
+    setTimeout(async () => {
       try {
         // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
         if (this.auth.currentUser) {
@@ -138,11 +138,8 @@ export class ExpensePage implements OnInit {
       } finally {
         this.loadingService.hide(); // Lade-Overlay deaktivieren
       }
-    })();
+    }, 500); // Verzögerung von 500ms, bevor der Prozess gestartet wird
   }
-
-
-
 
   // Berechnet den Kontostand basierend auf den Ausgaben
   calculateBalance() {
