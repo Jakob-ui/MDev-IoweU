@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "@capacitor/android": "^7.2.0",
+    "@capacitor/cli": "^7.2.0",
+    "@capacitor/core": "^7.2.0",
     "html5-qrcode": "^2.3.8",
     "http": "^0.0.1-security"
   }
