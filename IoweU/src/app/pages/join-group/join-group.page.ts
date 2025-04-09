@@ -45,14 +45,12 @@ export class JoinGroupPage {
   joinFailed: boolean = false;
   groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
-  platformIsNative = Capacitor.isNativePlatform();
 
   //private validJoinCodes: string[] = ['abc123', 'xyz456', 'test123']; // Beispiel gültiger Codes
   private qrCodeScanner: Html5QrcodeScanner | null = null; // Verweis auf den QR-Code-Scanner
   Capacitor: any;
   isSupported: boolean | undefined;
 
-  constructor(private router: Router) {}
   constructor(private router: Router) {}
 
   ngOnInit() {
