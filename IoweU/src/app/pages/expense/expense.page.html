@@ -38,7 +38,7 @@
     <ion-list class="expense-list">
       <ion-item class="info-item" *ngFor="let expense of expenses" (click)="goToExpenseDetails(expense.id)">
         <div class="profile-placeholder"></div>
-        <h5>{{ expense.expense }}</h5>
+        <h5 class="einzelneAusgabe">{{ expense.expense }}</h5>
         <div class="expense-item">
           <div class="Ausgabepreis">
             <h5 class="Gesamtpreis">

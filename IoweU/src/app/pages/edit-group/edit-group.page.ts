@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
@@ -14,6 +14,7 @@ import {
   IonSelectOption, IonModal } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { LoadingService } from 'src/app/services/loading.service';
 //import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
@@ -46,7 +47,8 @@ export class EditGroupPage{
   groupImage: string | ArrayBuffer | null = null;
   showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige
   groupLink: string = '';
-
+  private loadingService = inject(LoadingService);
+  // private groupService = inject(GroupService);
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   constructor() {}

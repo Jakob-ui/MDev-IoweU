@@ -159,12 +159,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-right: 5%;
 }
 
-/* Input-Felder immer volle Breite */
-ion-item.input-item {
-  width: 100%;
-}
 
 ion-input,
 ion-select {
@@ -271,4 +268,10 @@ ion-input::part(native) {
   border-radius: 50px;
   --border-style: none !important;
   border: none !important;
+}
+@media (prefers-color-scheme: dark) {
+  .input-label {
+    color: #989797; 
+    
+  }
 }
