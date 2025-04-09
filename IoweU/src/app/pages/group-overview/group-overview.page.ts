@@ -71,8 +71,6 @@ export class GroupOverviewPage implements OnInit {
     }, 500); // Warte 500ms, bevor du auf currentUser zugreifst
   }
 
-
-
   async loadMyGroups() {
     try {
       const currentUser = this.auth.currentUser;
@@ -95,14 +93,12 @@ export class GroupOverviewPage implements OnInit {
         myBalance: Math.floor(Math.random() * (200 - -200 + 1)) + -200,
         link: g.groupId,
       }));
-
     } catch (e) {
       console.log('Error loading Groups:', e);
     } finally {
       this.loadingService.hide();
     }
   }
-
 
   navigateToGroup(link: string, groupName: string) {
     sessionStorage.setItem('groupname', groupName);

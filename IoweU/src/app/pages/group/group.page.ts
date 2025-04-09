@@ -45,7 +45,7 @@ export class GroupPage implements OnInit {
   private navCtrl = inject(NavController);
   private route = inject(ActivatedRoute);
   private groupService = inject(GroupService);
-  private loadingService = inject(LoadingService); // Inject LoadingService
+  private loadingService = inject(LoadingService);
 
   iosIcons: boolean = false;
 
@@ -56,42 +56,55 @@ export class GroupPage implements OnInit {
   displayName: string | null = null;
 
   groupname: string = '';
-  private _groupId: string = '';
-  public get groupid(): string {
-    return this._groupId;
-  }
-  public set groupid(value: string) {
-    this._groupId = value;
-  }
+  groupid: string = '';
+  features: string[] = [];
   groupImage: string = '';
+  members: any[] = [];
+  accessCode: string = '';
+  sumTotalExpenses: number | undefined = undefined;
+  countTotalExpenses: number | undefined = undefined;
+  sumTotalExpensesMembers: number | undefined = undefined;
+  countTotalExpensesMembers: number | undefined = undefined;
+
   myBalance: number = +200;
   currentMonth: string = 'März 2025';
-  features: string[] = [];
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
-
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
 
   ngOnInit() {
-    // Holen der Benutzerdaten direkt aus AuthService
-    if (this.auth.currentUser) {
-      this.user = this.auth.currentUser.username; // Benutzername aus dem AuthService
-    } else {
-      console.error('Kein Benutzer eingeloggt.');
-    }
+    this.loadingService.show(); // Lade-Overlay aktivieren
 
-    this.iosIcons = this.platform.is('ios');
+    (async () => {
+      try {
+        // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
+        if (this.auth.currentUser) {
+          // Benutzername wird nur gesetzt, wenn der currentUser verfügbar ist
+          this.user = this.auth.currentUser.username;
+          this.displayName = this.auth.currentUser.username;
+          console.log('Benutzerdaten:', this.auth.currentUser); // Logge die Benutzerdaten zur Überprüfung
+        } else {
+          console.error('Kein Benutzer eingeloggt.');
+          return; // Wenn kein Benutzer eingeloggt, wird der Rest des Codes nicht ausgeführt.
+        }
 
-    // Holen des Gruppennamens direkt aus den Route-Parametern oder AuthService
-    this.route.params.subscribe((params) => {
-      this.groupid = params['id'];
-      this.loadingService.show(); // Lade-Overlay aktivieren
-      this.loadGroupData(this.groupid).finally(() => {
+        this.iosIcons = this.platform.is('ios'); // Überprüfe, ob iOS
+
+        // Holen der Gruppen-ID aus den Routenparametern
+        this.route.params.subscribe((params) => {
+          this.groupid = params['groupId'];
+          this.loadGroupData(this.groupid).finally(() => {
+            this.loadingService.hide(); // Lade-Overlay deaktivieren
+          });
+        });
+      } catch (error) {
+        console.error('Fehler beim Initialisieren der Seite:', error);
         this.loadingService.hide(); // Lade-Overlay deaktivieren
-      });
-    });
+      }
+    })();
   }
 
+  // Logout-Funktion
   async logout() {
     try {
       this.auth.logout();
@@ -101,54 +114,68 @@ export class GroupPage implements OnInit {
     }
   }
 
+  // Navigation zur Gruppenübersicht
   goBack() {
     this.router.navigate(['group-overview']);
   }
 
+  // Funktion zum Laden der Gruppendaten
   async loadGroupData(id: string): Promise<void> {
-    this.loadingService.show(); // Lade-Overlay aktivieren
-    console.log('searching for groupId' + id);
     try {
       const group = await this.groupService.getGroupById(id);
-
       await new Promise((resolve) => setTimeout(resolve, 1000));
+
       if (group) {
         this.groupname = group.groupname;
         this.groupid = group.groupId;
         this.features = group.features;
+        this.groupImage = group.groupimage;
+        this.members = group.members;
+        this.accessCode = group.accessCode;
+        this.sumTotalExpenses = group.sumTotalExpenses;
+        this.countTotalExpenses = group.countTotalExpenses;
+
+        if (group.sumTotalExpensesMembers) {
+          this.sumTotalExpensesMembers = group.sumTotalExpensesMembers;
+        }
+        if (group.countTotalExpensesMembers) {
+          this.countTotalExpensesMembers = group.countTotalExpensesMembers;
+        }
       } else {
-        console.warn('Groups not found!');
+        console.warn('Gruppe nicht gefunden!');
       }
     } catch (e) {
-      console.log('Error getting Groups: ' + e);
+      console.error('Fehler beim Abrufen der Gruppen-Daten: ', e);
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
+  // Funktion zur Generierung der Feature-Links mit groupId
   getFeatureLink(feature: string): string {
     switch (feature) {
       case 'Finanzübersicht':
-        return '/finance';
+        return `/finance/${this.groupid}`;
       case 'Ausgaben':
-        return '/expense';
+        return `/expense/${this.groupid}`;
       case 'Einkaufsliste':
-        return '/shopping-list';
+        return `/shopping-list/${this.groupid}`; // Beispiel-Link für Shopping-List
       case 'Anlagegüter':
-        return '/assets';
+        return `/assets/${this.groupid}`; // Beispiel-Link für Assets
       default:
         return '/'; // Rückfalloption für unbekannte Features
     }
   }
 
+  // Funktion, um ein Loading-Overlay zu simulieren
   async isLoading() {
     try {
-      this.loadingService.show(); // Lade-Overlay aktivieren
+      this.loadingService.show();
       await new Promise((resolve) => setTimeout(resolve, 2000));
     } catch (error) {
       console.error('Error loading group data:', error);
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 }

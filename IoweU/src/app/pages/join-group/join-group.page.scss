@@ -24,3 +24,12 @@
   height: 100%;
   object-fit: cover;
 }
+
+.qr-code-scanner {
+  width: 100%; /* Breite des Scanners */
+  max-width: 400px; /* Maximale Breite */
+  height: 400px; /* Höhe des Scanners */
+  margin: 0 auto; /* Zentriert den Scanner */
+  border: 2px solid var(--ion-color-primary); /* Optional: Rahmen hinzufügen */
+  border-radius: 10px; /* Optional: Abgerundete Ecken */
+}

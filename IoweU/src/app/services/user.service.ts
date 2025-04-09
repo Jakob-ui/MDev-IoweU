@@ -27,7 +27,6 @@ export class UserService {
     const color = await this.getUserthingsByUid(uid, 'color');
     const email = this.auth.currentUser.email || '';
     const lastedited = await this.getUserthingsByUid(uid, 'lastedited');
-    const groupid = await this.getUserthingsByUid(uid, 'groupId');
 
     return {
       uid: uid,

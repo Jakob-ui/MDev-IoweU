@@ -1,15 +1,22 @@
 import { Component, inject } from '@angular/core';
 import { Html5QrcodeScanner } from 'html5-qrcode';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { Capacitor } from '@capacitor/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonButton, IonContent, IonInput, IonItem } from '@ionic/angular/standalone';
+import {
+  IonButton,
+  IonContent,
+  IonInput,
+  IonItem,
+} from '@ionic/angular/standalone';
 import { GroupService } from 'src/app/services/group.service';
 import { Auth } from '@angular/fire/auth';
 import { AuthService } from 'src/app/services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { Users } from 'src/app/services/objects/Users';
-
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-join-group',
@@ -27,21 +34,30 @@ import { Users } from 'src/app/services/objects/Users';
   ],
 })
 export class JoinGroupPage {
+  showScanner: any;
   joinCode: string = '';
   auth = inject(Auth);
+  authService = inject(AuthService);
+  platformIsNative = Capacitor.isNativePlatform();
   error: string = '';
   joinFailed: boolean = false;
   groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
 
   //private validJoinCodes: string[] = ['abc123', 'xyz456', 'test123']; // Beispiel gültiger Codes
-  private qrCodeScanner: Html5QrcodeScanner | null = null;  // Verweis auf den QR-Code-Scanner
+  private qrCodeScanner: Html5QrcodeScanner | null = null; // Verweis auf den QR-Code-Scanner
+  Capacitor: any;
+  isSupported: boolean | undefined;
 
   constructor(private router: Router) {}
 
   ngOnInit() {
     // Den QR-Code-Scanner initialisieren
     // Wir initialisieren ihn hier, aber er wird nur aktiviert, wenn der Benutzer auf den Button klickt
+    // Überprüfen, ob der Barcode Scanner unterstützt wird
+    BarcodeScanner.isSupported().then((result: { supported: boolean | undefined; }) => {
+      this.isSupported = result.supported;
+    });
   }
 
   ngOnDestroy() {
@@ -58,17 +74,16 @@ export class JoinGroupPage {
 
   joinGroup() {
     this.loadingService.show();
-
-    const firebaseUser = this.auth.currentUser;
-    if (firebaseUser) {
+    if (this.authService.currentUser) {
       const userData: Users = {
-        uid: firebaseUser.uid,
-        username: '', // da müssen noch die richtigen Daten übergeben werden
-        email: firebaseUser.email ?? '',
-        color: '',
-        lastedited: new Date().toISOString(),
-        groupId: []
+        uid: this.authService.currentUser?.uid || '',
+        username: this.authService.currentUser?.username || '',
+        email: this.authService.currentUser?.email || '',
+        color: this.authService.currentUser?.color || '',
+        lastedited: '',
+        groupId: [],
       };
+      console.log('userData', userData);
 
       this.groupService
         .joinGroup(userData, this.joinCode)
@@ -98,6 +113,21 @@ export class JoinGroupPage {
     }
   }
 
+  scanQRCode() {
+    if (this.platformIsNative) {
+      this.scanNativeQRCode(); // Nutze die native Scanner-Methode
+    } else {
+      if (this.qrCodeScanner) return; // Verhindere doppelte Initialisierung
+      this.showScanner = true;
+      setTimeout(() => {
+        this.initializeQRCodeScanner(); // Initialisiere den Web-QR-Code-Scanner
+      });
+    }
+  }
+  scanNativeQRCode() {
+    throw new Error('Method not implemented.');
+  }
+  
 
   // Funktion zum Scannen von QR-Codes, die bei Button-Klick ausgelöst wird
   initializeQRCodeScanner() {
@@ -135,5 +165,4 @@ export class JoinGroupPage {
       this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
-
 }
