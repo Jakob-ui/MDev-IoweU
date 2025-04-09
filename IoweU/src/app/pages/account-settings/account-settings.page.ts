@@ -49,7 +49,7 @@ export class AccountSettingsPage implements OnInit {
   private acc = inject(AccountService);
   private userService = inject(UserService);
   private alertController = inject(AlertController);
-  private loadingService = inject(LoadingService); 
+  private loadingService = inject(LoadingService);
   iosIcons: boolean = false;
 
   displayName: string | null = null;
@@ -77,7 +77,7 @@ export class AccountSettingsPage implements OnInit {
   constructor() {}
 
   ngOnInit() {
-    this.loadingService.show(); 
+    this.loadingService.show();
     this.loadUserData().finally(() => {
       this.loadingService.hide();
     });
@@ -95,17 +95,17 @@ export class AccountSettingsPage implements OnInit {
       this.originalColor = this.color;
       this.email = sessionStorage.getItem('email') || '';
       const lastedited = sessionStorage.getItem('lastedited');
-  
+
       if (!this.name || !this.email) {
         const uid = this.authService.currentUser?.uid;
-  
+
         if (uid) {
           const userData = await this.userService.getUserData();
           this.name = userData.username;
           this.email = userData.email;
           this.color = userData.color;
           this.lastedited = userData.lastedited;
-  
+
           sessionStorage.setItem('username', this.name);
           sessionStorage.setItem('email', this.email);
           sessionStorage.setItem('usercolor', this.color);
@@ -114,11 +114,11 @@ export class AccountSettingsPage implements OnInit {
           console.error('Kein Benutzer ist aktuell eingeloggt.');
         }
       }
-  
+
       if (this.color) {
         document.documentElement.style.setProperty('--user-color', this.color);
       }
-  
+
       console.log('Benutzerdaten erfolgreich geladen.');
     } catch (error) {
       console.error('Fehler beim Laden der Benutzerdaten:', error);
@@ -172,23 +172,23 @@ export class AccountSettingsPage implements OnInit {
             'Sie können den Benutzernamen nur alle 5 Minuten ändern. Bitte versuchen Sie es später erneut.',
           buttons: ['OK'],
         });
-  
+
         await alert.present();
         return;
       }
-  
+
       await this.acc.userupdate({
         username: this.newname,
         color: this.color,
         lastedited: new Date().toISOString(),
       });
-  
+
       sessionStorage.setItem('username', this.newname);
       sessionStorage.setItem('usercolor', this.color);
       sessionStorage.setItem('lastedited', new Date().toISOString());
-  
+
       console.log('Änderungen erfolgreich gespeichert.');
-  
+
       this.loadUserData();
     } catch (e) {
       console.error('Fehler beim Speichern der Änderungen:', e);
@@ -328,7 +328,7 @@ export class AccountSettingsPage implements OnInit {
   }
 
   async deleteAccount() {
-    this.loadingService.show(); 
+    this.loadingService.show();
     try {
       await this.acc.userdelete();
       this.router.navigate(['home']);
@@ -341,7 +341,7 @@ export class AccountSettingsPage implements OnInit {
       });
       await errorAlert.present();
     } finally {
-      this.loadingService.hide(); 
+      this.loadingService.hide();
     }
   }
 

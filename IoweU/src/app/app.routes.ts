@@ -51,50 +51,23 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'finance',
+    path: 'finance/:groupId',  // groupId wird hier erwartet
     loadComponent: () =>
       import('./pages/finance/finance.page').then((m) => m.FinancePage),
     canActivate: [AuthGuard],
   },
   {
-    path: 'reset-password',
-    loadComponent: () =>
-      import('./pages/reset-password/reset-password.page').then(
-        (m) => m.ResetPasswordPage
-      ),
-  },
-  {
-    path: 'account-settings',
-    loadComponent: () =>
-      import('./pages/account-settings/account-settings.page').then(
-        (m) => m.AccountSettingsPage
-      ),
-    canActivate: [AuthGuard],
-  },
-  {
-    path: 'expense',
+    path: 'expense/:groupId',  // groupId wird hier erwartet
     loadComponent: () =>
       import('./pages/expense/expense.page').then((m) => m.ExpensePage),
     canActivate: [AuthGuard],
   },
   {
-    path: 'create-expense',
+    path: 'create-expense/:groupId',  // groupId wird hier erwartet
     loadComponent: () =>
       import('./pages/create-expense/create-expense.page').then(
         (m) => m.CreateExpensePage
       ),
-    canActivate: [AuthGuard],
-  },
-  {
-    path: 'edit-group',
-    loadComponent: () =>
-      import('./pages/edit-group/edit-group.page').then((m) => m.EditGroupPage),
-    canActivate: [AuthGuard],
-  },
-  {
-    path: 'join-group',
-    loadComponent: () =>
-      import('./pages/join-group/join-group.page').then((m) => m.JoinGroupPage),
     canActivate: [AuthGuard],
   },
   {
@@ -106,31 +79,57 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'repeating-expenses',
+    path: 'repeating-expenses/:groupId',  // groupId wird hier erwartet
     loadComponent: () =>
       import('./pages/repeating-expenses/repeating-expenses.page').then(
-        m => m.RepeatingExpensesPage
+        (m) => m.RepeatingExpensesPage
       ),
     canActivate: [AuthGuard],
   },
   {
-    path: 'edit-expense',
+    path: 'edit-expense/:id',
     loadComponent: () =>
       import('./pages/edit-expense/edit-expense.page').then(
-        m => m.EditExpensePage
+        (m) => m.EditExpensePage
       ),
     canActivate: [AuthGuard],
+  },
+  {
+    path: 'edit-group/:id',
+    loadComponent: () =>
+      import('./pages/edit-group/edit-group.page').then(
+        (m) => m.EditGroupPage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'join-group',
+    loadComponent: () =>
+      import('./pages/join-group/join-group.page').then((m) => m.JoinGroupPage),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'account-settings',
+    loadComponent: () =>
+      import('./pages/account-settings/account-settings.page').then(
+        (m) => m.AccountSettingsPage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./pages/reset-password/reset-password.page').then(
+        (m) => m.ResetPasswordPage
+      ),
   },
   {
     path: 'not-found',
-    loadComponent: () => import('./pages/not-found/not-found.page').then( m => m.NotFoundPage)
+    loadComponent: () =>
+      import('./pages/not-found/not-found.page').then((m) => m.NotFoundPage),
   },
   {
     path: '**',
     redirectTo: 'not-found',
   },
-
-
-
-
 ];
