@@ -32,6 +32,7 @@
 
 .Kategorie, .invoice-upload {
   flex: 1;
+  color: #000000
 }
 
 .betrag {
@@ -274,4 +275,33 @@ ion-input::part(native) {
     color: #989797; 
     
   }
+}
+.category-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.custom-dropdown {
+  position: absolute;
+  z-index: 9999;
+  background-color: var(--ion-color-secondary); /* z.B. ein helles Grau oder angepasst an dein Theme */
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  max-width: 400px;
+  top: 100%;
+  left: 0;
+  padding: 8px 0; /* Etwas Innenabstand */
+}
+
+.selected-category {
+  display: flex;
+  align-items: center;
+}
+.dropDownFelder{
+  color: #000000;
+}
+.Kategorie{
+  position: relative;
 }

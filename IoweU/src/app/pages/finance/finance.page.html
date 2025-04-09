@@ -45,12 +45,23 @@
       </div>
     </div>
 
-    <ion-list class="bilance-list">
+    <ion-list class="balance-list">
       <ion-item class="info-item" *ngFor="let member of groupMembers">
-        <div class="member-info">
-          <div class="profile-placeholder"></div>
-          <span class="member-name">{{ member.name }}</span>
+        <div class="member-info"
+             [ngStyle]="{
+              'background-color': 'var(--member-color-background-' + member.uid + ')',
+              'border-color': 'var(--member-color-' + member.uid + ')'
+            }">
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{
+              'background-color': 'var(--member-color-' + member.uid + ')',
+              'border-color': 'var(--member-color-' + member.uid + ')'
+            }">
+          </div>
+          <span class="member-name">{{ member.username }}</span>
         </div>
+
         <ion-badge
           class="balance-info"
           [ngClass]="{ 'negative': member.amount < 0, 'positive': member.amount >= 0 }"

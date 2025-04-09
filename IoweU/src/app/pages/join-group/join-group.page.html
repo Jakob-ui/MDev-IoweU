@@ -23,10 +23,11 @@
       class="main-button"
       expand="block"
       [class.error-button]="joinFailed"
-      (click)="joinGroup()"
+      (click)="confirmJoinGroup()"
     >
-      Beitreten
+    Beitreten
     </ion-button>
+
 
     <!-- Button zum Scannen des QR-Codes -->
     <ion-button class="main-button" expand="block" (click)="scanQRCode()">

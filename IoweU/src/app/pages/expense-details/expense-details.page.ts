@@ -64,7 +64,6 @@ export class ExpenseDetailsPage implements OnInit {
       repeat: 'nein',
       members: [
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Livia',
           amountToPay: 10,
           products: [
@@ -87,7 +86,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Jakob',
           amountToPay: 10.5,
           products: [
@@ -110,7 +108,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Michaela',
           amountToPay: 5,
           products: [
@@ -125,7 +122,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Sophie',
           amountToPay: 10,
           products: [
@@ -148,7 +144,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Mateusz',
           amountToPay: 10.5,
           products: [
@@ -184,7 +179,6 @@ export class ExpenseDetailsPage implements OnInit {
       repeat: 'nein',
       members: [
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Livia',
           amountToPay: 8,
           products: [
@@ -199,7 +193,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Jakob',
           amountToPay: 8,
           products: [
@@ -214,7 +207,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Michaela',
           amountToPay: 8,
           products: [
@@ -229,7 +221,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Sophie',
           amountToPay: 8,
           products: [
@@ -244,7 +235,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Mateusz',
           amountToPay: 8,
           products: [
@@ -272,7 +262,6 @@ export class ExpenseDetailsPage implements OnInit {
       repeat: 'nein',
       members: [
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Livia',
           amountToPay: -25,
           split: 1,
@@ -296,7 +285,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Jakob',
           amountToPay: -30,
           split: 1,
@@ -320,7 +308,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Michaela',
           amountToPay: -20,
           split: 1,
@@ -352,7 +339,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Sophie',
           amountToPay: -25,
           split: 1,
@@ -384,7 +370,6 @@ export class ExpenseDetailsPage implements OnInit {
           ],
         },
         {
-          expenseMemberId: 'aw3da123',
           memberId: 'Mateusz',
           amountToPay: -20,
           split: 1,

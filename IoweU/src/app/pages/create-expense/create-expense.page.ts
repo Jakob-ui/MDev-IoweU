@@ -42,6 +42,7 @@ import { LoadingService } from 'src/app/services/loading.service';
   ],
 })
 export class CreateExpensePage {
+  
   private router = inject(Router);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
@@ -119,6 +120,29 @@ export class CreateExpensePage {
       },
     ],
   };
+
+  categories = [
+    { name: 'Lebensmittel', icon: 'assets/icon/lebensmittel_light.png' },
+    { name: 'Einkäufe', icon: 'assets/icon/einkauf_light.png' },
+    { name: 'Restaurant/Bar', icon: 'assets/icon/restaurant_light.png' },
+    { name: 'Transport', icon: 'assets/icon/transport.svg' },
+    { name: 'Freizeit', icon: 'assets/icon/leisure.svg' },
+    { name: 'Wohnen', icon: 'assets/icon/wohnen_light.png' },
+    { name: 'Rechnungen', icon: 'assets/icon/food.svg' },
+    { name: 'Sonstiges', icon: 'assets/icon/other.svg' },
+  ];
+  selectedCategory: any = null;
+dropdownOpen = false;
+
+toggleDropdown() {
+  this.dropdownOpen = !this.dropdownOpen;
+}
+
+selectCategory(category: any) {
+  this.selectedCategory = category;
+  this.expense.category = category.name;
+  this.dropdownOpen = false;
+}
 
   productInputs: {
     [key: string]: {

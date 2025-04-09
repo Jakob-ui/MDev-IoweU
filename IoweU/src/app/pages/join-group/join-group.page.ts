@@ -49,7 +49,7 @@ export class JoinGroupPage {
   Capacitor: any;
   isSupported: boolean | undefined;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private alertCrontroller: AlertController) {}
 
   ngOnInit() {
     // Den QR-Code-Scanner initialisieren
@@ -165,4 +165,47 @@ export class JoinGroupPage {
       this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
+
+
+  // Popup-Dialog zur Bestätigung des Beitritts zur Gruppe
+  async confirmJoinGroup() {
+    this.loadingService.show();
+  
+    try {
+      const group = await this.groupService.getGroupByAccessCode(this.joinCode);
+  
+      if (!group) {
+        this.error = 'Gruppe nicht gefunden.';
+        this.joinFailed = true;
+        return;
+      }
+  
+      const alert = await inject(AlertController).create({
+        header: 'Gruppe beitreten',
+        message: `Möchtest du wirklich der Gruppe <strong>${group.groupname}</strong> beitreten?`,
+        buttons: [
+          {
+            text: 'Abbrechen',
+            role: 'cancel',
+          },
+          {
+            text: 'Ja',
+            handler: () => {
+              this.joinGroup(); // Hier wird der eigentliche Beitritt ausgeführt
+            },
+          },
+        ],
+      });
+  
+      await alert.present();
+    } catch (err) {
+      console.error(err);
+      this.error = 'Fehler beim Laden der Gruppe.';
+      this.joinFailed = true;
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+  
+  
 }

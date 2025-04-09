@@ -1,25 +1,21 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
   IonToolbar,
   IonTitle,
   IonContent,
   IonItem,
-  IonLabel,
   IonList,
   IonBadge,
   IonCard,
   IonIcon,
 } from '@ionic/angular/standalone';
-import { Router, RouterModule } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
-import { GroupService } from '../../services/group.service'; // GroupService importieren
-import { Groups } from '../../services/objects/Groups'; // Typisierung hinzufügen
-import { ActivatedRoute } from '@angular/router';
+import { GroupService } from '../../services/group.service';
 
 @Component({
   selector: 'app-finance',
@@ -35,8 +31,8 @@ import { ActivatedRoute } from '@angular/router';
     IonList,
     IonBadge,
     IonCard,
-    RouterModule,
     IonIcon,
+    RouterModule,
   ],
 })
 export class FinancePage implements OnInit {
@@ -46,57 +42,91 @@ export class FinancePage implements OnInit {
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
-  private groupService = inject(GroupService); // GroupService injizieren
+  private groupService = inject(GroupService);
 
   groupname: string = '';
   iosIcons: boolean = false;
 
   user: string | null = '';
   displayName: string | null = null;
-  groupId: string | null = null; // Variable für die groupId hinzufügen
+  groupId: string | null = null;
 
   myBalance: number = +200;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
-  groupMembers: any[] = []; // Mitglieder als Array deklarieren
+  groupMembers: any[] = [];
+
+  // 🆕 Member-Variablen
+  memberUsernames: string[] = [];
+  memberIds: string[] = [];
+  memberColors: string[] = [];
+  memberRoles: string[] = [];
+  memberUids: string[] = [];
+
+  constructor() {}
 
   async ngOnInit() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+    this.loadingService.show();
 
     try {
-      // Warten auf die vollständige Initialisierung des Benutzers
-      if (this.authService.currentUser) {
-        this.user = this.authService.currentUser.username;
-        this.displayName = this.authService.currentUser.username;
-        console.log('Benutzerdaten:', this.authService.currentUser); // Logge die Benutzerdaten zur Überprüfung
+      if (this.auth.currentUser) {
+        this.user = this.auth.currentUser.username;
+        this.displayName = this.auth.currentUser.username;
+        console.log('Benutzerdaten:', this.auth.currentUser);
 
-        const userColor = this.authService.currentUser.color || '#000000'; // Standardfarbe setzen, falls nicht verfügbar
-        document.documentElement.style.setProperty('--user-color', userColor); // Benutzerfarbe setzen
+        const userColor = this.auth.currentUser.color || '#000000';
+        const userBackgroundColor = this.lightenColor(userColor, 0.9);
+        document.documentElement.style.setProperty('--user-color', userColor);
+        document.documentElement.style.setProperty(
+          '--user-color-background',
+          userBackgroundColor
+        );
 
-        // Holen der groupId als String aus dem AuthService
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-
-        console.log('Benutzer GroupId:', groupId); // Debug: Ausgabe der GroupId
+        console.log('Benutzer GroupId:', groupId);
 
         if (groupId) {
-          // Holen der Gruppendaten über den GroupService
-          const currentGroup = await this.groupService.getGroupById(groupId); // Verwenden der tatsächlichen groupId hier
+          const currentGroup = await this.groupService.getGroupById(groupId);
 
           if (currentGroup) {
-            console.log('Alle Gruppendaten:', currentGroup); // Alle Gruppendaten ausgeben
-
-            // Einzelne Daten der Gruppe ausgeben
-            console.log('Gruppenname:', currentGroup.groupname);
-            console.log('Gruppen-ID:', currentGroup.groupId);
-            console.log('Gruppenmitglieder:', currentGroup.members);
-
+            console.log('Alle Gruppendaten:', currentGroup);
             this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = currentGroup.groupId || '';
 
-            // Holen der Mitglieder für diese Gruppe
             if (currentGroup.members && currentGroup.members.length > 0) {
-              this.groupMembers = currentGroup.members;
+              this.groupMembers = currentGroup.members.map((member: any) => {
+                // Setze dynamische Farben für jedes Mitglied
+                const memberColor = member.color || '#000000';
+                const memberBackgroundColor = this.lightenColor(
+                  memberColor,
+                  0.9
+                );
+
+                // Setze die CSS-Properties für die Farben basierend auf der uid
+                document.documentElement.style.setProperty(
+                  `--member-color-${member.uid}`,
+                  memberColor
+                );
+                document.documentElement.style.setProperty(
+                  `--member-color-background-${member.uid}`,
+                  memberBackgroundColor
+                );
+
+                this.memberUsernames.push(member.username || '');
+                this.memberIds.push(member.memberId || '');
+                this.memberColors.push(member.color || '');
+                this.memberRoles.push(member.role || '');
+                this.memberUids.push(member.uid || '');
+
+                return {
+                  ...member,
+                  amount: 0, // Dummy-Wert
+                };
+              });
+
               console.log('Mitglieder geladen:', this.groupMembers);
+              console.log('Usernames:', this.memberUsernames);
+              console.log('IDs:', this.memberIds);
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -116,34 +146,68 @@ export class FinancePage implements OnInit {
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
+  // Helper function zum Aufhellen der Farbe (nur Helligkeit wird verändert)
+  private lightenColor(hex: string, factor: number): string {
+    let r: number = 0;
+    let g: number = 0;
+    let b: number = 0;
+
+    // Entferne das "#" aus dem Hex-Code, falls vorhanden
+    hex = hex.replace('#', '');
+
+    // Konvertiere Hex in RGB
+    if (hex.length === 3) {
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else if (hex.length === 6) {
+      r = parseInt(hex.substr(0, 2), 16);
+      g = parseInt(hex.substr(2, 2), 16);
+      b = parseInt(hex.substr(4, 2), 16);
+    }
+
+    // Erhöhe die RGB-Werte proportional, ohne sie über 255 hinaus steigen zu lassen
+    r = Math.min(255, r + (255 - r) * factor);
+    g = Math.min(255, g + (255 - g) * factor);
+    b = Math.min(255, b + (255 - b) * factor);
+
+    // Konvertiere zurück in Hex
+    return `#${(
+      (1 << 24) |
+      (Math.round(r) << 16) |
+      (Math.round(g) << 8) |
+      Math.round(b)
+    )
+      .toString(16)
+      .slice(1)}`;
+  }
+
   goToCreateExpense() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+    this.loadingService.show();
     try {
       this.router.navigate(['create-expense']);
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
   async logout() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+    this.loadingService.show();
     try {
       this.authService.logout();
       this.router.navigate(['home']);
     } catch (e) {
       console.error('Fehler beim Logout:', e);
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
   goBack() {
-    this.navCtrl.back(); // Navigiert zur letzten Seite
+    this.navCtrl.back();
   }
-
-  constructor() {}
 }
