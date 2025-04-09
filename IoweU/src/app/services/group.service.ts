@@ -41,7 +41,6 @@ export class GroupService {
         groupimage: '',
         members: [
           {
-            memberId: '1', // Beispiel-ID, kann angepasst werden
             uid: founder.uid,
             username: founder.username,
             role: 'founder',
@@ -158,7 +157,6 @@ export class GroupService {
         const alreadyMember = groupMembers.some(m => m.uid === joinee.uid);
         if (!alreadyMember) {
           const newMember: Members = {
-            memberId: (groupMembers.length + 1).toString(),
             uid: joinee.uid,
             username: joinee.username,
             role: 'member',
