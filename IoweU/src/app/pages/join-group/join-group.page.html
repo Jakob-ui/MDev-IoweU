@@ -29,12 +29,12 @@
     </ion-button>
 
     <!-- Button zum Scannen des QR-Codes -->
-    <ion-button class="main-button" expand="block" (click)="initializeQRCodeScanner()">
+    <ion-button class="main-button" expand="block" (click)="scanQRCode()">
       QR-Code scannen
     </ion-button>
 
-    <!-- Container für den QR-Code-Scanner -->
-    <div id="qr-code-scanner" style="width: 100%; height: 300px; margin-top: 20px;"></div>
+    <!-- Container für den Web-QR-Code-Scanner -->
+    <div id="qr-code-scanner" *ngIf="!isSupported && !platformIsNative" class="qr-code-scanner"></div>
 
 
     <p *ngIf="joinFailed" class="error-message">{{ error }}</p> <!-- Fehlermeldung anzeigen, wenn joinFailed true ist -->
