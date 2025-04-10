@@ -46,7 +46,7 @@ export class ExpensePage implements OnInit {
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
-  private groupService = inject(GroupService); // Inject GroupService
+  private groupService = inject(GroupService);
 
   iosIcons: boolean = false;
 
@@ -176,7 +176,7 @@ export class ExpensePage implements OnInit {
   goToCreateExpense() {
     this.loadingService.show(); // Lade-Overlay aktivieren
     try {
-      this.router.navigate(['create-expense']);
+      this.router.navigate(['create-expense', this.groupId]);
     } finally {
       this.loadingService.hide(); // Lade-Overlay deaktivieren
     }

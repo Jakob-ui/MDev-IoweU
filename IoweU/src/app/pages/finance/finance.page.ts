@@ -56,7 +56,6 @@ export class FinancePage implements OnInit {
 
   groupMembers: any[] = [];
 
-  // 🆕 Member-Variablen
   memberUsernames: string[] = [];
   memberIds: string[] = [];
   memberColors: string[] = [];
@@ -74,14 +73,6 @@ export class FinancePage implements OnInit {
         this.displayName = this.authService.currentUser.username;
         console.log('Benutzerdaten:', this.authService.currentUser);
 
-        const userColor = this.authService.currentUser.color || '#000000';
-        const userBackgroundColor = this.lightenColor(userColor, 0.9);
-        document.documentElement.style.setProperty('--user-color', userColor);
-        document.documentElement.style.setProperty(
-          '--user-color-background',
-          userBackgroundColor
-        );
-
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
         console.log('Benutzer GroupId:', groupId);
 
@@ -95,23 +86,6 @@ export class FinancePage implements OnInit {
 
             if (currentGroup.members && currentGroup.members.length > 0) {
               this.groupMembers = currentGroup.members.map((member: any) => {
-                // Setze dynamische Farben für jedes Mitglied
-                const memberColor = member.color || '#000000';
-                const memberBackgroundColor = this.lightenColor(
-                  memberColor,
-                  0.9
-                );
-
-                // Setze die CSS-Properties für die Farben basierend auf der uid
-                document.documentElement.style.setProperty(
-                  `--member-color-${member.uid}`,
-                  memberColor
-                );
-                document.documentElement.style.setProperty(
-                  `--member-color-background-${member.uid}`,
-                  memberBackgroundColor
-                );
-
                 this.memberUsernames.push(member.username || '');
                 this.memberIds.push(member.memberId || '');
                 this.memberColors.push(member.color || '');
@@ -148,42 +122,6 @@ export class FinancePage implements OnInit {
     } finally {
       this.loadingService.hide();
     }
-  }
-
-  // Helper function zum Aufhellen der Farbe (nur Helligkeit wird verändert)
-  private lightenColor(hex: string, factor: number): string {
-    let r: number = 0;
-    let g: number = 0;
-    let b: number = 0;
-
-    // Entferne das "#" aus dem Hex-Code, falls vorhanden
-    hex = hex.replace('#', '');
-
-    // Konvertiere Hex in RGB
-    if (hex.length === 3) {
-      r = parseInt(hex[0] + hex[0], 16);
-      g = parseInt(hex[1] + hex[1], 16);
-      b = parseInt(hex[2] + hex[2], 16);
-    } else if (hex.length === 6) {
-      r = parseInt(hex.substr(0, 2), 16);
-      g = parseInt(hex.substr(2, 2), 16);
-      b = parseInt(hex.substr(4, 2), 16);
-    }
-
-    // Erhöhe die RGB-Werte proportional, ohne sie über 255 hinaus steigen zu lassen
-    r = Math.min(255, r + (255 - r) * factor);
-    g = Math.min(255, g + (255 - g) * factor);
-    b = Math.min(255, b + (255 - b) * factor);
-
-    // Konvertiere zurück in Hex
-    return `#${(
-      (1 << 24) |
-      (Math.round(r) << 16) |
-      (Math.round(g) << 8) |
-      Math.round(b)
-    )
-      .toString(16)
-      .slice(1)}`;
   }
 
   goToCreateExpense() {

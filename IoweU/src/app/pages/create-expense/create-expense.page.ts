@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import {
   IonContent,
   IonItem,
@@ -19,7 +19,6 @@ import {
 // Import interfaces
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
-import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { Members } from 'src/app/services/objects/Members';
 import { NavController } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
@@ -49,6 +48,9 @@ export class CreateExpensePage {
   private router = inject(Router);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
+  private route = inject(ActivatedRoute);
+
+  groupId = this.route.snapshot.paramMap.get('groupId') || '';
 
   groupMembers: (Members & {})[] = [
     {
@@ -86,38 +88,7 @@ export class CreateExpensePage {
     repeat: '',
     splitBy: 'alle',
     splitType: 'prozent',
-    members: [
-      {
-        memberId: 'user123',
-        amountToPay: 0,
-        split: 1,
-        products: [
-          {
-            productId: 'p123',
-            memberId: 'user123',
-            productname: 'Brot',
-            quantity: 2,
-            unit: 'Stück',
-            price: 3,
-          },
-        ],
-      },
-      {
-        memberId: 'user456',
-        amountToPay: 0,
-        split: 1,
-        products: [
-          {
-            productId: 'p124',
-            memberId: 'user456',
-            productname: 'Milch',
-            quantity: 1,
-            unit: 'Liter',
-            price: 1.5,
-          },
-        ],
-      },
-    ],
+    members: [],
   };
 
   categories = [
@@ -200,30 +171,26 @@ export class CreateExpensePage {
         price: Number(product.price),
       };
 
-      // Initialize products array if undefined
       if (!entry.products) {
         entry.products = [];
       }
 
       entry.products.push(newProduct);
 
-      // Ensure members array is initialized
       if (!this.expense.members) {
         this.expense.members = [];
       }
 
       const member = this.expense.members.find(
-        (m) => m.memberId === entry.input.memberId
+          (m) => m.memberId === entry.input.memberId
       );
 
       if (member) {
-        // Ensure products array is initialized
         if (!member.products) {
           member.products = [];
         }
         member.products.push(newProduct);
       } else {
-        // If member doesn't exist, add it to the expense
         this.expense.members.push({
           memberId: entry.input.memberId,
           amountToPay: 0,
@@ -232,7 +199,6 @@ export class CreateExpensePage {
         });
       }
 
-      // Reset input and update totals
       entry.input = this.createEmptyProduct(memberName);
       this.updateTotals();
     }
@@ -242,18 +208,15 @@ export class CreateExpensePage {
     const entry = this.productInputs[memberName];
     if (!entry) return;
 
-    // Ensure products is an array before filtering
     if (entry.products) {
       entry.products = entry.products.filter((p) => p !== productToRemove);
     }
 
-    // Check if members array is defined
     if (this.expense.members) {
       const member = this.expense.members.find(
-        (m) => m.memberId === productToRemove.memberId
+          (m) => m.memberId === productToRemove.memberId
       );
       if (member && member.products) {
-        // Ensure member's products is an array before calling filter
         member.products = member.products.filter((p) => p !== productToRemove);
       }
     }
@@ -262,30 +225,28 @@ export class CreateExpensePage {
   }
 
   private calculateTotal(): number {
-    // Ensure this.expense.members is an array
     if (!this.expense.members || !Array.isArray(this.expense.members)) {
       return 0;
     }
 
     return this.expense.members.reduce((sum, member) => {
-      // Ensure member.products is an array and not undefined
       const products = member.products || [];
       return (
-        sum +
-        products.reduce((productSum, product) => {
-          // Ensure each product has valid price and quantity
-          return productSum + (product.price * product.quantity || 0);
-        }, 0)
+          sum +
+          products.reduce((productSum, product) => {
+            return productSum + (product.price * product.quantity || 0);
+          }, 0)
       );
     }, 0);
   }
+
   private updateMembers() {
     this.expense.members = this.groupMembers.map((member) => ({
       expenseMemberId: 'aw3da123',
       memberId: member.uid,
       amountToPay:
-        this.expense.members?.find((m) => m.memberId === member.uid)
-          ?.amountToPay || 0,
+          this.expense.members?.find((m) => m.memberId === member.uid)
+              ?.amountToPay || 0,
       split: 1,
       products: this.productInputs[member.username]?.products || [],
     }));
@@ -307,8 +268,8 @@ export class CreateExpensePage {
     const amountPerPerson = total / this.groupMembers.length;
 
     this.groupMembers.forEach((member) => {
-      this.expense.members?.find((m) => m.memberId === member.uid)
-        ?.amountToPay || 0;
+      const m = this.expense.members?.find((m) => m.memberId === member.uid);
+      if (m) m.amountToPay = amountPerPerson;
     });
   }
 
@@ -334,7 +295,9 @@ export class CreateExpensePage {
       });
 
       console.log('Saving expense:', this.expense);
-      this.router.navigate(['/expense']);
+
+      // Zur Gruppenseite zurücknavigieren
+      this.router.navigate(['/expense', this.groupId]);
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);
     } finally {

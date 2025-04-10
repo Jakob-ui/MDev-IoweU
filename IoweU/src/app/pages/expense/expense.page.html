@@ -56,6 +56,9 @@
     </ion-list>
 
 
-    <ion-button class="main-button" expand="block" [routerLink]="'/create-expense'">Neue Ausgabe hinzufügen +</ion-button>
+    <ion-button class="main-button" expand="block" (click)="goToCreateExpense()">
+      Neue Ausgabe hinzufügen +
+    </ion-button>
+
   </div>
 </ion-content>

@@ -243,13 +243,44 @@ export class GroupService {
       const group = groupSnapshot.data() as Groups;
       group.groupId = groupSnapshot.id; // Gruppennummer hinzufügen (Firestore ID)
 
-      // Gib die Gruppe zurück
+      // Farben für Mitglieder anwenden
+      this.applyMemberColors(group);
+
       return group;
     } catch (e) {
       throw new Error('Fehler beim Abrufen der Gruppe nach ID: ' + e);
       return null;
     }
   }
+
+  private applyMemberColors(group: Groups): void {
+    group.members.forEach((member) => {
+      if (member.color) {
+        const memberBackground = this.lightenColor(member.color, 0.9);
+        document.documentElement.style.setProperty(`--member-color-${member.uid}`, member.color);
+        document.documentElement.style.setProperty(`--member-color-background-${member.uid}`, memberBackground);
+      }
+    });
+  }
+
+  private lightenColor(hex: string, factor: number): string {
+    let r = 0, g = 0, b = 0;
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else if (hex.length === 6) {
+      r = parseInt(hex.substring(0, 2), 16);
+      g = parseInt(hex.substring(2, 4), 16);
+      b = parseInt(hex.substring(4, 6), 16);
+    }
+    r = Math.min(255, r + (255 - r) * factor);
+    g = Math.min(255, g + (255 - g) * factor);
+    b = Math.min(255, b + (255 - b) * factor);
+    return `#${((1 << 24) | (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b)).toString(16).slice(1)}`;
+  }
+
 
   async getGroupByAccessCode(accessCode: string): Promise<Groups | null> {
     try {
