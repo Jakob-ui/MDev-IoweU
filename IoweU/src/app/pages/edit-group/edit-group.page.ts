@@ -116,23 +116,13 @@ export class EditGroupPage implements OnInit {
         await this.groupService.deleteGroup(this.userUid, this.groupId);
 
         // Weiterleiten nach dem Löschen
-        this.router.navigate(['/groups']);
+        this.router.navigate(['/group-overview']);
       } else {
         console.error('Fehler: Nur der Gründer kann die Gruppe löschen');
       }
     } catch (error) {
       console.error('Fehler beim Löschen der Gruppe:', error);
     }
-  }
-
-
-  saveeditedGroup() {
-    console.log('Gruppe gespeichert:', this.groupname, this.members, this.selectedTemplate, this.groupImage);
-    this.router.navigate([`/group`, this.groupId]);
-  }
-
-  generateGroupLink() {
-    this.groupLink = `http://localhost:8100/group?id=${this.groupname}`;
   }
 
   async confirmDelete() {
@@ -159,4 +149,17 @@ export class EditGroupPage implements OnInit {
 
     await alert.present();
   }
+
+
+  saveeditedGroup() {
+    console.log('Gruppe gespeichert:', this.groupname, this.members, this.selectedTemplate, this.groupImage);
+    this.router.navigate([`/group`, this.groupId]);
+  }
+
+  generateGroupLink() {
+    this.groupLink = `http://localhost:8100/group?id=${this.groupname}`;
+    console.log('Gruppenlink generiert:', this.groupLink);
+  }
+
+
 }
