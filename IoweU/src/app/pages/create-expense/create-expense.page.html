@@ -87,7 +87,7 @@
           <ion-item class="input-item">
             <ion-select [(ngModel)]="expense.paidBy" interface="popover">
               <ion-select-option
-                *ngFor="let member of groupMembers2"
+                *ngFor="let member of groupMembers"
                 class="custom-select-option"
                 [value]="member.username"
                 >{{member.username}}</ion-select-option
@@ -170,19 +170,19 @@
 
     <!-- Mitglieder -->
     <div class="section">
-      <div class="member-list" *ngFor="let groupMembers of groupMembers">
+      <div class="member-list" *ngFor="let groupMember of groupMembers">
         <div class="member-list-input">
           <div class="member-info">
             <div class="profile-placeholder"></div>
-            <span class="member-username">{{ groupMembers.memberId }}</span>
+            <span class="member-username">{{ groupMember.username }}</span>
           </div>
           <div
             *ngIf="expense.splitType === 'produkte'"
             class="toggle-arrow"
-            (click)="toggleProducts(groupMembers.memberId)"
+            (click)="toggleProducts(groupMember.username)"
           >
             <ion-icon
-              [src]="productInputs[groupMembers.memberId] ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
+              [src]="productInputs[groupMember.username] ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
             >
             </ion-icon>
           </div>
@@ -207,16 +207,16 @@
         </div>
 
         <div
-          *ngIf="productInputs[groupMembers.memberId]"
+          *ngIf="productInputs[groupMember.username]"
           class="product-input-fields"
         >
           <div
             class="product-list"
-            *ngIf="productInputs[groupMembers.memberId].products.length"
+            *ngIf="productInputs[groupMember.username].products.length"
           >
             <ul>
               <li
-                *ngFor="let product of productInputs[groupMembers.memberId].products"
+                *ngFor="let product of productInputs[groupMember.username].products"
               >
                 <div class="left-container">
                   <span class="product-quantity"
@@ -230,7 +230,7 @@
                 <ion-icon
                   class="delete-icon"
                   [src]="'assets/icon/ionicons/ios-close.svg'"
-                  (click)="removeProduct(groupMembers.memberId, product)"
+                  (click)="removeProduct(groupMember.username, product)"
                 >
                 </ion-icon>
               </li>
@@ -239,25 +239,25 @@
 
           <div class="top-container">
             <ion-input
-              [(ngModel)]="productInputs[groupMembers.memberId].input.quantity"
+              [(ngModel)]="productInputs[groupMember.username].input.quantity"
               placeholder="Menge"
               type="number"
             >
             </ion-input>
             <ion-input
-              [(ngModel)]="productInputs[groupMembers.memberId].input.unit"
+              [(ngModel)]="productInputs[groupMember.username].input.unit"
               placeholder="Einheit"
             >
             </ion-input>
           </div>
           <div class="bottom-container">
             <ion-input
-              [(ngModel)]="productInputs[groupMembers.memberId].input.productname"
+              [(ngModel)]="productInputs[groupMember.username].input.productname"
               placeholder="Produktname"
             >
             </ion-input>
             <ion-input
-              [(ngModel)]="productInputs[groupMembers.memberId].input.price"
+              [(ngModel)]="productInputs[groupMember.username].input.price"
               placeholder="Preis"
               type="number"
             >
@@ -265,7 +265,7 @@
           </div>
           <ion-button
             class="main-button"
-            (click)="addProduct(groupMembers.memberId)"
+            (click)="addProduct(groupMember.username)"
           >
             Produkt hinzufügen
           </ion-button>

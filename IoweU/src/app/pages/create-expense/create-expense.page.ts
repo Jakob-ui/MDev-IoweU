@@ -78,8 +78,9 @@ export class CreateExpensePage {
 
   groupId = this.route.snapshot.paramMap.get('groupId') || '';
 
-  groupMembers: (ExpenseMember & {})[] = [];
-  groupMembers2: (Members & {})[] = [];
+  groupMembers: (Members & {})[] = [];
+
+  products: (Products & {})[] = [];
 
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
@@ -109,14 +110,9 @@ export class CreateExpensePage {
   selectedCategory: any = null;
   dropdownOpen = false;
 
-  ngOnInit() {
-    console.log('groupid:', this.groupId);
-    this.groupService
-      .getEveryMemberOfGroupById(this.groupId)
-      .then((members) => {
-        this.groupMembers2 = members || [];
-      });
-    console.log(this.groupMembers2);
+  getMemberNameById(memberId: string): string {
+    const member = this.groupMembers.find((m) => m.uid === memberId);
+    return member ? member.username : 'Unbekannt';
   }
 
   toggleDropdown() {
@@ -163,10 +159,10 @@ export class CreateExpensePage {
   }
 
   private createEmptyProduct(memberName: string): Products {
-    const member = this.groupMembers.find((m) => m.memberId === memberName);
+    const member = this.groupMembers.find((m) => m.uid === memberName);
     return {
       productId: Date.now().toString(),
-      memberId: member ? member.memberId : '',
+      memberId: member ? member.uid : '',
       productname: '',
       quantity: 1,
       unit: '',
@@ -197,22 +193,22 @@ export class CreateExpensePage {
       }
 
       const member = this.groupMembers.find(
-        (m) => m.memberId === entry.input.memberId
+        (m) => m.uid === entry.input.memberId
       );
-
+      /*
       if (member) {
         if (!member.products) {
           member.products = [];
         }
         member.products.push(newProduct);
       } else {
-        this.groupMembers.push({
+        this.expense.expenseMember.push({
           memberId: entry.input.memberId,
           amountToPay: 0,
           split: 1,
           products: [newProduct],
         });
-      }
+      }*/
 
       entry.input = this.createEmptyProduct(memberId);
       this.updateTotals();
@@ -229,11 +225,13 @@ export class CreateExpensePage {
 
     if (this.groupMembers) {
       const member = this.groupMembers.find(
-        (m) => m.memberId === productToRemove.memberId
-      );
+        (m) => m.uid === productToRemove.memberId
+      ); /*
       if (member && member.products) {
-        member.products = member.products.filter((p) => p !== productToRemove);
-      }
+        member.products = member.products.filter(
+          (p: Products) => p !== productToRemove
+        );
+      }*/
     }
 
     this.updateTotals();
@@ -245,24 +243,30 @@ export class CreateExpensePage {
     }
 
     return this.groupMembers.reduce((sum, member) => {
-      const products = member.products || [];
+      const products: Products[] = [];
       return (
         sum +
-        products.reduce((productSum, product) => {
-          return productSum + (product.price * product.quantity || 0);
-        }, 0)
+        products.reduce(
+          (
+            productSum: number,
+            product: { price: number; quantity: number }
+          ) => {
+            return productSum + (product.price * product.quantity || 0);
+          },
+          0
+        )
       );
     }, 0);
   }
 
   private updateMembers() {
-    this.groupMembers = this.groupMembers.map((member) => ({
-      memberId: member.memberId,
+    this.expense.expenseMember = this.groupMembers.map((member) => ({
+      memberId: member.uid,
       amountToPay:
-        this.expense.expenseMember?.find((m) => m.memberId === member.memberId)
+        this.expense.expenseMember?.find((m) => m.memberId === member.uid)
           ?.amountToPay || 0,
       split: 1,
-      products: this.productInputs[member.memberId]?.products || [],
+      products: this.productInputs[member.uid]?.products || [],
     }));
   }
 
@@ -283,7 +287,7 @@ export class CreateExpensePage {
 
     this.groupMembers.forEach((member) => {
       const m = this.expense.expenseMember?.find(
-        (m) => m.memberId === member.memberId
+        (m) => m.memberId === member.uid
       );
       if (m) m.amountToPay = amountPerPerson;
     });
@@ -306,7 +310,7 @@ export class CreateExpensePage {
     try {
       this.expenseService.createExpense(
         this.expense,
-        this.groupMembers,
+        this.expense.expenseMember,
         this.groupId
       );
       this.updateTotals();
