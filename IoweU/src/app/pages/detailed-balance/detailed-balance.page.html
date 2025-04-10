@@ -37,7 +37,13 @@
       </div>
     </div>
 
-    <ion-badge class="balance">{{ totalAmountForSelectedMember | currency: 'EUR' }}</ion-badge>
+    <ion-badge
+      [ngClass]="{
+        'negative': totalBalanceByMember < 0,
+        'positive': totalBalanceByMember > 0,
+        'normal': totalBalanceByMember === 0
+      }"
+      class="balance">{{ totalBalanceByMember | currency: 'EUR' }}</ion-badge>
 
     <ion-button class="edit-button" expand="block" (click)="editBalance()">Bilanz bearbeiten</ion-button>
 
@@ -47,19 +53,20 @@
       <div class="top-container">
         <div class="member-info"
              [ngStyle]="{
-               'background-color': 'var(--user-color-background-' + uid + ')',
-               'border-color': 'var(--user-color-' + uid + ')'
+               'background-color': 'var(--member-color-background-' + uid + ')',
+               'border-color': 'var(--member-color-' + uid + ')'
              }">
           <div class="profile-placeholder"
                [ngStyle]="{
-               'background-color': 'var(--user-color-' + uid + ')',
-               'border-color': 'var(--user-color-' + uid + ')'
+               'background-color': 'var(--member-color-' + uid + ')',
+               'border-color': 'var(--member-color-' + uid + ')'
              }">
           </div>
           <span class="member-name">{{ username }}</span>
         </div>
-        <ion-badge class="balance-price">
-          {{ getTotalPaidExpensesForMember(selectedMember?.uid || '') | currency: 'EUR' }}
+        <ion-badge
+          class="balance-price positive">
+          {{ getTotalPaidExpensesForUser(uid || '') | currency: 'EUR' }}
         </ion-badge>
       </div>
 
@@ -71,7 +78,7 @@
               <ion-icon [src]="isProductsVisible(expense.expenseId) ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"></ion-icon>
             </div>
           </div>
-          <ion-badge class="expense-price">
+          <ion-badge class="expense-price positive">
             {{ getExpenseOwedBy(selectedMember?.uid || '', expense) | currency: 'EUR' }}
           </ion-badge>
         </div>
@@ -87,10 +94,9 @@
           </ul>
         </div>
       </div>
-
     </div>
 
-    <div *ngFor="let expense of paidBySelectedMember" class="detailedbalance-overview">
+    <div class="detailedbalance-overview">
       <div class="top-container">
         <div class="member-info"
              [ngStyle]="{
@@ -105,7 +111,8 @@
           </div>
           <span class="member-name">{{ selectedMember?.username }}</span>
         </div>
-        <ion-badge class="balance-price">
+        <ion-badge
+          class="balance-price negative">
           {{ getTotalPaidExpensesForMember(uid || '') | currency: 'EUR' }}
         </ion-badge>
       </div>
@@ -118,7 +125,7 @@
               <ion-icon [src]="isProductsVisible(expense.expenseId) ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"></ion-icon>
             </div>
           </div>
-          <ion-badge class="expense-price">
+          <ion-badge class="expense-price negative">
             {{ getExpenseOwedBy(uid || '', expense) | currency: 'EUR' }}
           </ion-badge>
         </div>

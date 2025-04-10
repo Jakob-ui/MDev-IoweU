@@ -67,7 +67,7 @@ export class DetailedBalancePage implements OnInit {
 
   // New variables to fix errors
   balanceDetails: any = {}; // Add balanceDetails if needed
-  totalAmountForSelectedMember: number = 0; // Add totalAmountForSelectedMember
+  totalBalanceByMember: number = 0; // Add totalBalanceByMember
 
   constructor() {}
 
@@ -101,12 +101,16 @@ export class DetailedBalancePage implements OnInit {
                 (m) => m.uid === validSelectedMember
               ) ?? null;
 
+              console.log('Selected Member:', this.selectedMember);
+              console.log('Current User UID:', this.uid);
+
+
               this.allExpenses = [
                 {
                   expenseId: 'exp1',
                   description: 'Wocheneinkauf',
                   totalAmount: 100,
-                  paidBy: this.uid!,
+                  paidBy: this.uid,
                   date: '2025-04-01',
                   currency: 'EUR',
                   repeat: 'none',
@@ -167,7 +171,7 @@ export class DetailedBalancePage implements OnInit {
                   expenseId: 'exp3',
                   description: 'Einkauf bei Hofer',
                   totalAmount: 64,
-                  paidBy: this.uid!,
+                  paidBy: this.uid,
                   date: '2025-04-01',
                   currency: 'EUR',
                   repeat: 'none',
@@ -200,10 +204,25 @@ export class DetailedBalancePage implements OnInit {
 
               this.filterRelevantExpenses();
 
+
               // Berechnung der gesamten Ausgaben des ausgewählten Mitglieds
-              this.totalAmountForSelectedMember = this.paidBySelectedMember.reduce((total, expense) => {
-                return total + this.getAmountOwedBy(this.selectedMember?.uid || '', expense);
-              }, 0);
+              const totalPaidBySelectedMember = this.getTotalPaidExpensesForMember(validSelectedMember);
+              const totalPaidByUser = this.getTotalPaidExpensesForUser(this.username);
+
+              this.totalBalanceByMember = totalPaidByUser >= totalPaidBySelectedMember
+                ? totalPaidByUser - totalPaidBySelectedMember
+                : -(totalPaidBySelectedMember - totalPaidByUser);
+
+              // Log the individual elements
+              console.log('Total Paid by Selected Member:', totalPaidBySelectedMember);
+              console.log('Total Paid by Current User:', totalPaidByUser);
+
+
+
+              // Berechne die Differenz und logge das Ergebnis
+              this.totalBalanceByMember = totalPaidBySelectedMember - totalPaidByUser;
+              console.log('Calculated totalBalanceByMember:', this.totalBalanceByMember);
+
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -260,11 +279,16 @@ export class DetailedBalancePage implements OnInit {
   getTotalPaidExpensesForMember(uid: string | null): number {
     if (!uid) return 0; // Wenn keine uid vorhanden ist, gibt es keine Ausgaben
     // Filtere alle Ausgaben, die vom Benutzer mit der gegebenen UID bezahlt wurden
-    const expensesPaidByUser = this.allExpenses.filter(expense => expense.paidBy === uid);
+    const expensesPaidByUser = this.allExpenses.filter(expense => expense.paidBy === this.selectedMember?.uid);
     // Berechne die Gesamtzahl der bezahlten Ausgaben
     return expensesPaidByUser.reduce((total, expense) => total + expense.totalAmount, 0);
   }
-
+  getTotalPaidExpensesForUser(uid: string | null): number {
+    if (!uid) return 0;
+    // Filtere alle Ausgaben, die vom aktuellen Benutzer bezahlt wurden
+    const expensesPaidByUser = this.allExpenses.filter(expense => expense.paidBy === uid);
+    return expensesPaidByUser.reduce((total, expense) => total + expense.totalAmount, 0);
+  }
 
 
   toggleProducts(expenseId: string) {
