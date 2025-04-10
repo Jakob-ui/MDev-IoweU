@@ -14,19 +14,15 @@
             ></ion-input>
           </ion-item>
         </div>
+        
         <div class="Kategorie">
           <ion-item
             class="input-item"
             (click)="toggleDropdown()"
-            class="category-select"
           >
             <ion-label>
               <div class="selected-category">
-                <img
-                  *ngIf="selectedCategory?.icon"
-                  [src]="selectedCategory.icon"
-                  class="category-icon"
-                />
+                <ion-icon [name]="selectedCategory?.icon"  class="category-icon"></ion-icon>
                 <span class="label"
                   >{{ selectedCategory?.name || 'Kategorie' }}</span
                 >
@@ -36,13 +32,13 @@
 
           <div *ngIf="dropdownOpen" class="custom-dropdown">
             <ion-list>
-              <ion-item
+              <ion-item class="dropDownFelder"
                 button
                 *ngFor="let category of categories"
                 (click)="selectCategory(category)"
               >
-                <img [src]="category.icon" class="category-icon" />
-                <ion-label class="dropDownFelder"
+              <ion-icon [name]="category.icon" class="category-icon"></ion-icon>
+                <ion-label 
                   >{{ category.name }}</ion-label
                 >
               </ion-item>
