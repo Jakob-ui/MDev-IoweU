@@ -87,7 +87,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'edit-expense/:id',
+    path: 'edit-expense/:groupId/:expenseId',
     loadComponent: () =>
       import('./pages/edit-expense/edit-expense.page').then(
         (m) => m.EditExpensePage
@@ -130,6 +130,14 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'detailed-balance/:groupId/:uid',
+    loadComponent: () =>
+      import('./pages/detailed-balance/detailed-balance.page').then(
+        (m) => m.DetailedBalancePage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'not-found',
     loadComponent: () =>
       import('./pages/not-found/not-found.page').then((m) => m.NotFoundPage),
@@ -138,6 +146,8 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'not-found',
   },
+
+
 
 
 ];

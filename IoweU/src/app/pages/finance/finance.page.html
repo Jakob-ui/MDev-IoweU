@@ -46,7 +46,7 @@
     </div>
 
     <ion-list class="balance-list">
-      <ion-item class="info-item" *ngFor="let member of groupMembers">
+      <ion-item class="info-item" [routerLink]="['/detailed-balance', groupId, member.uid]" *ngFor="let member of groupMembers">
         <div class="member-info"
              [ngStyle]="{
               'background-color': 'var(--member-color-background-' + member.uid + ')',
