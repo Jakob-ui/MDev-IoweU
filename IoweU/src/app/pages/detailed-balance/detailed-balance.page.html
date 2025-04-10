@@ -1,8 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <div class="left-container" slot="start">
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
-                class="back-button" (click)="goBack()"></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+        class="back-button"
+        (click)="goBack()"
+      ></ion-icon>
       <div class="divider"></div>
       <div class="pagename">Finanzübersicht</div>
     </div>
@@ -12,8 +15,11 @@
         <div class="profile-placeholder"></div>
         <span class="member-name">{{ user }}</span>
       </div>
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
-                (click)="logout()" class="logout-button"></ion-icon>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
+        (click)="logout()"
+        class="logout-button"
+      ></ion-icon>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -21,127 +27,167 @@
 <ion-content [fullscreen]="true">
   <div class="page-container" *ngIf="balanceDetails">
     <div class="balance-member">
-      <div class="member-info-top"
-           [ngStyle]="{
+      <div
+        class="member-info-top"
+        [ngStyle]="{
               'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
               'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
-            }">
+            }"
+      >
         <div
           class="profile-placeholder"
           [ngStyle]="{
               'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
               'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
-            }">
-        </div>
+            }"
+        ></div>
         <span class="member-name">{{ selectedMember?.username }}</span>
       </div>
     </div>
 
-    <ion-badge class="balance">{{ totalAmountForSelectedMember | currency: 'EUR' }}</ion-badge>
+    <ion-badge class="balance"
+      >{{ totalAmountForSelectedMember | currency: 'EUR' }}</ion-badge
+    >
 
-    <ion-button class="edit-button" expand="block" (click)="editBalance()">Bilanz bearbeiten</ion-button>
+    <ion-button class="edit-button" expand="block" (click)="editBalance()"
+      >Bilanz bearbeiten</ion-button
+    >
 
     <div class="separator"></div>
 
     <div class="detailedbalance-overview">
       <div class="detailedbalance-overview-user">
         <div class="top-container">
-          <div class="member-info"
-               [ngStyle]="{
+          <div
+            class="member-info"
+            [ngStyle]="{
            'background-color': 'var(--user-color-background-' + currentUser?.uid + ')',
            'border-color': 'var(--user-color-' + currentUser?.uid + ')'
-         }">
-            <div class="profile-placeholder"
-                 [ngStyle]="{
+         }"
+          >
+            <div
+              class="profile-placeholder"
+              [ngStyle]="{
              'background-color': 'var(--user-color-' + currentUser?.uid + ')',
              'border-color': 'var(--user-color-' + currentUser?.uid + ')'
-           }">
-            </div>
+           }"
+            ></div>
             <span class="member-name">{{ currentUser?.username }}</span>
           </div>
           <ion-badge class="balance-price">
-            {{ getAmountOwedBy(selectedMember?.uid, expense) | currency: 'EUR' }}
+            {{ getAmountOwedBy(selectedMember?.uid, expense) | currency: 'EUR'
+            }}
           </ion-badge>
         </div>
 
         <div class="expense-list" *ngFor="let expense of paidByCurrentUser">
           <div class="left-container">
             <span class="expense-description">{{ expense.description }}</span>
-            <div class="toggle-arrow" (click)="toggleProducts(expense.expenseId)">
-              <ion-icon [src]="isProductsVisible(expense.expenseId) ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"></ion-icon>
+            <div
+              class="toggle-arrow"
+              (click)="toggleProducts(expense.expenseId)"
+            >
+              <ion-icon
+                [src]="isProductsVisible(expense.expenseId) ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
+              ></ion-icon>
             </div>
           </div>
           <ion-badge class="expense-price">
-            {{ getExpenseOwedBy(selectedMember?.uid, expense) | currency: 'EUR' }}
+            {{ getExpenseOwedBy(selectedMember?.uid, expense) | currency: 'EUR'
+            }}
           </ion-badge>
         </div>
 
         <!-- Anzeige der Produkte -->
         <div *ngIf="isProductsVisible(expense.expenseId)" class="product-list">
           <ul>
-            <li class="products" *ngFor="let product of getProducts(expense, selectedMember?.uid || '')">
+            <li
+              class="products"
+              *ngFor="let product of getProducts(expense, selectedMember?.uid || '')"
+            >
               <div class="left-container">
-                <span class="product-quantity">{{ product.quantity }} {{ product.unit }}</span>
+                <span class="product-quantity"
+                  >{{ product.quantity }} {{ product.unit }}</span
+                >
                 <span class="product">{{ product.productname }}</span>
               </div>
-              <ion-badge class="product-price">{{ product.price | currency: 'EUR' }}</ion-badge>
+              <ion-badge class="product-price"
+                >{{ product.price | currency: 'EUR' }}</ion-badge
+              >
             </li>
           </ul>
         </div>
       </div>
 
-
-
-
-      <div *ngFor="let expense of paidBySelectedMember" class="detailedbalance-overview-member">
+      <div
+        *ngFor="let expense of paidBySelectedMember"
+        class="detailedbalance-overview-member"
+      >
         <div class="top-container">
-          <div class="member-info"
-               [ngStyle]="{
+          <div
+            class="member-info"
+            [ngStyle]="{
               'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
               'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
-            }">
+            }"
+          >
             <div
               class="profile-placeholder"
               [ngStyle]="{
               'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
               'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
-            }">
-            </div>
+            }"
+            ></div>
             <span class="member-name">{{ selectedMember?.username }}</span>
           </div>
           <ion-badge class="balance-price">
-            {{ getAmountOwedBy(selectedMember?.uid, expense) | currency: 'EUR' }}
+            {{ getAmountOwedBy(selectedMember?.uid, expense) | currency: 'EUR'
+            }}
           </ion-badge>
         </div>
         <div class="expense-list" *ngFor="let expense of paidByCurrentUser">
           <div class="left-container">
             <span class="expense-description">{{ expense.description }}</span>
-            <div class="toggle-arrow" (click)="toggleProducts(expense.expenseId)">
+            <div
+              class="toggle-arrow"
+              (click)="toggleProducts(expense.expenseId)"
+            >
               <ion-icon
-                [src]="isProductsVisible(expense.expenseId) ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'">
+                [src]="isProductsVisible(expense.expenseId) ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
+              >
               </ion-icon>
             </div>
           </div>
           <ion-badge class="expense-price">
-            {{ getExpenseOwedBy(selectedMember?.uid, expense) | currency: 'EUR' }}
+            {{ getExpenseOwedBy(selectedMember?.uid, expense) | currency: 'EUR'
+            }}
           </ion-badge>
         </div>
 
         <div *ngIf="isProductsVisible(expense.expenseId)" class="product-list">
           <ul>
-            <li class="products" *ngFor="let product of getProducts(expense, selectedMember?.uid || '')">
+            <li
+              class="products"
+              *ngFor="let product of getProducts(expense, selectedMember?.uid || '')"
+            >
               <div class="left-container">
-                <span class="product-quantity">{{ product.quantity }} {{ product.unit }}</span>
+                <span class="product-quantity"
+                  >{{ product.quantity }} {{ product.unit }}</span
+                >
                 <span class="product">{{ product.productname }}</span>
               </div>
-              <ion-badge class="product-price">{{ product.price | currency: 'EUR' }}</ion-badge>
+              <ion-badge class="product-price"
+                >{{ product.price | currency: 'EUR' }}</ion-badge
+              >
             </li>
           </ul>
         </div>
       </div>
 
       <div class="space"></div>
-      <ion-button class="main-button" expand="block">Schulden begleichen</ion-button>
+      <ion-button class="main-button" expand="block"
+        >Schulden begleichen</ion-button
+      >
     </div>
   </div>
 </ion-content>

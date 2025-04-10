@@ -31,8 +31,6 @@
   flex: 8;
 }
 
-
-
 .betrag {
   flex: 9; /* 90% der Breite */
 }
@@ -41,7 +39,9 @@
   flex: 1; /* 10% der Breite */
 }
 
-.paid-by, .date, .wiederholung {
+.paid-by,
+.date,
+.wiederholung {
   flex: 1;
 }
 
@@ -56,7 +56,7 @@
   margin-bottom: 10px;
 }
 
-.product-input-fields{
+.product-input-fields {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -120,7 +120,6 @@
   text-align: end;
 }
 
-
 .product {
   flex-grow: 1;
   text-align: left;
@@ -136,20 +135,20 @@
   font-weight: 200;
 }
 
-.delete-icon{
+.delete-icon {
   color: var(--ion-color-dark);
   font-size: 20px;
   padding-right: 10px;
 }
 
-.delete-icon:hover{
+.delete-icon:hover {
   color: var(--ion-color-danger);
   font-size: 22px;
   font-weight: 600;
   padding-right: 10px;
 }
 
-.toggle-arrow{
+.toggle-arrow {
   margin-right: 10px;
   margin-left: 10px;
 }
@@ -160,7 +159,6 @@
   gap: 10px;
   margin-right: 5%;
 }
-
 
 ion-input,
 ion-select {
@@ -202,7 +200,7 @@ ion-datetime {
   justify-content: space-between;
 }
 
-.right-container{
+.right-container {
   width: fit-content;
 }
 
@@ -234,7 +232,7 @@ input {
   height: auto;
 }
 
-.separator{
+.separator {
   width: 95% !important;
   margin-bottom: 50px !important;
 }
@@ -271,7 +269,6 @@ ion-input::part(native) {
 @media (prefers-color-scheme: dark) {
   .input-label {
     color: #989797;
-
   }
   ion-item.dropDownFelder::part(native) {
     --background: #000000; /* Dunkler Hintergrund für jedes Dropdown-Element */
@@ -279,7 +276,7 @@ ion-input::part(native) {
     background-color: #000000 !important;
     color: var(--ion-color-light) !important;
   }
-  .custom-dropdown{
+  .custom-dropdown {
     background-color: #000000; /* Dunkler Hintergrund für das Dropdown */
   }
 }
@@ -294,7 +291,7 @@ ion-input::part(native) {
   position: absolute;
   z-index: 9999;
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
   max-width: 400px;
   top: 100%;
   left: 0;
@@ -303,7 +300,9 @@ ion-input::part(native) {
 }
 
 ion-item.dropDownFelder::part(native) {
-  --background: var(--ion-color-light); /* Heller Hintergrund für jedes Dropdown-Element */
+  --background: var(
+    --ion-color-light
+  ); /* Heller Hintergrund für jedes Dropdown-Element */
   --color: var(--ion-color-dark); /* Dunklere Schriftfarbe im Light Mode */
   background-color: var(--ion-color-light) !important;
   color: var(--ion-color-dark) !important;
@@ -313,12 +312,10 @@ ion-item.dropDownFelder::part(native) {
 .selected-category {
   display: flex;
   align-items: center;
- 
 }
-.dropDownFelder{
-background-color: #000000;
+.dropDownFelder {
+  background-color: #000000;
 }
-.Kategorie{
+.Kategorie {
   position: relative;
- 
 }
