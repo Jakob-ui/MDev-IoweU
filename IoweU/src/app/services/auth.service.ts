@@ -26,8 +26,17 @@ export class AuthService {
   constructor() {
     this.auth.onAuthStateChanged((user) => {
       if (user) {
+        this.currentUser = {
+          uid: user.uid,
+          username: '',
+          email: '',
+          color: '',
+          lastedited: '',
+          groupId: [],
+        };
         const groupRef = doc(this.firestore, 'users', user.uid);
         getDoc(groupRef).then((docsnap) => {
+          this.firestore;
           if (docsnap.exists()) {
             this.currentUser = {
               uid: user.uid,
@@ -57,6 +66,10 @@ export class AuthService {
         console.log('Benutzer nicht eingeloggt');
       }
     });
+  }
+
+  getCurrentUser() {
+    return this.auth.currentUser; // Gibt den aktuell authentifizierten Benutzer zurück
   }
 
   private applyUserColors(color: string) {
@@ -106,7 +119,10 @@ export class AuthService {
         groupId: [],
       };
 
-      const success = await this.saveUserData(userCredential.user.uid, userData);
+      const success = await this.saveUserData(
+        userCredential.user.uid,
+        userData
+      );
 
       if (!success) {
         throw new Error('Fehler beim Speichern der Benutzerdaten.');

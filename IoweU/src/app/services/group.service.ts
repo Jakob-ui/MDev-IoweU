@@ -123,18 +123,17 @@ export class GroupService {
   }
 
   //Gruppe löschen (nur als Gründer*in möglich):
-  async deleteGroup(uid: string, group: Groups): Promise<void> {
+  async deleteGroup(uid: string, groupId: string): Promise<void> {
     try {
-      const groupRef = doc(this.firestore, 'groups', group.groupId);
-      // Delete the group document from Firestore
-      if (uid === group.founder) {
-        await deleteDoc(groupRef);
-        console.log('Groups deleted successfully!');
+      const groupRef = doc(this.firestore, 'groups', groupId); // Holen der Gruppenreferenz
+      if (uid) {
+        await deleteDoc(groupRef); // Löschen der Gruppe
+        console.log('Gruppe erfolgreich gelöscht!');
       } else {
-        console.log('Only the founder can delete the group!');
+        throw new Error('Fehler: UID nicht gefunden');
       }
     } catch (error) {
-      throw new Error('Error deleting group: ' + error);
+      console.error('Fehler beim Löschen der Gruppe:', error);
     }
   }
   async joinGroup(joinee: Users, accessCode: string): Promise<void> {

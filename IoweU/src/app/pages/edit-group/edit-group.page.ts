@@ -1,22 +1,14 @@
 import { Component, ElementRef, ViewChild, inject, OnInit } from '@angular/core';
-import {ActivatedRoute, RouterModule} from '@angular/router';
-import { GroupService } from 'src/app/services/group.service'; // Importiere den GroupService
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { GroupService } from 'src/app/services/group.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { Router } from '@angular/router';
-import {
-  IonContent,
-  IonButton,
-  IonItem,
-  IonLabel,
-  IonInput,
-  IonList,
-  IonSelect,
-  IonSelectOption,
-} from '@ionic/angular/standalone';
-import { Groups } from 'src/app/services/objects/Groups';
+import { IonContent, IonButton, IonItem, IonLabel, IonInput, IonList, IonSelect, IonSelectOption, IonIcon } from '@ionic/angular/standalone';
 import { Members } from 'src/app/services/objects/Members';
-import {FormsModule} from "@angular/forms";
+import { FormsModule } from "@angular/forms";
 import { CommonModule } from '@angular/common';
+import { AlertController } from '@ionic/angular';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-edit-group',
@@ -32,6 +24,7 @@ import { CommonModule } from '@angular/common';
     IonList,
     IonSelect,
     IonSelectOption,
+    IonIcon,
     RouterModule,
     FormsModule,
     CommonModule,
@@ -39,67 +32,65 @@ import { CommonModule } from '@angular/common';
 })
 export class EditGroupPage implements OnInit {
   groupname: string = '';
-  newMember: string = '';
   members: Members[] = [];
+  accessCode: string = '';
   selectedTemplate: string[] = [];
-  templates: string[] = ['Standard', 'Projekt', 'Reise'];
+  founder: string = '';
   groupImage: string | ArrayBuffer | null = null;
   groupLink: string = '';
-  groupId: string = '';
+  groupId: string = ''; // groupId sollte als String deklariert werden
+  userUid: string = ''; // UID des aktuellen Benutzers
 
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private route = inject(ActivatedRoute);
+  private alertController = inject(AlertController);
+  private authService = inject(AuthService);
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   constructor(private router: Router) {}
 
   ngOnInit() {
+    // Verwende authService.getCurrentUser() anstelle von this.auth.currentUser
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.userUid = user.uid;
+    } else {
+      console.error('Benutzer ist nicht authentifiziert');
+    }
+
     this.route.params.subscribe((params) => {
-      this.groupId = params['groupId'];  // Make sure the groupId is in the route
-      console.log('groupId:', this.groupId);  // Log the groupId to verify it
-      this.loadGroupData(this.groupId);
+      this.groupId = params['groupId'];
+      console.log('groupId:', this.groupId);
+      this.loadGroupData(this.groupId); // Lade die Gruppendaten basierend auf der groupId
     });
   }
 
 
-  // Funktion zum Laden der Gruppendaten
   async loadGroupData(groupId: string) {
     try {
-      this.loadingService.show(); // Lade-Overlay anzeigen
+      this.loadingService.show();
       const group = await this.groupService.getGroupById(groupId);
       if (group) {
         this.groupname = group.groupname;
         this.members = group.members || [];
-        this.selectedTemplate = group.features || []; // Features als Array zuweisen
+        this.accessCode = group.accessCode || '';
+        this.selectedTemplate = group.features || [];
         this.groupImage = group.groupimage || null;
+        this.founder = group.founder || ''; // Gründer der Gruppe
       } else {
         console.error('Gruppe nicht gefunden');
       }
     } catch (error) {
       console.error('Fehler beim Laden der Gruppendaten:', error);
     } finally {
-      this.loadingService.hide(); // Lade-Overlay ausblenden
-    }
-  }
-
-  addMember() {
-    if (this.newMember.trim() !== '') {
-      const newMember: Members = {
-        uid: `${Date.now()}`, // Generiere eine eindeutige ID für das neue Mitglied
-        username: this.newMember.trim(),
-        role: 'member', // Standardrolle als 'member'
-        color: '', // Definiere eine Farbe oder ein anderes Attribut
-        joinedAt: new Date().toISOString(), // Zeitpunkt, wann das Mitglied beigetreten ist
-      };
-      this.members.push(newMember);
-      this.newMember = '';
+      this.loadingService.hide();
     }
   }
 
   removeMember(member: Members) {
-    this.members = this.members.filter((m) => m.uid !== member.uid); // Entfernen nach UID
+    this.members = this.members.filter((m) => m.uid !== member.uid);
   }
 
   selectImage() {
@@ -117,16 +108,55 @@ export class EditGroupPage implements OnInit {
     }
   }
 
-  saveeditedGroup() {
-    // Hier kannst du das Speichern der bearbeiteten Gruppendaten implementieren
-    console.log('Gruppe gespeichert:', this.groupname, this.members, this.selectedTemplate, this.groupImage);
+  async deleteGroup() {
+    try {
+      // Überprüfen, ob der aktuelle Benutzer der Gründer ist
+      if (this.userUid && this.userUid === this.founder) {
+        console.log('Gruppe gelöscht:', this.groupId);
+        await this.groupService.deleteGroup(this.userUid, this.groupId);
 
-    // Nachdem du die Gruppe gespeichert hast, kannst du zur Gruppe weiterleiten
-    this.router.navigate([`/group`, this.groupId]);  // Leitet zur Gruppe mit der groupId weiter
+        // Weiterleiten nach dem Löschen
+        this.router.navigate(['/groups']);
+      } else {
+        console.error('Fehler: Nur der Gründer kann die Gruppe löschen');
+      }
+    } catch (error) {
+      console.error('Fehler beim Löschen der Gruppe:', error);
+    }
   }
 
 
+  saveeditedGroup() {
+    console.log('Gruppe gespeichert:', this.groupname, this.members, this.selectedTemplate, this.groupImage);
+    this.router.navigate([`/group`, this.groupId]);
+  }
+
   generateGroupLink() {
     this.groupLink = `http://localhost:8100/group?id=${this.groupname}`;
+  }
+
+  async confirmDelete() {
+    const alert = await this.alertController.create({
+      header: 'Gruppe endgültig löschen!',
+      message: 'Möchtest du diese Gruppe wirklich löschen?',
+      buttons: [
+        {
+          text: 'Abbrechen',
+          role: 'cancel',
+          handler: () => {
+            console.log('Löschung abgebrochen');
+          }
+        },
+        {
+          text: 'Löschen',
+          role: 'destructive',
+          handler: () => {
+            this.deleteGroup();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 }
