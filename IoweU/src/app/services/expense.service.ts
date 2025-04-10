@@ -4,7 +4,6 @@ import { collection, Firestore } from '@angular/fire/firestore';
 import { doc, setDoc } from 'firebase/firestore';
 import { inject } from '@angular/core';
 import { ExpenseMember } from './objects/ExpenseMember';
-import { FormGroupDirective } from '@angular/forms';
 
 @Injectable({
   providedIn: 'root',
@@ -21,7 +20,9 @@ export class ExpenseService {
   ): Promise<Expenses | null> {
     try {
       const expense: Expenses = {
-        expenseId: doc(collection(this.firestore, 'groups', groupId, 'expenses')).id,
+        expenseId: doc(
+          collection(this.firestore, 'groups', groupId, 'expenses')
+        ).id,
         description: expenseData?.description,
         totalAmount: expenseData?.totalAmount,
         paidBy: expenseData?.paidBy,
@@ -41,8 +42,6 @@ export class ExpenseService {
             memberId: expenseMember.memberId,
             amountToPay: expense.totalAmount / expense.expenseMember.length,
             split: 1 / expense.expenseMember.length,
-            username: expenseMember.username,
-            color: expenseMember.color,
           };
           expense.expenseMember.push(memberToAdd);
         }
@@ -61,4 +60,6 @@ export class ExpenseService {
       return null;
     }
   }
+
+  getExpenseByGroup() {}
 }

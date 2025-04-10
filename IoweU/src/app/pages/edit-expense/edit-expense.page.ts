@@ -86,8 +86,6 @@ export class EditExpensePage {
         memberId: 'user123',
         amountToPay: 75,
         split: 1,
-        username: '',
-        color: '',
         products: [
           {
             productId: 'p123',
@@ -103,8 +101,6 @@ export class EditExpensePage {
         memberId: 'user456',
         amountToPay: 75,
         split: 1,
-        username: '',
-        color: '',
         products: [
           {
             productId: 'p124',
@@ -200,8 +196,6 @@ export class EditExpensePage {
           memberId: entry.input.memberId,
           amountToPay: 0,
           split: 1,
-          username: '',
-          color: '',
           products: [newProduct],
         });
       }

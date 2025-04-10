@@ -4,7 +4,6 @@ import {
   IonHeader,
   IonToolbar,
   IonContent,
-  IonItem,
   IonList,
   IonBadge,
   IonCard,
@@ -15,8 +14,8 @@ import { AuthService } from '../../services/auth.service';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
 import { GroupService } from '../../services/group.service';
-import { Transactions } from "../../services/objects/Transactions";
-import { Members } from "../../services/objects/Members";
+import { Transactions } from '../../services/objects/Transactions';
+import { Members } from '../../services/objects/Members';
 
 @Component({
   selector: 'app-transactions',
@@ -28,7 +27,6 @@ import { Members } from "../../services/objects/Members";
     IonHeader,
     IonToolbar,
     IonContent,
-    IonItem,
     IonList,
     IonBadge,
     IonCard,
@@ -134,32 +132,34 @@ export class TransactionsPage implements OnInit {
     return member ? member.username : 'Unbekannt';
   }
 
-  getTransactionImpact(transaction: Transactions): { status: string, balanceClass: string, amount: number } {
+  getTransactionImpact(transaction: Transactions): {
+    status: string;
+    balanceClass: string;
+    amount: number;
+  } {
     if (transaction.from === this.uid) {
       // Der Benutzer hat gezahlt
       return {
         status: 'bezahlt',
         balanceClass: 'negative',
-        amount: transaction.amount
+        amount: transaction.amount,
       };
     } else if (transaction.to === this.uid) {
       // Der Benutzer hat etwas erhalten
       return {
         status: 'bekommen',
         balanceClass: 'positive',
-        amount: transaction.amount
+        amount: transaction.amount,
       };
     } else {
       // Der Benutzer ist nicht an der Transaktion beteiligt
       return {
         status: '',
         balanceClass: '',
-        amount: transaction.amount
+        amount: transaction.amount,
       };
     }
   }
-
-
 
   async logout() {
     this.loadingService.show();
