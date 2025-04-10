@@ -90,8 +90,8 @@ export class GroupPage implements OnInit {
 
         // Holen der Gruppen-ID aus den Routenparametern
         this.route.params.subscribe((params) => {
-          this.groupid = params['groupId'];
-          this.loadGroupData(this.groupid).finally(() => {
+          this.groupId = params['groupId'];
+          this.loadGroupData(this.groupId).finally(() => {
             this.loadingService.hide(); // Lade-Overlay deaktivieren
           });
         });
@@ -125,7 +125,7 @@ export class GroupPage implements OnInit {
 
       if (group) {
         this.groupname = group.groupname;
-        this.groupid = group.groupId;
+        this.groupId = group.groupId;
         this.features = group.features;
         this.groupImage = group.groupimage;
         this.members = group.members;
@@ -153,13 +153,13 @@ export class GroupPage implements OnInit {
   getFeatureLink(feature: string): string {
     switch (feature) {
       case 'Finanzübersicht':
-        return `/finance/${this.groupid}`;
+        return `/finance/${this.groupId}`;
       case 'Ausgaben':
-        return `/expense/${this.groupid}`;
+        return `/expense/${this.groupId}`;
       case 'Einkaufsliste':
-        return `/shopping-list/${this.groupid}`; // Beispiel-Link für Shopping-List
+        return `/shopping-list/${this.groupId}`; // Beispiel-Link für Shopping-List
       case 'Anlagegüter':
-        return `/assets/${this.groupid}`; // Beispiel-Link für Assets
+        return `/assets/${this.groupId}`; // Beispiel-Link für Assets
       default:
         return '/'; // Rückfalloption für unbekannte Features
     }

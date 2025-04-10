@@ -15,8 +15,6 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
 import { LoadingService } from 'src/app/services/loading.service';
-import { timeout } from 'rxjs';
-import { collection, onSnapshot, query, where } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-group-overview',
