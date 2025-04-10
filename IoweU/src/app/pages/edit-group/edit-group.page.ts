@@ -1,11 +1,24 @@
-import { Component, ElementRef, ViewChild, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  ViewChild,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { GroupService } from 'src/app/services/group.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { Router } from '@angular/router';
-import { IonContent, IonButton, IonItem, IonLabel, IonInput, IonList, IonSelect, IonSelectOption, IonIcon } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonButton,
+  IonItem,
+  IonInput,
+  IonList,
+  IonIcon,
+} from '@ionic/angular/standalone';
 import { Members } from 'src/app/services/objects/Members';
-import { FormsModule } from "@angular/forms";
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AlertController } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth.service';
@@ -19,11 +32,8 @@ import { AuthService } from 'src/app/services/auth.service';
     IonContent,
     IonButton,
     IonItem,
-    IonLabel,
     IonInput,
     IonList,
-    IonSelect,
-    IonSelectOption,
     IonIcon,
     RouterModule,
     FormsModule,
@@ -66,7 +76,6 @@ export class EditGroupPage implements OnInit {
       this.loadGroupData(this.groupId); // Lade die Gruppendaten basierend auf der groupId
     });
   }
-
 
   async loadGroupData(groupId: string) {
     try {
@@ -135,24 +144,29 @@ export class EditGroupPage implements OnInit {
           role: 'cancel',
           handler: () => {
             console.log('Löschung abgebrochen');
-          }
+          },
         },
         {
           text: 'Löschen',
           role: 'destructive',
           handler: () => {
             this.deleteGroup();
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     await alert.present();
   }
 
-
   saveeditedGroup() {
-    console.log('Gruppe gespeichert:', this.groupname, this.members, this.selectedTemplate, this.groupImage);
+    console.log(
+      'Gruppe gespeichert:',
+      this.groupname,
+      this.members,
+      this.selectedTemplate,
+      this.groupImage
+    );
     this.router.navigate([`/group`, this.groupId]);
   }
 
@@ -160,6 +174,4 @@ export class EditGroupPage implements OnInit {
     this.groupLink = `http://localhost:8100/group?id=${this.groupname}`;
     console.log('Gruppenlink generiert:', this.groupLink);
   }
-
-
 }

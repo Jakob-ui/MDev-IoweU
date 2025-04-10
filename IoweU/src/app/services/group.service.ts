@@ -267,14 +267,22 @@ export class GroupService {
     group.members.forEach((member) => {
       if (member.color) {
         const memberBackground = this.lightenColor(member.color, 0.9);
-        document.documentElement.style.setProperty(`--member-color-${member.uid}`, member.color);
-        document.documentElement.style.setProperty(`--member-color-background-${member.uid}`, memberBackground);
+        document.documentElement.style.setProperty(
+          `--member-color-${member.uid}`,
+          member.color
+        );
+        document.documentElement.style.setProperty(
+          `--member-color-background-${member.uid}`,
+          memberBackground
+        );
       }
     });
   }
 
   private lightenColor(hex: string, factor: number): string {
-    let r = 0, g = 0, b = 0;
+    let r = 0,
+      g = 0,
+      b = 0;
     hex = hex.replace('#', '');
     if (hex.length === 3) {
       r = parseInt(hex[0] + hex[0], 16);
@@ -288,9 +296,41 @@ export class GroupService {
     r = Math.min(255, r + (255 - r) * factor);
     g = Math.min(255, g + (255 - g) * factor);
     b = Math.min(255, b + (255 - b) * factor);
-    return `#${((1 << 24) | (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b)).toString(16).slice(1)}`;
+    return `#${(
+      (1 << 24) |
+      (Math.round(r) << 16) |
+      (Math.round(g) << 8) |
+      Math.round(b)
+    )
+      .toString(16)
+      .slice(1)}`;
   }
 
+  async getEveryMemberOfGroupById(groupId: string): Promise<Members[] | null> {
+    try {
+      const docRef = doc(this.firestore, 'groups', groupId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const groupData = docSnap.data();
+        console.log('Gruppendaten:', groupData); // Debugging-Log
+
+        if (groupData && Array.isArray(groupData['members'])) {
+          console.log('Mitglieder gefunden:', groupData['members']); // Debugging-Log
+          return groupData['members'] as Members[];
+        } else {
+          console.log('Keine Mitglieder in der Gruppe gefunden.');
+          return [];
+        }
+      } else {
+        console.log('Kein solches Dokument gefunden!');
+        return null;
+      }
+    } catch (e) {
+      console.error('Fehler beim Abrufen der Mitglieder:', e);
+      return null;
+    }
+  }
 
   async getGroupByAccessCode(accessCode: string): Promise<Groups | null> {
     try {

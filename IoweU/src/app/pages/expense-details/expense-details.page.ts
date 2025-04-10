@@ -66,8 +66,6 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Livia',
           amountToPay: 10,
-          username: '',
-          color: '',
           products: [
             {
               productId: '1',
@@ -90,8 +88,6 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Jakob',
           amountToPay: 10.5,
-          username: '',
-          color: '',
           products: [
             {
               productId: '3',
@@ -114,8 +110,6 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Michaela',
           amountToPay: 5,
-          username: '',
-          color: '',
           products: [
             {
               productId: '5',
@@ -130,8 +124,6 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Sophie',
           amountToPay: 10,
-          username: '',
-          color: '',
           products: [
             {
               productId: '6',
@@ -154,8 +146,6 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Mateusz',
           amountToPay: 10.5,
-          username: '',
-          color: '',
           products: [
             {
               productId: '8',
@@ -191,8 +181,6 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Livia',
           amountToPay: 8,
-          username: '',
-          color: '',
           products: [
             {
               productId: '10',
@@ -207,8 +195,6 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Jakob',
           amountToPay: 8,
-          username: '',
-          color: '',
           products: [
             {
               productId: '11',
@@ -223,8 +209,6 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Michaela',
           amountToPay: 8,
-          username: '',
-          color: '',
           products: [
             {
               productId: '12',
@@ -239,8 +223,6 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Sophie',
           amountToPay: 8,
-          username: '',
-          color: '',
           products: [
             {
               productId: '13',
@@ -255,8 +237,6 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Mateusz',
           amountToPay: 8,
-          username: '',
-          color: '',
           products: [
             {
               productId: '14',
@@ -285,8 +265,6 @@ export class ExpenseDetailsPage implements OnInit {
           memberId: 'Livia',
           amountToPay: -25,
           split: 1,
-          username: '',
-          color: '',
           products: [
             {
               productId: '15',
@@ -310,8 +288,6 @@ export class ExpenseDetailsPage implements OnInit {
           memberId: 'Jakob',
           amountToPay: -30,
           split: 1,
-          username: '',
-          color: '',
           products: [
             {
               productId: '17',
@@ -335,8 +311,6 @@ export class ExpenseDetailsPage implements OnInit {
           memberId: 'Michaela',
           amountToPay: -20,
           split: 1,
-          username: '',
-          color: '',
           products: [
             {
               productId: '19',
@@ -368,8 +342,6 @@ export class ExpenseDetailsPage implements OnInit {
           memberId: 'Sophie',
           amountToPay: -25,
           split: 1,
-          username: '',
-          color: '',
           products: [
             {
               productId: '22',
@@ -401,8 +373,6 @@ export class ExpenseDetailsPage implements OnInit {
           memberId: 'Mateusz',
           amountToPay: -20,
           split: 1,
-          username: '',
-          color: '',
           products: [
             {
               productId: '25',

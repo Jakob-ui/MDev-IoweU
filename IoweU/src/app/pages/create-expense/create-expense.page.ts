@@ -3,7 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { fastFoodOutline, cartOutline, wineOutline, carOutline, gameControllerOutline, homeOutline, receiptOutline, ellipsisHorizontalOutline } from 'ionicons/icons';
+import {
+  fastFoodOutline,
+  cartOutline,
+  wineOutline,
+  carOutline,
+  gameControllerOutline,
+  homeOutline,
+  receiptOutline,
+  ellipsisHorizontalOutline,
+} from 'ionicons/icons';
 addIcons({
   'fast-food-outline': fastFoodOutline,
   'cart-outline': cartOutline,
@@ -36,6 +45,7 @@ import { NavController } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
+import { GroupService } from 'src/app/services/group.service';
 
 @Component({
   selector: 'app-create-expense',
@@ -64,10 +74,12 @@ export class CreateExpensePage {
   private loadingService = inject(LoadingService);
   private route = inject(ActivatedRoute);
   private expenseService = inject(ExpenseService);
+  private groupService = inject(GroupService);
 
   groupId = this.route.snapshot.paramMap.get('groupId') || '';
 
-  groupMembers: (ExpenseMember & {})[] = [ ];
+  groupMembers: (ExpenseMember & {})[] = [];
+  groupMembers2: (Members & {})[] = [];
 
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
@@ -96,6 +108,16 @@ export class CreateExpensePage {
   ];
   selectedCategory: any = null;
   dropdownOpen = false;
+
+  ngOnInit() {
+    console.log('groupid:', this.groupId);
+    this.groupService
+      .getEveryMemberOfGroupById(this.groupId)
+      .then((members) => {
+        this.groupMembers2 = members || [];
+      });
+    console.log(this.groupMembers2);
+  }
 
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
@@ -141,7 +163,7 @@ export class CreateExpensePage {
   }
 
   private createEmptyProduct(memberName: string): Products {
-    const member = this.groupMembers.find((m) => m.username === memberName);
+    const member = this.groupMembers.find((m) => m.memberId === memberName);
     return {
       productId: Date.now().toString(),
       memberId: member ? member.memberId : '',
@@ -152,8 +174,8 @@ export class CreateExpensePage {
     };
   }
 
-  addProduct(memberName: string) {
-    const entry = this.productInputs[memberName];
+  addProduct(memberId: string) {
+    const entry = this.productInputs[memberId];
     if (!entry) return;
 
     const product = entry.input;
@@ -186,15 +208,13 @@ export class CreateExpensePage {
       } else {
         this.groupMembers.push({
           memberId: entry.input.memberId,
-          username: memberName,
-          color: '#000000', // Default color or replace with appropriate logic
           amountToPay: 0,
           split: 1,
           products: [newProduct],
         });
       }
 
-      entry.input = this.createEmptyProduct(memberName);
+      entry.input = this.createEmptyProduct(memberId);
       this.updateTotals();
     }
   }
@@ -238,13 +258,11 @@ export class CreateExpensePage {
   private updateMembers() {
     this.groupMembers = this.groupMembers.map((member) => ({
       memberId: member.memberId,
-      username: member.username,
-      color: member.color,
       amountToPay:
         this.expense.expenseMember?.find((m) => m.memberId === member.memberId)
           ?.amountToPay || 0,
       split: 1,
-      products: this.productInputs[member.username]?.products || [],
+      products: this.productInputs[member.memberId]?.products || [],
     }));
   }
 
