@@ -1,7 +1,7 @@
 {
   "type": "excalidraw",
   "version": 2,
-  "source": "https://excalidraw-jetbrains-plugin",
+  "source": "https://marketplace.visualstudio.com/items?itemName=pomdtr.excalidraw-editor",
   "elements": [
     {
       "id": "_aGb4tYudJQ9gb2weZlYe",
@@ -398,7 +398,7 @@
       "type": "text",
       "x": 765.4422503266566,
       "y": 825.085294789429,
-      "width": 197.9296875,
+      "width": 224.80468749999991,
       "height": 100,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -415,11 +415,11 @@
       "index": "aAj",
       "roundness": null,
       "seed": 296413258,
-      "version": 998,
-      "versionNonce": 16025512,
+      "version": 1013,
+      "versionNonce": 451967039,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1744118584917,
+      "updated": 1744285550260,
       "link": null,
       "locked": false,
       "text": "memberId: string\namountToPay: number\nsplit?: number\nproduct?: Products[]",
@@ -11453,7 +11453,9 @@
     }
   ],
   "appState": {
-    "gridSize": null,
+    "gridSize": 20,
+    "gridStep": 5,
+    "gridModeEnabled": false,
     "viewBackgroundColor": "#ffffff"
   },
   "files": {}
