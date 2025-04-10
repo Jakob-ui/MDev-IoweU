@@ -6,6 +6,7 @@
     <div class="section">
       <div class="amount-row">
         <div class="Beschreibung">
+          <span class="input-label">Ausgabe</span>
           <ion-item class="input-item">
             <ion-input
               type="text"
@@ -16,6 +17,7 @@
         </div>
         
         <div class="Kategorie">
+          <span class="input-label">Kategorie</span>
           <ion-item
             class="input-item"
             (click)="toggleDropdown()"
@@ -23,9 +25,6 @@
             <ion-label>
               <div class="selected-category">
                 <ion-icon [name]="selectedCategory?.icon"  class="category-icon"></ion-icon>
-                <span class="label"
-                  >{{ selectedCategory?.name || 'Kategorie' }}</span
-                >
               </div>
             </ion-label>
           </ion-item>
@@ -47,7 +46,9 @@
         </div>
 
         <div class="invoice-upload">
+          <span class="input-label">Rechnung</span>
           <ion-item class="input-item">
+            
             <ion-select type="text" [(ngModel)]="expense.invoice"></ion-select>
           </ion-item>
         </div>
@@ -58,6 +59,7 @@
     <div class="section">
       <div class="amount-row">
         <div class="betrag">
+          <span class="input-label">Betrag</span>
           <ion-item class="input-item">
             <ion-input
               type="number"
@@ -69,6 +71,7 @@
           </ion-item>
         </div>
         <div class="Währung">
+          <span class="input-label">Währung</span>
           <ion-item class="input-item">
             <ion-select type="text" [(ngModel)]="expense.currency"></ion-select>
           </ion-item>
