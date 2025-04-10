@@ -52,10 +52,8 @@ export class DetailedBalancePage implements OnInit {
   groupname: string = '';
   iosIcons: boolean = false;
 
-  currentUser: Users | null = null;
   uid: string | null = '';
-  user: string | null = '';
-  displayName: string | null = null;
+  username: string | null = '';
   groupId: string | null = null;
 
   groupMembers: Members[] = [];
@@ -77,13 +75,10 @@ export class DetailedBalancePage implements OnInit {
     this.loadingService.show();
 
     try {
-      // Holen des eingeloggten Benutzers aus AuthService
-      const currentUser = this.authService.getCurrentUser();
-      if (currentUser) {
-        this.user = currentUser.displayName || '';  // Setze Benutzername
-        this.uid = currentUser.uid; // Setze UID des Benutzers
-        this.displayName = currentUser.displayName || '';
-
+      if (this.authService.currentUser) {
+        this.username = this.authService.currentUser.username;
+        this.uid = this.authService.currentUser.uid;  // Hier setzen wir die uid korrekt
+        console.log('Benutzerdaten:', this.authService.currentUser);
 
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
         const selectedMember = this.activeRoute.snapshot.paramMap.get('uid');
@@ -203,8 +198,6 @@ export class DetailedBalancePage implements OnInit {
 
               ];
 
-
-              // Filter anwenden
               this.filterRelevantExpenses();
 
               // Berechnung der gesamten Ausgaben des ausgewählten Mitglieds
@@ -262,6 +255,14 @@ export class DetailedBalancePage implements OnInit {
     if (!memberId) return 0; // Rückgabe von 0, wenn keine Member-ID vorhanden ist
     const member = expense.expenseMember.find((m) => m.memberId === memberId);
     return member?.amountToPay || 0; // Falls kein Betrag vorhanden, wird 0 zurückgegeben
+  }
+
+  getTotalPaidExpensesForMember(uid: string | null): number {
+    if (!uid) return 0; // Wenn keine uid vorhanden ist, gibt es keine Ausgaben
+    // Filtere alle Ausgaben, die vom Benutzer mit der gegebenen UID bezahlt wurden
+    const expensesPaidByUser = this.allExpenses.filter(expense => expense.paidBy === uid);
+    // Berechne die Gesamtzahl der bezahlten Ausgaben
+    return expensesPaidByUser.reduce((total, expense) => total + expense.totalAmount, 0);
   }
 
 
