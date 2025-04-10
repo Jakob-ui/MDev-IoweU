@@ -13,5 +13,5 @@ export interface Expenses {
   repeat: string;
   splitType: 'prozent' | 'produkte';
   splitBy: 'alle' | 'frei';
-  members: ExpenseMember[];
+  expenseMember: ExpenseMember[];
 }

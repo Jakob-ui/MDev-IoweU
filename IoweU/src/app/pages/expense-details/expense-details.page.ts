@@ -62,10 +62,12 @@ export class ExpenseDetailsPage implements OnInit {
       splitBy: 'frei',
       splitType: 'produkte',
       repeat: 'nein',
-      members: [
+      expenseMember: [
         {
           memberId: 'Livia',
           amountToPay: 10,
+          username: '',
+          color: '',
           products: [
             {
               productId: '1',
@@ -88,6 +90,8 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Jakob',
           amountToPay: 10.5,
+          username: '',
+          color: '',
           products: [
             {
               productId: '3',
@@ -110,6 +114,8 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Michaela',
           amountToPay: 5,
+          username: '',
+          color: '',
           products: [
             {
               productId: '5',
@@ -124,6 +130,8 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Sophie',
           amountToPay: 10,
+          username: '',
+          color: '',
           products: [
             {
               productId: '6',
@@ -146,6 +154,8 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Mateusz',
           amountToPay: 10.5,
+          username: '',
+          color: '',
           products: [
             {
               productId: '8',
@@ -177,10 +187,12 @@ export class ExpenseDetailsPage implements OnInit {
       splitBy: 'alle',
       splitType: 'prozent',
       repeat: 'nein',
-      members: [
+      expenseMember: [
         {
           memberId: 'Livia',
           amountToPay: 8,
+          username: '',
+          color: '',
           products: [
             {
               productId: '10',
@@ -195,6 +207,8 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Jakob',
           amountToPay: 8,
+          username: '',
+          color: '',
           products: [
             {
               productId: '11',
@@ -209,6 +223,8 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Michaela',
           amountToPay: 8,
+          username: '',
+          color: '',
           products: [
             {
               productId: '12',
@@ -223,6 +239,8 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Sophie',
           amountToPay: 8,
+          username: '',
+          color: '',
           products: [
             {
               productId: '13',
@@ -237,6 +255,8 @@ export class ExpenseDetailsPage implements OnInit {
         {
           memberId: 'Mateusz',
           amountToPay: 8,
+          username: '',
+          color: '',
           products: [
             {
               productId: '14',
@@ -260,11 +280,13 @@ export class ExpenseDetailsPage implements OnInit {
       splitBy: 'frei',
       splitType: 'produkte',
       repeat: 'nein',
-      members: [
+      expenseMember: [
         {
           memberId: 'Livia',
           amountToPay: -25,
           split: 1,
+          username: '',
+          color: '',
           products: [
             {
               productId: '15',
@@ -288,6 +310,8 @@ export class ExpenseDetailsPage implements OnInit {
           memberId: 'Jakob',
           amountToPay: -30,
           split: 1,
+          username: '',
+          color: '',
           products: [
             {
               productId: '17',
@@ -311,6 +335,8 @@ export class ExpenseDetailsPage implements OnInit {
           memberId: 'Michaela',
           amountToPay: -20,
           split: 1,
+          username: '',
+          color: '',
           products: [
             {
               productId: '19',
@@ -342,6 +368,8 @@ export class ExpenseDetailsPage implements OnInit {
           memberId: 'Sophie',
           amountToPay: -25,
           split: 1,
+          username: '',
+          color: '',
           products: [
             {
               productId: '22',
@@ -373,6 +401,8 @@ export class ExpenseDetailsPage implements OnInit {
           memberId: 'Mateusz',
           amountToPay: -20,
           split: 1,
+          username: '',
+          color: '',
           products: [
             {
               productId: '25',
@@ -434,11 +464,11 @@ export class ExpenseDetailsPage implements OnInit {
 
   isNegativeAmountForUser(name: string): boolean {
     console.log('isNegativeAmountForUser called');
-    if (!this.expenseDetails || !this.expenseDetails.members) {
+    if (!this.expenseDetails || !this.expenseDetails.expenseMember) {
       return false;
     }
 
-    const member = this.expenseDetails.members.find(
+    const member = this.expenseDetails.expenseMember.find(
       (member) => member.memberId === name
     );
     console.log('Checking member:', member);
@@ -457,11 +487,11 @@ export class ExpenseDetailsPage implements OnInit {
 
   isPositiveAmountForUser(name: string): boolean {
     console.log('isPositiveAmountForUser called');
-    if (!this.expenseDetails || !this.expenseDetails.members) {
+    if (!this.expenseDetails || !this.expenseDetails.expenseMember) {
       return false;
     }
 
-    const member = this.expenseDetails.members.find(
+    const member = this.expenseDetails.expenseMember.find(
       (member) => member.memberId === name
     );
     console.log('Checking member:', member);
@@ -494,7 +524,7 @@ export class ExpenseDetailsPage implements OnInit {
     }
 
     // Sicherstellen, dass 'members' nicht undefined ist
-    if (!expense.members) {
+    if (!expense.expenseMember) {
       console.error(
         `Keine Mitglieder für Expense mit ID ${this.expenseId} gefunden`
       );
@@ -502,7 +532,7 @@ export class ExpenseDetailsPage implements OnInit {
     }
 
     // Finde das Mitglied mit der userId
-    const member = expense.members.find((m) => m.memberId === memberName);
+    const member = expense.expenseMember.find((m) => m.memberId === memberName);
 
     // Wenn das Mitglied gefunden wurde, gebe die Produkte zurück, andernfalls ein leeres Array
     if (!member) {

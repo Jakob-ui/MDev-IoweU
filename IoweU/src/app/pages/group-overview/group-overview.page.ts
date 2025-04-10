@@ -75,7 +75,7 @@ export class GroupOverviewPage implements OnInit {
       this.loadingService.hide();
     }
   }
-
+  
   ngOnDestroy() {
     if (this.unsubscribeFromGroups) {
       this.unsubscribeFromGroups();

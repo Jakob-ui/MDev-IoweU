@@ -165,16 +165,16 @@
               <ion-input
                 type="number"
                 placeholder="1x"
-                *ngIf="expense.members && expense.members[0]"
-                [(ngModel)]="expense.members[0].split"
+                *ngIf="expense.expenseMember && expense.expenseMember[0]"
+                [(ngModel)]="expense.expenseMember[0].split"
               ></ion-input>
             </div>
             <div class="input-field">
               <ion-input
                 type="number"
                 placeholder="0,00"
-                *ngIf="expense.members && expense.members[0]"
-                [(ngModel)]="expense.members[0].amountToPay"
+                *ngIf="expense.expenseMember && expense.expenseMember[0]"
+                [(ngModel)]="expense.expenseMember[0].amountToPay"
               ></ion-input>
             </div>
           </div>

@@ -81,11 +81,13 @@ export class EditExpensePage {
     repeat: 'monatlich',
     splitBy: 'alle',
     splitType: 'prozent',
-    members: [
+    expenseMember: [
       {
         memberId: 'user123',
         amountToPay: 75,
         split: 1,
+        username: '',
+        color: '',
         products: [
           {
             productId: 'p123',
@@ -101,6 +103,8 @@ export class EditExpensePage {
         memberId: 'user456',
         amountToPay: 75,
         split: 1,
+        username: '',
+        color: '',
         products: [
           {
             productId: 'p124',
@@ -178,11 +182,11 @@ export class EditExpensePage {
 
       entry.products.push(newProduct);
 
-      if (!this.expense.members) {
-        this.expense.members = [];
+      if (!this.expense.expenseMember) {
+        this.expense.expenseMember = [];
       }
 
-      const member = this.expense.members.find(
+      const member = this.expense.expenseMember.find(
         (m) => m.memberId === entry.input.memberId
       );
 
@@ -192,10 +196,12 @@ export class EditExpensePage {
         }
         member.products.push(newProduct);
       } else {
-        this.expense.members.push({
+        this.expense.expenseMember.push({
           memberId: entry.input.memberId,
           amountToPay: 0,
           split: 1,
+          username: '',
+          color: '',
           products: [newProduct],
         });
       }
@@ -213,8 +219,8 @@ export class EditExpensePage {
       entry.products = entry.products.filter((p) => p !== productToRemove);
     }
 
-    if (this.expense.members) {
-      const member = this.expense.members.find(
+    if (this.expense.expenseMember) {
+      const member = this.expense.expenseMember.find(
         (m) => m.memberId === productToRemove.memberId
       );
       if (member && member.products) {
@@ -226,11 +232,14 @@ export class EditExpensePage {
   }
 
   private calculateTotal(): number {
-    if (!this.expense.members || !Array.isArray(this.expense.members)) {
+    if (
+      !this.expense.expenseMember ||
+      !Array.isArray(this.expense.expenseMember)
+    ) {
       return 0;
     }
 
-    return this.expense.members.reduce((sum, member) => {
+    return this.expense.expenseMember.reduce((sum, member) => {
       const products = member.products || [];
       return (
         sum +
@@ -242,11 +251,13 @@ export class EditExpensePage {
   }
 
   private updateMembers() {
-    this.expense.members = this.groupMembers.map((member) => ({
+    this.expense.expenseMember = this.groupMembers.map((member) => ({
       expenseMemberId: 'aw3da123',
       memberId: member.uid,
+      username: '',
+      color: '',
       amountToPay:
-        this.expense.members?.find((m) => m.memberId === member.uid)
+        this.expense.expenseMember?.find((m) => m.memberId === member.uid)
           ?.amountToPay || 0,
       split: 1,
       products: this.productInputs[member.username]?.products || [],
@@ -269,7 +280,7 @@ export class EditExpensePage {
     const amountPerPerson = total / this.groupMembers.length;
 
     this.groupMembers.forEach((member) => {
-      this.expense.members?.find((m) => m.memberId === member.uid)
+      this.expense.expenseMember?.find((m) => m.memberId === member.uid)
         ?.amountToPay || 0;
     });
   }
