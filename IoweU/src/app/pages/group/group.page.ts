@@ -54,7 +54,7 @@ export class GroupPage implements OnInit {
   displayName: string | null = null;
 
   groupname: string = '';
-  groupid: string = '';
+  groupId: string = '';
   features: string[] = [];
   groupImage: string = '';
   members: any[] = [];

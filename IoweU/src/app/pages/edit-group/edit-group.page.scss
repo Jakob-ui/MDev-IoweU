@@ -24,3 +24,17 @@
   height: 100%;
   object-fit: cover;
 }
+
+ion-list ion-item::part(native) {
+  background: none !important;
+  width: 80%;
+}
+
+ion-list{
+  width: 80%;
+  justify-content: center;
+}
+
+.member-item {
+  margin-bottom: 10px;
+}

@@ -28,9 +28,10 @@
 
 
   <div class="page-container">
-    <ion-button class="edit-button" [routerLink]="'/edit-group'"
-      >bearbeiten</ion-button
-    >
+    <ion-button class="edit-button" [routerLink]="['/edit-group', groupId]">
+      bearbeiten
+    </ion-button>
+
 
     <div class="image-upload">
       <ng-container *ngIf="currentGroup?.groupimage; else placeholder">
