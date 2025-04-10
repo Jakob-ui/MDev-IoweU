@@ -13,8 +13,10 @@ import {
   doc,
   getDoc,
   updateDoc,
+  onSnapshot,
 } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
+import { elementAt } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -195,31 +197,40 @@ export class GroupService {
     //Ein User kann nur dann raus wenn seine globale Bilanz 0 beträgt
   }
 
-  // Gruppen abrufen, in denen der Benutzer Mitglied ist:
-  async getGroupsByUserId(uid: string): Promise<Groups[]> {
-    const groupsRef = collection(this.firestore, 'groups');
-    const userDocRef = doc(this.firestore, 'users', uid); // Dokument des Benutzers
-    const userSnapshot = await getDoc(userDocRef);
+  async getGroupsByUserId(
+    uid: string,
+    updateGroupsCallback: (groups: Groups[]) => void
+  ): Promise<() => void> {
+    const unsub = onSnapshot(
+      doc(this.firestore, 'users', uid),
+      async (snapshot) => {
+        const userSnapshot = snapshot.data();
+        const groupIds = userSnapshot?.['groupId'] || [];
 
-    if (!userSnapshot.exists()) {
-      console.error('User not found');
-      return [];
-    }
+        if (groupIds.length > 0) {
+          const groupsRef = collection(this.firestore, 'groups');
+          const groupsQuery = query(
+            groupsRef,
+            where('groupId', 'in', groupIds)
+          );
+          const groupSnapshot = await getDocs(groupsQuery);
 
-    const userData = userSnapshot.data();
-    const groupIds = userData?.['groupId'] || [];
+          const groups = groupSnapshot.docs.map((doc) => ({
+            groupId: doc.id,
+            ...doc.data(),
+          })) as Groups[];
 
-    if (groupIds.length === 0) {
-      return []; // Keine Gruppen, in denen der Benutzer Mitglied ist
-    }
+          console.log('Updated groups:', groups);
+          updateGroupsCallback(groups); // Aktualisiere die Gruppenliste
+        } else {
+          console.log('No groups found for this user.');
+          updateGroupsCallback([]); // Leere Gruppenliste zurückgeben
+        }
+      }
+    );
 
-    const groupsQuery = query(groupsRef, where('groupId', 'in', groupIds)); // Filtere Gruppen, deren ID im Array enthalten ist
-    const groupSnapshot = await getDocs(groupsQuery);
-
-    return groupSnapshot.docs.map((doc) => ({
-      groupId: doc.id,
-      ...doc.data(),
-    })) as Groups[];
+    // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
+    return unsub;
   }
 
   //Bestimmte Gruppe finden:

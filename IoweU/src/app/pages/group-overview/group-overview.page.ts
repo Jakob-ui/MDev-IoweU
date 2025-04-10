@@ -43,6 +43,7 @@ export class GroupOverviewPage implements OnInit {
   private navCtrl = inject(NavController);
   private groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
+  private unsubscribeFromGroups: (() => void) | null = null;
 
   username: string | null = '';
   iosIcons: boolean = false;
@@ -77,6 +78,13 @@ export class GroupOverviewPage implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    if (this.unsubscribeFromGroups) {
+      this.unsubscribeFromGroups();
+      console.log('Unsubscribed from group updates');
+    }
+  }
+
   //-------------Workaround---------------------muss besser gelöst werden!!!!!!
   private async waitForUser(): Promise<void> {
     const maxRetries = 50; // Maximale Anzahl von Versuchen
@@ -99,35 +107,25 @@ export class GroupOverviewPage implements OnInit {
       throw new Error('Benutzer konnte nicht vollständig geladen werden.');
     }
   }
+
   async loadMyGroups() {
     try {
-      const currentUser = this.authService.currentUser;
-      if (!currentUser) {
-        console.error('No user is currently logged in.');
-        this.loadingService.hide();
-        return;
+      if (this.authService.currentUser) {
+        const uid = this.authService.currentUser.uid;
+
+        // Echtzeit-Updates für Gruppen
+        this.unsubscribeFromGroups = await this.groupService.getGroupsByUserId(
+          uid,
+          (groups) => {
+            console.log('Updated groups:', groups);
+            this.groups = groups.map((group) => ({
+              name: group.groupname,
+              myBalance: Math.floor(Math.random() * (200 - -200 + 1)) + -200,
+              link: group.groupId,
+            }));
+          }
+        );
       }
-
-      const uid = currentUser.uid;
-      console.log('User UID:', uid);
-      const groupsCollection = collection(
-        this.groupService.firestore,
-        'groups'
-      );
-      const groupsQuery = query(
-        groupsCollection,
-        where('members', 'array-contains', uid)
-      );
-      // Gruppen abrufen, bei denen der Nutzer Mitglied ist
-      const groupsAsMember = await this.groupService.getGroupsByUserId(uid);
-      console.log('Groups as Member:', groupsAsMember);
-
-      // Kombiniere alle Gruppen in denen der Benutzer Mitglied ist
-      this.groups = groupsAsMember.map((g) => ({
-        name: g.groupname,
-        myBalance: Math.floor(Math.random() * (200 - -200 + 1)) + -200,
-        link: g.groupId,
-      }));
     } catch (e) {
       console.log('Error loading Groups:', e);
     } finally {
