@@ -2,6 +2,18 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { addIcons } from 'ionicons';
+import { fastFoodOutline, cartOutline, wineOutline, carOutline, gameControllerOutline, homeOutline, receiptOutline, ellipsisHorizontalOutline } from 'ionicons/icons';
+addIcons({
+  'fast-food-outline': fastFoodOutline,
+  'cart-outline': cartOutline,
+  'wine-outline': wineOutline,
+  'car-outline': carOutline,
+  'game-controller-outline': gameControllerOutline,
+  'home-outline': homeOutline,
+  'receipt-outline': receiptOutline,
+  'ellipsis-horizontal-outline': ellipsisHorizontalOutline,
+});
 import {
   IonContent,
   IonItem,
@@ -73,14 +85,14 @@ export class CreateExpensePage {
   };
 
   categories = [
-    { name: 'Lebensmittel', icon: 'assets/icon/lebensmittel_light.png' },
-    { name: 'Einkäufe', icon: 'assets/icon/einkauf_light.png' },
-    { name: 'Restaurant/Bar', icon: 'assets/icon/restaurant_light.png' },
-    { name: 'Transport', icon: 'assets/icon/transport.svg' },
-    { name: 'Freizeit', icon: 'assets/icon/leisure.svg' },
-    { name: 'Wohnen', icon: 'assets/icon/wohnen_light.png' },
-    { name: 'Rechnungen', icon: 'assets/icon/food.svg' },
-    { name: 'Sonstiges', icon: 'assets/icon/other.svg' },
+    { name: 'Lebensmittel', icon: 'fast-food-outline' },
+    { name: 'Einkäufe', icon: 'cart-outline' },
+    { name: 'Restaurant/Bar', icon: 'wine-outline' },
+    { name: 'Transport', icon: 'car-outline' },
+    { name: 'Freizeit', icon: 'game-controller-outline' },
+    { name: 'Wohnen', icon: 'home-outline' },
+    { name: 'Rechnungen', icon: 'receipt-outline' },
+    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
   selectedCategory: any = null;
   dropdownOpen = false;
