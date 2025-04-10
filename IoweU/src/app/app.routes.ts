@@ -95,7 +95,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'edit-group/:id',
+    path: 'edit-group/:groupId',
     loadComponent: () =>
       import('./pages/edit-group/edit-group.page').then((m) => m.EditGroupPage),
     canActivate: [AuthGuard],
