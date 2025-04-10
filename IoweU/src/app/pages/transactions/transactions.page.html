@@ -1,0 +1,98 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <div class="left-container" slot="start">
+      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+                class="back-button" (click)="goBack()"></ion-icon>
+      <div class="divider"></div>
+      <div class="pagename">Finanzübersicht</div>
+    </div>
+
+    <div class="right-container" slot="end">
+      <div class="user-info" [routerLink]="'/account-settings'">
+        <div class="profile-placeholder"></div>
+        <span class="member-name">{{ user }}</span>
+      </div>
+      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
+                (click)="logout()" class="logout-button"></ion-icon>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="page-container">
+    <h4>{{ groupname }}</h4>
+    <h1>Finanzübersicht</h1>
+
+    <ion-card
+      class="finance-card"
+      [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }">
+      <div class="card-content-finance">
+        <h2>{{ myBalance | currency: 'EUR' }}</h2>
+        <p>
+          {{ myBalance < 0 ? 'Schulden' : 'Guthaben' }} | seit dem {{
+            lastTransactionDate | date: 'dd.MM.yyyy' }}
+        </p>
+      </div>
+    </ion-card>
+
+    <div class="menu">
+      <div class="menu-text" [routerLink]="['/finance', groupId]">
+        <span>Bilanz</span>
+      </div>
+      <div class="divider"></div>
+      <div class="menu-text active">
+        <span>Transaktionen</span>
+      </div>
+    </div>
+
+    <ion-list class="transaction-list">
+      <div class="transaction" *ngFor="let transaction of transactions">
+        <div class="top-container">
+          <div class="left-container">
+            <h5 slot="start">{{ transaction.reason }}</h5>
+            <span slot="start">{{ getTransactionImpact(transaction).status || '' }}</span>
+          </div>
+          <span slot="end">{{ transaction.date | date: 'dd.MM.yyyy' }}</span>
+        </div>
+        <div class="bottom-container">
+          <div class="member-info"
+               [ngStyle]="{
+                 'background-color': 'var(--member-color-background-' + transaction.from + ')',
+                 'border-color': 'var(--member-color-' + transaction.from + ')'
+               }">
+            <div
+              class="profile-placeholder"
+              [ngStyle]="{
+                'background-color': 'var(--member-color-' + transaction.from + ')',
+                'border-color': 'var(--member-color-' + transaction.from + ')'
+              }">
+            </div>
+            <span class="member-name">{{ getMemberNameById(transaction.from) }}</span>
+          </div>
+          <ion-icon [src]="'assets/icon/ionicons/ios-arrow-round-forward.svg'"></ion-icon>
+          <div class="member-info"
+               [ngStyle]="{
+                 'background-color': 'var(--member-color-background-' + transaction.to + ')',
+                 'border-color': 'var(--member-color-' + transaction.to + ')'
+               }">
+            <div
+              class="profile-placeholder"
+              [ngStyle]="{
+                'background-color': 'var(--member-color-' + transaction.to + ')',
+                'border-color': 'var(--member-color-' + transaction.to + ')'
+              }">
+            </div>
+            <span class="member-name">{{ getMemberNameById(transaction.to) }}</span>
+          </div>
+
+          <ion-badge
+            class="balance-info"
+            [ngClass]="getTransactionImpact(transaction).balanceClass">
+            {{ getTransactionImpact(transaction).amount | currency: 'EUR' }}
+          </ion-badge>
+        </div>
+      </div>
+    </ion-list>
+
+  </div>
+</ion-content>

@@ -122,6 +122,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'transactions/:groupId',
+    loadComponent: () =>
+      import('./pages/transactions/transactions.page').then(
+        (m) => m.TransactionsPage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'not-found',
     loadComponent: () =>
       import('./pages/not-found/not-found.page').then((m) => m.NotFoundPage),
@@ -130,4 +138,6 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'not-found',
   },
+
+
 ];
