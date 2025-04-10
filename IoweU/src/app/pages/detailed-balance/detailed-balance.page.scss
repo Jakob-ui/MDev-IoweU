@@ -38,16 +38,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  margin-bottom: 30px;
 }
 
 .expense-list {
   width: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-between; /* Setzt member-info und detailedprice an die Ränder */
   align-items: center; /* Vertikale Zentrierung der Elemente */
-  padding: 10px 0; /* Etwas Abstand oben und unten */
-  margin-top: 10px;
+  margin-top: 10px;ding: 10px 0;
 }
 
 .expense-price {
@@ -67,11 +67,12 @@
 }
 
 .product-list {
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   padding-left: 10px;
   background-color: var(--ion-color-secondary);
   border-radius: 10px;
   width: 100%;
+  margin-top: 10px;
 }
 
 .product-list ul {

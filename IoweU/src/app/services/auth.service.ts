@@ -69,7 +69,7 @@ export class AuthService {
   }
 
   getCurrentUser() {
-    return this.auth.currentUser; // Gibt den aktuell authentifizierten Benutzer zurück
+    return this.auth.currentUser;
   }
 
   private applyUserColors(color: string) {

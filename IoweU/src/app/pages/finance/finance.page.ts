@@ -47,6 +47,7 @@ export class FinancePage implements OnInit {
   groupname: string = '';
   iosIcons: boolean = false;
 
+  uid: string | null = '';
   user: string | null = '';
   displayName: string | null = null;
   groupId: string | null = null;
@@ -69,6 +70,7 @@ export class FinancePage implements OnInit {
 
     try {
       if (this.authService.currentUser) {
+        this.uid = this.authService.currentUser.uid;
         this.user = this.authService.currentUser.username;
         this.displayName = this.authService.currentUser.username;
         console.log('Benutzerdaten:', this.authService.currentUser);
