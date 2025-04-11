@@ -100,6 +100,11 @@ export class CreateExpensePage {
   amountToPay: { [uid: string]: number } = {};
   products: (Products & {})[] = [];
 
+  dropdownOpen = false;
+  selectedMember: any = null;
+
+
+
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
     description: '',
@@ -112,7 +117,23 @@ export class CreateExpensePage {
     repeat: '',
     splitBy: 'alle',
     splitType: 'prozent',
-    expenseMember: [],
+    expenseMember: [
+      {
+        memberId: '',
+        amountToPay: 0,
+        split: 1,
+        products: [
+          {
+            productId: '',
+            memberId: '',
+            productname: '',
+            quantity: 1,
+            unit: '',
+            price: 0,
+          },
+        ],
+      } as ExpenseMember,
+    ],
   };
 
   categories = [
@@ -126,7 +147,6 @@ export class CreateExpensePage {
     { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
   selectedCategory: any = null;
-  dropdownOpen = false;
 
   async ngOnInit() {
     this.loadingService.show();
@@ -172,6 +192,21 @@ export class CreateExpensePage {
                 };
               });
 
+              // ➕ Setze die expenseMember-Liste korrekt
+              this.expense.expenseMember = this.groupMembers.map((member) => ({
+                memberId: member.uid,
+                amountToPay: 0,
+                split: 1,
+                products: [],
+              }));
+
+              // ➕ Setze das aktuelle "selectedMember" für das Custom Dropdown
+              if (this.expense.paidBy) {
+                this.selectedMember = this.groupMembers.find(
+                  (member) => member.uid === this.expense.paidBy
+                ) || null;
+              }
+
               console.log('Alle Mitglieder geladen:', this.groupMembers);
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
@@ -200,6 +235,13 @@ export class CreateExpensePage {
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
   }
+
+  selectMember(member: any) {
+    this.expense.paidBy = member.uid;
+    this.selectedMember = member;
+    this.dropdownOpen = false;
+  }
+
 
   selectCategory(category: any) {
     this.selectedCategory = category;
@@ -314,47 +356,86 @@ export class CreateExpensePage {
     }));
   }
 
-  updateTotals() {
+  private updateTotals() {
     const total = this.calculateTotal();
     this.expense.totalAmount = total;
 
+    // Wenn "splitBy" auf 'alle' gesetzt ist, teilen wir den Betrag
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
 
-    // Update expenseMember für jedes Mitglied
+    // Update 'expenseMember' für jedes Mitglied
     this.expense.expenseMember.forEach((expenseMember, index) => {
-      expenseMember.amountToPay = this.expense.expenseMember[index]?.amountToPay || 0;
-      expenseMember.split = this.expense.expenseMember[index]?.split || 1;
+      expenseMember.amountToPay = this.amountToPay[this.groupMembers[index].uid] || 0;
       expenseMember.products = this.productInputs[this.groupMembers[index].uid]?.products || [];
     });
   }
 
+  updateTotalAmount() {
+    let newTotalAmount = 0;
 
-  private splitAmountEqually() {
-    const total = this.expense.totalAmount;
-    const amountPerPerson = total / this.groupMembers.length;
+    // Summiere alle amountToPay-Werte und runde sie auf 2 Dezimalstellen
+    for (let memberUid in this.amountToPay) {
+      if (this.amountToPay.hasOwnProperty(memberUid)) {
+        newTotalAmount += this.amountToPay[memberUid];
+      }
+    }
 
-    this.groupMembers.forEach((member) => {
-      const m = this.expense.expenseMember?.find(
-        (m) => m.memberId === member.uid
-      );
-      if (m) m.amountToPay = amountPerPerson;
-    });
-  }
+    // Verhindere das Zurücksetzen auf null und setze totalAmount nur, wenn es geändert wurde
+    if (newTotalAmount !== this.expense.totalAmount) {
+      this.expense.totalAmount = parseFloat(newTotalAmount.toFixed(2));
+    }
 
-  onTotalAmountChange() {
+    // Wenn "alle" ausgewählt ist, teile den Betrag gleichmäßig auf alle Mitglieder
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
+  }
+
+
+
+  onAmountToPayChange() {
+    this.updateTotalAmount();
   }
 
   onSplitByChange() {
     if (this.expense.splitBy === 'alle') {
+      // Berechne den totalAmount, wenn "alle" ausgewählt ist
+      this.splitAmountEqually();
+    } else {
+      // Keine Änderung der Berechnungen, falls "frei" ausgewählt ist
+      this.updateTotalAmount();
+    }
+  }
+
+
+// Diese Methode wird aufgerufen, wenn sich der Gesamtbetrag ändert
+  onTotalAmountChange() {
+    // Nur teilen, wenn "splitBy" auf 'alle' gesetzt ist
+    if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
   }
 
+  splitAmountEqually() {
+    const totalAmount = this.expense.totalAmount;
+    const numberOfMembers = this.groupMembers.length;
+
+    // Wenn es Mitglieder gibt und ein Gesamtbetrag existiert
+    if (numberOfMembers > 0 && totalAmount > 0) {
+      // Berechne den Betrag, den jedes Mitglied zahlen muss
+      const amountPerMember = parseFloat((totalAmount / numberOfMembers).toFixed(2));
+
+      // Aktualisiere den Betrag, den jedes Mitglied zahlen muss
+      this.groupMembers.forEach((member) => {
+        this.amountToPay[member.uid] = amountPerMember;
+      });
+
+      // Update totals nach der Berechnung
+      this.updateTotals();
+    }
+  }
   saveExpense() {
     if (!this.expense.description || this.expense.description.trim() === '') {
       console.error('Die Beschreibung darf nicht leer sein.');

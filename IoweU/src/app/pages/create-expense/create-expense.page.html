@@ -19,30 +19,28 @@
 
         <div class="Kategorie">
           <span class="input-label">Kategorie</span>
-          <ion-item class="input-item" (click)="toggleDropdown()">
+          <ion-item
+            class="input-item"
+            (click)="toggleDropdown()"
+          >
             <ion-label>
               <div class="selected-category">
-                <ion-icon
-                  [name]="selectedCategory?.icon"
-                  class="category-icon"
-                ></ion-icon>
+                <ion-icon [name]="selectedCategory?.icon"  class="category-icon"></ion-icon>
               </div>
             </ion-label>
           </ion-item>
 
           <div *ngIf="dropdownOpen" class="custom-dropdown">
             <ion-list>
-              <ion-item
-                class="dropDownFelder"
-                button
-                *ngFor="let category of categories"
-                (click)="selectCategory(category)"
+              <ion-item class="dropDownFelder"
+                        button
+                        *ngFor="let category of categories"
+                        (click)="selectCategory(category)"
               >
-                <ion-icon
-                  [name]="category.icon"
-                  class="category-icon"
-                ></ion-icon>
-                <ion-label>{{ category.name }}</ion-label>
+                <ion-icon [name]="category.icon" class="category-icon"></ion-icon>
+                <ion-label
+                >{{ category.name }}</ion-label
+                >
               </ion-item>
             </ion-list>
           </div>
@@ -68,6 +66,7 @@
               placeholder="0,00"
               [(ngModel)]="expense.totalAmount"
               (ionInput)="onTotalAmountChange()"
+              step="0.01"
             >
             </ion-input>
           </ion-item>
@@ -88,14 +87,28 @@
           <ion-item class="input-item">
             <ion-select [(ngModel)]="expense.paidBy" interface="popover">
               <ion-select-option
-                *ngFor="let member of groupMembers"
-                class="custom-select-option"
-                [value]="member.username"
-              >{{member.username}}</ion-select-option
+                *ngFor="let groupMember of groupMembers"
+                [value]="groupMember.uid"
               >
+                <div class="member-info"
+                     [ngStyle]="{
+              'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
+              'border-color': 'var(--member-color-' + groupMember.uid + ')'
+             }">
+                  <div
+                    class="profile-placeholder"
+                    [ngStyle]="{
+              'background-color': 'var(--member-color-' + groupMember.uid + ')',
+              'border-color': 'var(--member-color-' + groupMember.uid + ')'
+            }">
+                  </div>
+                  <span class="member-name">{{ groupMember.username }}</span>
+                </div>
+              </ion-select-option>
             </ion-select>
           </ion-item>
         </div>
+
 
         <div class="date">
           <span class="input-label">Datum</span>
@@ -160,9 +173,8 @@
               (ngModelChange)="onSplitByChange()"
               interface="popover"
             >
-              <ion-select-option class="custom-select-option" value="alle"
-              >alle</ion-select-option
-              >
+              <ion-select-option class="custom-select-option" value="alle">alle</ion-select-option>
+              <ion-select-option class="custom-select-option" value="frei">frei</ion-select-option>
             </ion-select>
           </ion-item>
         </div>
@@ -210,6 +222,9 @@
                 type="number"
                 placeholder="0,00"
                 [(ngModel)]="amountToPay[groupMember.uid]"
+                (ionInput)="onAmountToPayChange()"
+                [readonly]="expense.splitBy === 'alle'"
+                step="0.01"
               ></ion-input>
             </div>
           </div>
