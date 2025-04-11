@@ -155,7 +155,8 @@ export class JoinGroupPage {
       scanner.render(
         (result: string) => {
           this.qrCodeScanner?.clear();
-          this.router.navigate(['/group'], { queryParams: { id: result } });
+          const lastSegment = result.split('/').pop(); // holt nur den AccessCode aus der URL
+          this.router.navigate(['/group', lastSegment]);
         },
         (error: string) => {
           console.warn(error);
