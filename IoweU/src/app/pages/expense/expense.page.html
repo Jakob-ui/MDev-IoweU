@@ -7,7 +7,7 @@
         (click)="goBack()"
       ></ion-icon>
       <div class="divider"></div>
-      <div class="pagename">Ausgaben</div>
+      <div class="pagename">Gruppe</div>
     </div>
 
     <div class="right-container" slot="end">
@@ -25,9 +25,9 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-button class="edit-button" [routerLink]="'/repeating-expenses'"
-    >wiederkehrende Ausgaben</ion-button
-  >
+  <ion-button class="edit-button" [routerLink]="'/repeating-expenses'">
+    Wiederkehrende Ausgaben
+  </ion-button>
 
   <div class="page-container">
     <h4>{{ groupname }}</h4>
@@ -35,7 +35,7 @@
 
     <ion-card class="expense-card">
       <div class="card-content-expance">
-        <h2>{{ balance | currency: 'EUR' }}</h2>
+        <h2>{{ sumExpenses | currency: 'EUR' }}</h2>
         <p>Gesamtausgaben seit {{ lastTransactionDate | date:'dd.MM.yyyy' }}</p>
       </div>
     </ion-card>
@@ -46,7 +46,13 @@
         *ngFor="let expense of expenses"
         (click)="goToExpenseDetails(expense.expenseId)"
       >
-        <div class="profile-placeholder"></div>
+        <div
+          class="profile-placeholder"
+          [ngStyle]="{
+            'background-color': 'var(--member-color-' + expense.paidBy + ')',
+            'border-color': 'var(--member-color-' + expense.paidBy + ')'
+          }"
+        ></div>
         <h5 class="einzelneAusgabe">{{ expense.description }}</h5>
         <div class="expense-item">
           <div class="Ausgabepreis">

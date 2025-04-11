@@ -79,6 +79,7 @@ export class CreateExpensePage {
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
+  private updateExpensesCallback: (() => void) | null = null;
 
   groupname: string = '';
   iosIcons: boolean = false;
