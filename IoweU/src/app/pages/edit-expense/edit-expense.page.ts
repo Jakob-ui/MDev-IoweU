@@ -75,7 +75,7 @@ export class EditExpensePage {
     totalAmount: 150,
     paidBy: 'Grün',
     date: new Date().toISOString().split('T')[0],
-    currency: 'EUR',
+    currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
     category: 'Lebensmittel',
     invoice: '2025/001',
     repeat: 'monatlich',

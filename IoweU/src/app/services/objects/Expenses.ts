@@ -7,7 +7,7 @@ export interface Expenses {
   totalAmount: number;
   paidBy: string;
   date: string;
-  currency: string;
+  currency: string[];
   category?: string;
   invoice?: string;
   repeat: string;

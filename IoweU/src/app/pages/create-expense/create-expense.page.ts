@@ -41,7 +41,7 @@ import {
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
 import { Members } from 'src/app/services/objects/Members';
-import { NavController, Platform} from '@ionic/angular';
+import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
@@ -102,8 +102,7 @@ export class CreateExpensePage {
 
   dropdownOpen = false;
   selectedMember: any = null;
-
-
+  selectedCurrency: string = 'EUR';  // Standardwährung
 
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
@@ -111,7 +110,7 @@ export class CreateExpensePage {
     totalAmount: 0,
     paidBy: '',
     date: new Date().toISOString().split('T')[0],
-    currency: 'EUR',
+    currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],  // Verfügbare Währungen
     category: '',
     invoice: '',
     repeat: '',
@@ -156,21 +155,17 @@ export class CreateExpensePage {
         this.uid = this.authService.currentUser.uid;
         this.user = this.authService.currentUser.username;
         this.displayName = this.authService.currentUser.username;
-        console.log('Benutzerdaten:', this.authService.currentUser);
 
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-        console.log('Benutzer GroupId:', groupId);
 
         if (groupId) {
           const currentGroup = await this.groupService.getGroupById(groupId);
 
           if (currentGroup) {
-            console.log('Alle Gruppendaten:', currentGroup);
             this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = currentGroup.groupId || '';
 
             if (currentGroup.members && currentGroup.members.length > 0) {
-              // Mitglieder laden und in der Konsole ausgeben
               this.groupMembers = currentGroup.members.map((member: any) => {
                 this.memberUsernames.push(member.username || '');
                 this.memberIds.push(member.memberId || '');
@@ -178,21 +173,12 @@ export class CreateExpensePage {
                 this.memberRoles.push(member.role || '');
                 this.memberUids.push(member.uid || '');
 
-                this.expense.expenseMember = this.groupMembers.map((member) => ({
-                  memberId: member.uid,
-                  amountToPay: 0, // Setze einen Standardwert für 'amountToPay'
-                  split: 1,
-                  products: [],
-                }));
-
-
                 return {
                   ...member,
-                  amount: 0, // Dummy-Wert
+                  amount: 0,
                 };
               });
 
-              // ➕ Setze die expenseMember-Liste korrekt
               this.expense.expenseMember = this.groupMembers.map((member) => ({
                 memberId: member.uid,
                 amountToPay: 0,
@@ -200,14 +186,11 @@ export class CreateExpensePage {
                 products: [],
               }));
 
-              // ➕ Setze das aktuelle "selectedMember" für das Custom Dropdown
               if (this.expense.paidBy) {
                 this.selectedMember = this.groupMembers.find(
                   (member) => member.uid === this.expense.paidBy
                 ) || null;
               }
-
-              console.log('Alle Mitglieder geladen:', this.groupMembers);
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -229,11 +212,16 @@ export class CreateExpensePage {
     } finally {
       this.loadingService.hide();
     }
-
   }
 
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  selectCurrency(currency: string) {
+    this.selectedCurrency = currency;
+    this.expense.currency = [currency];
+    this.dropdownOpen = false;
   }
 
   selectMember(member: any) {
@@ -241,7 +229,6 @@ export class CreateExpensePage {
     this.selectedMember = member;
     this.dropdownOpen = false;
   }
-
 
   selectCategory(category: any) {
     this.selectedCategory = category;
@@ -306,22 +293,40 @@ export class CreateExpensePage {
         price: Number(product.price),
       };
 
-      // Produkt zur Liste hinzufügen
-      this.products.push(newProduct);
+      // Produkt zur Liste des Mitglieds hinzufügen
+      entry.products.push(newProduct);
 
       // Neuen leeren Produkteeintrag erstellen
       entry.input = this.createEmptyProduct(memberId);
+
+      // Berechne die amountToPay für jedes Mitglied basierend auf den Produkten
+      this.updateAmountToPayForProducts();
+
+      // Update die Gesamtsumme
       this.updateTotals();
     }
   }
 
+
+
   removeProduct(productToRemove: Products) {
-    // Entferne das Produkt aus der Liste
+    // Entferne das Produkt aus der globalen products-Liste
     this.products = this.products.filter(
       (p) => p.productId !== productToRemove.productId
     );
+
+    // Entferne das Produkt auch aus der Liste des entsprechenden Mitglieds
+    for (let memberId in this.productInputs) {
+      if (this.productInputs.hasOwnProperty(memberId)) {
+        this.productInputs[memberId].products = this.productInputs[memberId].products.filter(
+          (p) => p.productId !== productToRemove.productId
+        );
+      }
+    }
+
     this.updateTotals();
   }
+
 
   private calculateTotal(): number {
     if (!this.groupMembers || !Array.isArray(this.groupMembers)) {
@@ -333,10 +338,7 @@ export class CreateExpensePage {
       return (
         sum +
         products.reduce(
-          (
-            productSum: number,
-            product: { price: number; quantity: number }
-          ) => {
+          (productSum: number, product: { price: number; quantity: number }) => {
             return productSum + (product.price * product.quantity || 0);
           },
           0
@@ -345,16 +347,6 @@ export class CreateExpensePage {
     }, 0);
   }
 
-  private updateMembers() {
-    this.expense.expenseMember = this.groupMembers.map((member) => ({
-      memberId: member.uid,
-      amountToPay:
-        this.expense.expenseMember?.find((m) => m.memberId === member.uid)
-          ?.amountToPay || 0,
-      split: 1,
-      products: this.productInputs[member.uid]?.products || [],
-    }));
-  }
 
   private updateTotals() {
     const total = this.calculateTotal();
@@ -400,6 +392,11 @@ export class CreateExpensePage {
   }
 
   onSplitByChange() {
+    if (this.expense.splitType === 'produkte') {
+      // Wenn "produkte" ausgewählt ist, setze splitBy auf "frei"
+      this.expense.splitBy = 'frei';
+      this.updateAmountToPayForProducts(); // Berechne die amountToPay für jedes Mitglied basierend auf den Produkten
+    }
     if (this.expense.splitBy === 'alle') {
       // Berechne den totalAmount, wenn "alle" ausgewählt ist
       this.splitAmountEqually();
@@ -408,6 +405,32 @@ export class CreateExpensePage {
       this.updateTotalAmount();
     }
   }
+
+  updateAmountToPayForProducts() {
+    let totalAmount = 0;
+
+    // Berechne die amountToPay für jedes Mitglied basierend auf den Produkten
+    this.groupMembers.forEach((member) => {
+      let memberAmountToPay = 0;
+
+      // Überprüfe die Produkte des Mitglieds
+      const products: Products[] = this.productInputs[member.uid]?.products || [];
+      products.forEach((product) => {
+        memberAmountToPay += product.price * product.quantity; // Berechne den Gesamtpreis für dieses Produkt
+      });
+
+      // Setze den amountToPay für das Mitglied
+      this.amountToPay[member.uid] = memberAmountToPay;
+
+      // Füge den Betrag zum Gesamtbetrag hinzu
+      totalAmount += memberAmountToPay;
+    });
+
+    // Aktualisiere den Gesamtbetrag der Ausgabe
+    this.expense.totalAmount = totalAmount;
+    this.updateTotals(); // Stelle sicher, dass alle anderen Berechnungen auch aktualisiert werden
+  }
+
 
 
 // Diese Methode wird aufgerufen, wenn sich der Gesamtbetrag ändert
