@@ -357,4 +357,9 @@ export class GroupService {
       return null;
     }
   }
+
+  clearGroupData(): void {
+    this.currentGroup = null;
+    console.log('Gruppendaten wurden zurückgesetzt.');
+  }
 }

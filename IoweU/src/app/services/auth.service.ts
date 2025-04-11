@@ -10,6 +10,7 @@ import {
   UserCredential,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
+import { GroupService } from './group.service';
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +22,7 @@ export class AuthService {
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+  private groupService = inject(GroupService);
   currentUser: Users | null = null;
 
   constructor() {
@@ -181,6 +183,15 @@ export class AuthService {
   logout(): void {
     this.auth.signOut().then(() => {
       console.log('Benutzer wurde abgemeldet.');
+
+      // Setze alle Benutzerdaten zurück
+      this.currentUser = null;
+      document.documentElement.style.removeProperty('--user-color');
+      document.documentElement.style.removeProperty('--user-color-background');
+
+      // Weitere globale Daten zurücksetzen
+      // Beispiel: Falls du Gruppendaten im GroupService speicherst
+      this.groupService.clearGroupData();
     });
   }
 
