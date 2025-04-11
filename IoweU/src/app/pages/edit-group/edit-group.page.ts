@@ -22,6 +22,8 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AlertController } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth.service';
+import { QRCodeComponent } from 'angularx-qrcode';
+
 
 @Component({
   selector: 'app-edit-group',
@@ -38,6 +40,7 @@ import { AuthService } from 'src/app/services/auth.service';
     RouterModule,
     FormsModule,
     CommonModule,
+    QRCodeComponent,
   ],
 })
 export class EditGroupPage implements OnInit {
@@ -50,6 +53,8 @@ export class EditGroupPage implements OnInit {
   groupLink: string = '';
   groupId: string = ''; // groupId sollte als String deklariert werden
   userUid: string = ''; // UID des aktuellen Benutzers
+  showQRCode: boolean = false; // Variable zum Steuern der QR-Code-Anzeige
+  qrCodeValue: string = ''; // Wert für den QR-Code
 
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
@@ -170,8 +175,11 @@ export class EditGroupPage implements OnInit {
     this.router.navigate([`/group`, this.groupId]);
   }
 
-  generateGroupLink() {
-    this.groupLink = `http://localhost:8100/group?id=${this.groupname}`;
-    console.log('Gruppenlink generiert:', this.groupLink);
-  }
+    generateQRCode() {
+      if (this.accessCode) {
+        this.qrCodeValue = `http://localhost:8100/group/${this.groupId}`;
+        this.showQRCode = true;
+        console.log('Generated QR Code URL:', this.qrCodeValue);
+      }
+    }
 }

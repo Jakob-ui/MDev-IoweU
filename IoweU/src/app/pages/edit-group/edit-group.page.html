@@ -22,9 +22,14 @@
           placeholder="Access Code"
           [(ngModel)]="accessCode"
         ></ion-input>
-        <ion-icon [src]="'assets/icon/ionicons/qr-code-outline.svg'" (click)="generateGroupLink()"></ion-icon>
+        <ion-icon [src]="'assets/icon/ionicons/qr-code-outline.svg'" (click)="generateQRCode()"></ion-icon>
       </ion-item>
     </div>
+
+    <div *ngIf="showQRCode" class="qr-code-wrapper">
+      <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>
+    </div>
+    
 
     <div class="edit-fields">
       <span class="input-label">Gruppenname</span>
@@ -58,10 +63,6 @@
           <ion-button fill="clear" color="danger" (click)="removeMember(member)">X</ion-button>
         </ion-item>
       </ion-list>
-    </div>
-
-    <div *ngIf="groupLink">
-      <!--<qrcode [qrdata]="groupLink" [width]="256"></qrcode>-->
     </div>
 
     <ion-button id="delete-alert" class="delete-button" color="danger" (click)="confirmDelete()">
