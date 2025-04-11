@@ -173,13 +173,19 @@
       <div class="member-list" *ngFor="let groupMember of groupMembers">
         <div class="member-list-input">
           <div class="member-info">
-            <div class="profile-placeholder"></div>
+            <div
+              class="profile-placeholder"
+              [ngStyle]="{
+      'background-color': groupMember.color,
+      'border-color': groupMember.color
+    }"
+            ></div>
             <span class="member-username">{{ groupMember.username }}</span>
           </div>
           <div
             *ngIf="expense.splitType === 'produkte'"
             class="toggle-arrow"
-            (click)="toggleProducts(groupMember.username)"
+            (click)="toggleProducts(groupMember.uid)"
           >
             <ion-icon
               [src]="productInputs[groupMember.username] ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
@@ -191,7 +197,7 @@
               <ion-input
                 type="number"
                 placeholder="1x"
-                *ngIf="expense.expenseMember && expense.expenseMember[0]"
+                *ngIf="groupMember"
                 [(ngModel)]="expense.expenseMember[0].split"
               ></ion-input>
             </div>
@@ -199,7 +205,7 @@
               <ion-input
                 type="number"
                 placeholder="0,00"
-                *ngIf="expense.expenseMember && expense.expenseMember[0]"
+                *ngIf="groupMember"
                 [(ngModel)]="expense.expenseMember[0].amountToPay"
               ></ion-input>
             </div>
@@ -230,7 +236,7 @@
                 <ion-icon
                   class="delete-icon"
                   [src]="'assets/icon/ionicons/ios-close.svg'"
-                  (click)="removeProduct(groupMember.username, product)"
+                  (click)="removeProduct(product)"
                 >
                 </ion-icon>
               </li>

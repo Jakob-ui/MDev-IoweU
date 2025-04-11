@@ -1,6 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Expenses } from './objects/Expenses';
-import { collection, Firestore } from '@angular/fire/firestore';
+import {
+  collection,
+  Firestore,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from '@angular/fire/firestore';
 import { doc, setDoc } from 'firebase/firestore';
 import { inject } from '@angular/core';
 import { ExpenseMember } from './objects/ExpenseMember';
@@ -61,5 +68,33 @@ export class ExpenseService {
     }
   }
 
-  getExpenseByGroup() {}
+  async getExpenseByGroup(
+    groupId: string,
+    updateExpensesCallback: (expenses: Expenses[]) => void
+  ): Promise<() => void> {
+    // Referenz auf die Subcollection "expenses" der Gruppe
+    const expensesRef = collection(
+      this.firestore,
+      'groups',
+      groupId,
+      'expenses'
+    );
+
+    // Echtzeit-Listener auf die Subcollection
+    const unsubscribe = onSnapshot(expensesRef, (snapshot) => {
+      // Mappe die Dokumente in der Subcollection auf ein Array von Expenses
+      const expenses = snapshot.docs.map((doc) => ({
+        expenseId: doc.id,
+        ...doc.data(),
+      })) as Expenses[];
+
+      console.log('Realtime expenses:', expenses);
+
+      // Callback mit den aktualisierten Daten
+      updateExpensesCallback(expenses);
+    });
+
+    // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
+    return unsubscribe;
+  }
 }

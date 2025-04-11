@@ -19,6 +19,8 @@ import { LoadingService } from '../../services/loading.service';
 import { GroupService } from '../../services/group.service'; // Importiere den GroupService
 import { Groups } from '../../services/objects/Groups'; // Falls benötigt, um Gruppentyp zu definieren
 import { ActivatedRoute } from '@angular/router';
+import { ExpenseService } from 'src/app/services/expense.service';
+import { Expenses } from 'src/app/services/objects/Expenses';
 
 @Component({
   selector: 'app-expense',
@@ -43,17 +45,18 @@ export class ExpensePage implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private activeRoute = inject(ActivatedRoute);
-  private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
+  private expenseServie = inject(ExpenseService);
+  private updateExpensesCallback: (() => void) | null = null;
 
   iosIcons: boolean = false;
 
   user: string | null = '';
   displayName: string | null = null;
   groupname: string = '';
-  groupId: string = ''; // ID der Gruppe, um Daten zu laden
+  groupId: string = '';
 
   groupMembers = [
     { name: 'Livia', profileImage: 'assets/profiles/livia.jpg' },
@@ -63,82 +66,91 @@ export class ExpensePage implements OnInit {
     { name: 'Mateusz', profileImage: 'assets/profiles/mateusz.jpg' },
   ];
 
-  expenses = [
-    {
-      id: 1,
-      expense: 'Pizza',
-      totalAmount: 50,
-      amountToPay: -10,
-      paidBy: this.groupMembers[0],
-      date: new Date(2025, 2, 20),
-    },
-    {
-      id: 2,
-      expense: 'Kinoabend',
-      totalAmount: 40,
-      amountToPay: -8,
-      paidBy: this.groupMembers[1],
-      date: new Date(2025, 3, 5),
-    },
-    {
-      id: 3,
-      expense: 'Restaurantbesuch',
-      totalAmount: 100,
-      amountToPay: -25,
-      paidBy: this.groupMembers[2],
-      date: new Date(2025, 3, 5),
-    },
-  ];
+  //nur kurzer test!!!!!
+  expenses: Expenses[] = [];
 
   balance: number = 0;
   lastTransactionDate = new Date(2025, 2, 20);
 
   constructor() {}
 
-  ngOnInit() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+  async ngOnInit() {
+    this.loadingService.show();
 
-    setTimeout(async () => {
-      try {
-        // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
-        if (this.auth.currentUser) {
-          this.user = this.auth.currentUser.username;
-          this.displayName = this.auth.currentUser.username;
-          console.log('Benutzerdaten:', this.auth.currentUser); // Logge die Benutzerdaten zur Überprüfung
+    try {
+      // Warte, bis der Benutzer vollständig geladen ist
+      await this.auth.waitForUser();
 
-          const userColor = this.auth.currentUser.color || '#000000'; // Standardfarbe setzen, falls nicht verfügbar
-          document.documentElement.style.setProperty('--user-color', userColor); // Benutzerfarbe setzen
+      if (this.auth.currentUser) {
+        // Setze Benutzerdaten
+        this.user = this.auth.currentUser.username;
+        this.displayName = this.auth.currentUser.username;
+        const userColor = this.auth.currentUser.color || '#000000';
+        document.documentElement.style.setProperty('--user-color', userColor);
 
-          // Holen der groupId als String aus dem AuthService
-          const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-          if (groupId) {
-            // Holen der Gruppendaten über den GroupService
-            const currentGroup = await this.groupService.getGroupById(groupId); // Verwenden der tatsächlichen groupId hier
+        // Holen der groupId als String aus der Route
+        const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
+        if (groupId) {
+          this.groupId = groupId;
 
+          // Versuche, die Gruppe aus dem Service zu laden
+          const group = this.groupService.getGroup();
+          if (group && group.groupId === groupId) {
+            this.groupname = group.groupname || 'Unbekannte Gruppe';
+            console.log('Gruppe aus dem Service geladen:', group);
+          } else {
+            // Lade die Gruppe aus der Datenbank, falls nicht im Service vorhanden
+            const currentGroup = await this.groupService.getGroupById(groupId);
             if (currentGroup) {
               this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-              this.groupId = currentGroup.groupId || '';
             } else {
               console.error('Gruppe nicht gefunden');
-              this.groupname = 'Unbekannte Gruppe';
             }
-          } else {
-            console.error('Kein GroupId für den Benutzer gefunden');
-            this.groupname = 'Unbekannte Gruppe';
           }
-        } else {
-          console.error('Kein Benutzer eingeloggt.');
-        }
 
-        this.iosIcons = this.platform.is('ios');
-        // Berechne die Balance
-        this.calculateBalance();
-      } catch (error) {
-        console.error('Fehler beim Initialisieren der Seite:', error);
-      } finally {
-        this.loadingService.hide(); // Lade-Overlay deaktivieren
+          // Echtzeit-Listener für Ausgaben
+          this.updateExpensesCallback =
+            await this.expenseServie.getExpenseByGroup(
+              this.groupId,
+              (expensestest) => {
+                console.log('Updated expenses:', expensestest);
+                this.expenses = expensestest.map((expense) => ({
+                  expenseId: expense.expenseId,
+                  description: expense.description,
+                  totalAmount: expense.totalAmount,
+                  paidBy: expense.paidBy,
+                  date: expense.date,
+                  currency: expense.currency,
+                  category: expense.category,
+                  invoice: expense.invoice,
+                  repeat: expense.repeat,
+                  splitType: expense.splitType,
+                  splitBy: expense.splitBy,
+                  expenseMember: expense.expenseMember,
+                }));
+              }
+            );
+        } else {
+          console.error('Kein GroupId für den Benutzer gefunden');
+        }
+      } else {
+        console.error('Kein Benutzer eingeloggt.');
       }
-    }, 500); // Verzögerung von 500ms, bevor der Prozess gestartet wird
+
+      // Berechne die Balance
+      this.calculateBalance();
+    } catch (error) {
+      console.error('Fehler beim Initialisieren der Seite:', error);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.updateExpensesCallback) {
+      this.updateExpensesCallback();
+      console.log('Unsubscribed from expense updates');
+    }
   }
 
   // Berechnet den Kontostand basierend auf den Ausgaben
@@ -163,7 +175,7 @@ export class ExpensePage implements OnInit {
   }
 
   // Navigation zu den Details einer Ausgabe
-  goToExpenseDetails(expenseId: number) {
+  goToExpenseDetails(expenseId: string) {
     this.loadingService.show(); // Lade-Overlay aktivieren
     try {
       this.router.navigate(['expense-details', expenseId]);

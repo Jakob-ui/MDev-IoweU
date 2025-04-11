@@ -110,9 +110,20 @@ export class CreateExpensePage {
   selectedCategory: any = null;
   dropdownOpen = false;
 
-  getMemberNameById(memberId: string): string {
-    const member = this.groupMembers.find((m) => m.uid === memberId);
-    return member ? member.username : 'Unbekannt';
+  ngOnInit() {
+    this.groupService
+      .getEveryMemberOfGroupById(this.groupId)
+      .then((members) => {
+        if (members) {
+          console.log('Mitglieder:', members);
+          this.groupMembers = members;
+        } else {
+          console.log('Keine Mitglieder gefunden.');
+        }
+      })
+      .catch((error) => {
+        console.error('Fehler beim Abrufen der Mitglieder:', error);
+      });
   }
 
   toggleDropdown() {
@@ -182,58 +193,20 @@ export class CreateExpensePage {
         price: Number(product.price),
       };
 
-      if (!entry.products) {
-        entry.products = [];
-      }
+      // Produkt zur Liste hinzufügen
+      this.products.push(newProduct);
 
-      entry.products.push(newProduct);
-
-      if (!this.groupMembers) {
-        this.groupMembers = [];
-      }
-
-      const member = this.groupMembers.find(
-        (m) => m.uid === entry.input.memberId
-      );
-      /*
-      if (member) {
-        if (!member.products) {
-          member.products = [];
-        }
-        member.products.push(newProduct);
-      } else {
-        this.expense.expenseMember.push({
-          memberId: entry.input.memberId,
-          amountToPay: 0,
-          split: 1,
-          products: [newProduct],
-        });
-      }*/
-
+      // Neues leeres Produkt für den nächsten Eintrag erstellen
       entry.input = this.createEmptyProduct(memberId);
       this.updateTotals();
     }
   }
 
-  removeProduct(memberName: string, productToRemove: Products) {
-    const entry = this.productInputs[memberName];
-    if (!entry) return;
-
-    if (entry.products) {
-      entry.products = entry.products.filter((p) => p !== productToRemove);
-    }
-
-    if (this.groupMembers) {
-      const member = this.groupMembers.find(
-        (m) => m.uid === productToRemove.memberId
-      ); /*
-      if (member && member.products) {
-        member.products = member.products.filter(
-          (p: Products) => p !== productToRemove
-        );
-      }*/
-    }
-
+  removeProduct(productToRemove: Products) {
+    // Entferne das Produkt aus der Liste
+    this.products = this.products.filter(
+      (p) => p.productId !== productToRemove.productId
+    );
     this.updateTotals();
   }
 
@@ -306,6 +279,11 @@ export class CreateExpensePage {
   }
 
   saveExpense() {
+    if (!this.expense.description || this.expense.description.trim() === '') {
+      console.error('Die Beschreibung darf nicht leer sein.');
+      alert('Bitte geben Sie eine Beschreibung ein.');
+      return;
+    }
     this.loadingService.show();
     try {
       this.expenseService.createExpense(
