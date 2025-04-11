@@ -53,7 +53,7 @@ export class GroupOverviewPage implements OnInit {
     this.loadingService.show();
 
     try {
-      await this.waitForUser();
+      await this.authService.waitForUser();
 
       if (this.authService.currentUser) {
         this.username = this.authService.currentUser.username;
@@ -75,34 +75,11 @@ export class GroupOverviewPage implements OnInit {
       this.loadingService.hide();
     }
   }
-  
+
   ngOnDestroy() {
     if (this.unsubscribeFromGroups) {
       this.unsubscribeFromGroups();
       console.log('Unsubscribed from group updates');
-    }
-  }
-
-  //-------------Workaround---------------------muss besser gelöst werden!!!!!!
-  private async waitForUser(): Promise<void> {
-    const maxRetries = 50; // Maximale Anzahl von Versuchen
-    const delay = 100; // Wartezeit zwischen den Versuchen (in Millisekunden)
-    let retries = 0;
-
-    while (
-      (!this.authService.currentUser ||
-        this.authService.currentUser.username === '') &&
-      retries < maxRetries
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      retries++;
-    }
-
-    if (
-      !this.authService.currentUser ||
-      this.authService.currentUser.username === ''
-    ) {
-      throw new Error('Benutzer konnte nicht vollständig geladen werden.');
     }
   }
 

@@ -75,11 +75,16 @@ export class AuthService {
   private applyUserColors(color: string) {
     const background = this.lightenColor(color, 0.9);
     document.documentElement.style.setProperty('--user-color', color);
-    document.documentElement.style.setProperty('--user-color-background', background);
+    document.documentElement.style.setProperty(
+      '--user-color-background',
+      background
+    );
   }
 
   private lightenColor(hex: string, factor: number): string {
-    let r = 0, g = 0, b = 0;
+    let r = 0,
+      g = 0,
+      b = 0;
     hex = hex.replace('#', '');
     if (hex.length === 3) {
       r = parseInt(hex[0] + hex[0], 16);
@@ -93,7 +98,14 @@ export class AuthService {
     r = Math.min(255, r + (255 - r) * factor);
     g = Math.min(255, g + (255 - g) * factor);
     b = Math.min(255, b + (255 - b) * factor);
-    return `#${((1 << 24) | (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b)).toString(16).slice(1)}`;
+    return `#${(
+      (1 << 24) |
+      (Math.round(r) << 16) |
+      (Math.round(g) << 8) |
+      Math.round(b)
+    )
+      .toString(16)
+      .slice(1)}`;
   }
 
   async signup(
@@ -180,5 +192,24 @@ export class AuthService {
     return sendPasswordResetEmail(this.auth, email.trim(), {
       url: 'http://localhost:8100/login',
     });
+  }
+
+  //-------------Workaround---------------------muss besser gelöst werden!!!!!!
+  async waitForUser(): Promise<void> {
+    const maxRetries = 50; // Maximale Anzahl von Versuchen
+    const delay = 100; // Wartezeit zwischen den Versuchen (in Millisekunden)
+    let retries = 0;
+
+    while (
+      (!this.currentUser || this.currentUser.username === '') &&
+      retries < maxRetries
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      retries++;
+    }
+
+    if (!this.currentUser || this.currentUser.username === '') {
+      throw new Error('Benutzer konnte nicht vollständig geladen werden.');
+    }
   }
 }

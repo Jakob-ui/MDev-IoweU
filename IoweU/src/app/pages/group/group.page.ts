@@ -69,37 +69,43 @@ export class GroupPage implements OnInit {
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
+  group: Groups | null = null;
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadingService.show(); // Lade-Overlay aktivieren
 
-    (async () => {
-      try {
-        // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
-        if (this.authService.currentUser) {
-          // Benutzername wird nur gesetzt, wenn der currentUser verfügbar ist
-          this.user = this.authService.currentUser.username;
-          this.displayName = this.authService.currentUser.username;
-          console.log('Benutzerdaten:', this.authService.currentUser); // Logge die Benutzerdaten zur Überprüfung
-        } else {
-          console.error('Kein Benutzer eingeloggt.');
-          return; // Wenn kein Benutzer eingeloggt, wird der Rest des Codes nicht ausgeführt.
-        }
+    try {
+      // Warte, bis der Benutzer vollständig geladen ist
+      await this.authService.waitForUser();
 
-        this.iosIcons = this.platform.is('ios'); // Überprüfe, ob iOS
+      if (this.authService.currentUser) {
+        // Setze Benutzerdaten
+        this.user = this.authService.currentUser.username;
+        this.displayName = this.authService.currentUser.username;
+        const userColor = this.authService.currentUser.color || '#000000';
+        document.documentElement.style.setProperty('--user-color', userColor);
+
+        // Überprüfe, ob die Plattform iOS ist
+        this.iosIcons = this.platform.is('ios');
 
         // Holen der Gruppen-ID aus den Routenparametern
-        this.route.params.subscribe((params) => {
-          this.groupId = params['groupId'];
-          this.loadGroupData(this.groupId).finally(() => {
-            this.loadingService.hide(); // Lade-Overlay deaktivieren
-          });
-        });
-      } catch (error) {
-        console.error('Fehler beim Initialisieren der Seite:', error);
-        this.loadingService.hide(); // Lade-Overlay deaktivieren
+        const groupId = this.route.snapshot.paramMap.get('groupId');
+        if (groupId) {
+          this.groupId = groupId;
+
+          // Lade die Gruppendaten
+          await this.loadGroupData(this.groupId);
+        } else {
+          console.error('Keine Gruppen-ID in den Routenparametern gefunden.');
+        }
+      } else {
+        console.error('Kein Benutzer eingeloggt.');
       }
-    })();
+    } catch (error) {
+      console.error('Fehler beim Initialisieren der Seite:', error);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
+    }
   }
 
   // Logout-Funktion
@@ -121,6 +127,12 @@ export class GroupPage implements OnInit {
   async loadGroupData(id: string): Promise<void> {
     try {
       const group = await this.groupService.getGroupById(id);
+      if (group) {
+        this.group = group;
+        this.groupService.setGroup(group);
+      } else {
+        console.warn('Gruppe nicht gefunden!');
+      }
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (group) {

@@ -279,6 +279,11 @@ export class CreateExpensePage {
   }
 
   saveExpense() {
+    if (!this.expense.description || this.expense.description.trim() === '') {
+      console.error('Die Beschreibung darf nicht leer sein.');
+      alert('Bitte geben Sie eine Beschreibung ein.');
+      return;
+    }
     this.loadingService.show();
     try {
       this.expenseService.createExpense(

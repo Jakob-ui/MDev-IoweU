@@ -25,6 +25,16 @@ export class GroupService {
   public router = inject(Router);
   public firestore: Firestore = inject(Firestore);
 
+  currentGroup: Groups | null = null;
+
+  setGroup(group: Groups): void {
+    this.currentGroup = group;
+  }
+
+  getGroup(): Groups | null {
+    return this.currentGroup;
+  }
+
   //Gruppe erstellen, Founder wird automatisch der erstellende User:
   async createGroup(
     name: string,
