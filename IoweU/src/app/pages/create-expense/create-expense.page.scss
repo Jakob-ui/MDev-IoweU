@@ -189,7 +189,6 @@ ion-input::part(native) {
   justify-content: space-between;
 }
 
-.right-container,
 .input-field {
   width: fit-content;
   display: flex;
@@ -197,6 +196,13 @@ ion-input::part(native) {
   justify-content: flex-end;
   background-color: var(--ion-color-light);
   border-radius: 50px;
+}
+
+.right-container{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 60%;
 }
 
 .custom-dropdown {

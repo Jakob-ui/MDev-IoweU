@@ -2,6 +2,7 @@
   <div id="container" class="container">
     <h3>Neue Ausgaben</h3>
     <div class="separator"></div>
+
     <!-- Beschreibung -->
     <div class="section">
       <div class="amount-row">
@@ -90,7 +91,7 @@
                 *ngFor="let member of groupMembers"
                 class="custom-select-option"
                 [value]="member.username"
-                >{{member.username}}</ion-select-option
+              >{{member.username}}</ion-select-option
               >
             </ion-select>
           </ion-item>
@@ -113,18 +114,18 @@
           <ion-item class="input-item">
             <ion-select [(ngModel)]="expense.repeat" interface="popover">
               <ion-select-option class="custom-select-option" value="nein"
-                >nein</ion-select-option
+              >nein</ion-select-option
               >
               <ion-select-option class="custom-select-option" value="täglich"
-                >täglich</ion-select-option
+              >täglich</ion-select-option
               >
               <ion-select-option
                 class="custom-select-option"
                 value="wöchentlich"
-                >wöchentlich</ion-select-option
+              >wöchentlich</ion-select-option
               >
               <ion-select-option class="custom-select-option" value="monatlich"
-                >monatlich</ion-select-option
+              >monatlich</ion-select-option
               >
             </ion-select>
           </ion-item>
@@ -140,13 +141,13 @@
           <ion-item class="input-item">
             <ion-select [(ngModel)]="expense.splitType" interface="popover">
               <ion-select-option class="custom-select-option" value="alle"
-                >Anteile</ion-select-option
+              >Anteile</ion-select-option
               >
               <ion-select-option class="custom-select-option" value="prozent"
-                >Prozent</ion-select-option
+              >Prozent</ion-select-option
               >
               <ion-select-option class="custom-select-option" value="produkte"
-                >nach Produkten</ion-select-option
+              >nach Produkten</ion-select-option
               >
             </ion-select>
           </ion-item>
@@ -160,7 +161,7 @@
               interface="popover"
             >
               <ion-select-option class="custom-select-option" value="alle"
-                >alle</ion-select-option
+              >alle</ion-select-option
               >
             </ion-select>
           </ion-item>
@@ -170,17 +171,21 @@
 
     <!-- Mitglieder -->
     <div class="section">
-      <div class="member-list" *ngFor="let groupMember of groupMembers">
+      <div class="member-list" *ngFor="let groupMember of groupMembers; let i = index">
         <div class="member-list-input">
-          <div class="member-info">
+          <div class="member-info"
+               [ngStyle]="{
+                'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
+                'border-color': 'var(--member-color-' + groupMember.uid + ')'
+             }">
             <div
               class="profile-placeholder"
               [ngStyle]="{
-      'background-color': groupMember.color,
-      'border-color': groupMember.color
-    }"
-            ></div>
-            <span class="member-username">{{ groupMember.username }}</span>
+              'background-color': 'var(--member-color-' + groupMember.uid + ')',
+              'border-color': 'var(--member-color-' + groupMember.uid + ')'
+            }">
+            </div>
+            <span class="member-name">{{ groupMember.username }}</span>
           </div>
           <div
             *ngIf="expense.splitType === 'produkte'"
@@ -197,16 +202,14 @@
               <ion-input
                 type="number"
                 placeholder="1x"
-                *ngIf="groupMember"
-                [(ngModel)]="expense.expenseMember[0].split"
+                [(ngModel)]="splitValue[groupMember.uid]"
               ></ion-input>
             </div>
             <div class="input-field">
               <ion-input
                 type="number"
                 placeholder="0,00"
-                *ngIf="groupMember"
-                [(ngModel)]="expense.expenseMember[0].amountToPay"
+                [(ngModel)]="amountToPay[groupMember.uid]"
               ></ion-input>
             </div>
           </div>
@@ -226,12 +229,12 @@
               >
                 <div class="left-container">
                   <span class="product-quantity"
-                    >{{ product.quantity }} {{ product.unit }}</span
+                  >{{ product.quantity }} {{ product.unit }}</span
                   >
                   <span class="product">{{ product.productname }}</span>
                 </div>
                 <ion-badge class="product-price"
-                  >{{ product.price | currency: 'EUR' }}</ion-badge
+                >{{ product.price | currency: 'EUR' }}</ion-badge
                 >
                 <ion-icon
                   class="delete-icon"
@@ -282,9 +285,7 @@
     <!-- Buttons -->
     <div class="button-row">
       <ion-button class="main-button" (click)="cancel()">Abbrechen</ion-button>
-      <ion-button class="main-button" (click)="saveExpense()"
-        >Speichern</ion-button
-      >
+      <ion-button class="main-button" (click)="saveExpense()">Speichern</ion-button>
     </div>
   </div>
 
