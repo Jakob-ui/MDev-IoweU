@@ -41,11 +41,12 @@ import {
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
 import { Members } from 'src/app/services/objects/Members';
-import { NavController } from '@ionic/angular';
+import { NavController, Platform} from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
+import { AuthService } from "../../services/auth.service";
 
 @Component({
   selector: 'app-create-expense',
@@ -69,17 +70,34 @@ import { GroupService } from 'src/app/services/group.service';
   ],
 })
 export class CreateExpensePage {
+  private authService = inject(AuthService);
   private router = inject(Router);
+  private activeRoute = inject(ActivatedRoute);
+  private route = inject(ActivatedRoute);
+  private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
-  private route = inject(ActivatedRoute);
-  private expenseService = inject(ExpenseService);
   private groupService = inject(GroupService);
+  private expenseService = inject(ExpenseService);
 
+  groupname: string = '';
+  iosIcons: boolean = false;
+
+  uid: string | null = '';
+  user: string | null = '';
+  displayName: string | null = null;
   groupId = this.route.snapshot.paramMap.get('groupId') || '';
 
-  groupMembers: (Members & {})[] = [];
+  groupMembers: any[] = [];
 
+  memberUsernames: string[] = [];
+  memberIds: string[] = [];
+  memberColors: string[] = [];
+  memberRoles: string[] = [];
+  memberUids: string[] = [];
+
+  splitValue: { [uid: string]: number } = {};
+  amountToPay: { [uid: string]: number } = {};
   products: (Products & {})[] = [];
 
   expense: Expenses = {
@@ -110,20 +128,73 @@ export class CreateExpensePage {
   selectedCategory: any = null;
   dropdownOpen = false;
 
-  ngOnInit() {
-    this.groupService
-      .getEveryMemberOfGroupById(this.groupId)
-      .then((members) => {
-        if (members) {
-          console.log('Mitglieder:', members);
-          this.groupMembers = members;
+  async ngOnInit() {
+    this.loadingService.show();
+
+    try {
+      if (this.authService.currentUser) {
+        this.uid = this.authService.currentUser.uid;
+        this.user = this.authService.currentUser.username;
+        this.displayName = this.authService.currentUser.username;
+        console.log('Benutzerdaten:', this.authService.currentUser);
+
+        const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
+        console.log('Benutzer GroupId:', groupId);
+
+        if (groupId) {
+          const currentGroup = await this.groupService.getGroupById(groupId);
+
+          if (currentGroup) {
+            console.log('Alle Gruppendaten:', currentGroup);
+            this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+            this.groupId = currentGroup.groupId || '';
+
+            if (currentGroup.members && currentGroup.members.length > 0) {
+              // Mitglieder laden und in der Konsole ausgeben
+              this.groupMembers = currentGroup.members.map((member: any) => {
+                this.memberUsernames.push(member.username || '');
+                this.memberIds.push(member.memberId || '');
+                this.memberColors.push(member.color || '');
+                this.memberRoles.push(member.role || '');
+                this.memberUids.push(member.uid || '');
+
+                this.expense.expenseMember = this.groupMembers.map((member) => ({
+                  memberId: member.uid,
+                  amountToPay: 0, // Setze einen Standardwert für 'amountToPay'
+                  split: 1,
+                  products: [],
+                }));
+
+
+                return {
+                  ...member,
+                  amount: 0, // Dummy-Wert
+                };
+              });
+
+              console.log('Alle Mitglieder geladen:', this.groupMembers);
+            } else {
+              console.error('Keine Mitglieder in der Gruppe gefunden');
+            }
+          } else {
+            console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
+            this.groupname = 'Unbekannte Gruppe';
+          }
         } else {
-          console.log('Keine Mitglieder gefunden.');
+          console.error('Kein GroupId für den Benutzer gefunden');
+          this.groupname = 'Unbekannte Gruppe';
         }
-      })
-      .catch((error) => {
-        console.error('Fehler beim Abrufen der Mitglieder:', error);
-      });
+      } else {
+        console.error('Kein Benutzer eingeloggt.');
+      }
+
+      this.iosIcons = this.platform.is('ios');
+    } catch (error) {
+      console.error('Fehler beim Initialisieren der Seite:', error);
+    } finally {
+      this.loadingService.hide();
+    }
+
   }
 
   toggleDropdown() {
@@ -196,7 +267,7 @@ export class CreateExpensePage {
       // Produkt zur Liste hinzufügen
       this.products.push(newProduct);
 
-      // Neues leeres Produkt für den nächsten Eintrag erstellen
+      // Neuen leeren Produkteeintrag erstellen
       entry.input = this.createEmptyProduct(memberId);
       this.updateTotals();
     }
@@ -216,7 +287,7 @@ export class CreateExpensePage {
     }
 
     return this.groupMembers.reduce((sum, member) => {
-      const products: Products[] = [];
+      const products: Products[] = this.productInputs[member.uid]?.products || [];
       return (
         sum +
         products.reduce(
@@ -243,7 +314,7 @@ export class CreateExpensePage {
     }));
   }
 
-  private updateTotals() {
+  updateTotals() {
     const total = this.calculateTotal();
     this.expense.totalAmount = total;
 
@@ -251,8 +322,14 @@ export class CreateExpensePage {
       this.splitAmountEqually();
     }
 
-    this.updateMembers();
+    // Update expenseMember für jedes Mitglied
+    this.expense.expenseMember.forEach((expenseMember, index) => {
+      expenseMember.amountToPay = this.expense.expenseMember[index]?.amountToPay || 0;
+      expenseMember.split = this.expense.expenseMember[index]?.split || 1;
+      expenseMember.products = this.productInputs[this.groupMembers[index].uid]?.products || [];
+    });
   }
+
 
   private splitAmountEqually() {
     const total = this.expense.totalAmount;
