@@ -273,3 +273,24 @@ ion-item.dropDownFelder::part(native) {
     color: #000000;
   }
 }
+
+.invoice-upload {
+
+
+
+
+  .upload-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 10px;
+  
+  }
+
+  .upload-icon {
+    font-size: 30px;
+    color: var(--ion-color-primary);
+  }
+
+}

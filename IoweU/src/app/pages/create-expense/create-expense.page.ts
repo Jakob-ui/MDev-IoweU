@@ -218,7 +218,17 @@ export class CreateExpensePage {
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
   }
-
+  onInvoiceUpload(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.expense.invoice = reader.result as string; // Speichere das Bild als Base64-String
+        console.log('Rechnung hochgeladen:', this.expense.invoice);
+      };
+      reader.readAsDataURL(file); // Lese die Datei als Base64
+    }
+  }
   selectCurrency(currency: string) {
     this.selectedCurrency = currency;
     this.expense.currency = [currency];
@@ -460,28 +470,62 @@ export class CreateExpensePage {
       this.updateTotals();
     }
   }
-  saveExpense() {
+  validateExpense(): boolean {
+    let isValid = true;
+  
+    // Überprüfe Pflichtfelder
     if (!this.expense.description || this.expense.description.trim() === '') {
-      console.error('Die Beschreibung darf nicht leer sein.');
-      alert('Bitte geben Sie eine Beschreibung ein.');
+      console.error('Beschreibung darf nicht leer sein.');
+      isValid = false;
+    }
+  
+    if (!this.expense.totalAmount || this.expense.totalAmount <= 0) {
+      console.error('Betrag muss größer als 0 sein.');
+      isValid = false;
+    }
+  
+    // Optional: Standardwerte für optionale Felder setzen
+    if (!this.expense.category) {
+      this.expense.category = ''; // Kategorie darf leer sein
+    }
+  
+    if (!this.expense.invoice) {
+      this.expense.invoice = ''; // Rechnung darf leer sein
+    }
+  
+    if (!this.expense.repeat) {
+      this.expense.repeat = ''; // Wiederholung darf leer sein
+    }
+  
+    return isValid;
+  }
+  saveExpense() {
+    // Rufe die Validierungsmethode auf
+    if (!this.validateExpense()) {
+      console.error('Die Eingabe ist ungültig. Bitte füllen Sie alle Pflichtfelder aus.');
+      alert('Bitte füllen Sie alle Pflichtfelder aus.');
       return;
     }
+  
     this.loadingService.show();
     try {
+      // Speichere die Ausgabe
       this.expenseService.createExpense(
         this.expense,
         this.expense.expenseMember,
         this.groupId
       );
+  
+      // Aktualisiere die Beträge
       this.updateTotals();
       this.expense.totalAmount = Number(this.expense.totalAmount);
       this.expense.expenseMember?.forEach((expenseMember) => {
         expenseMember.amountToPay = Number(expenseMember.amountToPay);
       });
-
+  
       console.log('Saving expense:', this.expense);
-
-      // Zur Gruppenseite zurücknavigieren
+  
+      // Navigiere zurück zur Gruppenseite
       this.router.navigate(['/expense', this.groupId]);
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);

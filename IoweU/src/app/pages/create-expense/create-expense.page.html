@@ -49,7 +49,18 @@
         <div class="invoice-upload">
           <span class="input-label">Rechnung</span>
           <ion-item class="input-item">
-            <ion-select type="text" [(ngModel)]="expense.invoice"></ion-select>
+            <label class="upload-label">
+              <ion-icon
+        name="add-outline"
+        class="upload-icon"
+      ></ion-icon>
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onInvoiceUpload($event)"
+                hidden
+              />
+            </label>
           </ion-item>
         </div>
       </div>
@@ -74,17 +85,15 @@
         <div class="Währung">
           <span class="input-label">Währung</span>
           <ion-item class="input-item">
-            <div *ngIf="dropdownOpen" class="custom-dropdown">
-              <ion-list>
-                <ion-item class="dropDownFelder"
-                          button
-                          *ngFor="let currency of expense.currency"
-                          (click)="selectCurrency(currency)"
-                >
-                  <ion-label>{{ currency }}</ion-label>
-                </ion-item>
-              </ion-list>
-            </div>
+            <ion-select
+              [(ngModel)]="selectedCurrency"
+              (ionChange)="selectCurrency($event.detail.value)"
+              interface="popover"
+            >
+              <ion-select-option *ngFor="let currency of expense.currency" [value]="currency">
+                {{ currency }}
+              </ion-select-option>
+            </ion-select>
           </ion-item>
         </div>
       </div>
