@@ -190,7 +190,6 @@ export class AuthService {
       document.documentElement.style.removeProperty('--user-color-background');
 
       // Weitere globale Daten zurücksetzen
-      // Beispiel: Falls du Gruppendaten im GroupService speicherst
       this.groupService.clearGroupData();
     });
   }

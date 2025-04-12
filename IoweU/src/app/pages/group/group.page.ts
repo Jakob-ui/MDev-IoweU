@@ -112,7 +112,7 @@ export class GroupPage implements OnInit {
   async logout() {
     try {
       this.authService.logout();
-      this.router.navigate(['home']);
+      this.router.navigate(['login']);
     } catch (e) {
       console.log(e);
     }

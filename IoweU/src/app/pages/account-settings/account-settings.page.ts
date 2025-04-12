@@ -317,7 +317,7 @@ export class AccountSettingsPage implements OnInit {
     this.loadingService.show();
     try {
       await this.acc.userdelete();
-      this.router.navigate(['home']);
+      this.router.navigate(['login']);
     } catch (e) {
       console.log('Fehler beim Löschen des Kontos:', e);
       const errorAlert = await this.alertController.create({

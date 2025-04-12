@@ -139,7 +139,7 @@ export class FinancePage implements OnInit {
     this.loadingService.show();
     try {
       this.authService.logout();
-      this.router.navigate(['home']);
+      this.router.navigate(['login']);
     } catch (e) {
       console.error('Fehler beim Logout:', e);
     } finally {

@@ -21,7 +21,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Groups } from 'src/app/services/objects/Groups';
-import { ExpenseMember } from "../../services/objects/ExpenseMember"; // Stelle sicher, dass diese importiert ist
+import { ExpenseMember } from '../../services/objects/ExpenseMember'; // Stelle sicher, dass diese importiert ist
 
 @Component({
   selector: 'app-expense',
@@ -79,8 +79,8 @@ export class ExpensePage implements OnInit, OnDestroy {
       repeat: '',
       splitBy: 'alle',
       splitType: 'prozent',
-      expenseMember: []
-    }
+      expenseMember: [],
+    },
   ];
 
   updateExpensesCallback: (() => void) | null = null;
@@ -110,81 +110,88 @@ export class ExpensePage implements OnInit, OnDestroy {
             this.groupId = currentGroup.groupId || '';
 
             // Überprüfe, ob die expenses-Eigenschaft existiert und ein Array ist
-            if (currentGroup.hasOwnProperty('expenses') && Array.isArray(currentGroup.expenseId)) {
+            if (
+              currentGroup.hasOwnProperty('expenses') &&
+              Array.isArray(currentGroup.expenseId)
+            ) {
               console.log('Expenses gefunden:', currentGroup.expenseId);
-              this.expenses = currentGroup.expenseId.map((expenseId: string) => ({
-                expenseId: expenseId,
-                description: '',
-                totalAmount: 0,
-                paidBy: '',
-                date: new Date().toISOString().split('T')[0],
-                currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
-                category: '',
-                invoice: '',
-                repeat: '',
-                splitBy: 'alle',
-                splitType: 'prozent',
-                expenseMember: []
+              this.expenses = currentGroup.expenseId.map(
+                (expenseId: string) => ({
+                  expenseId: expenseId,
+                  description: '',
+                  totalAmount: 0,
+                  paidBy: '',
+                  date: new Date().toISOString().split('T')[0],
+                  currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
+                  category: '',
+                  invoice: '',
+                  repeat: '',
+                  splitBy: 'alle',
+                  splitType: 'prozent',
+                  expenseMember: [],
+                })
+              );
+            } else {
+              console.warn(
+                'Keine Ausgaben gefunden oder expenses ist kein Array'
+              );
+              this.expenses = []; // Setze eine leere Liste, falls keine Ausgaben vorhanden sind
+            }
+
+            if (currentGroup.members && currentGroup.members.length > 0) {
+              this.groupMembers = currentGroup.members.map((member: any) => ({
+                ...member,
+                amount: 0,
               }));
 
+              // Initialisiere expenseMember für jede Ausgabe
+              this.expenses.forEach((expense) => {
+                expense.expenseMember = this.groupMembers.map((member) => ({
+                  memberId: member.uid,
+                  amountToPay: 0,
+                  split: 1,
+                  products: [],
+                }));
+              });
+            }
           } else {
-            console.warn('Keine Ausgaben gefunden oder expenses ist kein Array');
-            this.expenses = [];  // Setze eine leere Liste, falls keine Ausgaben vorhanden sind
+            console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
+            this.groupname = 'Unbekannte Gruppe';
           }
-
-          if (currentGroup.members && currentGroup.members.length > 0) {
-            this.groupMembers = currentGroup.members.map((member: any) => ({
-              ...member,
-              amount: 0,
-            }));
-
-            // Initialisiere expenseMember für jede Ausgabe
-            this.expenses.forEach((expense) => {
-              expense.expenseMember = this.groupMembers.map((member) => ({
-                memberId: member.uid,
-                amountToPay: 0,
-                split: 1,
-                products: [],
-              }));
-            });
-          }
-        } else {
-          console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
-          this.groupname = 'Unbekannte Gruppe';
         }
+
+        // Echtzeit-Listener für Ausgaben
+        this.updateExpensesCallback =
+          await this.expenseService.getExpenseByGroup(
+            this.groupId,
+            (expensestest) => {
+              console.log('Updated expenses:', expensestest);
+              // Hier ist ein Mapping notwendig, falls mehrere Ausgaben zurückgegeben werden
+              this.expenses = Array.isArray(expensestest) ? expensestest : []; // Sicherstellen, dass `expenses` ein Array ist
+            }
+          );
+      } else {
+        console.error('Kein Benutzer eingeloggt.');
       }
 
-      // Echtzeit-Listener für Ausgaben
-      this.updateExpensesCallback = await this.expenseService.getExpenseByGroup(
-        this.groupId,
-        (expensestest) => {
-          console.log('Updated expenses:', expensestest);
-          // Hier ist ein Mapping notwendig, falls mehrere Ausgaben zurückgegeben werden
-          this.expenses = Array.isArray(expensestest) ? expensestest : []; // Sicherstellen, dass `expenses` ein Array ist
-        }
-      );
-    } else {
-      console.error('Kein Benutzer eingeloggt.');
+      // Berechne die Balance
+      this.calculateBalance();
+    } catch (error) {
+      console.error('Fehler beim Initialisieren der Seite:', error);
+    } finally {
+      this.loadingService.hide();
     }
-
-    // Berechne die Balance
-    this.calculateBalance();
-  } catch (error) {
-    console.error('Fehler beim Initialisieren der Seite:', error);
-  } finally {
-  this.loadingService.hide();
-}
-}
-
-ngOnDestroy() {
-  if (this.updateExpensesCallback) {
-    this.updateExpensesCallback();
-    console.log('Unsubscribed from expense updates');
   }
-}
 
-// Berechnet die Balance basierend auf den Ausgaben
-calculateBalance() {
+  ngOnDestroy() {
+    if (this.updateExpensesCallback) {
+      this.updateExpensesCallback();
+      console.log('Unsubscribed from expense updates');
+    }
+  }
+
+  // Berechnet die Balance basierend auf den Ausgaben
+  calculateBalance() {
     this.sumExpenses = this.expenses.reduce(
       (sum, expense) => sum + (expense.totalAmount || 0), // Sicherstellen, dass totalAmount immer ein Wert ist (falls null oder undefined)
       0
@@ -192,42 +199,41 @@ calculateBalance() {
     console.log('Summe der Ausgaben:', this.sumExpenses);
   }
 
-
-// Logout-Funktion
-async logout() {
-  this.loadingService.show();
-  try {
-    await this.authService.logout();
-    this.router.navigate(['home']);
-  } catch (e) {
-    console.error('Fehler beim Logout:', e);
-  } finally {
-    this.loadingService.hide();
+  // Logout-Funktion
+  async logout() {
+    this.loadingService.show();
+    try {
+      await this.authService.logout();
+      this.router.navigate(['login']);
+    } catch (e) {
+      console.error('Fehler beim Logout:', e);
+    } finally {
+      this.loadingService.hide();
+    }
   }
-}
 
-// Navigation zu den Details einer Ausgabe
-goToExpenseDetails(expenseId: string) {
-  this.loadingService.show();
-  try {
-    this.router.navigate(['expense-details', expenseId]);
-  } finally {
-    this.loadingService.hide();
+  // Navigation zu den Details einer Ausgabe
+  goToExpenseDetails(expenseId: string) {
+    this.loadingService.show();
+    try {
+      this.router.navigate(['expense-details', expenseId]);
+    } finally {
+      this.loadingService.hide();
+    }
   }
-}
 
-// Navigation zur Seite zum Erstellen einer neuen Ausgabe
-goToCreateExpense() {
-  this.loadingService.show();
-  try {
-    this.router.navigate(['create-expense', this.groupId]);
-  } finally {
-    this.loadingService.hide();
+  // Navigation zur Seite zum Erstellen einer neuen Ausgabe
+  goToCreateExpense() {
+    this.loadingService.show();
+    try {
+      this.router.navigate(['create-expense', this.groupId]);
+    } finally {
+      this.loadingService.hide();
+    }
   }
-}
 
-// Zurück zur vorherigen Seite
-goBack() {
-  this.router.navigate(['/group', this.groupId]);
-}
+  // Zurück zur vorherigen Seite
+  goBack() {
+    this.router.navigate(['/group', this.groupId]);
+  }
 }
