@@ -1,7 +1,7 @@
 import { Products } from './Products';
 export interface ExpenseMember {
-  memberId: string; // Benutzer, dem der Anteil gehört
-  amountToPay: number; // Betrag, den dieses Mitglied zu zahlen hat
+  memberId: string;
+  amountToPay: number;
   split?: number;
-  products?: Products[]; // Optional: Produkte, die diesem Mitglied zugeordnet sind
+  products?: Products[];
 }

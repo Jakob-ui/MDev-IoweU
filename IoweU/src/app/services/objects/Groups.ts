@@ -5,12 +5,12 @@ export interface Groups {
   groupId: string;
   groupname: string;
   foundationdate: string;
-  founder: string; // Der Benutzer, der die Gruppe gegründet hat
+  founder: string;
   groupimage: string;
-  members: Members[]; // Eine Liste von Mitgliedern in der Gruppe
-  accessCode: string; // Zugangscode zur Gruppe
-  features: string[]; // Liste von Funktionen (optional)
-  expenseId: string[]; // Liste der Ausgaben in der Gruppe
+  members: Members[];
+  accessCode: string;
+  features: string[];
+  expenseId: string[];
   sumTotalExpenses?: number;
   countTotalExpenses?: number;
   sumTotalExpensesMembers?: number;
