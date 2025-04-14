@@ -64,6 +64,8 @@ export class ExpensePage implements OnInit, OnDestroy {
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   sumExpenses: number = 0;
+  currentMonth: string = '';
+  currentYear: number = 0;
 
   // Hier wird expenses auf Expenses[] gesetzt, damit es eine Liste von Ausgaben ist, nicht von Strings
   expenses: Expenses[] = [
@@ -94,10 +96,21 @@ export class ExpensePage implements OnInit, OnDestroy {
       await this.authService.waitForUser();
 
       if (this.authService.currentUser) {
-        const user = this.authService.currentUser;
-        const uid = user.uid;
-        const userName = user.username;
+        this.uid = this.authService.currentUser.uid;
+        this.user = this.authService.currentUser.username;
+        this.displayName = this.authService.currentUser.username;
+        //console.log('Benutzerdaten:', this.authService.currentUser);
         const groupId = this.route.snapshot.paramMap.get('groupId');
+
+        // Berechne das aktuelle Monat und Jahr und speichere es in den Variablen
+        const now = new Date();
+        const months = [
+          'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+          'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+        ];
+
+        this.currentMonth = months[now.getMonth()]; // Monat als Wort
+        this.currentYear = now.getFullYear(); // Jahr als Zahl
 
         if (groupId) {
           const currentGroup = await this.groupService.getGroupById(groupId);
@@ -192,12 +205,47 @@ export class ExpensePage implements OnInit, OnDestroy {
 
   // Berechnet die Balance basierend auf den Ausgaben
   calculateBalance() {
-    this.sumExpenses = this.expenses.reduce(
-      (sum, expense) => sum + (expense.totalAmount || 0), // Sicherstellen, dass totalAmount immer ein Wert ist (falls null oder undefined)
-      0
-    );
-    console.log('Summe der Ausgaben:', this.sumExpenses);
+    const now = new Date();
+    const currentMonth = now.getMonth(); // Monat als Zahl (0-11)
+    const currentYear = now.getFullYear(); // Jahr als Zahl (z.B. 2025)
+
+    // Debugging-Ausgabe für den aktuellen Monat und Jahr
+    console.log('Aktueller Monat:', currentMonth + 1); // +1 für den Monatswert als menschliche Zahl (1-12)
+    console.log('Aktuelles Jahr:', currentYear);
+
+    this.sumExpenses = this.expenses.reduce((sum, expense) => {
+      // Parsen des gespeicherten Datums (ISO-String) als Date-Objekt
+      const expenseDate = new Date(expense.date);
+
+      // Extrahiere Monat und Jahr aus dem Datums-String
+      const expenseMonth = expenseDate.getUTCMonth(); // Verwende getUTCMonth() für Zeitzonenunabhängigkeit
+      const expenseYear = expenseDate.getUTCFullYear(); // Verwende getUTCFullYear()
+
+      // Debugging-Ausgabe für das Datum der Ausgabe
+      console.log(`Ausgabe-Datum: ${expense.date}`);
+      console.log('Ausgabe Monat (UTC):', expenseMonth + 1); // +1 für den Monatswert als menschliche Zahl (1-12)
+      console.log('Ausgabe Jahr (UTC):', expenseYear);
+
+      // Prüfe, ob die Ausgabe im aktuellen Monat und Jahr liegt
+      if (expenseMonth === currentMonth && expenseYear === currentYear) {
+        console.log('Übereinstimmung gefunden, füge Betrag hinzu:', expense.totalAmount);
+        return sum + (expense.totalAmount || 0);
+      } else {
+        console.log('Keine Übereinstimmung, überspringe diese Ausgabe');
+      }
+
+      // Keine Übereinstimmung
+      return sum;
+    }, 0);
+
+    // Endgültige Debugging-Ausgabe der Summe
+    console.log('Summe der Ausgaben im aktuellen Monat:', this.sumExpenses);
   }
+
+
+
+
+
 
   // Logout-Funktion
   async logout() {
@@ -231,6 +279,31 @@ export class ExpensePage implements OnInit, OnDestroy {
       this.loadingService.hide();
     }
   }
+
+  getUserAmount(expense: Expenses): number {
+    //console.log('Aktueller Benutzer:', this.uid);
+    const userEntry = expense.expenseMember?.find(
+      (member) => member.memberId === this.uid
+    );
+    //console.log('UserEntry:', userEntry);
+    return userEntry?.amountToPay ?? 0;
+  }
+
+  getAmountClass(expense: Expenses): string {
+    const amount = this.getUserAmount(expense);
+    const isPaidByCurrentUser = expense.paidBy === this.uid;
+
+    if (isPaidByCurrentUser) {
+      return 'neutral'; // 👈 kein Farbakzent, z. B. grau
+    }
+
+    if (amount > 0) { //muss > 0 sein weil es keine negative Beträge gibt
+      return 'negative'; // 👈 rot
+    }
+
+    return 'neutral'; // fallback
+  }
+
 
   // Zurück zur vorherigen Seite
   goBack() {
