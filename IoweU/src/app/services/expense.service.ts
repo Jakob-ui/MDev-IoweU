@@ -37,7 +37,7 @@ export class ExpenseService {
         !expenseData.splitBy
       ) {
         throw new Error('Ein oder mehrere Pflichtfelder fehlen bei expenseData');
-      }
+      } 
 
       // Neue ID für die Ausgabe erzeugen
       const expenseId = doc(
@@ -59,6 +59,47 @@ export class ExpenseService {
         splitBy: expenseData.splitBy,
         expenseMember: expenseMembersData, // → wird 1:1 übernommen, inkl. paidBy & products
       };
+
+      //Die Summe einzelner Waagen beim splitType 'anteile' berechnen:
+
+      let sum = 0;
+      for (let i = 0; i < expenseMembersData.length; i++) 
+      {
+        sum += expenseMembersData[i].split || 0; // Wenn split nicht definiert ist, wird 0 verwendet
+      }
+
+      // Einzelnbetraege nach dem splitType berechnen:
+
+      for(const member of expenseMembersData) 
+        {
+          switch (expenseData.splitType) {
+            case 'anteile':
+              if (member.split && member.split >= 0) {
+                member.amountToPay = (member.split / sum) * expenseData.totalAmount;
+              } else {
+                member.amountToPay = 0; // Defaultwert, falls split nicht definiert ist
+              }
+              break; 
+            case 'prozent':
+              if (member.split && member.split >= 0 && member.split <= 100) {
+                member.amountToPay = (member.split / 100) * expenseData.totalAmount;
+              } else {
+                member.amountToPay = 0; // Defaultwert, falls split nicht definiert ist
+              }
+              break;
+            case 'produkte':
+              if (member.products && member.products.length > 0) {
+                let sumOfProducts = 0;
+                for(const product of member.products) {
+                  sumOfProducts += product.price || 0; // Wenn amount nicht definiert ist, wird 0 verwendet
+                }
+                member.amountToPay = sumOfProducts;
+              } else {
+                member.amountToPay = 0; // Defaultwert, falls keine Produkte vorhanden sind
+              }  
+              break; 
+            }
+      }
 
       // In Firestore speichern
       const expenseRef = doc(
@@ -106,5 +147,15 @@ export class ExpenseService {
 
     // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
     return unsubscribe;
+  }
+
+  // Hilfsfunktion zur Berechnung der Summe der Anteile:
+
+  sumOfShares(a: Array<any>): number {
+    let sum = 0;
+    for (let i = 0; i < a.length; i++) {
+      sum += a[i].numberField || 0; // Wenn split nicht definiert ist, wird 0 verwendet
+    }
+    return sum;
   }
 }
