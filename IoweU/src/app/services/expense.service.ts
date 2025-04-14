@@ -107,4 +107,35 @@ export class ExpenseService {
     // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
     return unsubscribe;
   }
+
+  // In expense.service.ts
+
+  async getExpenseById(
+    groupId: string,
+    expenseId: string,
+    updateExpenseCallback: (expense: Expenses | null) => void
+  ): Promise<() => void> {
+    try {
+      // Zugriff auf das richtige Dokument in der verschachtelten Collection
+      const expenseRef = doc(this.firestore, 'groups', groupId, 'expenses', expenseId);
+
+      const unsubscribe = onSnapshot(expenseRef, (expenseDoc) => {
+        if (expenseDoc.exists()) {
+          const expense = { expenseId: expenseDoc.id, ...expenseDoc.data() } as Expenses;
+          updateExpenseCallback(expense);
+        } else {
+          console.error(`Expense with ID ${expenseId} not found in group ${groupId}`);
+          updateExpenseCallback(null);
+        }
+      });
+
+      return unsubscribe;
+    } catch (error) {
+      console.error('Error fetching expense:', error);
+      updateExpenseCallback(null);
+      return () => {};
+    }
+  }
+
+
 }

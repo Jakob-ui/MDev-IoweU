@@ -264,11 +264,13 @@ export class ExpensePage implements OnInit, OnDestroy {
   goToExpenseDetails(expenseId: string) {
     this.loadingService.show();
     try {
-      this.router.navigate(['expense-details', expenseId]);
+      // Hier wird der expenseId der aktuellen Ausgabe übergeben
+      this.router.navigate(['expense-details', this.groupId, expenseId]);
     } finally {
       this.loadingService.hide();
     }
   }
+
 
   // Navigation zur Seite zum Erstellen einer neuen Ausgabe
   goToCreateExpense() {

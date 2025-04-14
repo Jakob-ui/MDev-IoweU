@@ -25,26 +25,32 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="page-container" *ngIf="expenseDetails">
+  <div class="page-container" *ngIf="expense">
     <div class="payed-by">
       <span>bezahlt von</span>
-      <div class="member-info">
-        <div
-          class="profile-placeholder"
-          [style.background-image]="'url(' + getMemberByName(expenseDetails.paidBy)?.profileImage + ')'"
-        ></div>
-        <div class="member-details">
-          <span class="member-name"
-            >{{ getMemberByName(expenseDetails.paidBy)?.name }}</span
-          >
+      <div class="member-info"
+           *ngFor="let groupMember of groupMembers">
+        <div class="member-info"
+             [ngStyle]="{
+                'background-color': 'var(--member-color-background-' + expense.paidBy + ')',
+                'border-color': 'var(--member-color-' + expense.paidBy + ')'
+             }">
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{
+              'background-color': 'var(--member-color-' + expense.paidBy + ')',
+              'border-color': 'var(--member-color-' + expense.paidBy + ')'
+            }">
+          </div>
+          <span class="member-name">{{ groupMember.username }}</span>
         </div>
       </div>
     </div>
 
-    <h2>{{ expenseDetails.description }}</h2>
-    <ion-badge class="detailedprice"
-      >{{ expenseDetails.totalAmount | currency: 'EUR' }}</ion-badge
-    >
+    <h2>{{ expense.description }}</h2>
+    <ion-badge class="detailedprice">
+      {{ expense.totalAmount | currency: 'EUR' }}
+    </ion-badge>
 
     <ion-button class="edit-button" expand="block">Rechnung ansehen</ion-button>
     <ion-button class="edit-button" expand="block" (click)="editExpense()">Ausgabe bearbeiten</ion-button>
@@ -53,24 +59,27 @@
 
     <div
       class="detailedprice-overview"
-      *ngFor="let member of expenseDetails.expenseMember"
+      *ngFor="let groupMember of groupMembers"
     >
       <div class="detailedprice-list">
         <div class="left-container">
-          <div class="member-info">
+          <div class="member-info"
+               [ngStyle]="{
+                'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
+                'border-color': 'var(--member-color-' + groupMember.uid + ')'
+             }">
             <div
               class="profile-placeholder"
-              [style.background-image]="'url(' + getMemberByName(member.memberId)?.profileImage + ')'"
-            ></div>
-            <div class="member-details">
-              <span class="member-name"
-                >{{ getMemberByName(member.memberId)?.name }}</span
-              >
+              [ngStyle]="{
+              'background-color': 'var(--member-color-' + groupMember.uid + ')',
+              'border-color': 'var(--member-color-' + groupMember.uid + ')'
+            }">
             </div>
+            <span class="member-name">{{ getPaidByName(groupMember.username ?? '') }}</span>
           </div>
-          <div class="toggle-arrow" (click)="toggleProducts(member.memberId)">
+          <div class="toggle-arrow" (click)="toggleProducts(groupMember.uid)">
             <ion-icon
-              [src]="isProductsVisibleForMember(member.memberId)
+              [src]="isProductsVisibleForMember(groupMember.uid)
                 ? 'assets/icon/ionicons/ios-arrow-down.svg'
                 : 'assets/icon/ionicons/ios-arrow-up.svg'"
             >
@@ -80,34 +89,33 @@
         <ion-badge
           class="detailedprice"
           [ngClass]="{
-          'negative': isNegativeAmountForUser(member.memberId),
-          'positive': isPositiveAmountForUser(member.memberId),
-          'gray-amount': !isRelevantForUser(member.memberId)
+          'negative': getAmountClass(expense),
+          'positive': getAmountClass(expense),
         }"
         >
-          {{ member.amountToPay | currency: 'EUR' }}
+          {{ groupMember.amountToPay | currency: 'EUR' }}
         </ion-badge>
       </div>
 
       <!-- Produktliste, die bei Klick angezeigt wird -->
       <div
-        *ngIf="isProductsVisibleForMember(member.memberId)"
+        *ngIf="isProductsVisibleForMember(groupMember.uid)"
         class="product-list"
       >
         <ul>
           <li
             class="products"
-            *ngFor="let product of getPurchasedProductsForMember(member.memberId)"
+            *ngFor="let product of getPurchasedProductsForMember(groupMember.uid)"
           >
             <div class="left-container">
               <span class="product-quantity"
-                >{{ product.quantity }} {{ product.unit }}</span
+              >{{ product.quantity }} {{ product.unit }}</span
               >
               <span class="product">{{ product.productname }}</span>
             </div>
-            <ion-badge class="product-price"
-              >{{ product.price | currency: 'EUR' }}</ion-badge
-            >
+            <ion-badge class="product-price">
+              {{ product.price | currency: 'EUR' }}
+            </ion-badge>
           </li>
         </ul>
       </div>
@@ -115,7 +123,7 @@
 
     <div class="space"></div>
     <ion-button class="main-button" expand="block"
-      >Schulden begleichen</ion-button
+    >Schulden begleichen</ion-button
     >
   </div>
 </ion-content>
