@@ -26,33 +26,41 @@ export class ExpenseService {
     groupId: string
   ): Promise<Expenses | null> {
     try {
-      const expense: Expenses = {
-        expenseId: doc(
-          collection(this.firestore, 'groups', groupId, 'expenses')
-        ).id,
-        description: expenseData?.description,
-        totalAmount: expenseData?.totalAmount,
-        paidBy: expenseData?.paidBy,
-        date: new Date().toISOString(),
-        currency: expenseData?.currency,
-        category: expenseData?.category,
-        invoice: expenseData?.invoice,
-        repeat: expenseData?.repeat,
-        splitType: expenseData?.splitType,
-        splitBy: expenseData?.splitBy,
-        expenseMember: [],
-      };
-      // Hinzufügen der Mitglieder zur Ausgabe
-      for (const expenseMember of expenseMembersData) {
-        if (expenseMember.memberId !== expenseData?.paidBy) {
-          const memberToAdd: ExpenseMember = {
-            memberId: expenseMember.memberId,
-            amountToPay: expense.totalAmount / expense.expenseMember.length,
-            split: 1 / expense.expenseMember.length,
-          };
-          expense.expenseMember.push(memberToAdd);
-        }
+      // Pflichtfelder prüfen
+      if (
+        !expenseData.description ||
+        expenseData.totalAmount === undefined ||
+        !expenseData.paidBy ||
+        !expenseData.currency ||
+        !expenseData.repeat ||
+        !expenseData.splitType ||
+        !expenseData.splitBy
+      ) {
+        throw new Error('Ein oder mehrere Pflichtfelder fehlen bei expenseData');
       }
+
+      // Neue ID für die Ausgabe erzeugen
+      const expenseId = doc(
+        collection(this.firestore, 'groups', groupId, 'expenses')
+      ).id;
+
+      // Komplettes Expense-Objekt erstellen (Daten werden aus der UI geliefert)
+      const expense: Expenses = {
+        expenseId,
+        description: expenseData.description,
+        totalAmount: expenseData.totalAmount,
+        paidBy: expenseData.paidBy,
+        date: new Date().toISOString(),
+        currency: expenseData.currency,
+        category: expenseData.category || '',
+        invoice: expenseData.invoice || '',
+        repeat: expenseData.repeat,
+        splitType: expenseData.splitType,
+        splitBy: expenseData.splitBy,
+        expenseMember: expenseMembersData, // → wird 1:1 übernommen, inkl. paidBy & products
+      };
+
+      // In Firestore speichern
       const expenseRef = doc(
         this.firestore,
         'groups',
@@ -61,12 +69,14 @@ export class ExpenseService {
         expense.expenseId
       );
       await setDoc(expenseRef, expense);
+
       return expense;
     } catch (error) {
       console.error('Fehler beim Erstellen der Ausgabe: ', error);
       return null;
     }
   }
+
 
   async getExpenseByGroup(
     groupId: string,

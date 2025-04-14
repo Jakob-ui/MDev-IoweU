@@ -114,7 +114,7 @@ export class CreateExpensePage {
     currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'], // Verfügbare Währungen
     category: '',
     invoice: '',
-    repeat: '',
+    repeat: 'nein',
     splitBy: 'alle',
     splitType: 'prozent',
     expenseMember: [
@@ -187,12 +187,16 @@ export class CreateExpensePage {
                 products: [],
               }));
 
-              if (this.expense.paidBy) {
-                this.selectedMember =
-                  this.groupMembers.find(
-                    (member) => member.uid === this.expense.paidBy
-                  ) || null;
+              // Fallback: wenn paidBy nicht gesetzt ist, setze aktuellen User
+              if (!this.expense.paidBy && this.uid) {
+                this.expense.paidBy = this.uid;
               }
+
+              // selectedMember setzen (ob vom expense oder durch Fallback)
+              this.selectedMember =
+                this.groupMembers.find(
+                  (member) => member.uid === this.expense.paidBy
+                ) || null;
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -215,6 +219,7 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
+
 
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
@@ -361,10 +366,12 @@ export class CreateExpensePage {
   }
 
   private updateTotals() {
-    const total = this.calculateTotal();
-    this.expense.totalAmount = total;
+    if (this.expense.splitType === 'produkte') {
+      const total = this.calculateTotalFromProducts();
+      this.expense.totalAmount = total;
+    }
 
-    // Wenn "splitBy" auf 'alle' gesetzt ist, teilen wir den Betrag
+    // Wenn "alle" gewählt ist, verteile manuell eingegebenen Betrag
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
@@ -377,6 +384,21 @@ export class CreateExpensePage {
         this.productInputs[this.groupMembers[index].uid]?.products || [];
     });
   }
+
+  private calculateTotalFromProducts(): number {
+    return this.groupMembers.reduce((sum, member) => {
+      const products: Products[] =
+        this.productInputs[member.uid]?.products || [];
+      return (
+        sum +
+        products.reduce((productSum, product) => {
+          return productSum + (product.price || 0);
+        }, 0)
+      );
+    }, 0);
+  }
+
+
 
   updateTotalAmount() {
     let newTotalAmount = 0;
@@ -429,7 +451,7 @@ export class CreateExpensePage {
       const products: Products[] =
         this.productInputs[member.uid]?.products || [];
       products.forEach((product) => {
-        memberAmountToPay += product.price * product.quantity; // Berechne den Gesamtpreis für dieses Produkt
+        memberAmountToPay += product.price; // Berechne den Gesamtpreis für dieses Produkt
       });
 
       // Setze den amountToPay für das Mitglied
@@ -456,22 +478,16 @@ export class CreateExpensePage {
     const totalAmount = this.expense.totalAmount;
     const numberOfMembers = this.groupMembers.length;
 
-    // Wenn es Mitglieder gibt und ein Gesamtbetrag existiert
     if (numberOfMembers > 0 && totalAmount > 0) {
-      // Berechne den Betrag, den jedes Mitglied zahlen muss
-      const amountPerMember = parseFloat(
-        (totalAmount / numberOfMembers).toFixed(2)
-      );
+      const amountPerMember = parseFloat((totalAmount / numberOfMembers).toFixed(2));
 
-      // Aktualisiere den Betrag, den jedes Mitglied zahlen muss
       this.groupMembers.forEach((member) => {
         this.amountToPay[member.uid] = amountPerMember;
       });
-
-      // Update totals nach der Berechnung
-      this.updateTotals();
     }
   }
+
+
   validateExpense(): boolean {
     let isValid = true;
 
@@ -504,39 +520,53 @@ export class CreateExpensePage {
   saveExpense() {
     // Rufe die Validierungsmethode auf
     if (!this.validateExpense()) {
-      console.error(
-        'Die Eingabe ist ungültig. Bitte füllen Sie alle Pflichtfelder aus.'
-      );
+      console.error('Die Eingabe ist ungültig. Bitte füllen Sie alle Pflichtfelder aus.');
       alert('Bitte füllen Sie alle Pflichtfelder aus.');
       return;
     }
 
     this.loadingService.show();
+
     try {
-      // Speichere die Ausgabe
+      // Aktualisiere die Beträge und Produktlisten in expenseMember
+      this.expense.expenseMember = this.groupMembers.map((member) => {
+        const uid = member.uid;
+        const amount = this.amountToPay[uid] || 0;
+        const products = this.productInputs[uid]?.products || [];
+
+        return {
+          memberId: uid,
+          amountToPay: parseFloat(amount.toFixed(2)),
+          split: 1, // du kannst das auch dynamisch machen, wenn nötig
+          products: products.map((p) => ({
+            ...p,
+            price: Number(p.price),
+            quantity: Number(p.quantity),
+          })),
+        };
+      });
+
+      // Aktualisiere die Gesamtsumme noch einmal zur Sicherheit
+      this.updateTotalAmount();
+      this.expense.totalAmount = Number(this.expense.totalAmount.toFixed(2));
+
+      // Speichere die Ausgabe über den Service
       this.expenseService.createExpense(
         this.expense,
         this.expense.expenseMember,
         this.groupId
       );
 
-      // Aktualisiere die Beträge
-      this.updateTotals();
-      this.expense.totalAmount = Number(this.expense.totalAmount);
-      this.expense.expenseMember?.forEach((expenseMember) => {
-        expenseMember.amountToPay = Number(expenseMember.amountToPay);
-      });
-
-      console.log('Saving expense:', this.expense);
-
-      // Navigiere zurück zur Gruppenseite
-      this.router.navigate(['/expense', this.groupId]);
+      // Navigiere zurück oder zu einer Bestätigungsseite
+      this.navCtrl.back();
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);
+      alert('Es ist ein Fehler aufgetreten. Bitte versuche es erneut.');
     } finally {
       this.loadingService.hide();
     }
   }
+
 
   cancel() {
     this.navCtrl.back();

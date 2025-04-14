@@ -212,6 +212,10 @@ ion-input::part(native) {
   margin-left: 0;
 }
 
+.invoice-upload .input-label{
+  margin-left: 0;
+}
+
 .custom-dropdown {
   position: absolute;
   z-index: 9999;
@@ -285,7 +289,7 @@ ion-item.dropDownFelder::part(native) {
     justify-content: center;
     cursor: pointer;
     width: 10px;
-  
+
   }
 
   .upload-icon {
