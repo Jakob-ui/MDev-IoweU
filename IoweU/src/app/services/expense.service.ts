@@ -60,6 +60,47 @@ export class ExpenseService {
         expenseMember: expenseMembersData, // → wird 1:1 übernommen, inkl. paidBy & products
       };
 
+      //Die Summe einzelner Waagen beim splitType 'anteile' berechnen:
+
+      let sum = 0;
+      for (let i = 0; i < expenseMembersData.length; i++)
+      {
+        sum += expenseMembersData[i].split || 0; // Wenn split nicht definiert ist, wird 0 verwendet
+      }
+
+      // Einzelnbetraege nach dem splitType berechnen:
+
+      for(const member of expenseMembersData)
+        {
+          switch (expenseData.splitType) {
+            case 'anteile':
+              if (member.split && member.split >= 0) {
+                member.amountToPay = (member.split / sum) * expenseData.totalAmount;
+              } else {
+                member.amountToPay = 0; // Defaultwert, falls split nicht definiert ist
+              }
+              break;
+            case 'prozent':
+              if (member.split && member.split >= 0 && member.split <= 100) {
+                member.amountToPay = (member.split / 100) * expenseData.totalAmount;
+              } else {
+                member.amountToPay = 0; // Defaultwert, falls split nicht definiert ist
+              }
+              break;
+            case 'produkte':
+              if (member.products && member.products.length > 0) {
+                let sumOfProducts = 0;
+                for(const product of member.products) {
+                  sumOfProducts += product.price || 0; // Wenn amount nicht definiert ist, wird 0 verwendet
+                }
+                member.amountToPay = sumOfProducts;
+              } else {
+                member.amountToPay = 0; // Defaultwert, falls keine Produkte vorhanden sind
+              }
+              break;
+            }
+      }
+
       // In Firestore speichern
       const expenseRef = doc(
         this.firestore,
@@ -108,34 +149,13 @@ export class ExpenseService {
     return unsubscribe;
   }
 
-  // In expense.service.ts
+  // Hilfsfunktion zur Berechnung der Summe der Anteile:
 
-  async getExpenseById(
-    groupId: string,
-    expenseId: string,
-    updateExpenseCallback: (expense: Expenses | null) => void
-  ): Promise<() => void> {
-    try {
-      // Zugriff auf das richtige Dokument in der verschachtelten Collection
-      const expenseRef = doc(this.firestore, 'groups', groupId, 'expenses', expenseId);
-
-      const unsubscribe = onSnapshot(expenseRef, (expenseDoc) => {
-        if (expenseDoc.exists()) {
-          const expense = { expenseId: expenseDoc.id, ...expenseDoc.data() } as Expenses;
-          updateExpenseCallback(expense);
-        } else {
-          console.error(`Expense with ID ${expenseId} not found in group ${groupId}`);
-          updateExpenseCallback(null);
-        }
-      });
-
-      return unsubscribe;
-    } catch (error) {
-      console.error('Error fetching expense:', error);
-      updateExpenseCallback(null);
-      return () => {};
+  sumOfShares(a: Array<any>): number {
+    let sum = 0;
+    for (let i = 0; i < a.length; i++) {
+      sum += a[i].numberField || 0; // Wenn split nicht definiert ist, wird 0 verwendet
     }
+    return sum;
   }
-
-
 }

@@ -11,7 +11,7 @@ export interface Expenses {
   category?: string;
   invoice?: string;
   repeat: string;
-  splitType: 'prozent' | 'produkte';
+  splitType: 'prozent' | 'anteile' | 'produkte';
   splitBy: 'alle' | 'frei';
   expenseMember: ExpenseMember[];
 }
