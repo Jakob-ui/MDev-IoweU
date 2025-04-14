@@ -99,30 +99,37 @@ export class ExpensePage implements OnInit, OnDestroy {
         this.uid = this.authService.currentUser.uid;
         this.user = this.authService.currentUser.username;
         this.displayName = this.authService.currentUser.username;
-        //console.log('Benutzerdaten:', this.authService.currentUser);
+
         const groupId = this.route.snapshot.paramMap.get('groupId');
 
-        // Berechne das aktuelle Monat und Jahr und speichere es in den Variablen
+        // Berechne das aktuelle Monat und Jahr
         const now = new Date();
         const months = [
-          'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-          'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+          'Januar',
+          'Februar',
+          'März',
+          'April',
+          'Mai',
+          'Juni',
+          'Juli',
+          'August',
+          'September',
+          'Oktober',
+          'November',
+          'Dezember',
         ];
 
-        this.currentMonth = months[now.getMonth()]; // Monat als Wort
-        this.currentYear = now.getFullYear(); // Jahr als Zahl
+        this.currentMonth = months[now.getMonth()];
+        this.currentYear = now.getFullYear();
 
         if (groupId) {
           const currentGroup = await this.groupService.getGroupById(groupId);
-
-          // Debugging: Überprüfe den aktuellen Inhalt von currentGroup
-          console.log('currentGroup:', currentGroup);
 
           if (currentGroup) {
             this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = currentGroup.groupId || '';
 
-            // Überprüfe, ob die expenses-Eigenschaft existiert und ein Array ist
+            // Lade die Ausgaben
             if (
               currentGroup.hasOwnProperty('expenses') &&
               Array.isArray(currentGroup.expenseId)
@@ -148,16 +155,16 @@ export class ExpensePage implements OnInit, OnDestroy {
               console.warn(
                 'Keine Ausgaben gefunden oder expenses ist kein Array'
               );
-              this.expenses = []; // Setze eine leere Liste, falls keine Ausgaben vorhanden sind
+              this.expenses = [];
             }
 
+            // Initialisiere Mitglieder und expenseMember
             if (currentGroup.members && currentGroup.members.length > 0) {
               this.groupMembers = currentGroup.members.map((member: any) => ({
                 ...member,
                 amount: 0,
               }));
 
-              // Initialisiere expenseMember für jede Ausgabe
               this.expenses.forEach((expense) => {
                 expense.expenseMember = this.groupMembers.map((member) => ({
                   memberId: member.uid,
@@ -167,6 +174,9 @@ export class ExpensePage implements OnInit, OnDestroy {
                 }));
               });
             }
+
+            // Berechne die Balance, nachdem die Ausgaben geladen wurden
+            this.calculateBalance();
           } else {
             console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
             this.groupname = 'Unbekannte Gruppe';
@@ -179,16 +189,13 @@ export class ExpensePage implements OnInit, OnDestroy {
             this.groupId,
             (expensestest) => {
               console.log('Updated expenses:', expensestest);
-              // Hier ist ein Mapping notwendig, falls mehrere Ausgaben zurückgegeben werden
-              this.expenses = Array.isArray(expensestest) ? expensestest : []; // Sicherstellen, dass `expenses` ein Array ist
+              this.expenses = Array.isArray(expensestest) ? expensestest : [];
+              this.calculateBalance(); // Aktualisiere die Balance bei Änderungen
             }
           );
       } else {
         console.error('Kein Benutzer eingeloggt.');
       }
-
-      // Berechne die Balance
-      this.calculateBalance();
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
@@ -205,14 +212,21 @@ export class ExpensePage implements OnInit, OnDestroy {
 
   // Berechnet die Balance basierend auf den Ausgaben
   calculateBalance() {
-    const now = new Date();
+    let total = 0;
+    for (const expense of this.expenses) {
+      total += expense.totalAmount || 0; // Füge den Betrag hinzu, falls vorhanden
+    }
+    this.sumExpenses = total;
+    console.log('Balance wird berechnet', total);
+
+    /* const now = new Date();
     const currentMonth = now.getMonth(); // Monat als Zahl (0-11)
     const currentYear = now.getFullYear(); // Jahr als Zahl (z.B. 2025)
 
     // Debugging-Ausgabe für den aktuellen Monat und Jahr
     console.log('Aktueller Monat:', currentMonth + 1); // +1 für den Monatswert als menschliche Zahl (1-12)
     console.log('Aktuelles Jahr:', currentYear);
-
+    
     this.sumExpenses = this.expenses.reduce((sum, expense) => {
       // Parsen des gespeicherten Datums (ISO-String) als Date-Objekt
       const expenseDate = new Date(expense.date);
@@ -240,12 +254,8 @@ export class ExpensePage implements OnInit, OnDestroy {
 
     // Endgültige Debugging-Ausgabe der Summe
     console.log('Summe der Ausgaben im aktuellen Monat:', this.sumExpenses);
+    */
   }
-
-
-
-
-
 
   // Logout-Funktion
   async logout() {
@@ -270,7 +280,6 @@ export class ExpensePage implements OnInit, OnDestroy {
       this.loadingService.hide();
     }
   }
-
 
   // Navigation zur Seite zum Erstellen einer neuen Ausgabe
   goToCreateExpense() {
@@ -299,13 +308,13 @@ export class ExpensePage implements OnInit, OnDestroy {
       return 'neutral'; // 👈 kein Farbakzent, z. B. grau
     }
 
-    if (amount > 0) { //muss > 0 sein weil es keine negative Beträge gibt
+    if (amount > 0) {
+      //muss > 0 sein weil es keine negative Beträge gibt
       return 'negative'; // 👈 rot
     }
 
     return 'neutral'; // fallback
   }
-
 
   // Zurück zur vorherigen Seite
   goBack() {
