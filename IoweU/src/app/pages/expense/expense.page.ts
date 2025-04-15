@@ -65,6 +65,7 @@ export class ExpensePage implements OnInit, OnDestroy {
   currentYear: number = 0;
 
   expenses: Expenses[] = [];
+  groupedExpenses: { date: string; expenses: Expenses[] }[] = [];
 
   updateExpensesCallback: (() => void) | null = null;
 
@@ -151,25 +152,27 @@ export class ExpensePage implements OnInit, OnDestroy {
         }
 
         // Echtzeit-Listener für Ausgaben
-        this.updateExpensesCallback =
-          await this.expenseService.getExpenseByGroup(
-            this.groupId || '',
-            (expensestest) => {
-              this.expenses = Array.isArray(expensestest) ? expensestest : [];
-              const { total, count } = this.expenseService.calculateBalance(
-                this.expenses
-              );
-              this.sumExpenses = total;
-              this.countExpenses = count;
-              this.expenseService.updateSums(
-                this.groupId || '',
-                this.sumExpenses,
-                this.countExpenses,
-                'sumTotalExpenses',
-                'countTotalExpenses'
-              );
-            }
-          );
+        this.updateExpensesCallback = await this.expenseService.getExpenseByGroup(
+          this.groupId || '',
+          (expensestest) => {
+            this.expenses = Array.isArray(expensestest) ? expensestest : [];
+
+            // Neue Zeile für Gruppierung
+            this.groupExpensesByDate();
+
+            const { total, count } = this.expenseService.calculateBalance(this.expenses);
+            this.sumExpenses = total;
+            this.countExpenses = count;
+            this.expenseService.updateSums(
+              this.groupId || '',
+              this.sumExpenses,
+              this.countExpenses,
+              'sumTotalExpenses',
+              'countTotalExpenses'
+            );
+          }
+        );
+
       } else {
         console.error('Kein Benutzer eingeloggt.');
       }
@@ -239,6 +242,32 @@ export class ExpensePage implements OnInit, OnDestroy {
     }
     return 'neutral';
   }
+
+  groupExpensesByDate() {
+    const grouped: { [key: string]: Expenses[] } = {};
+
+    for (const expense of this.expenses) {
+      const formattedDate = new Date(expense.date).toISOString().split('T')[0]; // yyyy-MM-dd
+      if (!grouped[formattedDate]) {
+        grouped[formattedDate] = [];
+      }
+      grouped[formattedDate].push(expense);
+    }
+
+    // Sortieren nach Datum absteigend (neuestes Datum zuerst)
+    const sortedDates = Object.keys(grouped).sort((a, b) => {
+      return new Date(b).getTime() - new Date(a).getTime();
+    });
+
+    // Sortiere innerhalb jeder Gruppe nach Uhrzeit absteigend
+    this.groupedExpenses = sortedDates.map((date) => ({
+      date,
+      expenses: grouped[date].sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }),
+    }));
+  }
+
 
   goBack() {
     this.router.navigate(['/group', this.groupId]);

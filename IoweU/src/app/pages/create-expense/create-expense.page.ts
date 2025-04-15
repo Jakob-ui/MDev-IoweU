@@ -328,7 +328,7 @@ export class CreateExpensePage {
       if (this.productInputs.hasOwnProperty(memberId)) {
         this.productInputs[memberId].products = this.productInputs[
           memberId
-        ].products.filter((p) => p.productId !== productToRemove.productId);
+          ].products.filter((p) => p.productId !== productToRemove.productId);
       }
     }
 

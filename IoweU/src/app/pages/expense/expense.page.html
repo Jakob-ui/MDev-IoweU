@@ -37,32 +37,38 @@
     </ion-card>
 
     <ion-list class="expense-list">
-      <ion-item
-        class="info-item"
-        *ngFor="let expense of expenses"
-        (click)="goToExpenseDetails(expense.expenseId)"
-      >
-        <div
-          class="profile-placeholder"
-          [ngStyle]="{
-            'background-color': 'var(--member-color-' + expense.paidBy + ')',
-            'border-color': 'var(--member-color-' + expense.paidBy + ')'
-          }"
-        ></div>
-        <h5 class="einzelneAusgabe">{{ expense.description }}</h5>
-        <div class="expense-item">
-          <div class="Ausgabepreis">
-            <h5 class="Gesamtpreis">
-              {{ expense.totalAmount | currency: 'EUR' }}
-            </h5>
+      <ng-container *ngFor="let group of groupedExpenses">
+    <span class="date">
+      {{ group.date | date: 'dd.MM.yyyy' }}
+    </span>
 
-            <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
-              {{ getUserAmount(expense) | currency: 'EUR' }}
-            </ion-badge>
+        <ion-item
+          class="info-item"
+          *ngFor="let expense of group.expenses"
+          (click)="goToExpenseDetails(expense.expenseId)"
+        >
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{
+          'background-color': 'var(--member-color-' + expense.paidBy + ')',
+          'border-color': 'var(--member-color-' + expense.paidBy + ')'
+        }"
+          ></div>
+          <h5 class="einzelneAusgabe">{{ expense.description }}</h5>
+          <div class="expense-item">
+            <div class="Ausgabepreis">
+              <h5 class="Gesamtpreis">
+                {{ expense.totalAmount | currency: 'EUR' }}
+              </h5>
+              <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
+                {{ getUserAmount(expense) | currency: 'EUR' }}
+              </ion-badge>
+            </div>
           </div>
-        </div>
-      </ion-item>
+        </ion-item>
+      </ng-container>
     </ion-list>
+
 
     <div class="button-container">
       <ion-button
