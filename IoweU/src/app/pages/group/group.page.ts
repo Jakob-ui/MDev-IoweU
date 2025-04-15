@@ -6,19 +6,18 @@ import {
   IonHeader,
   IonToolbar,
   IonContent,
-  IonButton,
   IonCard,
   IonCardTitle,
   IonCardSubtitle,
-  IonIcon, IonInput, IonItem,
+  IonIcon,
 } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
 import { Groups } from 'src/app/services/objects/Groups';
 import { LoadingService } from '../../services/loading.service';
-import {QRCodeComponent} from "angularx-qrcode";
-import {FormsModule} from "@angular/forms";
+import { QRCodeComponent } from 'angularx-qrcode';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-group',
@@ -30,15 +29,12 @@ import {FormsModule} from "@angular/forms";
     IonHeader,
     IonToolbar,
     IonContent,
-    IonButton,
     IonCard,
     IonCardTitle,
     IonCardSubtitle,
     RouterModule,
     IonIcon,
     QRCodeComponent,
-    IonInput,
-    IonItem,
     FormsModule,
   ],
 })
