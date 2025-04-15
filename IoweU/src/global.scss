@@ -60,9 +60,17 @@ ion-title {
   justify-content: center;
   align-items: center;
   width: 100%;
-  background: rgba(255, 255, 255, 0.6);
+  position: relative;
+}
+
+.backdrop-wrapper {
+  position: relative;
+  height: 100px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: saturate(180%) blur(20px);
   --webkit-backdrop-filter: saturate(180%) blur(20px);
+  z-index: 9;
 }
 
 ion-toolbar {
@@ -71,16 +79,16 @@ ion-toolbar {
   justify-content: space-between;
   align-items: center;
   width: 85%;
-  max-width: 800px;
-  margin-left: auto;
   margin-right: auto;
-  padding-top: 25px;
-  padding-bottom: 20px;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: saturate(180%) blur(20px);
-  --webkit-backdrop-filter: saturate(180%) blur(20px);
+  margin-left: auto;
+  max-width: 800px;
+  padding: 25px 0px 20px;
+  background: transparent !important; /* Make the toolbar background transparent */
   height: 100px;
+  position: relative; /* Ensure toolbar content is on top */
+  z-index: 10;
 }
+
 
 ion-toolbar ion-icon{
   background: var(--ion-color-primary);
@@ -109,7 +117,29 @@ ion-toolbar .right-container .edit-button{
 }
 
 ion-header ion-toolbar:first-of-type {
-  /* padding-top: var(--ion-safe-area-top, 0); */
+  padding-top: 25px;
+}
+
+ion-header::part(toolbar) {
+  --background: transparent !important;
+  --color: inherit !important;
+  --border-color: transparent !important;
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  --padding-start: 0 !important;
+  --padding-end: 0 !important;
+  --min-height: auto !important; /* Or your desired min-height */
+}
+
+ion-toolbar {
+  --background: transparent !important;
+  --color: inherit !important;
+  --border-color: transparent !important;
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  --padding-start: 0 !important;
+  --padding-end: 0 !important;
+  --min-height: auto !important; /* Or your desired min-height */
 }
 
 
