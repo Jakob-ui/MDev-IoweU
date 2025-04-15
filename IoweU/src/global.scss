@@ -78,7 +78,7 @@ ion-toolbar {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  width: 85%;
+  width: 80%;
   margin-right: auto;
   margin-left: auto;
   max-width: 800px;
@@ -266,6 +266,7 @@ ion-card-subtitle h6 {
   font-weight: bold;
   transition: background 0.3s ease-in-out;
   justify-content: center;
+  margin-bottom: 20px;
 }
 
 .card-content-finance,
