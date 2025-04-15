@@ -15,16 +15,9 @@ import {
 } from 'ionicons/icons';
 import {
   IonContent,
-  IonItem,
-  IonInput,
-  IonSelect,
-  IonSelectOption,
   IonButton,
-  IonDatetime,
   IonIcon,
   IonBadge,
-  IonLabel,
-  IonList,
   IonHeader,
   IonToolbar,
 } from '@ionic/angular/standalone';
@@ -57,15 +50,8 @@ addIcons({
   styleUrls: ['./expense-details.page.scss'],
   standalone: true,
   imports: [
-    IonList,
-    IonLabel,
     IonContent,
-    IonItem,
-    IonInput,
-    IonSelect,
-    IonSelectOption,
     IonButton,
-    IonDatetime,
     IonIcon,
     IonHeader,
     IonToolbar,
@@ -92,7 +78,7 @@ export class ExpenseDetailsPage {
   user: string | null = '';
   displayName: string | null = null;
   groupId = this.activeRoute.snapshot.paramMap.get('groupId') || '';
-  expenseId: string = '';
+  expenseId = this.activeRoute.snapshot.paramMap.get('expenseId') || '';
 
   groupMembers: any[] = [];
   memberUsernames: string[] = [];
@@ -153,7 +139,9 @@ export class ExpenseDetailsPage {
           split: 0, // Optional, je nach Bedarf
           products: [
             {
-              productId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
+              productId: (
+                Date.now() + Math.floor(Math.random() * 1000)
+              ).toString(),
               memberId: '', // Leerer String für den Member
               productname: '', // Leerer String für den Produktnamen
               quantity: 1, // Standardmenge 1
@@ -178,9 +166,6 @@ export class ExpenseDetailsPage {
       this.user = this.authService.currentUser.username;
       this.displayName = this.authService.currentUser.username;
 
-      this.groupId = this.activeRoute.snapshot.paramMap.get('groupId') || '';
-      this.expenseId = this.activeRoute.snapshot.paramMap.get('expenseId') || '';
-
       if (!this.groupId || !this.expenseId) {
         console.error('Kein groupId oder expenseId in der URL');
         return;
@@ -195,38 +180,46 @@ export class ExpenseDetailsPage {
       this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
       this.groupMembers = currentGroup.members || [];
 
-      this.memberUsernames = this.groupMembers.map(m => m.username || '');
-      this.memberIds = this.groupMembers.map(m => m.memberId || '');
-      this.memberColors = this.groupMembers.map(m => m.color || '');
-      this.memberRoles = this.groupMembers.map(m => m.role || '');
-      this.memberUids = this.groupMembers.map(m => m.uid || '');
+      this.memberUsernames = this.groupMembers.map((m) => m.username || '');
+      this.memberIds = this.groupMembers.map((m) => m.memberId || '');
+      this.memberColors = this.groupMembers.map((m) => m.color || '');
+      this.memberRoles = this.groupMembers.map((m) => m.role || '');
+      this.memberUids = this.groupMembers.map((m) => m.uid || '');
 
-      await this.expenseService.getExpenseById(this.groupId, this.expenseId, (fetchedExpense) => {
-        if (fetchedExpense) {
-          this.expense = [fetchedExpense];  // Setze die komplette Expense-Daten als Array
+      await this.expenseService.getExpenseById(
+        this.groupId,
+        this.expenseId,
+        (fetchedExpense) => {
+          if (fetchedExpense) {
+            this.expense = [fetchedExpense]; // Setze die komplette Expense-Daten als Array
 
-          // Extrahiere die Werte aus der Expense und speichere sie in separaten Variablen
-          const expenseData = this.expense[0];
-          this.expenseDescription = expenseData.description || '';  // Beschreibung der Ausgabe
-          this.expenseTotalAmount = expenseData.totalAmount || 0;  // Gesamtbetrag
-          this.expensePaidBy = expenseData.paidBy || '';  // Wer hat gezahlt?
-          this.expenseDate = expenseData.date || '';  // Datum der Ausgabe
-          this.expenseMember = expenseData.expenseMember || [];  // Mitglieder der Ausgabe
-          this.expenseMemberIds = this.expenseMember.map(m => m.memberId || '');  // IDs der Mitglieder
-          this.expenseMemberSplitType = expenseData.splitType || '';  // Art der Aufteilung
-          this.expenseMemberSplitBy = expenseData.splitBy || '';  // Wer hat die Ausgabe geteilt?
-          this.expenseMemberPaidBy = expenseData.paidBy || '';  // Wer hat die Ausgabe bezahlt?
+            // Extrahiere die Werte aus der Expense und speichere sie in separaten Variablen
+            const expenseData = this.expense[0];
+            this.expenseDescription = expenseData.description || ''; // Beschreibung der Ausgabe
+            this.expenseTotalAmount = expenseData.totalAmount || 0; // Gesamtbetrag
+            this.expensePaidBy = expenseData.paidBy || ''; // Wer hat gezahlt?
+            this.expenseDate = expenseData.date || ''; // Datum der Ausgabe
+            this.expenseMember = expenseData.expenseMember || []; // Mitglieder der Ausgabe
+            this.expenseMemberIds = this.expenseMember.map(
+              (m) => m.memberId || ''
+            ); // IDs der Mitglieder
+            this.expenseMemberSplitType = expenseData.splitType || ''; // Art der Aufteilung
+            this.expenseMemberSplitBy = expenseData.splitBy || ''; // Wer hat die Ausgabe geteilt?
+            this.expenseMemberPaidBy = expenseData.paidBy || ''; // Wer hat die Ausgabe bezahlt?
 
-          const currentMember = this.expenseMember.find(m => m.memberId === this.uid);
-          this.expenseAmountToPay = currentMember?.amountToPay || 0;
+            const currentMember = this.expenseMember.find(
+              (m) => m.memberId === this.uid
+            );
+            this.expenseAmountToPay = currentMember?.amountToPay || 0;
 
-          this.expensePaidByUsername = this.getPaidByName(this.expensePaidBy);
+            this.expensePaidByUsername = this.getPaidByName(this.expensePaidBy);
 
-          console.log('Geladene Expense:', this.expense);
-        } else {
-          console.error('Expense nicht gefunden');
+            console.log('Geladene Expense:', this.expense);
+          } else {
+            console.error('Expense nicht gefunden');
+          }
         }
-      });
+      );
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -236,18 +229,21 @@ export class ExpenseDetailsPage {
     }
   }
 
-
-  getAmountToPayForMember(expense: Partial<Expenses>, memberId: string): number {
+  getAmountToPayForMember(
+    expense: Partial<Expenses>,
+    memberId: string
+  ): number {
     if (!expense || !expense.expenseMember) return 0;
-    const memberEntry = expense.expenseMember.find(m => m.memberId === memberId);
+    const memberEntry = expense.expenseMember.find(
+      (m) => m.memberId === memberId
+    );
     return memberEntry?.amountToPay ?? 0;
   }
-
 
   getAmountClass(expense: Expenses): string {
     const amount = this.getUserAmount(expense);
     const isPaidByCurrentUser = expense.paidBy === this.uid;
-    const member = expense.expenseMember.find(m => m.memberId === this.uid);
+    const member = expense.expenseMember.find((m) => m.memberId === this.uid);
 
     console.log('Aktueller Benutzer:', this.uid);
     console.log('Mitglieder der Ausgabe:', expense.expenseMember);
@@ -258,7 +254,9 @@ export class ExpenseDetailsPage {
     if (isPaidByCurrentUser) {
       // Wenn der Benutzer nichts mehr zu zahlen hat oder sogar für andere bezahlt
       if (member && member.amountToPay > 0) {
-        console.log('Der Benutzer hat für andere bezahlt, aber keinen Betrag mehr zu zahlen');
+        console.log(
+          'Der Benutzer hat für andere bezahlt, aber keinen Betrag mehr zu zahlen'
+        );
         return 'positive'; // Der Benutzer hat für andere bezahlt, aber keinen eigenen Betrag mehr
       }
     }
@@ -280,9 +278,15 @@ export class ExpenseDetailsPage {
     }
 
     for (let expense of this.expense) {
-      const groupMember = expense.expenseMember.find(member => member.memberId === groupMemberId);
+      const groupMember = expense.expenseMember.find(
+        (member) => member.memberId === groupMemberId
+      );
 
-      if (groupMember && Array.isArray(groupMember.products) && groupMember.products.length > 0) {
+      if (
+        groupMember &&
+        Array.isArray(groupMember.products) &&
+        groupMember.products.length > 0
+      ) {
         return true;
       }
     }
@@ -290,12 +294,9 @@ export class ExpenseDetailsPage {
     return false;
   }
 
-
-
   toggleProducts(memberName: string) {
     this.visibleProducts[memberName] = !this.visibleProducts[memberName]; // Toggle die Sichtbarkeit der Produkte
   }
-
 
   getPurchasedProductsForMember(memberId: string): Products[] {
     // Ensure that this.expense is properly defined and is not empty
@@ -318,7 +319,6 @@ export class ExpenseDetailsPage {
     return member?.products ?? [];
   }
 
-
   isProductsVisibleForMember(memberId: string): boolean {
     return this.visibleProducts[memberId] || false;
   }
@@ -331,8 +331,6 @@ export class ExpenseDetailsPage {
     //console.log('UserEntry:', userEntry);
     return userEntry?.amountToPay ?? 0;
   }
-
-
 
   async logout() {
     try {
@@ -347,22 +345,26 @@ export class ExpenseDetailsPage {
     this.navCtrl.back();
   }
   editExpense() {
-    // Access the first expense in the array
-    const expenseId = this.expense?.[0]?.expenseId; // This accesses the first expense's expenseId
-    if (expenseId) {
-      this.router.navigate(['/edit-expense', this.groupId, expenseId]);
+    if (this.expenseId) {
+      this.router.navigate(['/edit-expense', this.groupId, this.expenseId]);
     } else {
       console.error('Expense ID not found');
     }
   }
-
 
   getPaidByName(uid: string): string {
     const memberIndex = this.memberUids.indexOf(uid);
     return memberIndex >= 0 ? this.memberUsernames[memberIndex] : '';
   }
 
-
-
-
+  //Mein Shit
+  async delete() {
+    try {
+      await this.expenseService.deleteExpense(this.groupId, this.expenseId);
+      this.router.navigate(['/expense', this.groupId]);
+      alert(`Epense wurde gelöscht: ${this.expenseDescription}`);
+    } catch (e) {
+      console.log('fehler beim löschen', e);
+    }
+  }
 }
