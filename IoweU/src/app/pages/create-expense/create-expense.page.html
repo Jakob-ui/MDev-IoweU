@@ -19,28 +19,31 @@
 
         <div class="Kategorie">
           <span class="input-label">Kategorie</span>
-          <ion-item
-            class="input-item"
-            (click)="toggleDropdown()"
-          >
+          <ion-item class="input-item" (click)="toggleDropdown()">
             <ion-label>
               <div class="selected-category">
-                <ion-icon [name]="selectedCategory?.icon"  class="category-icon" id="category-icon-label"></ion-icon>
+                <ion-icon
+                  [name]="selectedCategory?.icon"
+                  class="category-icon"
+                  id="category-icon-label"
+                ></ion-icon>
               </div>
             </ion-label>
           </ion-item>
 
           <div *ngIf="dropdownOpen" class="custom-dropdown">
             <ion-list>
-              <ion-item class="dropDownFelder"
-                        button
-                        *ngFor="let category of categories"
-                        (click)="selectCategory(category)"
+              <ion-item
+                class="dropDownFelder"
+                button
+                *ngFor="let category of categories"
+                (click)="selectCategory(category)"
               >
-                <ion-icon [name]="category.icon" class="category-icon"></ion-icon>
-                <ion-label
-                >{{ category.name }}</ion-label
-                >
+                <ion-icon
+                  [name]="category.icon"
+                  class="category-icon"
+                ></ion-icon>
+                <ion-label>{{ category.name }}</ion-label>
               </ion-item>
             </ion-list>
           </div>
@@ -50,10 +53,7 @@
           <span class="input-label">Rechnung</span>
           <ion-item class="input-item">
             <label class="upload-label">
-              <ion-icon
-        name="add-outline"
-        class="upload-icon"
-      ></ion-icon>
+              <ion-icon name="add-outline" class="upload-icon"></ion-icon>
               <input
                 type="file"
                 accept="image/*"
@@ -90,7 +90,10 @@
               (ionChange)="selectCurrency($event.detail.value)"
               interface="popover"
             >
-              <ion-select-option *ngFor="let currency of expense.currency" [value]="currency">
+              <ion-select-option
+                *ngFor="let currency of expense.currency"
+                [value]="currency"
+              >
                 {{ currency }}
               </ion-select-option>
             </ion-select>
@@ -109,25 +112,26 @@
                 *ngFor="let groupMember of groupMembers"
                 [value]="groupMember.uid"
               >
-                <div class="member-info"
-                     [ngStyle]="{
+                <div
+                  class="member-info"
+                  [ngStyle]="{
               'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
               'border-color': 'var(--member-color-' + groupMember.uid + ')'
-             }">
+             }"
+                >
                   <div
                     class="profile-placeholder"
                     [ngStyle]="{
               'background-color': 'var(--member-color-' + groupMember.uid + ')',
               'border-color': 'var(--member-color-' + groupMember.uid + ')'
-            }">
-                  </div>
+            }"
+                  ></div>
                   <span class="member-name">{{ groupMember.username }}</span>
                 </div>
               </ion-select-option>
             </ion-select>
           </ion-item>
         </div>
-
 
         <div class="date">
           <span class="input-label">Datum</span>
@@ -146,18 +150,18 @@
           <ion-item class="input-item">
             <ion-select [(ngModel)]="expense.repeat" interface="popover">
               <ion-select-option class="custom-select-option" value="nein"
-              >nein</ion-select-option
+                >nein</ion-select-option
               >
               <ion-select-option class="custom-select-option" value="täglich"
-              >täglich</ion-select-option
+                >täglich</ion-select-option
               >
               <ion-select-option
                 class="custom-select-option"
                 value="wöchentlich"
-              >wöchentlich</ion-select-option
+                >wöchentlich</ion-select-option
               >
               <ion-select-option class="custom-select-option" value="monatlich"
-              >monatlich</ion-select-option
+                >monatlich</ion-select-option
               >
             </ion-select>
           </ion-item>
@@ -171,10 +175,21 @@
         <div class="split">
           <span class="input-label">Aufteilung</span>
           <ion-item class="input-item">
-            <ion-select [(ngModel)]="expense.splitType" interface="popover" (ngModelChange)="onSplitByChange()">
-              <ion-select-option class="custom-select-option" value="alle">Anteile</ion-select-option>
-              <ion-select-option class="custom-select-option" value="prozent">Prozent</ion-select-option>
-              <ion-select-option class="custom-select-option" value="produkte">nach Produkten</ion-select-option>
+            <ion-select
+              [(ngModel)]="expense.splitType"
+              interface="popover"
+              (ngModelChange)="onSplitTypeChange()"
+              ngDefaultControl="anteile"
+            >
+              <ion-select-option class="custom-select-option" value="anteile"
+                >Anteile</ion-select-option
+              >
+              <ion-select-option class="custom-select-option" value="prozent"
+                >Prozent</ion-select-option
+              >
+              <ion-select-option class="custom-select-option" value="produkte"
+                >nach Produkten</ion-select-option
+              >
             </ion-select>
           </ion-item>
         </div>
@@ -184,9 +199,14 @@
             <ion-select
               [(ngModel)]="expense.splitBy"
               (ngModelChange)="onSplitByChange()"
-              interface="popover">
-              <ion-select-option class="custom-select-option" value="alle">alle</ion-select-option>
-              <ion-select-option class="custom-select-option" value="frei">frei</ion-select-option>
+              interface="popover"
+            >
+              <ion-select-option class="custom-select-option" value="alle"
+                >alle</ion-select-option
+              >
+              <ion-select-option class="custom-select-option" value="frei"
+                >frei</ion-select-option
+              >
             </ion-select>
           </ion-item>
         </div>
@@ -195,38 +215,74 @@
 
     <!-- Mitglieder -->
     <div class="section" id="member-section">
-      <div class="member-list" *ngFor="let groupMember of groupMembers; let i = index">
+      <div
+        class="member-list"
+        *ngFor="let groupMember of groupMembers; let i = index"
+      >
         <div class="member-list-input">
-          <div class="member-info"
-               [ngStyle]="{
+          <div
+            class="member-info"
+            [ngStyle]="{
                 'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
                 'border-color': 'var(--member-color-' + groupMember.uid + ')'
-             }">
+             }"
+          >
             <div
               class="profile-placeholder"
               [ngStyle]="{
               'background-color': 'var(--member-color-' + groupMember.uid + ')',
               'border-color': 'var(--member-color-' + groupMember.uid + ')'
-            }">
-            </div>
+            }"
+            ></div>
             <span class="member-name">{{ groupMember.username }}</span>
           </div>
           <div
             *ngIf="expense.splitType === 'produkte'"
             class="toggle-arrow"
-            (click)="toggleProducts(groupMember.uid)">
+            (click)="toggleProducts(groupMember.uid)"
+          >
             <ion-icon
-              [src]="productInputs[groupMember.uid] ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'">
+              [src]="productInputs[groupMember.uid] ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
+            >
             </ion-icon>
           </div>
           <div class="right-container">
-            <div class="input-field">
+            <!-- <div class="input-field" *ngIf="expense.splitType === 'anteile'">
+              <ion-select
+                [(ngModel)]="expense.splitType"
+                interface="popover"
+                (ngModelChange)="onSplitByChange()"
+              >
+                <ion-select-option
+                  class="custom-select-option"
+                  value="anteile"
+                  [(ngModel)]="splitValue[groupMember.uid]"
+                  >1/2x</ion-select-option
+                >
+                <ion-select-option
+                  class="custom-select-option"
+                  value="prozent"
+                  [(ngModel)]="splitValue[groupMember.uid]"
+                  >1/4x</ion-select-option
+                >
+                <ion-select-option
+                  class="custom-select-option"
+                  value="produkte"
+                  [(ngModel)]="splitValue[groupMember.uid]"
+                  >1/8x</ion-select-option
+                ></ion-select
+              >
+            </div>-->
+
+            <div class="input-field" *ngIf="expense.splitType === 'prozent'">
               <ion-input
                 type="number"
-                placeholder="1x"
+                placeholder="%"
                 [(ngModel)]="splitValue[groupMember.uid]"
+                (ionInput)="calculateSplitByPercentage()"
               ></ion-input>
             </div>
+
             <div class="input-field">
               <ion-input
                 type="number"
@@ -240,20 +296,32 @@
           </div>
         </div>
 
-        <div *ngIf="productInputs[groupMember.uid]" class="product-input-fields">
-          <div class="product-list" *ngIf="productInputs[groupMember.uid].products.length">
+        <div
+          *ngIf="productInputs[groupMember.uid]"
+          class="product-input-fields"
+        >
+          <div
+            class="product-list"
+            *ngIf="productInputs[groupMember.uid].products.length"
+          >
             <ul>
               <li
-                *ngFor="let product of productInputs[groupMember.uid].products">
+                *ngFor="let product of productInputs[groupMember.uid].products"
+              >
                 <div class="left-container">
-                  <span class="product-quantity">{{ product.quantity }} {{ product.unit }}</span>
+                  <span class="product-quantity"
+                    >{{ product.quantity }} {{ product.unit }}</span
+                  >
                   <span class="product">{{ product.productname }}</span>
                 </div>
-                <ion-badge class="product-price">{{ product.price | currency: 'EUR' }}</ion-badge>
+                <ion-badge class="product-price"
+                  >{{ product.price | currency: 'EUR' }}</ion-badge
+                >
                 <ion-icon
                   class="delete-icon"
                   [src]="'assets/icon/ionicons/ios-close.svg'"
-                  (click)="removeProduct(product)">
+                  (click)="removeProduct(product)"
+                >
                 </ion-icon>
               </li>
             </ul>
@@ -286,10 +354,7 @@
             >
             </ion-input>
           </div>
-          <ion-button
-            class="main-button"
-            (click)="addProduct(groupMember.uid)"
-          >
+          <ion-button class="main-button" (click)="addProduct(groupMember.uid)">
             Produkt hinzufügen
           </ion-button>
         </div>
@@ -299,8 +364,14 @@
     <!-- Buttons -->
     <div class="button-row">
       <ion-button class="main-button" (click)="cancel()">Abbrechen</ion-button>
-      <ion-button class="main-button" (click)="saveExpense()">Speichern</ion-button>
+      <ion-button
+        class="main-button"
+        (click)="saveExpense()"
+        [disabled]="!isFormValid"
+        >Speichern</ion-button
+      >
     </div>
+    <div>{{error}}</div>
   </div>
 
   <!-- Datepicker Modal -->

@@ -17,6 +17,7 @@ import {
 } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { elementAt } from 'rxjs';
+import { Categories } from './objects/Categories';
 
 @Injectable({
   providedIn: 'root',
@@ -39,7 +40,8 @@ export class GroupService {
   async createGroup(
     name: string,
     founder: Users,
-    template: string
+    template: string,
+    categories: Categories
   ): Promise<void> {
     try {
       const newGroup: Groups = {
@@ -77,6 +79,18 @@ export class GroupService {
         doc(this.firestore, 'groups', newGroup.groupId),
         newGroup
       );
+
+      const categoriesRef = collection(
+        this.firestore,
+        `groups/${newGroup.groupId}/categories`
+      );
+
+      const defaultCategories = categories;
+      for (const category of [defaultCategories]) {
+        await setDoc(doc(categoriesRef), category);
+      }
+
+      console.log('Standardkategorien erfolgreich hinzugefügt.');
 
       // Benutzer aktualisieren, um die groupId hinzuzufügen
       const usersRef = collection(this.firestore, 'users');
@@ -228,8 +242,6 @@ export class GroupService {
             groupId: doc.id,
             ...doc.data(),
           })) as Groups[];
-
-          console.log('Updated groups:', groups);
           updateGroupsCallback(groups); // Aktualisiere die Gruppenliste
         } else {
           console.log('No groups found for this user.');

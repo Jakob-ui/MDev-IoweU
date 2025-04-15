@@ -40,13 +40,13 @@ import {
 // Import interfaces
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
-import { Members } from 'src/app/services/objects/Members';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
+import { Groups } from 'src/app/services/objects/Groups';
 
 @Component({
   selector: 'app-create-expense',
@@ -79,7 +79,6 @@ export class CreateExpensePage {
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
-  private updateExpensesCallback: (() => void) | null = null;
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -90,6 +89,7 @@ export class CreateExpensePage {
   groupId = this.route.snapshot.paramMap.get('groupId') || '';
 
   groupMembers: any[] = [];
+  currentGroup: Groups | null = null;
 
   memberUsernames: string[] = [];
   memberIds: string[] = [];
@@ -104,6 +104,8 @@ export class CreateExpensePage {
   dropdownOpen = false;
   selectedMember: any = null;
   selectedCurrency: string = 'EUR'; // Standardwährung
+  isFormValid: boolean = false;
+  error: string = '';
 
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
@@ -116,24 +118,8 @@ export class CreateExpensePage {
     invoice: '',
     repeat: 'nein',
     splitBy: 'alle',
-    splitType: 'prozent',
-    expenseMember: [
-      {
-        memberId: '',
-        amountToPay: 0,
-        split: 1,
-        products: [
-          {
-            productId: '',
-            memberId: '',
-            productname: '',
-            quantity: 1,
-            unit: '',
-            price: 0,
-          },
-        ],
-      } as ExpenseMember,
-    ],
+    splitType: 'anteile',
+    expenseMember: [],
   };
 
   categories = [
@@ -160,25 +146,33 @@ export class CreateExpensePage {
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
 
         if (groupId) {
-          const currentGroup = await this.groupService.getGroupById(groupId);
+          this.currentGroup = await this.groupService.getGroup();
+          if (this.currentGroup === null) {
+            this.currentGroup = await this.groupService.getGroupById(groupId);
+          }
 
-          if (currentGroup) {
-            this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-            this.groupId = currentGroup.groupId || '';
+          if (this.currentGroup) {
+            this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
+            this.groupId = this.currentGroup.groupId || '';
 
-            if (currentGroup.members && currentGroup.members.length > 0) {
-              this.groupMembers = currentGroup.members.map((member: any) => {
-                this.memberUsernames.push(member.username || '');
-                this.memberIds.push(member.memberId || '');
-                this.memberColors.push(member.color || '');
-                this.memberRoles.push(member.role || '');
-                this.memberUids.push(member.uid || '');
+            if (
+              this.currentGroup.members &&
+              this.currentGroup.members.length > 0
+            ) {
+              this.groupMembers = this.currentGroup.members.map(
+                (member: any) => {
+                  this.memberUsernames.push(member.username || '');
+                  this.memberIds.push(member.memberId || '');
+                  this.memberColors.push(member.color || '');
+                  this.memberRoles.push(member.role || '');
+                  this.memberUids.push(member.uid || '');
 
-                return {
-                  ...member,
-                  amount: 0,
-                };
-              });
+                  return {
+                    ...member,
+                    amount: 0,
+                  };
+                }
+              );
 
               this.expense.expenseMember = this.groupMembers.map((member) => ({
                 memberId: member.uid,
@@ -422,19 +416,72 @@ export class CreateExpensePage {
     this.updateTotalAmount();
   }
 
+  onSplitTypeChange() {
+    switch (this.expense.splitType) {
+      case 'anteile':
+        this.expense.splitBy = 'alle';
+        this.splitAmountEqually();
+        break;
+      case 'prozent':
+        this.expense.splitBy = 'frei';
+        this.calculateSplitByPercentage();
+        break;
+      case 'produkte':
+        this.expense.splitBy = 'frei';
+        this.updateAmountToPayForProducts();
+        break;
+    }
+  }
+
   onSplitByChange() {
-    if (this.expense.splitType === 'produkte') {
-      // Wenn "produkte" ausgewählt ist, setze splitBy auf "frei"
-      this.expense.splitBy = 'frei';
-      this.updateAmountToPayForProducts(); // Berechne die amountToPay für jedes Mitglied basierend auf den Produkten
+    switch (this.expense.splitBy) {
+      case 'alle':
+        this.splitAmountEqually();
+        break;
+      case 'frei':
+        this.calculateSplitByPercentage();
+        break;
     }
-    if (this.expense.splitBy === 'alle') {
-      // Berechne den totalAmount, wenn "alle" ausgewählt ist
-      this.splitAmountEqually();
-    } else {
-      // Keine Änderung der Berechnungen, falls "frei" ausgewählt ist
-      this.updateTotalAmount();
+  }
+
+  calculateSplitByPercentage() {
+    const totalAmount = this.expense.totalAmount;
+    let totalPercentage = 0;
+    // Berechne die Summe der eingegebenen Prozentwerte
+    this.groupMembers.forEach((member) => {
+      const percentage = this.splitValue[member.uid] || 0;
+      totalPercentage += percentage;
+    });
+
+    // Überprüfe, ob die Summe der Prozentwerte 100% ergibt
+    if (totalPercentage > 100) {
+      this.error = 'Die Summe der Prozentwerte darf 100% nicht überschreiten.';
+      return;
     }
+    if (totalPercentage < 100) {
+      this.error = 'Die Summe der Prozentwerte mss 100% sein';
+      return;
+    }
+    if (totalPercentage === 100) {
+      this.error = '';
+      this.isFormValid = true;
+    }
+
+    // Verteile den Betrag basierend auf den Prozentwerten
+    this.groupMembers.forEach((member) => {
+      const percentage = this.splitValue[member.uid] || 0;
+
+      // Wenn kein Prozentwert eingegeben wurde, zahlt das Mitglied nichts
+      if (percentage === 0) {
+        this.amountToPay[member.uid] = 0;
+      } else {
+        // Berechne den Betrag für das Mitglied
+        const amount = (totalAmount * percentage) / 100;
+        this.amountToPay[member.uid] = parseFloat(amount.toFixed(2)); // Runde auf 2 Dezimalstellen
+      }
+    });
+
+    console.log('Aufteilung nach Prozent:', this.amountToPay);
   }
 
   updateAmountToPayForProducts() {
@@ -465,24 +512,54 @@ export class CreateExpensePage {
 
   // Diese Methode wird aufgerufen, wenn sich der Gesamtbetrag ändert
   onTotalAmountChange() {
-    // Nur teilen, wenn "splitBy" auf 'alle' gesetzt ist
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
   }
 
   splitAmountEqually() {
-    const totalAmount = this.expense.totalAmount;
+    let totalAmount = this.expense.totalAmount;
     const numberOfMembers = this.groupMembers.length;
 
     if (numberOfMembers > 0 && totalAmount > 0) {
-      const amountPerMember = parseFloat(
-        (totalAmount / numberOfMembers).toFixed(2)
+      const amountPerMember =
+        Math.floor((totalAmount / numberOfMembers) * 100) / 100;
+      let distributedTotal = parseFloat(
+        (amountPerMember * numberOfMembers).toFixed(2)
+      );
+      let remainingAmount = parseFloat(
+        (totalAmount - distributedTotal).toFixed(2)
       );
 
       this.groupMembers.forEach((member) => {
         this.amountToPay[member.uid] = amountPerMember;
       });
+
+      if (remainingAmount > 0) {
+        totalAmount += 1;
+        remainingAmount = parseFloat((remainingAmount + 1).toFixed(2));
+      }
+
+      const payerUid = this.expense.paidBy;
+      let i = 0;
+
+      while (remainingAmount > 0) {
+        const member = this.groupMembers[i];
+
+        if (member.uid !== payerUid) {
+          this.amountToPay[member.uid] = parseFloat(
+            (this.amountToPay[member.uid] + 0.01).toFixed(2)
+          );
+          remainingAmount = parseFloat((remainingAmount - 0.01).toFixed(2));
+        }
+
+        i++;
+        if (i >= this.groupMembers.length) {
+          i = 0;
+        }
+      }
+
+      console.log('Gleichmäßige Aufteilung mit Rest:', this.amountToPay);
     }
   }
 
@@ -521,6 +598,7 @@ export class CreateExpensePage {
       console.error(
         'Die Eingabe ist ungültig. Bitte füllen Sie alle Pflichtfelder aus.'
       );
+
       alert('Bitte füllen Sie alle Pflichtfelder aus.');
       return;
     }

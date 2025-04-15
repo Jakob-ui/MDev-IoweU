@@ -14,14 +14,11 @@ import {
 } from '@ionic/angular/standalone';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
-import { GroupService } from '../../services/group.service'; // Importiere den GroupService
+import { GroupService } from '../../services/group.service';
 import { ActivatedRoute } from '@angular/router';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { Expenses } from 'src/app/services/objects/Expenses';
-import { Groups } from 'src/app/services/objects/Groups';
-import { ExpenseMember } from '../../services/objects/ExpenseMember'; // Stelle sicher, dass diese importiert ist
 
 @Component({
   selector: 'app-expense',
@@ -159,7 +156,6 @@ export class ExpensePage implements OnInit, OnDestroy {
           await this.expenseService.getExpenseByGroup(
             this.groupId || '',
             (expensestest) => {
-              console.log('Updated expenses:', expensestest);
               this.expenses = Array.isArray(expensestest) ? expensestest : [];
               const { total, count } = this.expenseService.calculateBalance(
                 this.expenses

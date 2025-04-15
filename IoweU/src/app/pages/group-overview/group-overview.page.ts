@@ -92,7 +92,6 @@ export class GroupOverviewPage implements OnInit {
         this.unsubscribeFromGroups = await this.groupService.getGroupsByUserId(
           uid,
           (groups) => {
-            console.log('Updated groups:', groups);
             this.groups = groups.map((group) => ({
               name: group.groupname,
               myBalance: Math.floor(Math.random() * (200 - -200 + 1)) + -200,

@@ -5,10 +5,7 @@ import {
   deleteDoc,
   Firestore,
   getDoc,
-  getDocs,
   onSnapshot,
-  query,
-  where,
 } from '@angular/fire/firestore';
 import { doc, setDoc } from 'firebase/firestore';
 import { inject } from '@angular/core';
@@ -18,7 +15,7 @@ import { ExpenseMember } from './objects/ExpenseMember';
   providedIn: 'root',
 })
 export class ExpenseService {
-  public firestore: Firestore = inject(Firestore);
+  private firestore = inject(Firestore);
 
   //1. Ausgabe hinzufügen
 
@@ -63,47 +60,6 @@ export class ExpenseService {
         splitBy: expenseData.splitBy,
         expenseMember: expenseMembersData, // → wird 1:1 übernommen, inkl. paidBy & products
       };
-
-      //Die Summe einzelner Waagen beim splitType 'anteile' berechnen:
-
-      let sum = 0;
-      for (let i = 0; i < expenseMembersData.length; i++) {
-        sum += expenseMembersData[i].split || 0; // Wenn split nicht definiert ist, wird 0 verwendet
-      }
-
-      // Einzelnbetraege nach dem splitType berechnen:
-
-      for (const member of expenseMembersData) {
-        switch (expenseData.splitType) {
-          case 'anteile':
-            if (member.split && member.split >= 0) {
-              member.amountToPay =
-                (member.split / sum) * expenseData.totalAmount;
-            } else {
-              member.amountToPay = 0; // Defaultwert, falls split nicht definiert ist
-            }
-            break;
-          case 'prozent':
-            if (member.split && member.split >= 0 && member.split <= 100) {
-              member.amountToPay =
-                (member.split / 100) * expenseData.totalAmount;
-            } else {
-              member.amountToPay = 0; // Defaultwert, falls split nicht definiert ist
-            }
-            break;
-          case 'produkte':
-            if (member.products && member.products.length > 0) {
-              let sumOfProducts = 0;
-              for (const product of member.products) {
-                sumOfProducts += product.price || 0; // Wenn amount nicht definiert ist, wird 0 verwendet
-              }
-              member.amountToPay = sumOfProducts;
-            } else {
-              member.amountToPay = 0; // Defaultwert, falls keine Produkte vorhanden sind
-            }
-            break;
-        }
-      }
 
       // In Firestore speichern
       const expenseRef = doc(
@@ -152,8 +108,6 @@ export class ExpenseService {
         expenseId: doc.id,
         ...doc.data(),
       })) as Expenses[];
-
-      console.log('Realtime expenses:', expenses);
 
       // Callback mit den aktualisierten Daten
       updateExpensesCallback(expenses);
