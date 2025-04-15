@@ -36,7 +36,7 @@
     <ion-card class="expense-card">
       <div class="card-content-expance">
         <h2>{{ sumExpenses | currency: 'EUR' }}</h2>
-        <p>Gesamtausgaben im {{ currentMonth }} {{ currentYear }}</p>
+        <p>Gesamtausgaben</p>
       </div>
     </ion-card>
 
@@ -60,13 +60,9 @@
               {{ expense.totalAmount | currency: 'EUR' }}
             </h5>
 
-            <ion-badge
-              class="Preis"
-              [ngClass]="getAmountClass(expense)"
-            >
+            <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
               {{ getUserAmount(expense) | currency: 'EUR' }}
             </ion-badge>
-
           </div>
         </div>
       </ion-item>

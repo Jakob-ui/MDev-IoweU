@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Expenses } from './objects/Expenses';
 import {
   collection,
+  deleteDoc,
   Firestore,
   getDoc,
   getDocs,
@@ -121,6 +122,17 @@ export class ExpenseService {
     }
   }
 
+  async deleteExpense(groupId: string, expenseId: string): Promise<void> {
+    const expensesRef = doc(
+      this.firestore,
+      'groups',
+      groupId,
+      'expenses',
+      expenseId
+    );
+    await deleteDoc(expensesRef);
+  }
+
   async getExpenseByGroup(
     groupId: string,
     updateExpensesCallback: (expenses: Expenses[]) => void
@@ -212,22 +224,24 @@ export class ExpenseService {
     return { total, count };
   }
 
-  async updateTotalExpenses(
+  async updateSums(
     groupId: string,
-    sumExpenses: number,
-    countExpenses: number
+    sum: number,
+    count: number,
+    dbSumField: string,
+    dbCountField: string
   ): Promise<void> {
     const groupRef = doc(this.firestore, 'groups', groupId);
     const groupSnapshot = await getDoc(groupRef);
     if (groupSnapshot.exists()) {
       const groupData = groupSnapshot.data();
-      const currentSumTotalExpenses = groupData?.['sumTotalExpenses'] || 0;
-      const currentCountTotalExpenses = groupData?.['countTotalExpenses'] || 0;
+      const currentSum = groupData?.[dbSumField] || 0;
+      const currentCount = groupData?.[dbCountField] || 0;
 
-      if (currentSumTotalExpenses !== sumExpenses) {
+      if (currentSum !== sum) {
         await setDoc(
           groupRef,
-          { sumTotalExpenses: sumExpenses },
+          { [dbSumField]: sum },
           { merge: true } // Nur das Feld sumTotalExpenses aktualisieren
         );
         console.log('sumTotalExpenses erfolgreich aktualisiert.');
@@ -235,10 +249,10 @@ export class ExpenseService {
         console.log('sumTotalExpenses ist bereits aktuell.');
       }
 
-      if (currentCountTotalExpenses !== countExpenses) {
+      if (currentCount !== count) {
         await setDoc(
           groupRef,
-          { countTotalExpenses: countExpenses },
+          { [dbCountField]: count },
           { merge: true } // Nur das Feld sumTotalExpenses aktualisieren
         );
         console.log('countTotalExpenses erfolgreich aktualisiert.');
