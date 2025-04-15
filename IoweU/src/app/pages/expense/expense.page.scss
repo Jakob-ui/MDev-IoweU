@@ -10,6 +10,15 @@ h1{
   width: 40%;
 }
 
+.expense-list {
+  margin-bottom: 85px;
+}
+
+.date{
+  margin-top: 20px;
+}
+
+
 .button-container {
   position: fixed;
   bottom: 0;
@@ -23,13 +32,3 @@ h1{
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
-
-.expense-list {
-  margin-bottom: 85px;
-}
-
-.date{
-  margin-top: 20px;
-}
-
-

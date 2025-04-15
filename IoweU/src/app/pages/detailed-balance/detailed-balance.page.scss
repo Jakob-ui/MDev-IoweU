@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100px !important;
+  height: 120px !important;
   border-radius: 50px;
   gap: 10px;
   background: none !important;
@@ -12,8 +12,8 @@
 }
 
 .member-info-top .profile-placeholder {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: var(--user-color, #1a65eb);
   display: flex;
@@ -134,11 +134,12 @@
 
 .balance{
   margin-left: auto;
+  margin-right: auto;
   font-weight: 700;
   padding: 15px 20px;
   font-size: 24px;
   border-radius: 50px;
-  margin: 0;
+  margin-bottom: 30px;
 }
 
 .top-container{
@@ -147,4 +148,19 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+}
+
+.button-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
 }

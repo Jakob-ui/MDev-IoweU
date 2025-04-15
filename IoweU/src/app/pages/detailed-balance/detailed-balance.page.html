@@ -14,6 +14,11 @@
           <div class="profile-placeholder"></div>
           <span class="member-name">{{ username }}</span>
         </div>
+        <ion-icon
+          class="edit-button"
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-create.svg' : 'assets/icon/ionicons/md-create.svg'"
+          (click)="editBalance()"
+        ></ion-icon>
       </div>
     </ion-toolbar>
   </div>
@@ -45,8 +50,6 @@
         'normal': totalBalanceByMember === 0
       }"
       class="balance">{{ totalBalanceByMember | currency: 'EUR' }}</ion-badge>
-
-    <ion-button class="edit-button" expand="block" (click)="editBalance()">Bilanz bearbeiten</ion-button>
 
     <div class="separator"></div>
 
@@ -146,7 +149,9 @@
     </div>
 
     <div class="space"></div>
-    <ion-button class="main-button" expand="block">Schulden begleichen</ion-button>
+    <div class="button-container">
+      <ion-button class="main-button" expand="block">Schulden begleichen</ion-button>
+    </div>
   </div>
 </ion-content>
 

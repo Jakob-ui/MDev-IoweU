@@ -52,19 +52,72 @@
   flex-direction: column;
   width: 100%;
   margin-bottom: 10px;
+  align-items: center;
+  justify-content: center;
 }
 
-.product-input-fields .top-container,
-.product-input-fields .bottom-container {
+.product-input {
   display: flex;
   flex-direction: row;
+  width: 100%;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--ion-color-secondary);
+  border-radius: 10px;
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.product-input ion-input[placeholder="Menge"] {
+  flex: 0.5;
+  margin-right: 5px;
+  background-color: white;
+  border-radius: 50px;
+}
+
+.product-input ion-input[placeholder="Einheit"] {
+  flex: 1.5;
+  margin-right: 5px;
+  background-color: white;
+  border-radius: 20px;
+}
+
+.product-input ion-input[placeholder="Produktname"] {
+  flex: 2.5;
+  margin-right: 5px;
+  background-color: white;
+  border-radius: 50px;
+}
+
+.product-input ion-input[placeholder="Preis"] {
+  width: auto;
+  flex: 1;
+  margin-right: 10px;
+  background-color: white;
+  border-radius: 50px;
+}
+
+.product-input .edit-button {
+  flex-shrink: 0;
+  font-size: 24px;
+  color: var(--ion-color-dark);
+  background-color: var(--ion-color-primary);
+  border-radius: 50%;
+  padding: 5px;
+}
+
+/* Optional: Adjust spacing for the last input before the icon */
+.product-input ion-input:last-of-type {
+  margin-right: 10px; /* Ensure spacing before the icon */
 }
 
 .product-list {
-  margin: 10px 0 30px;
+  margin: 10px 0 10px;
   padding-left: 10px;
   background-color: var(--ion-color-secondary);
   border-radius: 10px;
+  width: 100%;
 }
 
 .product-list ul {
@@ -216,7 +269,7 @@ ion-input::part(native) {
 .right-container{
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: end;
   width: 60%;
 }
 

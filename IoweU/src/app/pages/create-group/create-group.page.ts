@@ -7,7 +7,7 @@ import {
   IonLabel,
   IonInput,
   IonSelect,
-  IonSelectOption,
+  IonSelectOption, IonNote,
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -35,6 +35,7 @@ import { Categories } from 'src/app/services/objects/Categories';
     RouterModule,
     FormsModule,
     CommonModule,
+    IonNote,
   ],
 })
 export class CreateGroupPage {

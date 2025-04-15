@@ -25,3 +25,43 @@
 .edit-button{
 margin-bottom: 5%;
 }
+
+.qr-code-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: saturate(180%) blur(20px);
+  --webkit-backdrop-filter: saturate(180%) blur(20px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-code-wrapper {
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.qr-code-wrapper h5 {
+  margin-top: 30px;
+  margin-bottom: 0;
+}
+
+.access-code {
+  font-size: 24px;
+  align-items: center;
+  font-weight: bold;
+  margin-top: 5px !important;
+  background-color: var(--ion-color-primary);
+  width: fit-content;
+  padding: 10px 20px;
+  border-radius: 50px;
+}
+

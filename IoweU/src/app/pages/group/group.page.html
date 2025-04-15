@@ -15,6 +15,11 @@
           <span class="member-name">{{ user }}</span>
         </div>
         <ion-icon
+          [src]="'assets/icon/ionicons/qr-code-outline.svg'"
+          (click)="generateQRCode()">
+        </ion-icon>
+
+        <ion-icon
           class="edit-button"
           [src]="iosIcons ? 'assets/icon/ionicons/ios-create.svg' : 'assets/icon/ionicons/md-create.svg'"
           [routerLink]="['/edit-group', groupId]"
@@ -25,6 +30,14 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <div *ngIf="showQRCode" class="qr-code-overlay" (click)="generateQRCode()">
+    <div class="qr-code-wrapper" (click)="$event.stopPropagation()">
+      <h5>Scannen um Gruppe beizutreten.</h5>
+      <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>
+      <h5>Code zum Beitreten:</h5>
+      <h5 class="access-code">{{ accessCode }}</h5>
+    </div>
+  </div>
   <div class="page-container">
     <div class="image-upload">
       <ng-container *ngIf="currentGroup?.groupimage; else placeholder">
@@ -89,3 +102,5 @@
     </ion-card>
   </div>
 </ion-content>
+
+

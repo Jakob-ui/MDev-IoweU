@@ -107,6 +107,9 @@ export class CreateExpensePage {
   isFormValid: boolean = true;
   error: string = '';
 
+  showAddProductButton: { [key: string]: boolean } = {};
+  showProductInputFields: { [key: string]: boolean } = {};
+
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
     description: '',
@@ -635,6 +638,21 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
+
+
+
+  toggleAddProductButton(uid: string) {
+    this.showAddProductButton[uid] = !this.showAddProductButton[uid];
+    // Optional: Reset the input field visibility
+    if (!this.showAddProductButton[uid]) {
+      this.showProductInputFields[uid] = false;
+    }
+  }
+
+  toggleProductInputFields(uid: string) {
+    this.showProductInputFields[uid] = !this.showProductInputFields[uid];
+  }
+
 
   cancel() {
     this.navCtrl.back();

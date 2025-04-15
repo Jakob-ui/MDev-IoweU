@@ -20,7 +20,9 @@
         type="text"
         placeholder="Gruppenname"
         [(ngModel)]="groupname"
+        maxlength="20"
       ></ion-input>
+      <ion-note slot="end">{{ groupname?.length || 0 }}/20</ion-note>
     </ion-item>
 
     <!-- <ion-item class="input-item">

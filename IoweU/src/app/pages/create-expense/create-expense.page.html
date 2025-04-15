@@ -326,8 +326,7 @@
               </li>
             </ul>
           </div>
-
-          <div class="top-container">
+          <div class="product-input">
             <ion-input
               [(ngModel)]="productInputs[groupMember.uid].input.quantity"
               placeholder="Menge"
@@ -339,8 +338,6 @@
               placeholder="Einheit"
             >
             </ion-input>
-          </div>
-          <div class="bottom-container">
             <ion-input
               [(ngModel)]="productInputs[groupMember.uid].input.productname"
               placeholder="Produktname"
@@ -353,10 +350,12 @@
               type="number"
             >
             </ion-input>
+            <ion-icon
+              class="edit-button"
+              (click)="addProduct(groupMember.uid)"
+              [src]="productInputs ? 'assets/icon/ionicons/ios-add.svg' : 'assets/icon/ionicons/ios-add.svg'">
+            </ion-icon>
           </div>
-          <ion-button class="main-button" (click)="addProduct(groupMember.uid)">
-            Produkt hinzufügen
-          </ion-button>
         </div>
       </div>
     </div>
