@@ -15,16 +15,9 @@ import {
 } from 'ionicons/icons';
 import {
   IonContent,
-  IonItem,
-  IonInput,
-  IonSelect,
-  IonSelectOption,
   IonButton,
-  IonDatetime,
   IonIcon,
   IonBadge,
-  IonLabel,
-  IonList,
   IonHeader,
   IonToolbar,
 } from '@ionic/angular/standalone';
@@ -57,15 +50,8 @@ addIcons({
   styleUrls: ['./expense-details.page.scss'],
   standalone: true,
   imports: [
-    IonList,
-    IonLabel,
     IonContent,
-    IonItem,
-    IonInput,
-    IonSelect,
-    IonSelectOption,
     IonButton,
-    IonDatetime,
     IonIcon,
     IonHeader,
     IonToolbar,
@@ -115,7 +101,6 @@ export class ExpenseDetailsPage {
   expenseMemberPaidByName: string = '';
   expenseMemberPaidByUid: string = '';
 
-
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
   products: Products[] = [];
@@ -148,7 +133,8 @@ export class ExpenseDetailsPage {
       this.displayName = this.authService.currentUser.username;
 
       this.groupId = this.activeRoute.snapshot.paramMap.get('groupId') || '';
-      this.expenseId = this.activeRoute.snapshot.paramMap.get('expenseId') || '';
+      this.expenseId =
+        this.activeRoute.snapshot.paramMap.get('expenseId') || '';
 
       if (!this.groupId || !this.expenseId) {
         console.error('Kein groupId oder expenseId in der URL');
@@ -164,35 +150,43 @@ export class ExpenseDetailsPage {
       this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
       this.groupMembers = currentGroup.members || [];
 
-      this.memberUsernames = this.groupMembers.map(m => m.username || '');
-      this.memberIds = this.groupMembers.map(m => m.memberId || '');
-      this.memberColors = this.groupMembers.map(m => m.color || '');
-      this.memberRoles = this.groupMembers.map(m => m.role || '');
-      this.memberUids = this.groupMembers.map(m => m.uid || '');
+      this.memberUsernames = this.groupMembers.map((m) => m.username || '');
+      this.memberIds = this.groupMembers.map((m) => m.memberId || '');
+      this.memberColors = this.groupMembers.map((m) => m.color || '');
+      this.memberRoles = this.groupMembers.map((m) => m.role || '');
+      this.memberUids = this.groupMembers.map((m) => m.uid || '');
 
-      await this.expenseService.getExpenseById(this.groupId, this.expenseId, (fetchedExpense) => {
-        if (fetchedExpense) {
-          this.expense = fetchedExpense;  // Setze die komplette Expense-Daten
+      await this.expenseService.getExpenseById(
+        this.groupId,
+        this.expenseId,
+        (fetchedExpense) => {
+          if (fetchedExpense) {
+            this.expense = fetchedExpense; // Setze die komplette Expense-Daten
 
-          // Extrahiere die Werte aus der Expense und speichere sie in separaten Variablen
-          this.expenseDescription = this.expense.description || '';  // Beschreibung der Ausgabe
-          this.expenseTotalAmount = this.expense.totalAmount || 0;  // Gesamtbetrag
-          this.expensePaidBy = this.expense.paidBy || '';  // Wer hat gezahlt?
-          this.expenseDate = this.expense.date || '';  // Datum der Ausgabe
-          this.expenseMember = this.expense.expenseMember || [];  // Mitglieder der Ausgabe
-          this.expenseMemberIds = this.expenseMember.map(m => m.memberId || '');  // IDs der Mitglieder
-          this.expenseMemberSplitType = this.expense.splitType || '';  // Art der Aufteilung
-          this.expenseMemberSplitBy = this.expense.splitBy || '';  // Wer hat die Ausgabe geteilt?
-          this.expenseMemberPaidBy = this.expense.paidBy || '';  // Wer hat die Ausgabe bezahlt?
+            // Extrahiere die Werte aus der Expense und speichere sie in separaten Variablen
+            this.expenseDescription = this.expense.description || ''; // Beschreibung der Ausgabe
+            this.expenseTotalAmount = this.expense.totalAmount || 0; // Gesamtbetrag
+            this.expensePaidBy = this.expense.paidBy || ''; // Wer hat gezahlt?
+            this.expenseDate = this.expense.date || ''; // Datum der Ausgabe
+            this.expenseMember = this.expense.expenseMember || []; // Mitglieder der Ausgabe
+            this.expenseMemberIds = this.expenseMember.map(
+              (m) => m.memberId || ''
+            ); // IDs der Mitglieder
+            this.expenseMemberSplitType = this.expense.splitType || ''; // Art der Aufteilung
+            this.expenseMemberSplitBy = this.expense.splitBy || ''; // Wer hat die Ausgabe geteilt?
+            this.expenseMemberPaidBy = this.expense.paidBy || ''; // Wer hat die Ausgabe bezahlt?
 
-          const currentMember = this.expenseMember.find(m => m.memberId === this.uid);
-          this.expenseAmountToPay = currentMember?.amountToPay || 0;
+            const currentMember = this.expenseMember.find(
+              (m) => m.memberId === this.uid
+            );
+            this.expenseAmountToPay = currentMember?.amountToPay || 0;
 
-          console.log('Geladene Expense:', this.expense);
-        } else {
-          console.error('Expense nicht gefunden');
+            console.log('Geladene Expense:', this.expense);
+          } else {
+            console.error('Expense nicht gefunden');
+          }
         }
-      });
+      );
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -221,7 +215,9 @@ export class ExpenseDetailsPage {
     }
 
     // Find the member in the expenseMember array
-    const member = this.expense.expenseMember.find((m) => m.memberId === memberId);
+    const member = this.expense.expenseMember.find(
+      (m) => m.memberId === memberId
+    );
 
     // If the member is found and they have products, return the products array, otherwise return an empty array
     return member?.products ?? [];
@@ -245,7 +241,6 @@ export class ExpenseDetailsPage {
     // Gib den Betrag zurück, den der Benutzer zu zahlen hat, oder 0, wenn nicht gefunden
     return userEntry?.amountToPay ?? 0;
   }
-
 
   getAmountClass(expense?: Partial<Expenses>): string {
     // Wenn `expense` nicht vorhanden oder `paidBy` nicht gesetzt ist, gebe 'neutral' zurück
@@ -273,7 +268,6 @@ export class ExpenseDetailsPage {
     return 'neutral';
   }
 
-
   async logout() {
     try {
       await this.authService.logout();
@@ -292,11 +286,7 @@ export class ExpenseDetailsPage {
   }
 
   getPaidByName(paidByUid: string): string {
-    const member = this.groupMembers.find((member) => member.uid === paidByUid);  // Verändere hier memberId zu uid
-    return member ? member.username : 'Unbekannt';  // Rückgabe des Namens oder 'Unbekannt' falls kein Mitglied gefunden wird
+    const member = this.groupMembers.find((member) => member.uid === paidByUid); // Verändere hier memberId zu uid
+    return member ? member.username : 'Unbekannt'; // Rückgabe des Namens oder 'Unbekannt' falls kein Mitglied gefunden wird
   }
-
-
-
-
 }
