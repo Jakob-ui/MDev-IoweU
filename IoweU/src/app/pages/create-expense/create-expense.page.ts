@@ -104,7 +104,7 @@ export class CreateExpensePage {
   dropdownOpen = false;
   selectedMember: any = null;
   selectedCurrency: string = 'EUR'; // Standardwährung
-  isFormValid: boolean = false;
+  isFormValid: boolean = true;
   error: string = '';
 
   expense: Expenses = {
@@ -421,6 +421,7 @@ export class CreateExpensePage {
       case 'anteile':
         this.expense.splitBy = 'alle';
         this.splitAmountEqually();
+        this.isFormValid = true;
         break;
       case 'prozent':
         this.expense.splitBy = 'frei';
@@ -429,6 +430,7 @@ export class CreateExpensePage {
       case 'produkte':
         this.expense.splitBy = 'frei';
         this.updateAmountToPayForProducts();
+        this.isFormValid = true;
         break;
     }
   }
@@ -447,6 +449,7 @@ export class CreateExpensePage {
   calculateSplitByPercentage() {
     const totalAmount = this.expense.totalAmount;
     let totalPercentage = 0;
+
     // Berechne die Summe der eingegebenen Prozentwerte
     this.groupMembers.forEach((member) => {
       const percentage = this.splitValue[member.uid] || 0;
@@ -454,34 +457,22 @@ export class CreateExpensePage {
     });
 
     // Überprüfe, ob die Summe der Prozentwerte 100% ergibt
-    if (totalPercentage > 100) {
-      this.error = 'Die Summe der Prozentwerte darf 100% nicht überschreiten.';
-      return;
-    }
-    if (totalPercentage < 100) {
-      this.error = 'Die Summe der Prozentwerte mss 100% sein';
-      return;
-    }
-    if (totalPercentage === 100) {
-      this.error = '';
-      this.isFormValid = true;
+    if (totalPercentage !== 100) {
+      this.error = 'Die Summe der Prozentwerte muss genau 100% betragen.';
+      this.isFormValid = false; // Nur im Prozentmodus ungültig
+    } else {
+      this.error = ''; // Fehler zurücksetzen
+      this.isFormValid = true; // Prozentwerte sind korrekt
     }
 
     // Verteile den Betrag basierend auf den Prozentwerten
     this.groupMembers.forEach((member) => {
       const percentage = this.splitValue[member.uid] || 0;
-
-      // Wenn kein Prozentwert eingegeben wurde, zahlt das Mitglied nichts
-      if (percentage === 0) {
-        this.amountToPay[member.uid] = 0;
-      } else {
-        // Berechne den Betrag für das Mitglied
-        const amount = (totalAmount * percentage) / 100;
-        this.amountToPay[member.uid] = parseFloat(amount.toFixed(2)); // Runde auf 2 Dezimalstellen
-      }
+      const amount = (totalAmount * percentage) / 100;
+      this.amountToPay[member.uid] = parseFloat(amount.toFixed(2)); // Runde auf 2 Dezimalstellen
     });
 
-    console.log('Aufteilung nach Prozent:', this.amountToPay);
+    console.log('Berechnete Beträge:', this.amountToPay);
   }
 
   updateAmountToPayForProducts() {

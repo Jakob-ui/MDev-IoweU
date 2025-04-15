@@ -3,12 +3,9 @@ import { CommonModule } from '@angular/common';
 import {
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
   IonItem,
   IonList,
-  IonBadge,
-  IonCard,
   IonButton,
   IonIcon,
 } from '@ionic/angular/standalone';
@@ -35,8 +32,6 @@ import { ExpenseMember } from '../../services/objects/ExpenseMember';
     IonContent,
     IonItem,
     IonList,
-    IonBadge,
-    IonCard,
     RouterModule,
     IonButton,
     IonIcon,
@@ -88,10 +83,7 @@ export class RepeatingExpensesPage implements OnInit {
         if (groupId) {
           const currentGroup = await this.groupService.getGroupById(groupId);
 
-
           if (currentGroup) {
-
-
             this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = currentGroup.groupId || '';
 
@@ -191,7 +183,6 @@ export class RepeatingExpensesPage implements OnInit {
       (expense) => expense.repeat && expense.repeat.toLowerCase() !== 'nein'
     );
   }
-
 
   goToExpenseDetails(expenseId: string) {
     this.loadingService.show();

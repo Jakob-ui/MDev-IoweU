@@ -364,10 +364,7 @@
     <!-- Buttons -->
     <div class="button-row">
       <ion-button class="main-button" (click)="cancel()">Abbrechen</ion-button>
-      <ion-button
-        class="main-button"
-        (click)="saveExpense()"
-        [disabled]="!isFormValid"
+      <ion-button class="main-button" (click)="saveExpense()" [disabled]="false"
         >Speichern</ion-button
       >
     </div>
