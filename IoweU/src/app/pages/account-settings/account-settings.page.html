@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" class="header">
   <ion-toolbar>
     <div class="left-container" slot="start">
       <ion-icon
@@ -6,12 +6,10 @@
         class="back-button"
         (click)="goBack()"
       ></ion-icon>
-      <div class="divider"></div>
-      <div class="pagename">Accountsettings</div>
     </div>
 
     <div class="right-container" slot="end">
-      <div class="user-info">
+      <div class="user-info" [routerLink]="'/account-settings'">
         <div class="profile-placeholder"></div>
         <span class="member-name">{{ name }}</span>
       </div>
@@ -23,6 +21,7 @@
     </div>
   </ion-toolbar>
 </ion-header>
+
 
 <ion-content [fullscreen]="true">
   <div id="container" class="container">
@@ -52,7 +51,7 @@
       <ion-icon
         class="brush-icon"
         *ngIf="!userEditing"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-brush.svg' : 'assets/icon/ionicons/md-brush.svg'"
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-create.svg' : 'assets/icon/ionicons/md-create.svg'"
         (click)="edit('Schreibe deinen neuen Usernamen')"
       ></ion-icon>
     </ion-item>

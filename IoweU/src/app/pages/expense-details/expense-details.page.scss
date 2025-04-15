@@ -18,8 +18,8 @@
 
 .detailedprice {
   display: inline-block;
-  margin-left: 10px; /* Abstand zwischen den Elementen */
-  flex-grow: 0; /* Verhindert, dass die detailedprice-Box wächst */
+  margin-bottom: 20px;
+  flex-grow: 0;
 }
 
 .payed-by{
@@ -98,4 +98,7 @@
   padding: 5px 10px;
   font-weight: 200;
 }
+
+
+
 

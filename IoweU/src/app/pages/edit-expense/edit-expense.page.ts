@@ -41,6 +41,7 @@ import {
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
 import { Members } from 'src/app/services/objects/Members';
+import { AlertController } from '@ionic/angular';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
@@ -80,6 +81,7 @@ export class EditExpensePage {
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
   private updateExpensesCallback: (() => void) | null = null;
+  private alertController = inject(AlertController);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -88,6 +90,7 @@ export class EditExpensePage {
   user: string | null = '';
   displayName: string | null = null;
   groupId = this.route.snapshot.paramMap.get('groupId') || '';
+  expenseId = this.activeRoute.snapshot.paramMap.get('expenseId') || '';
 
   groupMembers: any[] = [];
 
@@ -588,6 +591,44 @@ export class EditExpensePage {
     // Wenn es sich nicht um ein Objekt handelt, vergleiche die Werte direkt
     return obj1 === obj2;
   }
+
+
+  async deleteExpense() {
+    try {
+      await this.expenseService.deleteExpense(this.groupId, this.expenseId);
+      this.router.navigate(['/expense', this.groupId]);
+    } catch (e) {
+      console.error('Fehler beim Löschen der Ausgabe:', e);
+      alert('Beim Löschen ist ein Fehler aufgetreten.');
+    }
+  }
+
+  async confirmDelete() {
+    const alert = await this.alertController.create({
+      header: 'Ausgabe endgültig löschen!',
+      message: 'Möchtest du diese Ausgabe wirklich löschen?',
+      buttons: [
+        {
+          text: 'Abbrechen',
+          role: 'cancel',
+          handler: () => {
+            console.log('Löschung abgebrochen');
+          },
+        },
+        {
+          text: 'Löschen',
+          role: 'destructive',
+          handler: () => {
+            this.deleteExpense();
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+
 
 
   cancel() {

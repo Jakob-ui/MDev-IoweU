@@ -245,30 +245,30 @@ export class ExpenseDetailsPage {
     const isPaidByCurrentUser = expense.paidBy === this.uid;
     const member = expense.expenseMember.find((m) => m.memberId === this.uid);
 
-    console.log('Aktueller Benutzer:', this.uid);
-    console.log('Mitglieder der Ausgabe:', expense.expenseMember);
-    console.log('Member-Daten für aktuellen Benutzer:', member);
-    console.log('Betrag zu zahlen:', member?.amountToPay);
+    //console.log('Aktueller Benutzer:', this.uid);
+    //console.log('Mitglieder der Ausgabe:', expense.expenseMember);
+    //console.log('Member-Daten für aktuellen Benutzer:', member);
+    //console.log('Betrag zu zahlen:', member?.amountToPay);
 
     // Wenn der Benutzer für andere bezahlt hat
     if (isPaidByCurrentUser) {
       // Wenn der Benutzer nichts mehr zu zahlen hat oder sogar für andere bezahlt
       if (member && member.amountToPay > 0) {
-        console.log(
+        /*console.log(
           'Der Benutzer hat für andere bezahlt, aber keinen Betrag mehr zu zahlen'
-        );
+        );*/
         return 'positive'; // Der Benutzer hat für andere bezahlt, aber keinen eigenen Betrag mehr
       }
     }
 
     // Wenn der Benutzer einen positiven Betrag zu zahlen hat
     if (member && member.amountToPay > 0) {
-      console.log('Der Benutzer hat einen positiven Betrag zu zahlen');
+      //console.log('Der Benutzer hat einen positiven Betrag zu zahlen');
       return 'negative'; // 👈 rot, weil der Benutzer einen Betrag zu zahlen hat
     }
 
     // Wenn der Betrag für den aktuellen Benutzer nicht relevant oder neutral ist
-    console.log('Der Betrag ist für den Benutzer nicht relevant oder neutral');
+    //console.log('Der Betrag ist für den Benutzer nicht relevant oder neutral');
     return 'neutral'; // fallback (grau)
   }
 
@@ -357,14 +357,4 @@ export class ExpenseDetailsPage {
     return memberIndex >= 0 ? this.memberUsernames[memberIndex] : '';
   }
 
-  //Mein Shit
-  async delete() {
-    try {
-      await this.expenseService.deleteExpense(this.groupId, this.expenseId);
-      this.router.navigate(['/expense', this.groupId]);
-      alert(`Epense wurde gelöscht: ${this.expenseDescription}`);
-    } catch (e) {
-      console.log('fehler beim löschen', e);
-    }
-  }
 }

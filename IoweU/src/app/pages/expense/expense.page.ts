@@ -81,15 +81,16 @@ export class ExpensePage implements OnInit, OnDestroy {
         this.user = this.authService.currentUser.username;
         this.displayName = this.authService.currentUser.username;
 
-        this.groupId = this.route.snapshot.paramMap.get('groupId');
+        const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
+        console.log('Benutzer GroupId:', groupId);
 
-        const currentGroup = await this.groupService.getGroup();
-        if (currentGroup?.groupId !== this.groupId && this.groupId) {
-          const currentGroup = await this.groupService.getGroupById(
-            this.groupId
-          );
+        if (groupId) {
+        const currentGroup = await this.groupService.getGroupById(groupId);
+
 
           if (currentGroup) {
+
+
             this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = currentGroup.groupId || '';
 

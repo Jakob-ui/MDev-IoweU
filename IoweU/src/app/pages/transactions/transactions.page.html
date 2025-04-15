@@ -1,10 +1,11 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" class="header">
   <ion-toolbar>
     <div class="left-container" slot="start">
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
-                class="back-button" (click)="goBack()"></ion-icon>
-      <div class="divider"></div>
-      <div class="pagename">Finanzübersicht</div>
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+        class="back-button"
+        (click)="goBack()"
+      ></ion-icon>
     </div>
 
     <div class="right-container" slot="end">
@@ -12,11 +13,10 @@
         <div class="profile-placeholder"></div>
         <span class="member-name">{{ user }}</span>
       </div>
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
-                (click)="logout()" class="logout-button"></ion-icon>
     </div>
   </ion-toolbar>
 </ion-header>
+
 
 <ion-content [fullscreen]="true">
   <div class="page-container">

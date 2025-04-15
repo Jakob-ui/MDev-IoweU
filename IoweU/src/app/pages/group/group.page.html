@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" class="header">
   <ion-toolbar>
     <div class="left-container" slot="start">
       <ion-icon
@@ -6,8 +6,6 @@
         class="back-button"
         (click)="goBack()"
       ></ion-icon>
-      <div class="divider"></div>
-      <div class="pagename">Gruppe</div>
     </div>
 
     <div class="right-container" slot="end">
@@ -16,9 +14,9 @@
         <span class="member-name">{{ user }}</span>
       </div>
       <ion-icon
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
-        (click)="logout()"
-        class="logout-button"
+        class="edit-button"
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-create.svg' : 'assets/icon/ionicons/md-create.svg'"
+        [routerLink]="['/edit-group', groupId]"
       ></ion-icon>
     </div>
   </ion-toolbar>
@@ -26,10 +24,6 @@
 
 <ion-content [fullscreen]="true">
   <div class="page-container">
-    <ion-button class="edit-button" [routerLink]="['/edit-group', groupId]">
-      bearbeiten
-    </ion-button>
-
     <div class="image-upload">
       <ng-container *ngIf="currentGroup?.groupimage; else placeholder">
         <img
