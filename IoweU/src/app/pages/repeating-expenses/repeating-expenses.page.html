@@ -28,9 +28,9 @@
       <ion-item
         class="info-item"
         *ngFor="let expense of repeatingExpenses"
-        (click)="goToExpenseDetails(expense.id)">
+        (click)="goToExpenseDetails(expense.expenseId)">
         <div class="profile-placeholder"></div>
-        <h5>{{ expense.expense }}</h5>
+        <h5>{{ expense.description }}</h5>
         <div class="expense-item">
           <div class="Ausgabepreis">
             <span class="wiederholung">
@@ -44,8 +44,14 @@
       </ion-item>
     </ion-list>
 
-    <ion-button class="main-button" expand="block" [routerLink]="'/create-expense'">
-      Neue Ausgabe hinzufügen +
-    </ion-button>
+    <div class="button-container">
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="goToCreateExpense()"
+      >
+        Neue Ausgabe hinzufügen +
+      </ion-button>
+    </div>
   </div>
 </ion-content>

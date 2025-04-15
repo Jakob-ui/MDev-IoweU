@@ -16,13 +16,12 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
-import { GroupService } from '../../services/group.service'; // Importiere den GroupService
+import { GroupService } from '../../services/group.service';
 import { ActivatedRoute } from '@angular/router';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Groups } from 'src/app/services/objects/Groups';
-import { ExpenseMember } from '../../services/objects/ExpenseMember'; // Stelle sicher, dass diese importiert ist
-
+import { ExpenseMember } from '../../services/objects/ExpenseMember';
 @Component({
   selector: 'app-expense',
   templateUrl: './expense.page.html',
