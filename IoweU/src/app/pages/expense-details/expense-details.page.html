@@ -27,29 +27,26 @@
 <ion-content [fullscreen]="true">
   <div class="page-container" *ngIf="expense">
     <div class="payed-by">
-      <span>bezahlt von</span>
-      <div class="member-info"
-           *ngFor="let groupMember of groupMembers">
+      <span class="payed-by-lbl">bezahlt von</span>
         <div class="member-info"
              [ngStyle]="{
-                'background-color': 'var(--member-color-background-' + expense.paidBy + ')',
-                'border-color': 'var(--member-color-' + expense.paidBy + ')'
+                'background-color': 'var(--member-color-background-' + expense[0].paidBy + ')',
+                'border-color': 'var(--member-color-' + expense[0].paidBy + ')'
              }">
           <div
             class="profile-placeholder"
             [ngStyle]="{
-              'background-color': 'var(--member-color-' + expense.paidBy + ')',
-              'border-color': 'var(--member-color-' + expense.paidBy + ')'
+              'background-color': 'var(--member-color-' + expense[0].paidBy + ')',
+              'border-color': 'var(--member-color-' + expense[0].paidBy + ')'
             }">
           </div>
-          <span class="member-name">{{ groupMember.username }}</span>
+          <span class="member-name">{{ expensePaidByUsername }}</span>
         </div>
-      </div>
     </div>
 
-    <h2>{{ expense.description }}</h2>
+    <h2>{{ expense[0].description }}</h2>
     <ion-badge class="detailedprice">
-      {{ expense.totalAmount | currency: 'EUR' }}
+      {{ expense[0].totalAmount | currency: 'EUR' }}
     </ion-badge>
 
     <ion-button class="edit-button" expand="block">Rechnung ansehen</ion-button>
@@ -57,69 +54,72 @@
 
     <div class="separator"></div>
 
-    <div
-      class="detailedprice-overview"
-      *ngFor="let groupMember of groupMembers"
-    >
-      <div class="detailedprice-list">
-        <div class="left-container">
-          <div class="member-info"
-               [ngStyle]="{
-                'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
-                'border-color': 'var(--member-color-' + groupMember.uid + ')'
-             }">
+    <ng-container *ngIf="expense?.length && expense[0].expenseMember?.length && groupMembers?.length">
+      <div
+        class="detailedprice-overview"
+        *ngFor="let groupMember of groupMembers"
+      >
+        <div class="detailedprice-list">
+          <div class="left-container">
             <div
-              class="profile-placeholder"
+              class="member-info"
               [ngStyle]="{
+            'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
+            'border-color': 'var(--member-color-' + groupMember.uid + ')'
+          }"
+            >
+              <div
+                class="profile-placeholder"
+                [ngStyle]="{
               'background-color': 'var(--member-color-' + groupMember.uid + ')',
               'border-color': 'var(--member-color-' + groupMember.uid + ')'
-            }">
+            }"
+              ></div>
+              <span class="member-name">{{ groupMember.username }}</span>
             </div>
-            <span class="member-name">{{ getPaidByName(groupMember.username ?? '') }}</span>
-          </div>
-          <div class="toggle-arrow" (click)="toggleProducts(groupMember.uid)">
-            <ion-icon
-              [src]="isProductsVisibleForMember(groupMember.uid)
+            <div class="toggle-arrow" *ngIf="hasProducts(groupMember.uid)" (click)="toggleProducts(groupMember.uid)">
+              <ion-icon
+                [src]="isProductsVisibleForMember(groupMember.uid)
                 ? 'assets/icon/ionicons/ios-arrow-down.svg'
-                : 'assets/icon/ionicons/ios-arrow-up.svg'"
-            >
-            </ion-icon>
-          </div>
-        </div>
-        <ion-badge
-          class="detailedprice"
-          [ngClass]="{
-          'negative': getAmountClass(expense),
-          'positive': getAmountClass(expense),
-        }"
-        >
-          {{ groupMember.amountToPay | currency: 'EUR' }}
-        </ion-badge>
-      </div>
-
-      <!-- Produktliste, die bei Klick angezeigt wird -->
-      <div
-        *ngIf="isProductsVisibleForMember(groupMember.uid)"
-        class="product-list"
-      >
-        <ul>
-          <li
-            class="products"
-            *ngFor="let product of getPurchasedProductsForMember(groupMember.uid)"
-          >
-            <div class="left-container">
-              <span class="product-quantity"
-              >{{ product.quantity }} {{ product.unit }}</span
-              >
-              <span class="product">{{ product.productname }}</span>
+                : 'assets/icon/ionicons/ios-arrow-up.svg'">
+              </ion-icon>
             </div>
-            <ion-badge class="product-price">
-              {{ product.price | currency: 'EUR' }}
-            </ion-badge>
-          </li>
-        </ul>
+
+
+          </div>
+          <ion-badge
+            class="Preis"
+            [ngClass]="getAmountClass(expense[0])"
+          >
+          {{ getAmountToPayForMember(expense[0], groupMember.uid) | currency: 'EUR' }}
+          </ion-badge>
+
+        </div>
+
+        <!-- Produktliste, die bei Klick angezeigt wird -->
+        <div
+          *ngIf="isProductsVisibleForMember(groupMember.uid)"
+          class="product-list"
+        >
+          <ul>
+            <li
+              class="products"
+              *ngFor="let product of getPurchasedProductsForMember(groupMember.uid)"
+            >
+              <div class="left-container">
+                <span class="product-quantity"
+                >{{ product.quantity }} {{ product.unit }}</span
+                >
+                <span class="product">{{ product.productname }}</span>
+              </div>
+              <ion-badge class="product-price">
+                {{ product.price | currency: 'EUR' }}
+              </ion-badge>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
+    </ng-container>
 
     <div class="space"></div>
     <ion-button class="main-button" expand="block"

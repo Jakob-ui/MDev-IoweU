@@ -104,6 +104,7 @@ export class ExpenseDetailsPage {
   expenseDescription: string = '';
   expenseTotalAmount: number = 0;
   expensePaidBy: string = '';
+  expensePaidByUsername: string = '';
   expenseDate: string = '';
   expenseMember: ExpenseMember[] = [];
   expenseMemberIds: string[] = [];
@@ -114,7 +115,6 @@ export class ExpenseDetailsPage {
   expenseMemberPaidBy: string = '';
   expenseMemberPaidByName: string = '';
   expenseMemberPaidByUid: string = '';
-
 
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
@@ -133,7 +133,38 @@ export class ExpenseDetailsPage {
     { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
 
-  expense: Partial<Expenses> = { expenseMember: [] };
+  expense: Expenses[] = [
+    {
+      expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
+      description: '',
+      totalAmount: 0,
+      paidBy: '',
+      date: new Date().toISOString().split('T')[0],
+      currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
+      category: '', // optional
+      invoice: '', // optional
+      repeat: '', // Wiederholung, falls benötigt
+      splitType: 'prozent', // Kann 'prozent', 'anteile' oder 'produkte' sein
+      splitBy: 'alle', // Kann 'alle' oder 'frei' sein
+      expenseMember: [
+        {
+          memberId: '', // Leerer String für den Member
+          amountToPay: 0, // Betrag, der zu zahlen ist
+          split: 0, // Optional, je nach Bedarf
+          products: [
+            {
+              productId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
+              memberId: '', // Leerer String für den Member
+              productname: '', // Leerer String für den Produktnamen
+              quantity: 1, // Standardmenge 1
+              unit: '', // Einheit, z.B. "kg", "Stück"
+              price: 0, // Preis des Produkts
+            },
+          ],
+        },
+      ],
+    },
+  ];
 
   async ngOnInit() {
     this.loadingService.show();
@@ -172,21 +203,24 @@ export class ExpenseDetailsPage {
 
       await this.expenseService.getExpenseById(this.groupId, this.expenseId, (fetchedExpense) => {
         if (fetchedExpense) {
-          this.expense = fetchedExpense;  // Setze die komplette Expense-Daten
+          this.expense = [fetchedExpense];  // Setze die komplette Expense-Daten als Array
 
           // Extrahiere die Werte aus der Expense und speichere sie in separaten Variablen
-          this.expenseDescription = this.expense.description || '';  // Beschreibung der Ausgabe
-          this.expenseTotalAmount = this.expense.totalAmount || 0;  // Gesamtbetrag
-          this.expensePaidBy = this.expense.paidBy || '';  // Wer hat gezahlt?
-          this.expenseDate = this.expense.date || '';  // Datum der Ausgabe
-          this.expenseMember = this.expense.expenseMember || [];  // Mitglieder der Ausgabe
+          const expenseData = this.expense[0];
+          this.expenseDescription = expenseData.description || '';  // Beschreibung der Ausgabe
+          this.expenseTotalAmount = expenseData.totalAmount || 0;  // Gesamtbetrag
+          this.expensePaidBy = expenseData.paidBy || '';  // Wer hat gezahlt?
+          this.expenseDate = expenseData.date || '';  // Datum der Ausgabe
+          this.expenseMember = expenseData.expenseMember || [];  // Mitglieder der Ausgabe
           this.expenseMemberIds = this.expenseMember.map(m => m.memberId || '');  // IDs der Mitglieder
-          this.expenseMemberSplitType = this.expense.splitType || '';  // Art der Aufteilung
-          this.expenseMemberSplitBy = this.expense.splitBy || '';  // Wer hat die Ausgabe geteilt?
-          this.expenseMemberPaidBy = this.expense.paidBy || '';  // Wer hat die Ausgabe bezahlt?
+          this.expenseMemberSplitType = expenseData.splitType || '';  // Art der Aufteilung
+          this.expenseMemberSplitBy = expenseData.splitBy || '';  // Wer hat die Ausgabe geteilt?
+          this.expenseMemberPaidBy = expenseData.paidBy || '';  // Wer hat die Ausgabe bezahlt?
 
           const currentMember = this.expenseMember.find(m => m.memberId === this.uid);
           this.expenseAmountToPay = currentMember?.amountToPay || 0;
+
+          this.expensePaidByUsername = this.getPaidByName(this.expensePaidBy);
 
           console.log('Geladene Expense:', this.expense);
         } else {
@@ -202,76 +236,102 @@ export class ExpenseDetailsPage {
     }
   }
 
-  updateProductVisibility() {
-    if (this.expense) {
-      this.expense.expenseMember?.forEach((member) => {
-        this.visibleProducts[member.memberId] = false;
-      });
-    }
+
+  getAmountToPayForMember(expense: Partial<Expenses>, memberId: string): number {
+    if (!expense || !expense.expenseMember) return 0;
+    const memberEntry = expense.expenseMember.find(m => m.memberId === memberId);
+    return memberEntry?.amountToPay ?? 0;
   }
+
+
+  getAmountClass(expense: Expenses): string {
+    const amount = this.getUserAmount(expense);
+    const isPaidByCurrentUser = expense.paidBy === this.uid;
+    const member = expense.expenseMember.find(m => m.memberId === this.uid);
+
+    console.log('Aktueller Benutzer:', this.uid);
+    console.log('Mitglieder der Ausgabe:', expense.expenseMember);
+    console.log('Member-Daten für aktuellen Benutzer:', member);
+    console.log('Betrag zu zahlen:', member?.amountToPay);
+
+    // Wenn der Benutzer für andere bezahlt hat
+    if (isPaidByCurrentUser) {
+      // Wenn der Benutzer nichts mehr zu zahlen hat oder sogar für andere bezahlt
+      if (member && member.amountToPay > 0) {
+        console.log('Der Benutzer hat für andere bezahlt, aber keinen Betrag mehr zu zahlen');
+        return 'positive'; // Der Benutzer hat für andere bezahlt, aber keinen eigenen Betrag mehr
+      }
+    }
+
+    // Wenn der Benutzer einen positiven Betrag zu zahlen hat
+    if (member && member.amountToPay > 0) {
+      console.log('Der Benutzer hat einen positiven Betrag zu zahlen');
+      return 'negative'; // 👈 rot, weil der Benutzer einen Betrag zu zahlen hat
+    }
+
+    // Wenn der Betrag für den aktuellen Benutzer nicht relevant oder neutral ist
+    console.log('Der Betrag ist für den Benutzer nicht relevant oder neutral');
+    return 'neutral'; // fallback (grau)
+  }
+
+  hasProducts(groupMemberId: string): boolean {
+    if (!this.expense || this.expense.length === 0) {
+      return false;
+    }
+
+    for (let expense of this.expense) {
+      const groupMember = expense.expenseMember.find(member => member.memberId === groupMemberId);
+
+      if (groupMember && Array.isArray(groupMember.products) && groupMember.products.length > 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+
 
   toggleProducts(memberName: string) {
-    this.visibleProducts[memberName] = !this.visibleProducts[memberName];
+    this.visibleProducts[memberName] = !this.visibleProducts[memberName]; // Toggle die Sichtbarkeit der Produkte
   }
 
+
   getPurchasedProductsForMember(memberId: string): Products[] {
-    // Ensure that this.expense and this.expense.expenseMember are properly defined
-    if (!this.expense || !this.expense.expenseMember) {
-      return []; // Return an empty array if expense or expenseMember is undefined
+    // Ensure that this.expense is properly defined and is not empty
+    if (!this.expense || this.expense.length === 0) {
+      return []; // Return an empty array if no expense is available
+    }
+
+    // Assuming you are dealing with a single expense for the member
+    const expense = this.expense[0]; // Access the first expense, or adjust based on your use case
+
+    // Ensure that expenseMember exists
+    if (!expense.expenseMember) {
+      return []; // Return empty array if expenseMember is not available
     }
 
     // Find the member in the expenseMember array
-    const member = this.expense.expenseMember.find((m) => m.memberId === memberId);
+    const member = expense.expenseMember.find((m) => m.memberId === memberId);
 
     // If the member is found and they have products, return the products array, otherwise return an empty array
     return member?.products ?? [];
   }
 
+
   isProductsVisibleForMember(memberId: string): boolean {
     return this.visibleProducts[memberId] || false;
   }
 
-  getUserAmount(expense: Partial<Expenses>): number {
-    // Überprüfe, ob `expense.expenseMember` existiert und nicht leer ist
-    if (!expense.expenseMember || expense.expenseMember.length === 0) {
-      return 0;
-    }
-
-    // Suche den Eintrag des aktuellen Benutzers
-    const userEntry = expense.expenseMember.find(
+  getUserAmount(expense: Expenses): number {
+    //console.log('Aktueller Benutzer:', this.uid);
+    const userEntry = expense.expenseMember?.find(
       (member) => member.memberId === this.uid
     );
-
-    // Gib den Betrag zurück, den der Benutzer zu zahlen hat, oder 0, wenn nicht gefunden
+    //console.log('UserEntry:', userEntry);
     return userEntry?.amountToPay ?? 0;
   }
 
-
-  getAmountClass(expense?: Partial<Expenses>): string {
-    // Wenn `expense` nicht vorhanden oder `paidBy` nicht gesetzt ist, gebe 'neutral' zurück
-    if (!expense || !expense.paidBy || typeof expense.paidBy !== 'string') {
-      return 'neutral';
-    }
-
-    // Hole den Betrag, den der Benutzer bezahlen muss
-    const amount = this.getUserAmount(expense);
-
-    // Überprüfe, ob der aktuelle Benutzer die Ausgabe bezahlt hat
-    const isPaidByCurrentUser = expense.paidBy === this.uid;
-
-    // Wenn der aktuelle Benutzer die Ausgabe bezahlt hat, gebe 'positive' zurück
-    if (isPaidByCurrentUser) {
-      return 'positive';
-    }
-
-    // Wenn der Betrag negativ ist, gebe 'negative' zurück
-    if (amount < 0) {
-      return 'negative';
-    }
-
-    // Fallback: Gebe 'neutral' zurück, wenn keine der oben genannten Bedingungen zutrifft
-    return 'neutral';
-  }
 
 
   async logout() {
@@ -286,14 +346,20 @@ export class ExpenseDetailsPage {
   goBack() {
     this.navCtrl.back();
   }
-
   editExpense() {
-    this.router.navigate(['/edit-expense', { id: this.expense?.expenseId }]);
+    // Access the first expense in the array
+    const expenseId = this.expense?.[0]?.expenseId; // This accesses the first expense's expenseId
+    if (expenseId) {
+      this.router.navigate(['/edit-expense', this.groupId, expenseId]);
+    } else {
+      console.error('Expense ID not found');
+    }
   }
 
-  getPaidByName(paidByUid: string): string {
-    const member = this.groupMembers.find((member) => member.uid === paidByUid);  // Verändere hier memberId zu uid
-    return member ? member.username : 'Unbekannt';  // Rückgabe des Namens oder 'Unbekannt' falls kein Mitglied gefunden wird
+
+  getPaidByName(uid: string): string {
+    const memberIndex = this.memberUids.indexOf(uid);
+    return memberIndex >= 0 ? this.memberUsernames[memberIndex] : '';
   }
 
 
