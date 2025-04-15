@@ -25,13 +25,10 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-
-
   <div class="page-container">
     <ion-button class="edit-button" [routerLink]="['/edit-group', groupId]">
       bearbeiten
     </ion-button>
-
 
     <div class="image-upload">
       <ng-container *ngIf="currentGroup?.groupimage; else placeholder">
@@ -73,7 +70,7 @@
             <!-- Ausgaben -->
             <div *ngSwitchCase="'Ausgaben'">
               <p>Gesamtausgaben | {{ currentMonth }}</p>
-              <h6>{{ totalCost | currency: 'EUR' }}</h6>
+              <h6>{{ sumTotalExpenses | currency: 'EUR' }}</h6>
             </div>
 
             <!-- Einkaufsliste -->

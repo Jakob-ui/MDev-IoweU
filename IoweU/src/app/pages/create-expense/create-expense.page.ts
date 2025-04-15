@@ -220,7 +220,6 @@ export class CreateExpensePage {
     }
   }
 
-
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
   }
@@ -398,8 +397,6 @@ export class CreateExpensePage {
     }, 0);
   }
 
-
-
   updateTotalAmount() {
     let newTotalAmount = 0;
 
@@ -479,14 +476,15 @@ export class CreateExpensePage {
     const numberOfMembers = this.groupMembers.length;
 
     if (numberOfMembers > 0 && totalAmount > 0) {
-      const amountPerMember = parseFloat((totalAmount / numberOfMembers).toFixed(2));
+      const amountPerMember = parseFloat(
+        (totalAmount / numberOfMembers).toFixed(2)
+      );
 
       this.groupMembers.forEach((member) => {
         this.amountToPay[member.uid] = amountPerMember;
       });
     }
   }
-
 
   validateExpense(): boolean {
     let isValid = true;
@@ -520,7 +518,9 @@ export class CreateExpensePage {
   saveExpense() {
     // Rufe die Validierungsmethode auf
     if (!this.validateExpense()) {
-      console.error('Die Eingabe ist ungültig. Bitte füllen Sie alle Pflichtfelder aus.');
+      console.error(
+        'Die Eingabe ist ungültig. Bitte füllen Sie alle Pflichtfelder aus.'
+      );
       alert('Bitte füllen Sie alle Pflichtfelder aus.');
       return;
     }
@@ -566,7 +566,6 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
-
 
   cancel() {
     this.navCtrl.back();

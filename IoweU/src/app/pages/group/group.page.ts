@@ -133,7 +133,6 @@ export class GroupPage implements OnInit {
       } else {
         console.warn('Gruppe nicht gefunden!');
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (group) {
         this.groupname = group.groupname;
