@@ -166,10 +166,12 @@ export class ExpensePage implements OnInit, OnDestroy {
               );
               this.sumExpenses = total;
               this.countExpenses = count;
-              this.expenseService.updateTotalExpenses(
+              this.expenseService.updateSums(
                 this.groupId || '',
                 this.sumExpenses,
-                this.countExpenses
+                this.countExpenses,
+                'sumTotalExpenses',
+                'countTotalExpenses'
               );
             }
           );
