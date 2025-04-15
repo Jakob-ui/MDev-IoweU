@@ -204,6 +204,13 @@ ion-select {
 .button-row > * {
   flex-grow: 1;
 }
+@media (prefers-color-scheme: dark) {
+  .button-row {
+    background: rgba(43, 43, 43, 0.6);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+}
 
 button {
   flex: 1;
@@ -266,7 +273,7 @@ ion-input::part(native) {
   border-radius: 50px;
 }
 
-.right-container{
+.right-container {
   display: flex;
   align-items: center;
   justify-content: end;
@@ -276,11 +283,11 @@ ion-input::part(native) {
 .Kategorie {
   position: relative; /* Container für das absolute Positionieren des Dropdowns */
 }
-.Kategorie .input-label{
+.Kategorie .input-label {
   margin-left: 0;
 }
 
-.invoice-upload .input-label{
+.invoice-upload .input-label {
   margin-left: 0;
 }
 
@@ -297,7 +304,7 @@ ion-input::part(native) {
   margin-top: -20px;
 }
 
-.custom-dropdown ion-label{
+.custom-dropdown ion-label {
   margin-left: 15px;
 }
 
@@ -305,14 +312,13 @@ ion-input::part(native) {
   border-bottom: 1px solid var(--ion-color-dark);
 }
 
-.custom-dropdown ion-item:hover{
+.custom-dropdown ion-item:hover {
   background-color: var(--ion-color-secondary);
 }
 
 ion-list::part(native) {
   background: var(--ion-color-secondary) !important;
-  padding: 0
-;
+  padding: 0;
 }
 
 ion-item.dropDownFelder::part(native) {
@@ -341,25 +347,22 @@ ion-item.dropDownFelder::part(native) {
   .custom-dropdown {
     background-color: #000000;
   }
-  #category-icon-label{
+  #category-icon-label {
     color: #000000;
   }
 }
 
 .invoice-upload {
-
   .upload-label {
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     width: 10px;
-
   }
 
   .upload-icon {
     font-size: 30px;
     color: var(--ion-color-primary);
   }
-
 }

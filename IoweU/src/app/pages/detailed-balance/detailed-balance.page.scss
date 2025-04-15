@@ -1,4 +1,4 @@
-.member-info-top{
+.member-info-top {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -47,7 +47,8 @@
   flex-direction: column;
   justify-content: space-between; /* Setzt member-info und detailedprice an die Ränder */
   align-items: center; /* Vertikale Zentrierung der Elemente */
-  margin-top: 10px;ding: 10px 0;
+  margin-top: 10px;
+  //ding: 10px 0;
 }
 
 .expense-price {
@@ -55,7 +56,6 @@
   margin-left: 10px; /* Abstand zwischen den Elementen */
   flex-grow: 0; /* Verhindert, dass die detailedprice-Box wächst */
 }
-
 
 .toggle-arrow {
   cursor: pointer;
@@ -110,7 +110,7 @@
   margin-right: 10px;
 }
 
-.expense-price{
+.expense-price {
   margin-left: auto;
   font-weight: 700;
   padding: 5px 10px;
@@ -119,7 +119,7 @@
   margin: 0;
 }
 
-.balance-price{
+.balance-price {
   margin-left: auto;
   font-weight: 700;
   padding: 10px 15px;
@@ -128,11 +128,11 @@
   margin: 0;
 }
 
-.expense-description{
+.expense-description {
   font-weight: 700;
 }
 
-.balance{
+.balance {
   margin-left: auto;
   margin-right: auto;
   font-weight: 700;
@@ -142,25 +142,10 @@
   margin-bottom: 30px;
 }
 
-.top-container{
+.top-container {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-}
-
-.button-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding-bottom: 20px;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
