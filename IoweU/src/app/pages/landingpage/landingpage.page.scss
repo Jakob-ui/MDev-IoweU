@@ -1,0 +1,236 @@
+:root {
+  --animation-timing: 1s;
+}
+
+.landingpage-content {
+  --padding: 0;
+  background: #fff;
+  font-family: 'Helvetica Neue', sans-serif;
+}
+
+.hero {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+  text-align: center;
+  padding: 20px;
+}
+
+.hero-text h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.hero-text p {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.features-section {
+  position: relative;
+  padding: 100px 0;
+}
+
+.features-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Phone container will be sticky */
+.phone-container {
+  position: sticky;
+  top: 120px;
+  height: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  margin-bottom: 50px;
+}
+
+.phone-frame {
+  width: 280px;
+  height: 570px;
+  background-color: #1d1d1f;
+  border-radius: 40px;
+  padding: 12px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  transform: perspective(1000px) rotateY(-10deg);
+  transition: transform 0.6s ease;
+}
+
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  border-radius: 30px;
+  overflow: hidden;
+  position: relative;
+}
+
+.phone-screen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Features list styling */
+.features-list {
+  width: 100%;
+  max-width: 1000px;
+}
+
+/* Each feature item */
+.feature-item {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 200px;
+  padding: 20px;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.feature-item:nth-child(even) {
+  justify-content: flex-end;
+}
+
+/* Highlight active feature */
+.feature-item.active {
+  opacity: 1;
+}
+
+.feature-text-left,
+.feature-text-right {
+  max-width: 400px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.feature-text-left {
+  text-align: left;
+  margin-right: auto;
+}
+
+.feature-text-right {
+  text-align: right;
+  margin-left: auto;
+}
+
+.feature-text-left ion-icon,
+.feature-text-right ion-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.feature-text-left h2,
+.feature-text-right h2 {
+  margin-bottom: 10px;
+  font-size: 1.8rem;
+}
+
+.feature-details {
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Team section styling */
+.team-section {
+  background: #f8f8f8;
+  padding: 100px 20px;
+  text-align: center;
+}
+
+.team-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 40px;
+}
+
+.team-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.team-member {
+  width: 180px;
+  text-align: center;
+}
+
+.team-member img {
+  width: 100%;
+  border-radius: 50%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
+}
+
+.team-member h3 {
+  margin-bottom: 5px;
+  font-size: 1.2rem;
+}
+
+.team-member p {
+  color: #666;
+}
+
+/* Nav links styling */
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-links a {
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.profile-placeholder {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #eee;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .features-container {
+    flex-direction: column;
+  }
+
+  .phone-container {
+    position: relative;
+    top: 0;
+    margin-bottom: 50px;
+  }
+
+  .feature-item {
+    margin-bottom: 100px;
+  }
+
+  .feature-text-left,
+  .feature-text-right {
+    text-align: center;
+    margin: 0 auto;
+  }
+}
