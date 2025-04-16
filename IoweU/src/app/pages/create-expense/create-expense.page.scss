@@ -302,6 +302,8 @@ ion-input::part(native) {
   //background-color: var(--ion-color-light);
   background-color: #1a65eb;
   margin-top: -20px;
+  left: -50px; /* Passe den Wert an, um das Dropdown weiter nach links zu verschieben */
+ 
 }
 
 .custom-dropdown ion-label {
@@ -364,5 +366,119 @@ ion-item.dropDownFelder::part(native) {
   .upload-icon {
     font-size: 30px;
     color: var(--ion-color-primary);
+  }
+}
+
+.Währung {
+  position: relative;
+
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+   
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    top: 100%;
+    left: -10px;
+  }
+
+  .selected-currency {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--ion-color-dark);
+  }
+}
+.wiederholung {
+  position: relative;
+
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    top: 100%;
+    left: -10px;
+
+  }
+  .selected-repeat {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--ion-color-dark);
+  }
+}
+.paid-by {
+  position: relative;
+
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    top: 100%;
+    left: 0;
+
+  }
+
+  .selected-paid-by {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--ion-color-dark);
+  }
+
+  .member-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+
+  .member-name {
+    font-size: 14px;
+    color: var(--ion-color-dark);
+  }
+}
+.split-by {
+  position: relative;
+  width: 40%;
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+   
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    top: 100%;
+    left: 0;
+
+  }
+
+  .selected-split-by {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--ion-color-dark);
+  }
+}
+.split-type {
+  position: relative;
+  width: 60%;
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 800px;
+    top: 100%;
+    left: 0;
+   
+  }
+
+
+  .selected-split-type {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--ion-color-dark);
   }
 }

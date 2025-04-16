@@ -88,20 +88,28 @@
         </div>
         <div class="Währung">
           <span class="input-label">Währung</span>
-          <ion-item class="input-item">
-            <ion-select
-              [(ngModel)]="selectedCurrency"
-              (ionChange)="selectCurrency($event.detail.value)"
-              interface="popover"
-            >
-              <ion-select-option
-                *ngFor="let currency of expense.currency"
-                [value]="currency"
-              >
-                {{ currency }}
-              </ion-select-option>
-            </ion-select>
+          <ion-item class="input-item" (click)="toggleCurrencyDropdown()">
+            <ion-label>
+              <div class="selected-currency">
+                <span class="currency-label"
+                  >{{ selectedCurrency || 'Währung' }}</span
+                >
+              </div>
+            </ion-label>
           </ion-item>
+
+          <div *ngIf="currencyDropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                class="dropDownFelder"
+                button
+                *ngFor="let currency of currencies"
+                (click)="selectCurrency(currency)"
+              >
+                <ion-label>{{ currency }}</ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
       </div>
     </div>
@@ -110,31 +118,43 @@
       <div class="amount-row">
         <div class="paid-by">
           <span class="input-label">bezahlt von</span>
-          <ion-item class="input-item">
-            <ion-select [(ngModel)]="expense.paidBy" interface="popover">
-              <ion-select-option
+          <ion-item class="input-item" (click)="togglePaidByDropdown()">
+            <ion-label>
+              <div class="selected-paid-by">
+                <span class="paid-by-label">
+                  {{ selectedPaidBy?.username || 'bezahlt von' }}
+                </span>
+              </div>
+            </ion-label>
+          </ion-item>
+
+          <div *ngIf="paidByDropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                class="dropDownFelder"
+                button
                 *ngFor="let groupMember of groupMembers"
-                [value]="groupMember.uid"
+                (click)="selectPaidBy(groupMember)"
               >
                 <div
                   class="member-info"
                   [ngStyle]="{
-              'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
-              'border-color': 'var(--member-color-' + groupMember.uid + ')'
-             }"
+                    'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
+                    'border-color': 'var(--member-color-' + groupMember.uid + ')'
+                  }"
                 >
                   <div
                     class="profile-placeholder"
                     [ngStyle]="{
-              'background-color': 'var(--member-color-' + groupMember.uid + ')',
-              'border-color': 'var(--member-color-' + groupMember.uid + ')'
-            }"
+                      'background-color': 'var(--member-color-' + groupMember.uid + ')',
+                      'border-color': 'var(--member-color-' + groupMember.uid + ')'
+                    }"
                   ></div>
                   <span class="member-name">{{ groupMember.username }}</span>
                 </div>
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
 
         <div class="date">
@@ -151,24 +171,28 @@
 
         <div class="wiederholung">
           <span class="input-label">Wiederholung</span>
-          <ion-item class="input-item">
-            <ion-select [(ngModel)]="expense.repeat" interface="popover">
-              <ion-select-option class="custom-select-option" value="nein"
-                >nein</ion-select-option
-              >
-              <ion-select-option class="custom-select-option" value="täglich"
-                >täglich</ion-select-option
-              >
-              <ion-select-option
-                class="custom-select-option"
-                value="wöchentlich"
-                >wöchentlich</ion-select-option
-              >
-              <ion-select-option class="custom-select-option" value="monatlich"
-                >monatlich</ion-select-option
-              >
-            </ion-select>
+          <ion-item class="input-item" (click)="toggleRepeatDropdown()">
+            <ion-label>
+              <div class="selected-repeat">
+                <span class="repeat-label"
+                  >{{ selectedRepeat || 'Wiederholung' }}</span
+                >
+              </div>
+            </ion-label>
           </ion-item>
+
+          <div *ngIf="repeatDropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                class="dropDownFelder"
+                button
+                *ngFor="let repeatOption of repeatOptions"
+                (click)="selectRepeat(repeatOption)"
+              >
+                <ion-label>{{ repeatOption }}</ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
       </div>
     </div>
@@ -176,47 +200,55 @@
     <!-- Aufteilung -->
     <div class="section">
       <div class="amount-row">
-        <div class="split">
+        <div class="split-type">
           <span class="input-label">Aufteilung</span>
-          <ion-item class="input-item">
-            <ion-select
-              [(ngModel)]="expense.splitType"
-              interface="popover"
-              (ngModelChange)="onSplitTypeChange()"
-              ngDefaultControl="anteile"
-            >
-              <ion-select-option class="custom-select-option" value="anteile"
-                >Anteile</ion-select-option
-              >
-              <ion-select-option class="custom-select-option" value="prozent"
-                >Prozent</ion-select-option
-              >
-              <ion-select-option class="custom-select-option" value="produkte"
-                >nach Produkten</ion-select-option
-              >
-            </ion-select>
+          <ion-item class="input-item" (click)="toggleSplitTypeDropdown()">
+            <ion-label>
+              <div class="selected-split-type">
+                <span class="split-type-label"
+                  >{{ selectedSplitType || 'Aufteilung' }}</span
+                >
+              </div>
+            </ion-label>
           </ion-item>
+
+          <div *ngIf="splitTypeDropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                class="dropDownFelder"
+                button
+                *ngFor="let splitOption of splitTypeOptions"
+                (click)="selectSplitType(splitOption)"
+              >
+                <ion-label>{{ splitOption.label }}</ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
-        <div class="split">
-          <span class="input-label">teilen durch</span>
-          <ion-item class="input-item">
-            <ion-select
-              [(ngModel)]="expense.splitBy"
-              (ngModelChange)="onSplitByChange()"
-              interface="popover"
-              [disabled]="!chooseSplitType"
-            >
-              <ion-select-option
-                class="custom-select-option"
-                value="alle"
-                [disabled]="!chooseSplitType"
-                >alle</ion-select-option
-              >
-              <ion-select-option class="custom-select-option" value="frei"
-                >frei</ion-select-option
-              >
-            </ion-select>
+        <div class="split-by">
+          <span class="input-label">Teilen durch</span>
+          <ion-item class="input-item" (click)="toggleSplitByDropdown()">
+            <ion-label>
+              <div class="selected-split-by">
+                <span class="split-by-label"
+                  >{{ selectedSplitBy || 'Teilen durch' }}</span
+                >
+              </div>
+            </ion-label>
           </ion-item>
+
+          <div *ngIf="splitByDropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                class="dropDownFelder"
+                button
+                *ngFor="let splitOption of splitOptions"
+                (click)="selectSplitBy(splitOption)"
+              >
+                <ion-label>{{ splitOption }}</ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
       </div>
     </div>

@@ -12,7 +12,7 @@ import {
   IonMenuButton,
   IonTitle,
   IonToolbar,
-  IonIcon
+  IonIcon, IonFooter
 } from '@ionic/angular/standalone';
 import Scrollama from 'scrollama';
 import { RouterLink } from "@angular/router";
@@ -49,7 +49,8 @@ import {
     IonCardTitle,
     IonCardSubtitle,
     RouterLink,
-    IonIcon
+    IonIcon,
+    IonFooter
   ]
 })
 export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
@@ -139,7 +140,6 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Setup Scrollama after view is initialized and DOM elements are available
     setTimeout(() => {
       if (!this.scroller) {
         console.error('Scrollama is not initialized yet');
@@ -158,27 +158,66 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
             this.ngZone.run(() => {
               console.log(`Feature ${index} ist im Sichtbereich`);
               this.currentFeatureIndex = index;
-              this.updatePhonePosition(index);
+
+              const featureItem = this.featureItems.toArray()[event.index].nativeElement;
+              featureItem.classList.add('active');
+
+              // Update phone position basierend auf progress
+              const progress = event.progress;
+              this.updatePhonePosition(index, progress);  // Progress an updatePhonePosition übergeben
             });
           })
           .onStepExit((event: any) => {
             const index = event.index;
             console.log(`Feature ${index} hat den Sichtbereich verlassen`);
+
+            const featureItem = this.featureItems.toArray()[event.index].nativeElement;
+            featureItem.classList.remove('active');
+          })
+          .onStepProgress((event: any) => {
+            // Optionale Kontrolle des Fortschritts
           });
 
-        // Check if elements are available and update Scrollama
-        if (this.featureItems && this.featureItems.length > 0) {
-          console.log(`Found ${this.featureItems.length} feature items`);
-          window.addEventListener('resize', () => {
-            this.scroller.resize();
-          });
-          this.scroller.resize();
-        } else {
-          console.error('No feature items found in the DOM');
-        }
+        this.scroller.resize();
       });
-    }, 500); // Give more time for the DOM to be fully rendered
+    }, 500);
   }
+
+  updatePhonePosition(index: number, progress: number): void {
+    const phone = document.getElementById('phone-frame');
+    const screenImg = document.getElementById('screen-img') as HTMLImageElement;
+    if (!phone || !screenImg) return;
+
+    const feature = this.features[index];
+    const isEven = index % 2 === 0;
+
+    // Starting position (opposite side of where it will end up)
+    const startX = isEven ? -200 : 200;
+    // Ending position
+    const endX = isEven ? 200 : -200;
+
+    if (progress < 0.5) {
+      // First half of animation: rotate phone
+      const rotationAmount = isEven ? (progress * 2 * 90) : (progress * 2 * -90);
+      phone.style.transition = 'transform 0.5s ease-out';
+      phone.style.transform = `translateX(${startX + (endX - startX) * progress * 2}px) rotateY(${rotationAmount}deg)`;
+    } else if (progress >= 0.5 && progress < 0.9) {
+      // Update the image when phone is fully rotated
+      if (screenImg.src !== feature.image) {
+        screenImg.src = feature.image;
+      }
+
+      // Start rotating back
+      const reverseRotation = isEven ? (1 - (progress - 0.5) * 2) * 90 : (1 - (progress - 0.5) * 2) * -90;
+      phone.style.transition = 'transform 0.5s ease-in-out';
+      phone.style.transform = `translateX(${startX + (endX - startX) * (progress - 0.5) * 2}px) rotateY(${reverseRotation}deg)`;
+    } else {
+      // Final position - fully on the other side
+      phone.style.transition = 'transform 0.3s ease-in';
+      phone.style.transform = `translateX(${endX}px) rotateY(0deg)`;
+    }
+  }
+
 
   ngOnDestroy(): void {
     // Clean up event listeners when component is destroyed
@@ -188,21 +227,4 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
       });
     }
   }
-
-  updatePhonePosition(index: number): void {
-    const phone = document.getElementById('phone-frame');
-    if (phone) {
-      phone.style.transition = 'transform 0.5s ease-out';
-
-      const isEven = index % 2 === 0;
-
-      // Handy ist entweder links außen oder rechts außen (weiter außen als zuvor)
-      phone.style.transform = isEven
-        ? 'translateX(300px) translateZ(50px) rotateY(10deg)'
-        : 'translateX(-300px) translateZ(50px) rotateY(-10deg)';
-    } else {
-      console.log('Kein Phone-Element gefunden!');
-    }
-  }
-
 }

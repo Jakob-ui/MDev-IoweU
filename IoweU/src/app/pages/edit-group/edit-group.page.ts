@@ -140,13 +140,35 @@ export class EditGroupPage implements OnInit {
   }
 
   async confirmDelete() {
+    if (this.userUid !== this.founder) {
+      // Benutzer ist nicht der Gründer, zeige eine Warnung an
+      const alert = await this.alertController.create({
+        header: 'Aktion nicht erlaubt',
+        message: 'Sie sind nicht der Gründer dieser Gruppe und können sie daher nicht löschen.',
+        cssClass: 'custom-alert', // Eigene CSS-Klasse zuweisen
+        buttons: [
+          {
+            text: 'OK',
+            role: 'cancel',
+            cssClass: 'cancel-button', // Klasse für den OK-Button
+          },
+        ],
+      });
+  
+      await alert.present();
+      return;
+    }
+  
+    // Benutzer ist der Gründer, zeige das Lösch-Popup an
     const alert = await this.alertController.create({
       header: 'Gruppe endgültig löschen!',
-      message: 'Möchtest du diese Gruppe wirklich löschen?',
+      message: 'Möchten Sie diese Gruppe wirklich löschen?',
+      cssClass: 'custom-alert', // Eigene CSS-Klasse zuweisen
       buttons: [
         {
           text: 'Abbrechen',
           role: 'cancel',
+          cssClass: 'cancel-button', // Klasse für den Abbrechen-Button
           handler: () => {
             console.log('Löschung abgebrochen');
           },
@@ -154,13 +176,14 @@ export class EditGroupPage implements OnInit {
         {
           text: 'Löschen',
           role: 'destructive',
+          cssClass: 'delete-button', // Klasse für den Löschen-Button
           handler: () => {
             this.deleteGroup();
           },
         },
       ],
     });
-
+  
     await alert.present();
   }
 

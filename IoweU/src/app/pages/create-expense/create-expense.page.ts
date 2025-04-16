@@ -90,7 +90,11 @@ export class CreateExpensePage {
   displayName: string | null = null;
   groupId = this.route.snapshot.paramMap.get('groupId') || '';
 
-  groupMembers: any[] = [];
+  groupMembers: any[] = [
+    { uid: '1', username: 'Alice' },
+    { uid: '2', username: 'Bob' },
+    { uid: '3', username: 'Charlie' },
+  ];
   currentGroup: Groups | null = null;
 
   memberUsernames: string[] = [];
@@ -111,9 +115,17 @@ export class CreateExpensePage {
   dropdownOpen = false;
   selectedMember: any = null;
   selectedCurrency: string = 'EUR'; // Standardwährung
+  selectedPaidBy: any = null;
+  paidByDropdownOpen: boolean = false;
+  isFormValid: boolean = true;
+  error: string = '';
 
   showAddProductButton: { [key: string]: boolean } = {};
   showProductInputFields: { [key: string]: boolean } = {};
+
+  splitOptions: string[] = ['alle', 'frei']; // Optionen für "Teilen durch"
+  selectedSplitBy: string = 'alle'; // Standardwert
+  splitByDropdownOpen: boolean = false;
 
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
@@ -130,6 +142,27 @@ export class CreateExpensePage {
     expenseMember: [],
   };
 
+  splitTypeOptions: { value: string; label: string }[] = [
+    { value: 'anteile', label: 'Anteile' },
+    { value: 'prozent', label: 'Prozent' },
+    { value: 'produkte', label: 'nach Produkten' },
+  ]; // Optionen für "Aufteilung"
+  selectedSplitType: string = 'anteile'; // Standardwert
+  splitTypeDropdownOpen: boolean = false;
+  toggleSplitTypeDropdown() {
+    this.splitTypeDropdownOpen = !this.splitTypeDropdownOpen; // Öffnen/Schließen des Dropdowns
+  }
+
+  selectSplitType(splitOption: { value: string; label: string }) {
+    this.selectedSplitType = splitOption.label; // Label der Option setzen
+    this.expense.splitType = splitOption.value as
+      | 'anteile'
+      | 'prozent'
+      | 'produkte'; // Wert in der Ausgabe speichern
+    this.splitTypeDropdownOpen = false; // Dropdown schließen
+    console.log('Ausgewählte Aufteilung:', this.selectedSplitType);
+    this.onSplitTypeChange(); // Rufe die bestehende Logik auf
+  }
   categories = [
     { name: 'Lebensmittel', icon: 'fast-food-outline' },
     { name: 'Einkäufe', icon: 'cart-outline' },
@@ -196,7 +229,8 @@ export class CreateExpensePage {
                 this.expense.paidBy = this.uid;
               }
 
-              this.selectedMember =
+              // selectedMember setzen (ob vom expense oder durch Fallback)
+              this.selectedPaidBy =
                 this.groupMembers.find(
                   (member) => member.uid === this.expense.paidBy
                 ) || null;
@@ -221,12 +255,27 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
+  currencies: string[] = ['EUR', 'USD', 'GBP', 'JPY', 'AUD']; // Beispielwährungen
+  selectedCurrency: string = 'EUR'; // Standardwährung
+  currencyDropdownOpen: boolean = false;
 
-  // UI Handeling ---------------------------------->
+  toggleCurrencyDropdown() {
+    this.currencyDropdownOpen = !this.currencyDropdownOpen;
+  }
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
   }
+  toggleSplitByDropdown() {
+    this.splitByDropdownOpen = !this.splitByDropdownOpen; // Öffnen/Schließen des Dropdowns
+  }
 
+  selectSplitBy(splitOption: string) {
+    this.selectedSplitBy = splitOption; // Option setzen
+    this.expense.splitBy = splitOption as 'alle' | 'frei'; // Wert in der Ausgabe speichern
+    this.splitByDropdownOpen = false; // Dropdown schließen
+    console.log('Ausgewählte Option für Teilen durch:', this.selectedSplitBy);
+    this.onSplitByChange(); // Rufe die bestehende Logik auf
+  }
   onInvoiceUpload(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -239,15 +288,16 @@ export class CreateExpensePage {
     }
   }
   selectCurrency(currency: string) {
-    this.selectedCurrency = currency;
-    this.expense.currency = [currency];
-    this.dropdownOpen = false;
+    this.selectedCurrency = currency; // Währung setzen
+    this.currencyDropdownOpen = false; // Dropdown schließen
+    console.log('Ausgewählte Währung:', this.selectedCurrency);
   }
 
-  selectMember(member: any) {
-    this.expense.paidBy = member.uid;
-    this.selectedMember = member;
-    this.dropdownOpen = false;
+  selectPaidBy(groupMember: any) {
+    this.selectedPaidBy = groupMember; // Mitglied setzen
+    this.expense.paidBy = groupMember.uid; // UID speichern
+    this.paidByDropdownOpen = false; // Dropdown schließen
+    console.log('Ausgewähltes Mitglied:', this.selectedPaidBy);
   }
 
   selectCategory(category: any) {
@@ -255,7 +305,21 @@ export class CreateExpensePage {
     this.expense.category = category.name;
     this.dropdownOpen = false;
   }
+  repeatOptions: string[] = ['nein', 'täglich', 'wöchentlich', 'monatlich']; // Wiederholungsoptionen
+  selectedRepeat: string = 'nein'; // Standardwert
+  repeatDropdownOpen: boolean = false;
 
+  toggleRepeatDropdown() {
+    this.repeatDropdownOpen = !this.repeatDropdownOpen; // Öffnen/Schließen des Dropdowns
+  }
+  togglePaidByDropdown() {
+    this.paidByDropdownOpen = !this.paidByDropdownOpen; // Öffnen/Schließen des Dropdowns
+  }
+  selectRepeat(repeatOption: string) {
+    this.selectedRepeat = repeatOption; // Wiederholungsoption setzen
+    this.repeatDropdownOpen = false; // Dropdown schließen
+    console.log('Ausgewählte Wiederholung:', this.selectedRepeat);
+  }
   productInputs: {
     [key: string]: {
       input: Products;
