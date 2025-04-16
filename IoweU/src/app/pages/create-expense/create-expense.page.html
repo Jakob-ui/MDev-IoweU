@@ -80,6 +80,7 @@
               type="number"
               placeholder="0,00"
               [(ngModel)]="expense.totalAmount"
+              [value]="expense.totalAmount === 0 ? '' : expense.totalAmount"
               (ionInput)="onTotalAmountChange()"
               step="0.01"
             >
@@ -272,6 +273,7 @@
                 placeholder="0,00"
                 [(ngModel)]="amountToPay[groupMember.uid]"
                 *ngIf="expense.splitType === 'prozent'"
+                [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
                 (ionInput)="calculateSplitByPercentage(groupMember.uid, 'amount')"
                 step="0.01"
               ></ion-input>
@@ -281,6 +283,7 @@
                 placeholder="0,00"
                 *ngIf="expense.splitType === 'anteile' || expense.splitType === 'produkte'"
                 [(ngModel)]="amountToPay[groupMember.uid]"
+                [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
                 (ionInput)="onAmountToPayChange()"
                 step="0.01"
               ></ion-input>
