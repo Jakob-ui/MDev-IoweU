@@ -30,15 +30,25 @@
       <div class="phone-container">
         <div class="phone-frame" id="phone-frame">
           <div class="phone-screen">
-            <img [src]="features[currentFeatureIndex]?.image" alt="Feature Screenshot" id="screen-img" />
+            <img
+              [src]="features[currentFeatureIndex].image"
+              alt="Feature Screenshot"
+              id="screen-img"
+            />
           </div>
         </div>
       </div>
 
       <!-- Feature Items - These will be detected by Scrollama -->
       <div class="features-list">
-        <div class="feature-item" *ngFor="let feature of features; let i = index" #featureItem>
-          <div [ngClass]="i % 2 === 0 ? 'feature-text-left' : 'feature-text-right'">
+        <div
+          class="feature-item"
+          *ngFor="let feature of features; let i = index"
+          #featureItem
+        >
+          <div
+            [ngClass]="i % 2 === 0 ? 'feature-text-left' : 'feature-text-right'"
+          >
             <ion-icon [name]="feature.icon" size="large"></ion-icon>
             <h2>{{ feature.title }}</h2>
             <p>{{ feature.description }}</p>
@@ -55,7 +65,7 @@
     <h2>Unser Team</h2>
     <div class="team-container">
       <div class="team-member" *ngFor="let member of teamMembers">
-        <img [src]="member.photo" [alt]="member.name">
+        <img [src]="member.photo" [alt]="member.name" />
         <h3>{{ member.name }}</h3>
         <p>{{ member.role }}</p>
       </div>
