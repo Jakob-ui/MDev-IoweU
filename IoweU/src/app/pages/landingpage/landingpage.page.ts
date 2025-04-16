@@ -191,18 +191,27 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
 
   updatePhonePosition(index: number): void {
     const phone = document.getElementById('phone-frame');
-    if (phone) {
+    const screenImg = document.getElementById('screen-img') as HTMLImageElement;
+    if (!phone || !screenImg) return;
+
+    const feature = this.features[index];
+    const isEven = index % 2 === 0;
+
+    // Step 1: Rotation starten
+    phone.style.transition = 'transform 0.5s ease-in';
+    phone.style.transform = `rotateY(${isEven ? '90deg' : '-90deg'})`;
+
+    // Step 2: Nach halber Dauer Bild wechseln & drehen zurück
+    setTimeout(() => {
+      // Bild aktualisieren
+      screenImg.src = feature.image;
+
+      // Drehrichtung zurück, dabei gleichzeitig auf neue Seite verschieben
       phone.style.transition = 'transform 0.5s ease-out';
-
-      const isEven = index % 2 === 0;
-
-      // Handy ist entweder links außen oder rechts außen (weiter außen als zuvor)
-      phone.style.transform = isEven
-        ? 'translateX(300px) translateZ(50px) rotateY(10deg)'
-        : 'translateX(-300px) translateZ(50px) rotateY(-10deg)';
-    } else {
-      console.log('Kein Phone-Element gefunden!');
-    }
+      phone.style.transform = `
+      translateX(${isEven ? '300px' : '-300px'})
+      rotateY(0deg)
+    `;
+    }, 500);
   }
-
 }
