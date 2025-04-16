@@ -8,11 +8,12 @@
       <a href="#introduction">Home</a>
       <a href="#features">Features</a>
       <a href="#team">Team</a>
+      <div class="user-info" slot="end" [routerLink]="'/login'">
+        <div class="profile-placeholder"></div>
+        <span class="member-name">Login</span>
+      </div>
     </div>
-    <div class="user-info" slot="end" [routerLink]="'/login'">
-      <div class="profile-placeholder"></div>
-      <span class="member-name">Login</span>
-    </div>
+
   </ion-toolbar>
 </ion-header>
 

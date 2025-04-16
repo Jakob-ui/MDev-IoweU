@@ -80,11 +80,10 @@ ion-toolbar {
   width: 80%;
   margin-right: auto;
   margin-left: auto;
-  max-width: 800px;
   padding: 25px 0px 20px;
-  background: transparent !important; /* Make the toolbar background transparent */
+  background: transparent !important;
   height: 100px;
-  position: relative; /* Ensure toolbar content is on top */
+  position: relative;
   z-index: 10;
 }
 
@@ -763,8 +762,8 @@ ion-input:focus ~ .ionicon {
 
 .custom-alert{
     text-align: center;
-    
-  
+
+
     button.cancel-button {
       background-color: var(--ion-color-primary);
       color: var(--ion-color-dark);
