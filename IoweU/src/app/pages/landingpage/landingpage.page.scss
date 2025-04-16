@@ -65,6 +65,8 @@
   overflow: hidden;
   transform: perspective(1000px) rotateY(-10deg);
   transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .phone-screen {
