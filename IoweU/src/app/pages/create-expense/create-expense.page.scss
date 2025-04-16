@@ -368,9 +368,7 @@ ion-item.dropDownFelder::part(native) {
     color: var(--ion-color-primary);
   }
 }
-.custom-dropdown ion-item {
-  --ion-item-chevron-display: none; /* Deaktiviert die Pfeile */
-}
+
 .Währung {
   position: relative;
 
@@ -382,15 +380,6 @@ ion-item.dropDownFelder::part(native) {
     max-width: 400px;
     top: 100%;
     left: -10px;
-  }
-
-  .dropDownFelder {
-  
-  }
-
-  .dropDownFelder:hover {
-    background-color: var(--ion-color-primary);
-    color: var(--ion-color-primary-contrast);
   }
 
   .selected-currency {
@@ -412,14 +401,6 @@ ion-item.dropDownFelder::part(native) {
     left: -10px;
 
   }
-
-
-
-  .dropDownFelder:hover {
-    background-color: var(--ion-color-primary);
-    color: var(--ion-color-primary-contrast);
-  }
-
   .selected-repeat {
     display: flex;
     align-items: center;
@@ -438,12 +419,6 @@ ion-item.dropDownFelder::part(native) {
     top: 100%;
     left: 0;
 
-  }
-
-
-  .dropDownFelder:hover {
-    background-color: var(--ion-color-primary);
-    color: var(--ion-color-primary-contrast);
   }
 
   .selected-paid-by {
@@ -479,13 +454,6 @@ ion-item.dropDownFelder::part(native) {
 
   }
 
-
-
-  .dropDownFelder:hover {
-    background-color: var(--ion-color-primary);
-    color: var(--ion-color-primary-contrast);
-  }
-
   .selected-split-by {
     display: flex;
     align-items: center;
@@ -506,10 +474,6 @@ ion-item.dropDownFelder::part(native) {
    
   }
 
-  .dropDownFelder:hover {
-    background-color: var(--ion-color-primary);
-    color: var(--ion-color-primary-contrast);
-  }
 
   .selected-split-type {
     display: flex;
