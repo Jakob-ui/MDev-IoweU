@@ -303,7 +303,7 @@ ion-input::part(native) {
   background-color: #1a65eb;
   margin-top: -20px;
   left: -50px; /* Passe den Wert an, um das Dropdown weiter nach links zu verschieben */
- 
+
 }
 
 .custom-dropdown ion-label {
@@ -375,7 +375,7 @@ ion-item.dropDownFelder::part(native) {
   .custom-dropdown {
     position: absolute;
     z-index: 9999;
-   
+
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     max-width: 400px;
     top: 100%;
@@ -385,7 +385,9 @@ ion-item.dropDownFelder::part(native) {
   .selected-currency {
     display: flex;
     align-items: center;
+    text-align: center;
     font-size: 16px;
+    justify-content: center;
     color: var(--ion-color-dark);
   }
 }
@@ -446,7 +448,7 @@ ion-item.dropDownFelder::part(native) {
   .custom-dropdown {
     position: absolute;
     z-index: 9999;
-   
+
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     max-width: 400px;
     top: 100%;
@@ -471,7 +473,7 @@ ion-item.dropDownFelder::part(native) {
     max-width: 800px;
     top: 100%;
     left: 0;
-   
+
   }
 
 
