@@ -50,10 +50,11 @@
           <div
             class="profile-placeholder"
             [ngStyle]="{
-          'background-color': 'var(--member-color-' + expense.paidBy + ')',
-          'border-color': 'var(--member-color-' + expense.paidBy + ')'
-        }"
-          ></div>
+              'background-color': 'var(--member-color-' + expense.paidBy + ')',
+              'border-color': 'var(--member-color-' + expense.paidBy + ')'
+            }">
+            <span class="username">{{ getFirstLetter(expense.paidBy) }}</span>
+          </div>
           <h5 class="einzelneAusgabe">{{ expense.description }}</h5>
           <div class="expense-item">
             <div class="Ausgabepreis">

@@ -12,15 +12,14 @@ import {
   IonButton,
   IonIcon,
 } from '@ionic/angular/standalone';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { LoadingService } from '../../services/loading.service';
 import { GroupService } from '../../services/group.service';
-import { ActivatedRoute } from '@angular/router';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { Expenses } from 'src/app/services/objects/Expenses';
-import { Groups } from 'src/app/services/objects/Groups';
-import { ExpenseMember } from '../../services/objects/ExpenseMember';
+import { Members } from 'src/app/services/objects/Members';
+
 @Component({
   selector: 'app-expense',
   templateUrl: './expense.page.html',
@@ -55,7 +54,7 @@ export class ExpensePage implements OnInit, OnDestroy {
 
   groupname: string = '';
   groupId: string | null = '';
-  groupMembers: any[] = [];
+  groupMembers: Members[] = []; // Verwenden Sie das Members-Interface
   iosIcons: boolean = false;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
@@ -90,6 +89,14 @@ export class ExpensePage implements OnInit, OnDestroy {
             this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = currentGroup.groupId || '';
 
+            // Lade die Mitglieder der Gruppe
+            if (currentGroup.members && Array.isArray(currentGroup.members)) {
+              this.groupMembers = currentGroup.members;
+            } else {
+              console.warn('Keine Mitglieder in der Gruppe gefunden oder members ist kein Array');
+              this.groupMembers = [];
+            }
+
             // Lade die Ausgaben
             if (
               currentGroup.hasOwnProperty('expenses') &&
@@ -119,22 +126,15 @@ export class ExpensePage implements OnInit, OnDestroy {
               this.expenses = [];
             }
 
-            // Initialisiere Mitglieder und expenseMember
-            if (currentGroup.members && currentGroup.members.length > 0) {
-              this.groupMembers = currentGroup.members.map((member: any) => ({
-                ...member,
-                amount: 0,
+            // Initialisiere expenseMember
+            this.expenses.forEach((expense) => {
+              expense.expenseMember = this.groupMembers.map((member) => ({
+                memberId: member.uid,
+                amountToPay: 0,
+                split: 1,
+                products: [],
               }));
-
-              this.expenses.forEach((expense) => {
-                expense.expenseMember = this.groupMembers.map((member) => ({
-                  memberId: member.uid,
-                  amountToPay: 0,
-                  split: 1,
-                  products: [],
-                }));
-              });
-            }
+            });
 
             // Berechne die Balance, nachdem die Ausgaben geladen wurden
             const { total, count } = this.expenseService.calculateBalance(
@@ -247,7 +247,7 @@ export class ExpensePage implements OnInit, OnDestroy {
     const grouped: { [key: string]: Expenses[] } = {};
 
     for (const expense of this.expenses) {
-      const formattedDate = new Date(expense.date).toISOString().split('T')[0]; // yyyy-MM-dd
+      const formattedDate = new Date(expense.date).toISOString().split('T')[0]; //YYYY-MM-DD
       if (!grouped[formattedDate]) {
         grouped[formattedDate] = [];
       }
@@ -268,6 +268,13 @@ export class ExpensePage implements OnInit, OnDestroy {
     }));
   }
 
+  getFirstLetter(paidBy: string): string {
+    const member = this.groupMembers.find((m) => m.uid === paidBy);
+    if (member && member.username && member.username.length > 0) {
+      return member.username.charAt(0).toUpperCase();
+    }
+    return '';
+  }
 
   goBack() {
     this.router.navigate(['/group', this.groupId]);

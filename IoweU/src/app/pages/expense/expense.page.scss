@@ -6,6 +6,10 @@ h1 {
   margin-top: 0px;
 }
 
+h5{
+  font-size: 16px;
+}
+
 .einzelneAusgabe {
   width: 40%;
 }
@@ -21,4 +25,10 @@ h1 {
   .date {
     color: var(--ion-color-light);
   }
+}
+
+.profile-placeholder .username{
+  color: var(--ion-color-light);
+  font-size: 12px;
+  font-weight: 300;
 }
