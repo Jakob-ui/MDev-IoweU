@@ -12,8 +12,10 @@
             <ion-input
               type="text"
               placeholder="Beschreibung"
+              maxlength="30"
               [(ngModel)]="expense.description"
             ></ion-input>
+            <ion-note slot="end">{{ expense.description.length || 0 }}/30</ion-note>
           </ion-item>
         </div>
 
