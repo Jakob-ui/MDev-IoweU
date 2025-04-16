@@ -9,12 +9,12 @@ export interface Members {
   role: 'member' | 'founder';
   color: string;
   joinedAt: string;
-  sumExpenseAmount?: number;
-  countExpenseAmount?: number;
-  sumAmountReceived?: number;
-  countAmountReceived?: number;
-  sumExpenseMemberAmount?: number;
-  countExpenseMemberAmount?: number;
-  sumAmountPaid?: number;
-  countAmountPaid?: number;
+  sumExpenseAmount: number;
+  countExpenseAmount: number;
+  sumAmountReceived: number;
+  countAmountReceived: number;
+  sumExpenseMemberAmount: number;
+  countExpenseMemberAmount: number;
+  sumAmountPaid: number;
+  countAmountPaid: number;
 }
