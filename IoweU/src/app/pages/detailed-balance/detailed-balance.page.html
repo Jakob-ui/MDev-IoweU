@@ -1,21 +1,27 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <div class="left-container" slot="start">
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
-                class="back-button" (click)="goBack()"></ion-icon>
-      <div class="divider"></div>
-      <div class="pagename">Finanzübersicht</div>
-    </div>
-
-    <div class="right-container" slot="end">
-      <div class="user-info" [routerLink]="'/account-settings'">
-        <div class="profile-placeholder"></div>
-        <span class="member-name">{{ username }}</span>
+<ion-header [translucent]="true" class="header">
+  <div class="backdrop-wrapper">
+    <ion-toolbar>
+      <div class="left-container" slot="start">
+        <ion-icon
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+          class="back-button"
+          (click)="goBack()"
+        ></ion-icon>
       </div>
-      <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
-                (click)="logout()" class="logout-button"></ion-icon>
-    </div>
-  </ion-toolbar>
+
+      <div class="right-container" slot="end">
+        <div class="user-info" [routerLink]="'/account-settings'">
+          <div class="profile-placeholder"></div>
+          <span class="member-name">{{ username }}</span>
+        </div>
+        <ion-icon
+          class="edit-button"
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-create.svg' : 'assets/icon/ionicons/md-create.svg'"
+          (click)="editBalance()"
+        ></ion-icon>
+      </div>
+    </ion-toolbar>
+  </div>
 </ion-header>
 
 <ion-content [fullscreen]="true">
@@ -44,8 +50,6 @@
         'normal': totalBalanceByMember === 0
       }"
       class="balance">{{ totalBalanceByMember | currency: 'EUR' }}</ion-badge>
-
-    <ion-button class="edit-button" expand="block" (click)="editBalance()">Bilanz bearbeiten</ion-button>
 
     <div class="separator"></div>
 
@@ -145,7 +149,9 @@
     </div>
 
     <div class="space"></div>
-    <ion-button class="main-button" expand="block">Schulden begleichen</ion-button>
+    <div class="button-container">
+      <ion-button class="main-button" expand="block">Schulden begleichen</ion-button>
+    </div>
   </div>
 </ion-content>
 

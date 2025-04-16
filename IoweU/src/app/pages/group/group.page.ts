@@ -6,7 +6,6 @@ import {
   IonHeader,
   IonToolbar,
   IonContent,
-  IonButton,
   IonCard,
   IonCardTitle,
   IonCardSubtitle,
@@ -17,6 +16,8 @@ import { AuthService } from '../../services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
 import { Groups } from 'src/app/services/objects/Groups';
 import { LoadingService } from '../../services/loading.service';
+import { QRCodeComponent } from 'angularx-qrcode';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-group',
@@ -28,12 +29,13 @@ import { LoadingService } from '../../services/loading.service';
     IonHeader,
     IonToolbar,
     IonContent,
-    IonButton,
     IonCard,
     IonCardTitle,
     IonCardSubtitle,
     RouterModule,
     IonIcon,
+    QRCodeComponent,
+    FormsModule,
   ],
 })
 export class GroupPage implements OnInit {
@@ -63,6 +65,9 @@ export class GroupPage implements OnInit {
   countTotalExpenses: number | undefined = undefined;
   sumTotalExpensesMembers: number | undefined = undefined;
   countTotalExpensesMembers: number | undefined = undefined;
+
+  showQRCode: boolean = false; // Variable zum Steuern der QR-Code-Anzeige
+  qrCodeValue: string = '';
 
   myBalance: number = +200;
   currentMonth: string = 'März 2025';
@@ -133,7 +138,6 @@ export class GroupPage implements OnInit {
       } else {
         console.warn('Gruppe nicht gefunden!');
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (group) {
         this.groupname = group.groupname;
@@ -186,6 +190,14 @@ export class GroupPage implements OnInit {
       console.error('Error loading group data:', error);
     } finally {
       this.loadingService.hide();
+    }
+  }
+
+  generateQRCode() {
+    if (this.accessCode) {
+      this.qrCodeValue = `http://localhost:8100/group/${this.groupId}`;
+      this.showQRCode = !this.showQRCode;
+      console.log('Generated QR Code URL:', this.qrCodeValue);
     }
   }
 }

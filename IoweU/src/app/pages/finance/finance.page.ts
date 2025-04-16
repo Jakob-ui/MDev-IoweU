@@ -148,6 +148,6 @@ export class FinancePage implements OnInit {
   }
 
   goBack() {
-    this.navCtrl.back();
+    this.router.navigate(['/group', this.groupId]);
   }
 }

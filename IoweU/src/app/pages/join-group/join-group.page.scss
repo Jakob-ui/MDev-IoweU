@@ -33,3 +33,11 @@
   border: 2px solid var(--ion-color-primary); /* Optional: Rahmen hinzufügen */
   border-radius: 10px; /* Optional: Abgerundete Ecken */
 }
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}

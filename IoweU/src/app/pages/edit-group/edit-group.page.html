@@ -29,7 +29,7 @@
     <div *ngIf="showQRCode" class="qr-code-wrapper">
       <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>
     </div>
-    
+
 
     <div class="edit-fields">
       <span class="input-label">Gruppenname</span>
@@ -65,10 +65,11 @@
       </ion-list>
     </div>
 
-    <ion-button id="delete-alert" class="delete-button" color="danger" (click)="confirmDelete()">
-      Gruppe löschen
-    </ion-button>
-
+    <div class="buttonclass">
+      <ion-button id="delete-alert" class="delete-button" color="danger" (click)="confirmDelete()">
+        Gruppe löschen
+      </ion-button>
+    </div>
 
     <div class="button-row">
       <ion-button class="main-button" expand="block" [routerLink]="['/group', groupId]">Abbrechen</ion-button>

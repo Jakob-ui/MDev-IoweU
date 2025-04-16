@@ -174,6 +174,6 @@ export class TransactionsPage implements OnInit {
   }
 
   goBack() {
-    this.navCtrl.back();
+    this.router.navigate(['/group', this.groupId]);
   }
 }

@@ -175,11 +175,17 @@ export class EditGroupPage implements OnInit {
     this.router.navigate([`/group`, this.groupId]);
   }
 
-    generateQRCode() {
-      if (this.accessCode) {
-        this.qrCodeValue = `http://localhost:8100/group/${this.groupId}`;
-        this.showQRCode = true;
+  generateQRCode() {
+    if (this.accessCode) {
+      this.showQRCode = !this.showQRCode; // Zustand umschalten
+      if (this.showQRCode) {
+        this.qrCodeValue = `http://localhost:8100/group/${this.groupId}`; // QR-Code-Daten setzen
         console.log('Generated QR Code URL:', this.qrCodeValue);
+      } else {
+        this.qrCodeValue = ''; // QR-Code-Daten zurücksetzen, wenn ausgeblendet
+        console.log('QR Code hidden');
       }
     }
+  }
 }
+

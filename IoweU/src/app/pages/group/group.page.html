@@ -1,38 +1,44 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <div class="left-container" slot="start">
-      <ion-icon
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
-        class="back-button"
-        (click)="goBack()"
-      ></ion-icon>
-      <div class="divider"></div>
-      <div class="pagename">Gruppe</div>
-    </div>
-
-    <div class="right-container" slot="end">
-      <div class="user-info" [routerLink]="'/account-settings'">
-        <div class="profile-placeholder"></div>
-        <span class="member-name">{{ user }}</span>
+<ion-header [translucent]="true" class="header">
+  <div class="backdrop-wrapper">
+    <ion-toolbar>
+      <div class="left-container" slot="start">
+        <ion-icon
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+          class="back-button"
+          (click)="goBack()"
+        ></ion-icon>
       </div>
-      <ion-icon
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
-        (click)="logout()"
-        class="logout-button"
-      ></ion-icon>
-    </div>
-  </ion-toolbar>
+
+      <div class="right-container" slot="end">
+        <div class="user-info" [routerLink]="'/account-settings'">
+          <div class="profile-placeholder"></div>
+          <span class="member-name">{{ user }}</span>
+        </div>
+        <ion-icon
+          [src]="'assets/icon/ionicons/qr-code-outline.svg'"
+          (click)="generateQRCode()">
+        </ion-icon>
+
+        <ion-icon
+          class="edit-button"
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-create.svg' : 'assets/icon/ionicons/md-create.svg'"
+          [routerLink]="['/edit-group', groupId]"
+        ></ion-icon>
+      </div>
+    </ion-toolbar>
+  </div>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-
-
+  <div *ngIf="showQRCode" class="qr-code-overlay" (click)="generateQRCode()">
+    <div class="qr-code-wrapper" (click)="$event.stopPropagation()">
+      <h5>Scannen um Gruppe beizutreten.</h5>
+      <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>
+      <h5>Code zum Beitreten:</h5>
+      <h5 class="access-code">{{ accessCode }}</h5>
+    </div>
+  </div>
   <div class="page-container">
-    <ion-button class="edit-button" [routerLink]="['/edit-group', groupId]">
-      bearbeiten
-    </ion-button>
-
-
     <div class="image-upload">
       <ng-container *ngIf="currentGroup?.groupimage; else placeholder">
         <img
@@ -72,8 +78,8 @@
 
             <!-- Ausgaben -->
             <div *ngSwitchCase="'Ausgaben'">
-              <p>Gesamtausgaben | {{ currentMonth }}</p>
-              <h6>{{ totalCost | currency: 'EUR' }}</h6>
+              <p>Gesamtausgaben</p>
+              <h6>{{ sumTotalExpenses | currency: 'EUR' }}</h6>
             </div>
 
             <!-- Einkaufsliste -->
@@ -96,3 +102,5 @@
     </ion-card>
   </div>
 </ion-content>
+
+

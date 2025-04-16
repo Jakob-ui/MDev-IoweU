@@ -49,9 +49,9 @@ ion-list{
   margin-top: 20px;
 }
 
-.edit-fields span {
+.edit-fields .input-label {
   text-align: left;
-  margin-bottom: 5px;
+  margin-bottom: 7px;
   width: 80%;
   padding-left: 10px;
 }
@@ -75,8 +75,19 @@ ion-icon{
 .button-row {
   margin-top: 10px;
   width: 80%;
-  display: flex;
   justify-content: space-between;
+
+  position: fixed;
+  bottom: 0;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-bottom: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
 .button-row ion-button {
@@ -85,4 +96,12 @@ ion-icon{
 
 delete-button{
   width: 100%;
+}
+
+.buttonclass{
+  margin-bottom: 90px;
+}
+
+.container{
+  margin-top: 50px;
 }

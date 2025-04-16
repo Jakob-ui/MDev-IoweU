@@ -7,7 +7,7 @@ import {
   IonLabel,
   IonInput,
   IonSelect,
-  IonSelectOption,
+  IonSelectOption, IonNote,
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -18,6 +18,7 @@ import { Router } from '@angular/router';
 import { UserService } from 'src/app/services/user.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { Categories } from 'src/app/services/objects/Categories';
 @Component({
   selector: 'app-create-group',
   templateUrl: './create-group.page.html',
@@ -34,6 +35,7 @@ import { AuthService } from 'src/app/services/auth.service';
     RouterModule,
     FormsModule,
     CommonModule,
+    IonNote,
   ],
 })
 export class CreateGroupPage {
@@ -50,6 +52,19 @@ export class CreateGroupPage {
   groupImage: string | ArrayBuffer | null = null;
   showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige
   newGroup: Groups | null = null; // Initialisierung der newGroup-Variable
+
+  defaultCategories: Categories = {
+    categories: [
+      { name: 'Lebensmittel', icon: 'fast-food-outline' },
+      { name: 'Einkäufe', icon: 'cart-outline' },
+      { name: 'Restaurant/Bar', icon: 'wine-outline' },
+      { name: 'Transport', icon: 'car-outline' },
+      { name: 'Freizeit', icon: 'game-controller-outline' },
+      { name: 'Wohnen', icon: 'home-outline' },
+      { name: 'Rechnungen', icon: 'receipt-outline' },
+      { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
+    ],
+  };
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
@@ -78,7 +93,8 @@ export class CreateGroupPage {
       await this.groupService.createGroup(
         this.groupname,
         founder,
-        this.selectedTemplate
+        this.selectedTemplate,
+        this.defaultCategories
       );
       console.log('Groups successfully created!');
       console.log('Group successfully created!');

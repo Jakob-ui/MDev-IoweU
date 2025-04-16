@@ -17,6 +17,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { Users } from 'src/app/services/objects/Users';
 import { AlertController } from '@ionic/angular';
+import { PermissionStatus, Camera } from '@capacitor/camera';
 
 @Component({
   selector: 'app-join-group',
@@ -63,6 +64,14 @@ export class JoinGroupPage {
         this.isSupported = result.supported;
       }
     );
+    // Optional: direkt fragen, damit's beim ersten Scan nicht hakt
+  if (this.platformIsNative) {
+    BarcodeScanner.checkPermissions().then((status) => {
+      if (status.camera !== 'granted') {
+        BarcodeScanner.requestPermissions();
+      }
+    });
+  }
   }
 
   ngOnDestroy() {
@@ -129,9 +138,44 @@ export class JoinGroupPage {
       });
     }
   }
-  scanNativeQRCode() {
-    throw new Error('Method not implemented.');
-  }
+  async scanNativeQRCode() {
+    try {
+      // Erst Berechtigungen holen
+      const status = await BarcodeScanner.requestPermissions();
+  
+      // Wenn keine Berechtigung, direkt abbrechen
+      if (status.camera !== 'granted') {
+        this.error = 'Kamerazugriff wurde verweigert.';
+        this.joinFailed = true;
+        return;
+      }
+  
+      // Ein kleiner Timeout hilft manchmal (besonders bei Android 12+)
+      await new Promise((resolve) => setTimeout(resolve, 500));
+  
+      // Dann scannen
+      const result = await BarcodeScanner.scan();
+  
+      if (result.barcodes.length > 0) {
+        const qrValue = result.barcodes[0].rawValue;
+        const groupId = qrValue.split('/').pop();
+  
+        if (groupId) {
+          this.router.navigate(['/group', groupId]);
+        } else {
+          this.error = 'Ungültiger QR-Code-Inhalt.';
+          this.joinFailed = true;
+        }
+      } else {
+        this.error = 'Kein QR-Code erkannt.';
+        this.joinFailed = true;
+      }
+    } catch (error) {
+      console.error('Fehler beim Scannen:', error);
+      this.error = 'Fehler beim Scannen des QR-Codes.';
+      this.joinFailed = true;
+    }
+  }  
 
   // Funktion zum Scannen von QR-Codes, die bei Button-Klick ausgelöst wird
   initializeQRCodeScanner() {

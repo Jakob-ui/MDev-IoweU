@@ -32,9 +32,36 @@ ion-card {
 }
 
 .group-list {
-  margin-bottom: 20px;
+  margin-bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .pagename {
   margin-left: 10px;
 }
+
+.page-container .profile-placeholder {
+  height: 80px;
+  width: 80px;
+  margin-bottom: 20px;
+}
+
+.my-groups.edit-mode {
+  animation: wiggle 0.4s infinite;
+  cursor: grab;
+}
+
+@keyframes wiggle {
+  0% { transform: rotate(0.7deg); }
+  25% { transform: rotate(-0.7deg); }
+  50% { transform: rotate(0.7deg); }
+  75% { transform: rotate(-0.7deg); }
+  100% { transform: rotate(0.7deg); }
+}
+
+
+

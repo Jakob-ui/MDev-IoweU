@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Expenses } from './objects/Expenses';
 import {
   collection,
+  deleteDoc,
   Firestore,
   getDocs,
   updateDoc,
@@ -20,7 +21,7 @@ import { Members } from './objects/Members';
   providedIn: 'root',
 })
 export class ExpenseService {
-  public firestore: Firestore = inject(Firestore);
+  private firestore = inject(Firestore);
 
   //1. Ausgabe hinzufügen
 
@@ -40,7 +41,9 @@ export class ExpenseService {
         !expenseData.splitType ||
         !expenseData.splitBy
       ) {
-        throw new Error('Ein oder mehrere Pflichtfelder fehlen bei expenseData');
+        throw new Error(
+          'Ein oder mehrere Pflichtfelder fehlen bei expenseData'
+        );
       }
 
       // Neue ID für die Ausgabe erzeugen
@@ -63,47 +66,6 @@ export class ExpenseService {
         splitBy: expenseData.splitBy,
         expenseMember: expenseMembersData, // → wird 1:1 übernommen, inkl. paidBy & products
       };
-
-      //Die Summe einzelner Waagen beim splitType 'anteile' berechnen:
-
-      let sum = 0;
-      for (let i = 0; i < expenseMembersData.length; i++)
-      {
-        sum += expenseMembersData[i].split || 0; // Wenn split nicht definiert ist, wird 0 verwendet
-      }
-
-      // Einzelnbetraege nach dem splitType berechnen:
-
-      for(const member of expenseMembersData)
-        {
-          switch (expenseData.splitType) {
-            case 'anteile':
-              if (member.split && member.split >= 0) {
-                member.amountToPay = (member.split / sum) * expenseData.totalAmount;
-              } else {
-                member.amountToPay = 0; // Defaultwert, falls split nicht definiert ist
-              }
-              break;
-            case 'prozent':
-              if (member.split && member.split >= 0 && member.split <= 100) {
-                member.amountToPay = (member.split / 100) * expenseData.totalAmount;
-              } else {
-                member.amountToPay = 0; // Defaultwert, falls split nicht definiert ist
-              }
-              break;
-            case 'produkte':
-              if (member.products && member.products.length > 0) {
-                let sumOfProducts = 0;
-                for(const product of member.products) {
-                  sumOfProducts += product.price || 0; // Wenn amount nicht definiert ist, wird 0 verwendet
-                }
-                member.amountToPay = sumOfProducts;
-              } else {
-                member.amountToPay = 0; // Defaultwert, falls keine Produkte vorhanden sind
-              }
-              break;
-            }
-      }
 
       // In Firestore speichern
       const expenseRef = doc(
@@ -156,6 +118,16 @@ export class ExpenseService {
     }
   }
 
+  async deleteExpense(groupId: string, expenseId: string): Promise<void> {
+    const expensesRef = doc(
+      this.firestore,
+      'groups',
+      groupId,
+      'expenses',
+      expenseId
+    );
+    await deleteDoc(expensesRef);
+  }
 
   async getExpenseByGroup(
     groupId: string,
@@ -177,8 +149,6 @@ export class ExpenseService {
         ...doc.data(),
       })) as Expenses[];
 
-      console.log('Realtime expenses:', expenses);
-
       // Callback mit den aktualisierten Daten
       updateExpensesCallback(expenses);
     });
@@ -194,14 +164,25 @@ export class ExpenseService {
   ): Promise<() => void> {
     try {
       // Zugriff auf das richtige Dokument in der verschachtelten Collection
-      const expenseRef = doc(this.firestore, 'groups', groupId, 'expenses', expenseId);
+      const expenseRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'expenses',
+        expenseId
+      );
 
       const unsubscribe = onSnapshot(expenseRef, (expenseDoc) => {
         if (expenseDoc.exists()) {
-          const expense = { expenseId: expenseDoc.id, ...expenseDoc.data() } as Expenses;
+          const expense = {
+            expenseId: expenseDoc.id,
+            ...expenseDoc.data(),
+          } as Expenses;
           updateExpenseCallback(expense);
         } else {
-          console.error(`Expense with ID ${expenseId} not found in group ${groupId}`);
+          console.error(
+            `Expense with ID ${expenseId} not found in group ${groupId}`
+          );
           updateExpenseCallback(null);
         }
       });
@@ -212,5 +193,61 @@ export class ExpenseService {
       updateExpenseCallback(null);
       return () => {};
     }
+  }
+
+  //Calculation Methods
+  // Berechnet die Balance basierend auf den Ausgaben
+  calculateBalance(expenses: Expenses[]): { total: number; count: number } {
+    let total = 0;
+    let count = 0;
+    for (const expense of expenses) {
+      total += expense.totalAmount || 0;
+      count++;
+    }
+    console.log('Balance wird berechnet:', { total, count });
+    return { total, count };
+  }
+
+  async updateSums(
+    groupId: string,
+    sum: number,
+    count: number,
+    dbSumField: string,
+    dbCountField: string
+  ): Promise<void> {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+    const groupSnapshot = await getDoc(groupRef);
+    if (groupSnapshot.exists()) {
+      const groupData = groupSnapshot.data();
+      const currentSum = groupData?.[dbSumField] || 0;
+      const currentCount = groupData?.[dbCountField] || 0;
+
+      if (currentSum !== sum) {
+        await setDoc(
+          groupRef,
+          { [dbSumField]: sum },
+          { merge: true } // Nur das Feld sumTotalExpenses aktualisieren
+        );
+        console.log('sumTotalExpenses erfolgreich aktualisiert.');
+      } else {
+        console.log('sumTotalExpenses ist bereits aktuell.');
+      }
+
+      if (currentCount !== count) {
+        await setDoc(
+          groupRef,
+          { [dbCountField]: count },
+          { merge: true } // Nur das Feld sumTotalExpenses aktualisieren
+        );
+        console.log('countTotalExpenses erfolgreich aktualisiert.');
+      } else {
+        console.log('countTotalExpenses ist bereits aktuell.');
+      }
+    } else {
+      console.error(`Gruppe mit der ID ${groupId} nicht gefunden.`);
+    }
+  }
+  catch(e: any) {
+    console.error('Fehler beim Synchronisieren von sumTotalExpenses:', e);
   }
 }
