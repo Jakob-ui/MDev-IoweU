@@ -4,12 +4,18 @@ import {
   collection,
   deleteDoc,
   Firestore,
-  getDoc,
+  getDocs,
+  updateDoc,
   onSnapshot,
+  getDoc,
+  query,
+  where,
 } from '@angular/fire/firestore';
 import { doc, setDoc } from 'firebase/firestore';
 import { inject } from '@angular/core';
 import { ExpenseMember } from './objects/ExpenseMember';
+import { Groups } from './objects/Groups';
+import { Members } from './objects/Members';
 
 @Injectable({
   providedIn: 'root',
@@ -71,6 +77,40 @@ export class ExpenseService {
       );
       await setDoc(expenseRef, expense);
 
+      //Felder in der Collection "Members" aktualisieren:
+ 
+      //1. Sich das Dokument der Gruppe holen
+      const groupRef = await getDoc(doc(this.firestore, 'groups', groupId));
+      //2. Den Inhalt in einem Objekt speichern
+      const groupData = groupRef.data() as Groups;
+      //3. Die Mitglieder-Array durchlaufen und die Felder aktualisieren, die mit der Summe der Ausgaben zu tun haben (initialisieren wenn's sie nicht gibt)
+      for(const member of groupData.members) 
+        {
+          for(const expenseMember of expenseMembersData) 
+          {
+            if(expenseMember.memberId === member.uid) 
+              {
+                if(expenseMember.memberId === expense.paidBy)
+                {
+                  member.sumExpenseAmount += expense.totalAmount;
+                  member.sumExpenseMemberAmount += expense.totalAmount - expenseMember.amountToPay;
+                }
+                else
+                {
+                  member.sumExpenseAmount -= expenseMember.amountToPay;
+                }
+                 // Wenn amount nicht definiert ist, wird 0 verwendet
+                member.countExpenseAmount += 1;
+                member.countExpenseMemberAmount += 1;
+              }
+          }
+        }    
+      //4. Das Gruppendokument mit diesen Feldern updaten und speichern
+      const groupDocRef = doc(this.firestore, 'groups', groupId);
+      await updateDoc(groupDocRef, {
+        members: groupData.members, // Update the "members" array in the group document
+      });
+
       return expense;
     } catch (error) {
       console.error('Fehler beim Erstellen der Ausgabe: ', error);
@@ -115,16 +155,6 @@ export class ExpenseService {
 
     // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
     return unsubscribe;
-  }
-
-  // Hilfsfunktion zur Berechnung der Summe der Anteile:
-
-  sumOfShares(a: Array<any>): number {
-    let sum = 0;
-    for (let i = 0; i < a.length; i++) {
-      sum += a[i].numberField || 0; // Wenn split nicht definiert ist, wird 0 verwendet
-    }
-    return sum;
   }
 
   async getExpenseById(
