@@ -39,8 +39,7 @@
       'slideUp': overlayState === 'normal',
       'slideDown': overlayState === 'hidden'
     }"
-    (click)="toggleQRCodeOverlay()"
-  >
+    (click)="toggleQRCodeOverlay()">
     <div class="qr-code-wrapper" (click)="$event.stopPropagation()">
       <h5>Scannen um Gruppe beizutreten.</h5>
       <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>

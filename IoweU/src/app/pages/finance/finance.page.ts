@@ -17,6 +17,7 @@ import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
 import { GroupService } from '../../services/group.service';
 import { ExpenseService } from "../../services/expense.service";
+import {QRCodeComponent} from "angularx-qrcode";
 
 @Component({
   selector: 'app-finance',
@@ -34,6 +35,7 @@ import { ExpenseService } from "../../services/expense.service";
     IonCard,
     IonIcon,
     RouterModule,
+    QRCodeComponent,
   ],
 })
 export class FinancePage implements OnInit {
@@ -48,6 +50,8 @@ export class FinancePage implements OnInit {
 
   groupname: string = '';
   iosIcons: boolean = false;
+
+  overlayState: 'start' | 'normal' | 'hidden' = 'start';
 
   uid: string | null = '';
   user: string | null = '';
@@ -71,7 +75,6 @@ export class FinancePage implements OnInit {
 
   async ngOnInit() {
     this.loadingService.show();
-
     try {
       if (this.authService.currentUser) {
         this.uid = this.authService.currentUser.uid;
@@ -91,30 +94,34 @@ export class FinancePage implements OnInit {
             this.groupId = currentGroup.groupId || '';
 
             if (currentGroup.members && currentGroup.members.length > 0) {
-              this.groupMembers = currentGroup.members
-                .filter((member: any) => member.uid !== this.uid)
-                .map((member: any) => {
-                  this.memberUsernames.push(member.username || '');
-                  this.memberIds.push(member.memberId || '');
-                  this.memberColors.push(member.color || '');
-                  this.memberRoles.push(member.role || '');
-                  this.memberUids.push(member.uid || '');
+              this.groupMembers = await Promise.all(
+                currentGroup.members
+                  .filter((member: any) => member.uid !== this.uid) // Filtere den aktuellen Benutzer heraus
+                  .map(async (member: any) => {
+                    this.memberUsernames.push(member.username || '');
+                    this.memberIds.push(member.memberId || '');
+                    this.memberColors.push(member.color || '');
+                    this.memberRoles.push(member.role || '');
+                    this.memberUids.push(member.uid || '');
 
-                  // Berechne den Betrag zwischen aktuellem Nutzer und Gruppenmitglied
-                  const amount = this.calculateBalanceBetweenUsers(this.uid!, member.uid);
+                    // Berechne den Saldo zwischen dem aktuellen Benutzer und jedem Gruppenmitglied
+                    const amount = await this.expenseService.calculateBalanceForLoggedInUser(this.uid!, member.uid);
 
-                  // 💰 Verteile auf Einnahmen und Ausgaben
-                  if (amount > 0) {
-                    this.myIncome += amount;
-                  } else {
-                    this.myExpenses += Math.abs(amount);
-                  }
+                    console.log(`Saldo zwischen ${this.uid} und ${member.uid}: ${amount}`);
 
-                  return {
-                    ...member,
-                    amount,
-                  };
-                });
+                    // Verteile auf Einnahmen und Ausgaben
+                    if (amount > 0) {
+                      this.myIncome += amount;
+                    } else {
+                      this.myExpenses += Math.abs(amount);
+                    }
+
+                    return {
+                      ...member,
+                      amount, // Füge den berechneten Betrag zum Mitglied hinzu
+                    };
+                  })
+              );
 
               console.log('Mitglieder geladen:', this.groupMembers);
               console.log('Usernames:', this.memberUsernames);
@@ -122,6 +129,7 @@ export class FinancePage implements OnInit {
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
+
           } else {
             console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
             this.groupname = 'Unbekannte Gruppe';
@@ -142,16 +150,8 @@ export class FinancePage implements OnInit {
     }
   }
 
-  calculateBalanceBetweenUsers(userA: string, userB: string): number {
-    // Beispiel: Hier müsstest du deine echte Logik auf Basis deiner Expense-Daten implementieren
-    // Zum Beispiel:
-    // - Finde alle Ausgaben, die userA bezahlt hat, an denen userB beteiligt war
-    // - und umgekehrt
-    // - Dann: Betrag berechnen, der userB userA schuldet - umgekehrt
 
-    // Dummy-Wert für Entwicklung:
-    return Math.floor(Math.random() * 200 - 100); // zufällig Schulden oder Guthaben zwischen -100 und +100
-  }
+
 
   get myBalance(): number {
     return this.myIncome - this.myExpenses;
@@ -172,5 +172,23 @@ export class FinancePage implements OnInit {
 
   goBack() {
     this.router.navigate(['/group', this.groupId]);
+  }
+
+  toggleInfoOverlay() {
+
+    console.log('Overlay state:', this.overlayState);
+
+    // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
+    if (this.overlayState === 'start') {
+      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+    } else if (this.overlayState === 'normal') {
+      // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
+      this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
+    } else if (this.overlayState === 'hidden') {
+      // Wenn es im "hidden" Zustand ist, wird es wieder nach oben geschoben
+      this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
+    }
+
+    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 }

@@ -144,7 +144,7 @@ export class CreateExpensePage {
     { name: 'Rechnungen', icon: 'receipt-outline' },
     { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
- 
+
 
   async ngOnInit() {
     this.loadingService.show();
@@ -181,6 +181,12 @@ export class CreateExpensePage {
                   this.memberColors.push(member.color || '');
                   this.memberRoles.push(member.role || '');
                   this.memberUids.push(member.uid || '');
+
+                  // Initialisiere Summen- und Zählerwerte für jedes Mitglied
+                  member.sumExpenseAmount = member.sumExpenseAmount || 0;
+                  member.sumExpenseMemberAmount = member.sumExpenseMemberAmount || 0;
+                  member.countExpenseAmount = member.countExpenseAmount || 0;
+                  member.countExpenseMemberAmount = member.countExpenseMemberAmount || 0;
 
                   return {
                     ...member,
@@ -226,8 +232,9 @@ export class CreateExpensePage {
     }
   }
 
+
   // UI Handeling ---------------------------------->
- 
+
   onCategoryDropdownClick(event: Event) {
     this.dropdownOpen = !this.dropdownOpen;
     event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird

@@ -14,12 +14,47 @@
           <div class="profile-placeholder"></div>
           <span class="member-name">{{ user }}</span>
         </div>
+        <ion-icon
+          [src]="'assets/icon/ionicons/information-outline.svg'"
+          (click)="toggleInfoOverlay()"
+        ></ion-icon>
       </div>
     </ion-toolbar>
   </div>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <div
+    class="info-overlay"
+    [ngClass]="{
+      'hidden': overlayState === 'hidden',
+      'normal': overlayState === 'normal',
+      'start': overlayState === 'start',
+      'slideUp': overlayState === 'normal',
+      'slideDown': overlayState === 'hidden'
+    }"
+    (click)="toggleInfoOverlay()">
+    <div class="info-wrapper" (click)="$event.stopPropagation()">
+      <h5>Info - Finanzübersicht</h5>
+      <p>
+        Auf dieser Seite siehst du deine <strong>persönliche Finanzübersicht</strong> innerhalb dieser Gruppe.
+      </p>
+      <p>
+        Der große Betrag in der Mitte zeigt dir, ob du insgesamt <strong>Guthaben</strong> oder <strong>Schulden</strong> hast – also ob dir andere Gruppenmitglieder Geld schulden oder du ihnen noch etwas zurückzahlen musst.
+      </p>
+      <p>
+        Darunter findest du eine Liste aller Gruppenmitglieder (außer dir selbst) mit den jeweiligen Beträgen:
+      </p>
+      <ul>
+        <li><strong>Positiver Betrag:</strong> Diese Person schuldet dir Geld, werden in grün angezeigt.</li>
+        <li><strong>Negativer Betrag:</strong> Du schuldest dieser Person Geld, werden in rot angezeigt.</li>
+      </ul>
+      <p>
+        Durch Tippen auf ein Mitglied kannst du eine <strong>Detailansicht</strong> öffnen, in der alle gemeinsamen Ausgaben mit dieser Person aufgelistet sind.
+      </p>
+    </div>
+  </div>
+
   <div class="page-container">
     <h4 >{{ groupname }}</h4>
     <h1>Finanzübersicht</h1>
@@ -28,7 +63,6 @@
       class="finance-card"
       [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }">
       <div class="card-content-finance">
-        <p>Du hast in dieser Gruppe insgesamt</p>
         <h2>{{ myBalance | currency: 'EUR' }}</h2>
         <p>
           {{ myBalance < 0 ? 'Schulden' : 'Guthaben' }}
@@ -67,8 +101,9 @@
           class="balance-info"
           [ngClass]="{ 'negative': member.amount < 0, 'positive': member.amount >= 0 }"
         >
-          {{ member.amount | currency: 'EUR' }}
+          {{ (member.amount || 0) | currency: 'EUR' }}
         </ion-badge>
+
       </ion-item>
     </ion-list>
   </div>

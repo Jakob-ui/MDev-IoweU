@@ -77,6 +77,7 @@ export class ExpenseService {
       );
       await setDoc(expenseRef, expense);
 
+      /*
       //Felder in der Collection "Members" aktualisieren:
 
       //1. Sich das Dokument der Gruppe holen
@@ -106,6 +107,10 @@ export class ExpenseService {
       await updateDoc(groupDocRef, {
         members: groupData.members, // Update the "members" array in the group document
       });
+
+       */
+
+      await this.updateMemberSumsOnNewExpense(groupId, expense);
 
       return expense;
     } catch (error) {
@@ -341,4 +346,168 @@ export class ExpenseService {
   catch(e: any) {
     console.error('Fehler beim Synchronisieren von sumTotalExpenses:', e);
   }
+
+  async updateMemberSumsOnNewExpense(groupId: string, expense: Expenses): Promise<void> {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+    const groupSnapshot = await getDoc(groupRef);
+    if (!groupSnapshot.exists()) return;
+
+    const groupData = groupSnapshot.data() as Groups;
+    const updatedMembers = [...groupData.members];
+
+    for (const memberData of expense.expenseMember) {
+      const member = updatedMembers.find(m => m.uid === memberData.memberId);
+      if (!member) continue;
+
+      // Wenn das Mitglied die Ausgabe bezahlt hat
+      if (member.uid === expense.paidBy) {
+        const amountForOthers = expense.totalAmount - memberData.amountToPay;
+
+        member.sumExpenseAmount += amountForOthers;
+        member.countExpenseAmount += 1;
+      } else {
+        // Das Mitglied hat nichts bezahlt, sondern war beteiligt
+        member.sumExpenseMemberAmount += memberData.amountToPay;
+        member.countExpenseMemberAmount += 1;
+      }
+    }
+
+    // Mitglieder updaten
+    await updateDoc(groupRef, {
+      members: updatedMembers,
+    });
+
+    console.log('Mitgliedssummen wurden inkrementell aktualisiert.');
+    console.log('Mitglieder:', updatedMembers);
+  }
+
+
+  async updateMemberSumsOnDeleteExpense(
+    groupId: string,
+    expense: Expenses
+  ): Promise<void> {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+    const groupSnapshot = await getDoc(groupRef);
+    if (!groupSnapshot.exists()) return;
+
+    const groupData = groupSnapshot.data() as Groups;
+    const updatedMembers = [...groupData.members];
+
+    for (const memberData of expense.expenseMember) {
+      const member = updatedMembers.find(m => m.uid === memberData.memberId);
+      if (!member) continue;
+
+      // Wenn das Mitglied die Ausgabe bezahlt hat
+      if (member.uid === expense.paidBy) {
+        const amountForOthers = expense.totalAmount - memberData.amountToPay;
+
+        member.sumExpenseAmount -= amountForOthers;
+        member.countExpenseAmount -= 1;
+      } else {
+        // Das Mitglied hat nichts bezahlt, sondern war beteiligt
+        member.sumExpenseMemberAmount -= memberData.amountToPay;
+        member.countExpenseMemberAmount -= 1;
+      }
+    }
+
+    // Mitglieder updaten
+    await updateDoc(groupRef, {
+      members: updatedMembers,
+    });
+
+    console.log('Mitgliedssummen wurden inkrementell aktualisiert.');
+  }
+
+  async updateMemberSumsOnPayment(groupId: string, payerId: string, receiverId: string, amount: number): Promise<void> {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+    const groupSnapshot = await getDoc(groupRef);
+    if (!groupSnapshot.exists()) return;
+
+    const groupData = groupSnapshot.data() as Groups;
+    const updatedMembers = [...groupData.members];
+
+    const payer = updatedMembers.find(m => m.uid === payerId);
+    const receiver = updatedMembers.find(m => m.uid === receiverId);
+    if (!payer || !receiver) return;
+
+    payer.sumAmountPaid += amount;
+    payer.countAmountPaid += 1;
+
+    receiver.sumAmountReceived += amount;
+    receiver.countAmountReceived += 1;
+
+    await updateDoc(groupRef, {
+      members: updatedMembers,
+    });
+
+    console.log('Zahlung erfolgreich verbucht.');
+  }
+  async updateMemberSumsOnPaymentDelete(groupId: string, payerId: string, receiverId: string, amount: number): Promise<void> {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+    const groupSnapshot = await getDoc(groupRef);
+    if (!groupSnapshot.exists()) return;
+
+    const groupData = groupSnapshot.data() as Groups;
+    const updatedMembers = [...groupData.members];
+
+    const payer = updatedMembers.find(m => m.uid === payerId);
+    const receiver = updatedMembers.find(m => m.uid === receiverId);
+    if (!payer || !receiver) return;
+
+    payer.sumAmountPaid -= amount;
+    payer.countAmountPaid -= 1;
+
+    receiver.sumAmountReceived -= amount;
+    receiver.countAmountReceived -= 1;
+
+    await updateDoc(groupRef, {
+      members: updatedMembers,
+    });
+
+    console.log('Zahlung erfolgreich gelöscht.');
+  }
+
+  async calculateBalanceForLoggedInUser(loggedInUserId: string, groupId: string): Promise<any> {
+    const balance: { [key: string]: number } = {};  // Objekt zur Speicherung der Salden für alle Mitglieder
+
+    // Hole alle Ausgaben für die Gruppe unter Verwendung des Echtzeit-Listeners
+    const unsubscribe = await this.getExpenseByGroup(groupId, async (expenses) => {
+      // Iteriere über jede Ausgabe
+      for (const expense of expenses) {
+        const paidBy = expense.paidBy; // Wer hat die Ausgabe bezahlt?
+        const members = expense.expenseMember; // Alle Mitglieder der Ausgabe
+
+        // Iteriere über alle Mitglieder und berechne, ob der eingeloggte Benutzer Schulden hat oder etwas zurückerhalten sollte
+        for (const member of members) {
+          const memberId = member.memberId;
+          // Stelle sicher, dass amountToPay eine Zahl ist (falls es kein gültiger Wert ist, wird 0 verwendet)
+          const amountToPay = Number(member.amountToPay) || 0; // Umwandlung in Zahl, Fallback auf 0
+
+          // Wenn der eingeloggte Benutzer nicht derjenige ist, der bezahlt hat (paidBy)
+          if (paidBy !== loggedInUserId) {
+            // Berechne, wie viel der eingeloggte Benutzer von diesem Mitglied zurückbekommen muss oder ihm schuldet
+            if (memberId === loggedInUserId) {
+              if (!balance[memberId]) {
+                balance[memberId] = 0;  // Initialisiere den Saldo für den eingeloggten Benutzer
+              }
+              balance[memberId] += amountToPay;  // Der eingeloggte Benutzer bekommt von diesem Mitglied zurück
+            } else {
+              // Berechne, wie viel der eingeloggte Benutzer diesem Mitglied schuldet
+              if (memberId !== loggedInUserId) {
+                if (!balance[loggedInUserId]) {
+                  balance[loggedInUserId] = 0;  // Initialisiere den Saldo für den eingeloggten Benutzer
+                }
+                balance[loggedInUserId] -= amountToPay;  // Der eingeloggte Benutzer schuldet diesem Mitglied etwas
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Gib den Unsubscribe-Handler zurück, um den Listener später zu entfernen, falls nötig
+    return { balance, unsubscribe };
+  }
+
+
 }
