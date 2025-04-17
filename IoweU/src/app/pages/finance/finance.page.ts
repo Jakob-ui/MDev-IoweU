@@ -54,9 +54,8 @@ export class FinancePage implements OnInit {
   displayName: string | null = null;
   groupId: string | null = null;
 
-  myExpenses: number = +120.5;
-  myIncome: number = +100.0;
-  myBalance: number = this.myIncome - this.myExpenses;
+  myExpenses: number = 0;
+  myIncome: number = 0;
 
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
@@ -92,18 +91,30 @@ export class FinancePage implements OnInit {
             this.groupId = currentGroup.groupId || '';
 
             if (currentGroup.members && currentGroup.members.length > 0) {
-              this.groupMembers = currentGroup.members.map((member: any) => {
-                this.memberUsernames.push(member.username || '');
-                this.memberIds.push(member.memberId || '');
-                this.memberColors.push(member.color || '');
-                this.memberRoles.push(member.role || '');
-                this.memberUids.push(member.uid || '');
+              this.groupMembers = currentGroup.members
+                .filter((member: any) => member.uid !== this.uid)
+                .map((member: any) => {
+                  this.memberUsernames.push(member.username || '');
+                  this.memberIds.push(member.memberId || '');
+                  this.memberColors.push(member.color || '');
+                  this.memberRoles.push(member.role || '');
+                  this.memberUids.push(member.uid || '');
 
-                return {
-                  ...member,
-                  amount: 0, // Dummy-Wert
-                };
-              });
+                  // Berechne den Betrag zwischen aktuellem Nutzer und Gruppenmitglied
+                  const amount = this.calculateBalanceBetweenUsers(this.uid!, member.uid);
+
+                  // 💰 Verteile auf Einnahmen und Ausgaben
+                  if (amount > 0) {
+                    this.myIncome += amount;
+                  } else {
+                    this.myExpenses += Math.abs(amount);
+                  }
+
+                  return {
+                    ...member,
+                    amount,
+                  };
+                });
 
               console.log('Mitglieder geladen:', this.groupMembers);
               console.log('Usernames:', this.memberUsernames);
@@ -131,14 +142,21 @@ export class FinancePage implements OnInit {
     }
   }
 
-  goToCreateExpense() {
-    this.loadingService.show();
-    try {
-      this.router.navigate(['create-expense']);
-    } finally {
-      this.loadingService.hide();
-    }
+  calculateBalanceBetweenUsers(userA: string, userB: string): number {
+    // Beispiel: Hier müsstest du deine echte Logik auf Basis deiner Expense-Daten implementieren
+    // Zum Beispiel:
+    // - Finde alle Ausgaben, die userA bezahlt hat, an denen userB beteiligt war
+    // - und umgekehrt
+    // - Dann: Betrag berechnen, der userB userA schuldet - umgekehrt
+
+    // Dummy-Wert für Entwicklung:
+    return Math.floor(Math.random() * 200 - 100); // zufällig Schulden oder Guthaben zwischen -100 und +100
   }
+
+  get myBalance(): number {
+    return this.myIncome - this.myExpenses;
+  }
+
 
   async logout() {
     this.loadingService.show();
