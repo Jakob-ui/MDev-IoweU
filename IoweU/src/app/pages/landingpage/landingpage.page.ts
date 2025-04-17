@@ -1,21 +1,27 @@
-import {Component, OnInit, AfterViewInit, ViewChild, ElementRef, ViewChildren, QueryList, NgZone, OnDestroy} from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+  ViewChildren,
+  QueryList,
+  NgZone,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonButton,
   IonButtons,
-  IonCard,
-  IonCardSubtitle,
-  IonCardTitle,
   IonContent,
   IonHeader,
   IonMenuButton,
   IonTitle,
   IonToolbar,
-  IonIcon, IonFooter
+  IonIcon,
 } from '@ionic/angular/standalone';
 import Scrollama from 'scrollama';
-import { RouterLink } from "@angular/router";
+import { RouterLink } from '@angular/router';
 import { addIcons } from 'ionicons';
 import {
   personOutline,
@@ -26,9 +32,8 @@ import {
   statsChartOutline,
   chevronDownOutline,
   listOutline,
-  documentOutline
+  documentOutline,
 } from 'ionicons/icons';
-
 
 @Component({
   selector: 'app-landingpage',
@@ -44,14 +49,9 @@ import {
     FormsModule,
     IonButtons,
     IonMenuButton,
-    IonButton,
-    IonCard,
-    IonCardTitle,
-    IonCardSubtitle,
     RouterLink,
     IonIcon,
-    IonFooter
-  ]
+  ],
 })
 export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('featureItem') featureItems!: QueryList<ElementRef>;
@@ -67,22 +67,43 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
       documentOutline,
       calculatorOutline,
       repeatOutline,
-      statsChartOutline
+      statsChartOutline,
     });
   }
 
   teamMembers = [
-    { name: 'Jakob Laschober', role: 'Backend Developer', photo: 'assets/Jakob.jpg' },
-    { name: 'Livia Hochstöger', role: 'Frontend Developer & Design', photo: 'assets/Livia.jpg' },
-    { name: 'Mateusz Osmanski', role: 'Backend Developer & Scrummaster', photo: 'assets/Mateusz.jpg' },
-    { name: 'Michaela Kopf', role: 'Frontend Developer & Design', photo: 'assets/Michaela.jpg' },
-    { name: 'Sophie Plaskacz', role: 'Frontend Developer & Design', photo: 'assets/Sophie.jpg' },
+    {
+      name: 'Jakob Laschober',
+      role: 'Backend Developer',
+      photo: 'assets/Jakob.jpg',
+    },
+    {
+      name: 'Livia Hochstöger',
+      role: 'Frontend Developer & Design',
+      photo: 'assets/Livia.jpg',
+    },
+    {
+      name: 'Mateusz Osmanski',
+      role: 'Backend Developer & Scrummaster',
+      photo: 'assets/Mateusz.jpg',
+    },
+    {
+      name: 'Michaela Kopf',
+      role: 'Frontend Developer & Design',
+      photo: 'assets/Michaela.jpg',
+    },
+    {
+      name: 'Sophie Plaskacz',
+      role: 'Frontend Developer & Design',
+      photo: 'assets/Sophie.jpg',
+    },
   ];
 
   features = [
     {
       title: 'Gruppen erstellen',
-      description: 'Erstelle verschiedene Gruppen für diverse Zwecke, z.B. WG oder Reisen.',
+      description:
+        'Erstelle verschiedene Gruppen für diverse Zwecke, z.B. WG oder Reisen.',
       icon: 'people-outline',
       hasDetails: false,
       details: null,
@@ -90,7 +111,8 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
     },
     {
       title: 'Abrechnungslisten verwalten',
-      description: 'Verwalte verschiedene Listen für Ausgaben mit denselben oder unterschiedlichen Personen.',
+      description:
+        'Verwalte verschiedene Listen für Ausgaben mit denselben oder unterschiedlichen Personen.',
       icon: 'list-outline',
       hasDetails: false,
       details: null,
@@ -98,7 +120,8 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
     },
     {
       title: 'Vorhandene Templates',
-      description: 'Templates für Reisen und WG mit zusätzlichen Funktionen wie Produktvorschlägen und Abschreibungsdauer.',
+      description:
+        'Templates für Reisen und WG mit zusätzlichen Funktionen wie Produktvorschlägen und Abschreibungsdauer.',
       icon: 'document-outline',
       hasDetails: false,
       details: null,
@@ -106,7 +129,8 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
     },
     {
       title: 'Schuldner und Abrechnungsarten',
-      description: 'Wähle die Schuldner und die Abrechnungsart in Prozent/Anteilig bei der Hinzufügung von Ausgaben.',
+      description:
+        'Wähle die Schuldner und die Abrechnungsart in Prozent/Anteilig bei der Hinzufügung von Ausgaben.',
       icon: 'calculator-outline',
       hasDetails: false,
       details: null,
@@ -114,7 +138,8 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
     },
     {
       title: 'Wiederkehrende Kosten',
-      description: 'Trage wiederkehrende Kosten wie Miete in vorbestimmten Abständen ein.',
+      description:
+        'Trage wiederkehrende Kosten wie Miete in vorbestimmten Abständen ein.',
       icon: 'repeat-outline',
       hasDetails: true,
       details: 'Erstelle Kosten, die sich wiederholen',
@@ -122,17 +147,19 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
     },
     {
       title: 'Gesamtbilanz und Archiv',
-      description: 'Erhalte eine Übersicht über alle offenen Schulden sowie ein Archiv für beglichene Rückstände.',
+      description:
+        'Erhalte eine Übersicht über alle offenen Schulden sowie ein Archiv für beglichene Rückstände.',
       icon: 'stats-chart-outline',
       hasDetails: true,
-      details: 'Verfolge deine Finanzen und zahle deine Schulden mit einer klaren Übersicht der offenen Posten.',
+      details:
+        'Verfolge deine Finanzen und zahle deine Schulden mit einer klaren Übersicht der offenen Posten.',
       image: 'assets/feature6.png',
-    }
+    },
   ];
 
   ngOnInit(): void {
     // Initialize Scrollama in onInit
-    import('scrollama').then(scrollamaModule => {
+    import('scrollama').then((scrollamaModule) => {
       this.ngZone.runOutsideAngular(() => {
         this.scroller = scrollamaModule.default();
       });
@@ -159,19 +186,21 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
               console.log(`Feature ${index} ist im Sichtbereich`);
               this.currentFeatureIndex = index;
 
-              const featureItem = this.featureItems.toArray()[event.index].nativeElement;
+              const featureItem =
+                this.featureItems.toArray()[event.index].nativeElement;
               featureItem.classList.add('active');
 
               // Update phone position basierend auf progress
               const progress = event.progress;
-              this.updatePhonePosition(index, progress);  // Progress an updatePhonePosition übergeben
+              this.updatePhonePosition(index, progress); // Progress an updatePhonePosition übergeben
             });
           })
           .onStepExit((event: any) => {
             const index = event.index;
             console.log(`Feature ${index} hat den Sichtbereich verlassen`);
 
-            const featureItem = this.featureItems.toArray()[event.index].nativeElement;
+            const featureItem =
+              this.featureItems.toArray()[event.index].nativeElement;
             featureItem.classList.remove('active');
           })
           .onStepProgress((event: any) => {
@@ -198,9 +227,11 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
 
     if (progress < 0.5) {
       // First half of animation: rotate phone
-      const rotationAmount = isEven ? (progress * 2 * 90) : (progress * 2 * -90);
+      const rotationAmount = isEven ? progress * 2 * 90 : progress * 2 * -90;
       phone.style.transition = 'transform 0.5s ease-out';
-      phone.style.transform = `translateX(${startX + (endX - startX) * progress * 2}px) rotateY(${rotationAmount}deg)`;
+      phone.style.transform = `translateX(${
+        startX + (endX - startX) * progress * 2
+      }px) rotateY(${rotationAmount}deg)`;
     } else if (progress >= 0.5 && progress < 0.9) {
       // Update the image when phone is fully rotated
       if (screenImg.src !== feature.image) {
@@ -208,16 +239,19 @@ export class LandingpagePage implements OnInit, AfterViewInit, OnDestroy {
       }
 
       // Start rotating back
-      const reverseRotation = isEven ? (1 - (progress - 0.5) * 2) * 90 : (1 - (progress - 0.5) * 2) * -90;
+      const reverseRotation = isEven
+        ? (1 - (progress - 0.5) * 2) * 90
+        : (1 - (progress - 0.5) * 2) * -90;
       phone.style.transition = 'transform 0.5s ease-in-out';
-      phone.style.transform = `translateX(${startX + (endX - startX) * (progress - 0.5) * 2}px) rotateY(${reverseRotation}deg)`;
+      phone.style.transform = `translateX(${
+        startX + (endX - startX) * (progress - 0.5) * 2
+      }px) rotateY(${reverseRotation}deg)`;
     } else {
       // Final position - fully on the other side
       phone.style.transition = 'transform 0.3s ease-in';
       phone.style.transform = `translateX(${endX}px) rotateY(0deg)`;
     }
   }
-
 
   ngOnDestroy(): void {
     // Clean up event listeners when component is destroyed
