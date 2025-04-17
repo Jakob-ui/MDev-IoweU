@@ -281,7 +281,7 @@ ion-input::part(native) {
 }
 
 .Kategorie {
-  position: relative; 
+  position: relative;
 }
 .Kategorie .input-label {
   margin-left: 0;
@@ -299,7 +299,7 @@ ion-input::part(native) {
   top: 100%;
   left: 0;
   margin-top: -20px;
-  left: -50px; 
+  left: -50px;
 
 }
 
@@ -418,10 +418,10 @@ ion-item.dropDownFelder::part(native) {
   } .member-info {
   display: flex;
   align-items: center;
-  padding: 8px;
-  border: 2px solid;
-  border-radius: 8px;
-  gap: 8px;
+        border: 2px solid var(--member-color, #1a65eb);
+        padding: 5px 10px 5px 5px;
+  border-radius: 50px;
+  gap: 10px;
 }
 
 .profile-placeholder {
