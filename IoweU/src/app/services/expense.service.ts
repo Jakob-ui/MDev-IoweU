@@ -84,28 +84,23 @@ export class ExpenseService {
       //2. Den Inhalt in einem Objekt speichern
       const groupData = groupRef.data() as Groups;
       //3. Die Mitglieder-Array durchlaufen und die Felder aktualisieren, die mit der Summe der Ausgaben zu tun haben (initialisieren wenn's sie nicht gibt)
-      for(const member of groupData.members)
-        {
-          for(const expenseMember of expenseMembersData)
-          {
-            if(expenseMember.memberId === member.uid)
-              {
-                if(expenseMember.memberId === expense.paidBy)
-                {
-                  member.sumExpenseAmount += expense.totalAmount;
-                  member.sumExpenseMemberAmount += expense.totalAmount - expenseMember.amountToPay;
-                  //sumAmountReceived
-                }
-                else
-                {
-                  member.sumExpenseAmount -= expenseMember.amountToPay;
-                }
-                 // Wenn amount nicht definiert ist, wird 0 verwendet
-                member.countExpenseAmount += 1;
-                member.countExpenseMemberAmount += 1;
-              }
+      for (const member of groupData.members) {
+        for (const expenseMember of expenseMembersData) {
+          if (expenseMember.memberId === member.uid) {
+            if (expenseMember.memberId === expense.paidBy) {
+              member.sumExpenseAmount += expense.totalAmount;
+              member.sumExpenseMemberAmount +=
+                expense.totalAmount - expenseMember.amountToPay;
+              //sumAmountReceived
+            } else {
+              member.sumExpenseAmount -= expenseMember.amountToPay;
+            }
+            // Wenn amount nicht definiert ist, wird 0 verwendet
+            member.countExpenseAmount += 1;
+            member.countExpenseMemberAmount += 1;
           }
         }
+      }
       //4. Das Gruppendokument mit diesen Feldern updaten und speichern
       const groupDocRef = doc(this.firestore, 'groups', groupId);
       await updateDoc(groupDocRef, {
@@ -116,6 +111,101 @@ export class ExpenseService {
     } catch (error) {
       console.error('Fehler beim Erstellen der Ausgabe: ', error);
       return null;
+    }
+  }
+
+  async updateExpense(
+    expenseId: string,
+    updatedExpenseData: Expenses,
+    updatedExpenseMembersData: ExpenseMember[],
+    groupId: string
+  ): Promise<void> {
+    try {
+      // Pflichtfelder prüfen
+      if (
+        !updatedExpenseData.description ||
+        updatedExpenseData.totalAmount === undefined ||
+        !updatedExpenseData.paidBy ||
+        !updatedExpenseData.currency ||
+        !updatedExpenseData.repeat ||
+        !updatedExpenseData.splitType ||
+        !updatedExpenseData.splitBy
+      ) {
+        throw new Error(
+          'Ein oder mehrere Pflichtfelder fehlen bei updatedExpenseData'
+        );
+      }
+
+      // Referenz zur bestehenden Ausgabe
+      const expenseRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'expenses',
+        expenseId
+      );
+      const expenseSnapshot = await getDoc(expenseRef);
+      if (!expenseSnapshot.exists()) {
+        throw new Error(`Expense mit ID ${expenseId} existiert nicht.`);
+      }
+
+      const oldExpense = expenseSnapshot.data() as Expenses;
+
+      // Gruppendokument abrufen
+      const groupRef = await getDoc(doc(this.firestore, 'groups', groupId));
+      const groupData = groupRef.data() as Groups;
+
+      // Mitglieder-Array aktualisieren: Alte Werte entfernen
+      for (const member of groupData.members) {
+        for (const expenseMember of oldExpense.expenseMember) {
+          if (expenseMember.memberId === member.uid) {
+            if (expenseMember.memberId === oldExpense.paidBy) {
+              member.sumExpenseAmount -= oldExpense.totalAmount;
+              member.sumExpenseMemberAmount -=
+                oldExpense.totalAmount - expenseMember.amountToPay;
+            } else {
+              member.sumExpenseAmount += expenseMember.amountToPay;
+            }
+            member.countExpenseAmount -= 1;
+            member.countExpenseMemberAmount -= 1;
+          }
+        }
+      }
+
+      // Mitglieder-Array aktualisieren: Neue Werte hinzufügen
+      for (const member of groupData.members) {
+        for (const expenseMember of updatedExpenseMembersData) {
+          if (expenseMember.memberId === member.uid) {
+            if (expenseMember.memberId === updatedExpenseData.paidBy) {
+              member.sumExpenseAmount += updatedExpenseData.totalAmount;
+              member.sumExpenseMemberAmount +=
+                updatedExpenseData.totalAmount - expenseMember.amountToPay;
+            } else {
+              member.sumExpenseAmount -= expenseMember.amountToPay;
+            }
+            member.countExpenseAmount += 1;
+            member.countExpenseMemberAmount += 1;
+          }
+        }
+      }
+
+      // Gruppendokument aktualisieren
+      const groupDocRef = doc(this.firestore, 'groups', groupId);
+      await updateDoc(groupDocRef, {
+        members: groupData.members, // Aktualisiere das Mitglieder-Array
+      });
+
+      // Aktualisierte Ausgabe in Firestore speichern
+      const updatedExpense: Expenses = {
+        ...updatedExpenseData,
+        expenseId,
+        expenseMember: updatedExpenseMembersData, // Aktualisierte Mitglieder
+      };
+      await updateDoc(expenseRef, { ...updatedExpense });
+
+      console.log(`Expense mit ID ${expenseId} erfolgreich aktualisiert.`);
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren der Ausgabe: ', error);
     }
   }
 

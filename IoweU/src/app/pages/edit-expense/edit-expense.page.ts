@@ -207,7 +207,10 @@ export class EditExpensePage {
                       );
 
                       // Setze die Währung
-                      if (this.expense.currency && this.expense.currency.length > 0) {
+                      if (
+                        this.expense.currency &&
+                        this.expense.currency.length > 0
+                      ) {
                         this.selectedCurrency = this.expense.currency[0];
                       }
 
@@ -217,7 +220,8 @@ export class EditExpensePage {
                           (em) => em.memberId === member.uid
                         );
                         if (memberExpense) {
-                          this.amountToPay[member.uid] = memberExpense.amountToPay;
+                          this.amountToPay[member.uid] =
+                            memberExpense.amountToPay;
                           this.productInputs[member.uid] = {
                             input: this.createEmptyProduct(member.uid),
                             products: memberExpense.products || [],
@@ -225,12 +229,13 @@ export class EditExpensePage {
                         }
                       }
                     } else {
-                      console.warn('Expense mit ID ' + expenseId + ' nicht gefunden.');
+                      console.warn(
+                        'Expense mit ID ' + expenseId + ' nicht gefunden.'
+                      );
                     }
                   }
                 );
               }
-
             }
           }
         }
@@ -243,7 +248,6 @@ export class EditExpensePage {
       this.loadingService.hide();
     }
   }
-
 
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
@@ -359,7 +363,7 @@ export class EditExpensePage {
       if (this.productInputs.hasOwnProperty(memberId)) {
         this.productInputs[memberId].products = this.productInputs[
           memberId
-          ].products.filter((p) => p.productId !== productToRemove.productId);
+        ].products.filter((p) => p.productId !== productToRemove.productId);
       }
     }
 
@@ -540,24 +544,33 @@ export class EditExpensePage {
 
     return isValid;
   }
-  saveExpenseChanges() {
-    // Überprüfen, ob Änderungen vorgenommen wurden
+  async saveExpenseChanges() {
     const hasChanges = this.hasExpenseChanges();
 
     if (hasChanges) {
-      // Wenn Änderungen vorhanden sind, in der Konsole ausgeben
-      console.log('Neue Daten zum Speichern:', this.expense);
+      try {
+        this.loadingService.show();
 
-      // Hier würdest du später die Update-Funktion aufrufen, um die Änderungen zu speichern
-      // z.B. this.expenseService.updateExpense(this.expense);
+        await this.expenseService.updateExpense(
+          this.expenseId,
+          this.expense,
+          this.expense.expenseMember,
+          this.groupId
+        );
+
+        console.log('Ausgabe erfolgreich aktualisiert.');
+        this.navCtrl.back();
+      } catch (error) {
+        console.error('Fehler beim Aktualisieren der Ausgabe:', error);
+        alert('Beim Aktualisieren der Ausgabe ist ein Fehler aufgetreten.');
+      } finally {
+        this.loadingService.hide();
+      }
     } else {
-      // Wenn keine Änderungen vorgenommen wurden
-      console.log('Keine Daten wurden geändert.');
-
-      // Speichern deaktivieren (Speichern-Button ausgrauen)
-      this.isSaveButtonDisabled = true; // Hier muss die Variable `isSaveButtonDisabled` in deinem Template gesetzt werden
+      console.log('Keine Änderungen zum Speichern vorhanden.');
     }
   }
+
   hasExpenseChanges(): boolean {
     return !this.deepEqual(this.expense, this.originalExpense);
   }
@@ -591,7 +604,6 @@ export class EditExpensePage {
     // Wenn es sich nicht um ein Objekt handelt, vergleiche die Werte direkt
     return obj1 === obj2;
   }
-
 
   async deleteExpense() {
     try {
@@ -627,10 +639,6 @@ export class EditExpensePage {
 
     await alert.present();
   }
-
-
-
-
   cancel() {
     this.navCtrl.back();
   }
