@@ -213,7 +213,10 @@
                 [disabled]="!chooseSplitType"
                 >alle</ion-select-option
               >
-              <ion-select-option class="custom-select-option" value="frei"
+              <ion-select-option
+                (ngModelChange)="onSplitByChange()"
+                class="custom-select-option"
+                value="frei"
                 >frei</ion-select-option
               >
             </ion-select>
