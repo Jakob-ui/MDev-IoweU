@@ -1,50 +1,52 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import * as functions from 'firebase-functions/v1';
+import { FieldValue } from 'firebase-admin/firestore';
 
 initializeApp();
 
-/**
- * Listens for new Firebase Auth user creation events and adds new users
- * to the Firestore collection /users.
- * @param {object} user The user that was created in Firebase Auth.
- * @returns {null|object} The document that was created in Firestore.
- */
-exports.onUserCreated = functions.auth.user().onCreate(async (user) => {
-  const { email, passwordHash, photoURL: profilepicurl, uid: userid } = user;
-  const nickname = null;
+exports.onExpenseUpdated = functions.firestore
+  .document('groups/{groupId}/expenses/{expenseId}')
+  .onUpdate(async (change: any, context: any) => {
+    const beforeData = change.before.data();
+    const afterData = change.after.data();
+    const { groupId } = context.params;
 
-  if (!email) {
-    console.log("can't create user, user has no email");
+    console.log(`Expense wurde aktualisiert in Gruppe ${groupId}.`);
+
+    // Hat sich der Betarag geändert?
+    if (beforeData.totalAmount !== afterData.totalAmount) {
+      const amountDifference = afterData.totalAmount - beforeData.totalAmount;
+
+      const groupRef = getFirestore().doc(`groups/${groupId}`);
+      await groupRef.update({
+        sumTotalExpenses: FieldValue.increment(amountDifference),
+      });
+
+      console.log(
+        `Gesamtsumme der Gruppe ${groupId} um ${amountDifference} aktualisiert.`
+      );
+    }
+
     return null;
-  }
+  });
 
-  const newUser = {
-    email,
-    nickname,
-    passwordHash,
-    profilepicurl,
-    userid,
-    createdAt: new Date(),
-    // Add any other default fields you want here
-  };
+exports.onExpenseCreated = functions.firestore
+  .document('groups/{groupId}/expenses/{expenseId}')
+  .onCreate(async (snapshot: any, context: any) => {
+    const newExpense = snapshot.data();
+    const { groupId } = context.params;
 
-  try {
-    const collection = getFirestore().collection('users');
-    await collection.doc(userid).set(newUser);
+    console.log(`Neue Expense wurde erstellt in Gruppe ${groupId}.`);
 
-    console.log('collection', collection);
-    return { success: true };
-  } catch (error) {
-    console.error('Error creating user in Firestore', error);
+    const groupRef = getFirestore().doc(`groups/${groupId}`);
+    await groupRef.update({
+      sumTotalExpenses: FieldValue.increment(newExpense.totalAmount),
+    });
+
+    console.log(
+      `Gesamtsumme der Gruppe ${groupId} um ${newExpense.totalAmount} erhöht.`
+    );
+
     return null;
-  }
-});
-
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
-
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+  });
