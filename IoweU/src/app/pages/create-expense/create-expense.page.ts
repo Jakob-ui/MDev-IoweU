@@ -112,6 +112,7 @@ export class CreateExpensePage {
   dropdownOpen: boolean = false;
   selectedCategory: any = null;
 
+  paidByDropdownOpen: boolean = false;
   selectedMember: any = null;
   selectedCurrency: string = 'EUR'; // Standardwährung
 
@@ -239,6 +240,9 @@ onDocumentClick(event: Event) {
   if (!target.closest('.Kategorie')) {
     this.dropdownOpen = false;
   }
+  if (!target.closest('.paid-by')) {
+    this.paidByDropdownOpen = false;
+  }
 }
 
 
@@ -258,11 +262,16 @@ onDocumentClick(event: Event) {
     this.expense.currency = [currency];
     this.dropdownOpen = false;
   }
-
-  selectMember(member: any) {
-    this.expense.paidBy = member.uid;
-    this.selectedMember = member;
-    this.dropdownOpen = false;
+  togglePaidByDropdown(event: Event) {
+    this.paidByDropdownOpen = !this.paidByDropdownOpen; // Öffnen/Schließen des Dropdowns
+    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
+  }
+  selectMember(member: any, event: Event) {
+    this.expense.paidBy = member.uid; // Setze die UID des ausgewählten Mitglieds
+    this.selectedMember = member; // Speichere das ausgewählte Mitglied
+    this.paidByDropdownOpen = false; // Schließe das Dropdown
+    console.log('Ausgewähltes Mitglied:', this.selectedMember);
+    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
   }
 
   selectCategory(category: any, event: Event) {
