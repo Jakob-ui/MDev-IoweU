@@ -429,7 +429,10 @@ export class CreateExpensePage {
   }
 
   onAmountToPayChange() {
-    if (this.expense.splitType === 'produkte') {
+    if (
+      this.expense.splitType === 'anteile' &&
+      this.expense.splitBy === 'frei'
+    ) {
       // Berechne den Gesamtbetrag aus allen amountToPay-Feldern
       const total = Object.values(this.amountToPay).reduce(
         (sum, amount) => sum + (amount || 0),
@@ -451,9 +454,23 @@ export class CreateExpensePage {
       this.products = [];
       this.updateTotals();
     }
+    if (this.expense.splitType === 'anteile') {
+      if (this.expense.splitBy === 'frei') {
+        // Setze alle Felder auf 0
+        this.groupMembers.forEach((member) => {
+          this.amountToPay[member.uid] = 0;
+        });
+
+        // Setze den Gesamtbetrag auf 0
+        this.expense.totalAmount = 0;
+
+        // Verteile den Betrag gleichmäßig (falls nötig)
+        this.splitAmountEqually();
+      }
+    }
     switch (this.expense.splitType) {
       case 'anteile':
-        this.expense.splitBy = 'alle';
+        this.expense.splitBy = 'frei';
         this.chooseSplitType = true;
         this.error = '';
         this.splitAmountEqually();
@@ -479,15 +496,19 @@ export class CreateExpensePage {
 
   //Neuberechnung wenn der Modus geändert wird
   onSplitByChange() {
-    switch (this.expense.splitBy) {
-      case 'alle':
-        this.splitAmountEqually();
-        break;
-      case 'frei':
+    if (this.expense.splitType === 'anteile') {
+      if (this.expense.splitBy === 'frei') {
+        // Setze alle Felder auf 0
         this.groupMembers.forEach((member) => {
-          this.calculateSplitByPercentage(member.uid, 'amount');
+          this.amountToPay[member.uid] = 0;
         });
-        break;
+
+        // Setze den Gesamtbetrag auf 0
+        this.expense.totalAmount = 0;
+
+        // Verteile den Betrag gleichmäßig (falls nötig)
+        this.splitAmountEqually();
+      }
     }
   }
 
