@@ -73,7 +73,7 @@
       </div>
     </div>
 
-    <!-- Betrag und Bezahlt von -->
+    <!-- Betrag -->
     <div class="section">
       <div class="amount-row">
         <div class="betrag">
@@ -109,36 +109,48 @@
         </div>
       </div>
     </div>
-
+<!-- bezahlt -->
     <div class="section">
       <div class="amount-row">
         <div class="paid-by">
           <span class="input-label">bezahlt von</span>
-          <ion-item class="input-item">
-            <ion-select [(ngModel)]="expense.paidBy" interface="popover">
-              <ion-select-option
+          <ion-item class="input-item" (click)="togglePaidByDropdown($event)">
+            <ion-label>
+              <div class="selected-paid-by">
+                <span class="paid-by-label">
+                  {{ selectedMember?.username || 'bezahlt von' }}
+                </span>
+              </div>
+            </ion-label>
+          </ion-item>
+        
+          <div *ngIf="paidByDropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                class="dropDownFelder"
+                button
                 *ngFor="let groupMember of groupMembers"
-                [value]="groupMember.uid"
+                (click)="selectMember(groupMember, $event)"
               >
                 <div
                   class="member-info"
                   [ngStyle]="{
-              'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
-              'border-color': 'var(--member-color-' + groupMember.uid + ')'
-             }"
+                    'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
+                    'border-color': 'var(--member-color-' + groupMember.uid + ')'
+                  }"
                 >
                   <div
                     class="profile-placeholder"
                     [ngStyle]="{
-              'background-color': 'var(--member-color-' + groupMember.uid + ')',
-              'border-color': 'var(--member-color-' + groupMember.uid + ')'
-            }"
+                      'background-color': 'var(--member-color-' + groupMember.uid + ')',
+                      'border-color': 'var(--member-color-' + groupMember.uid + ')'
+                    }"
                   ></div>
                   <span class="member-name">{{ groupMember.username }}</span>
                 </div>
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
 
         <div class="date">
