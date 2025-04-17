@@ -21,37 +21,40 @@
           </ion-item>
         </div>
 
-        <div class="Kategorie">
-          <span class="input-label">Kategorie</span>
-          <ion-item class="input-item" (click)="toggleDropdown()">
-            <ion-label>
-              <div class="selected-category">
-                <ion-icon
-                  [name]="selectedCategory?.icon"
-                  class="category-icon"
-                  id="category-icon-label"
-                ></ion-icon>
-              </div>
-            </ion-label>
-          </ion-item>
-
-          <div *ngIf="dropdownOpen" class="custom-dropdown">
-            <ion-list>
-              <ion-item
-                class="dropDownFelder"
-                button
-                *ngFor="let category of categories"
-                (click)="selectCategory(category)"
-              >
-                <ion-icon
-                  [name]="category.icon"
-                  class="category-icon"
-                ></ion-icon>
-                <ion-label>{{ category.name }}</ion-label>
-              </ion-item>
-            </ion-list>
-          </div>
+        <div 
+        class="Kategorie" 
+        (click)="onCategoryDropdownClick($event)"
+      >
+        <span class="input-label">Kategorie</span>
+        <ion-item class="input-item">
+          <ion-label>
+            <div class="selected-category">
+              <ion-icon
+                [name]="selectedCategory?.icon"
+                class="category-icon"
+                id="category-icon-label"
+              ></ion-icon>
+            </div>
+          </ion-label>
+        </ion-item>
+      
+        <div *ngIf="dropdownOpen" class="custom-dropdown">
+          <ion-list>
+            <ion-item
+              class="dropDownFelder"
+              button
+              *ngFor="let category of categories"
+              (click)="selectCategory(category, $event)"
+            >
+              <ion-icon
+                [name]="category.icon"
+                class="category-icon"
+              ></ion-icon>
+              <ion-label>{{ category.name }}</ion-label>
+            </ion-item>
+          </ion-list>
         </div>
+      </div>
 
         <div class="invoice-upload">
           <span class="input-label">Rechnung</span>

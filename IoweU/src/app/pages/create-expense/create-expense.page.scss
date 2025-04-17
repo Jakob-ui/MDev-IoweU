@@ -434,7 +434,21 @@ ion-item.dropDownFelder::part(native) {
     display: flex;
     align-items: center;
     gap: 10px;
-  }
+  } .member-info {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border: 2px solid;
+  border-radius: 8px;
+  gap: 8px;
+}
+
+.profile-placeholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid;
+}
 
 
   .member-name {

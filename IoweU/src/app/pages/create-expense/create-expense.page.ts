@@ -48,6 +48,7 @@ import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 import { Groups } from 'src/app/services/objects/Groups';
+import { HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-create-expense',
@@ -108,7 +109,9 @@ export class CreateExpensePage {
   isFormValid: boolean = true;
   error: string = '';
 
-  dropdownOpen = false;
+  dropdownOpen: boolean = false;
+  selectedCategory: any = null;
+
   selectedMember: any = null;
   selectedCurrency: string = 'EUR'; // Standardwährung
 
@@ -140,7 +143,7 @@ export class CreateExpensePage {
     { name: 'Rechnungen', icon: 'receipt-outline' },
     { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
-  selectedCategory: any = null;
+ 
 
   async ngOnInit() {
     this.loadingService.show();
@@ -223,9 +226,21 @@ export class CreateExpensePage {
   }
 
   // UI Handeling ---------------------------------->
-  toggleDropdown() {
+ 
+  onCategoryDropdownClick(event: Event) {
     this.dropdownOpen = !this.dropdownOpen;
+    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
   }
+  @HostListener('document:click', ['$event'])
+onDocumentClick(event: Event) {
+  const target = event.target as HTMLElement;
+
+  // Überprüfe, ob der Klick außerhalb des Dropdowns erfolgt ist
+  if (!target.closest('.Kategorie')) {
+    this.dropdownOpen = false;
+  }
+}
+
 
   onInvoiceUpload(event: any) {
     const file = event.target.files[0];
@@ -250,10 +265,11 @@ export class CreateExpensePage {
     this.dropdownOpen = false;
   }
 
-  selectCategory(category: any) {
-    this.selectedCategory = category;
-    this.expense.category = category.name;
-    this.dropdownOpen = false;
+  selectCategory(category: any, event: Event) {
+    this.selectedCategory = category; // Setze die ausgewählte Kategorie
+    this.dropdownOpen = false; // Schließe das Dropdown
+    console.log('Ausgewählte Kategorie:', this.selectedCategory);
+    event.stopPropagation(); // Verhindere, dass das Klick-Event weitergeleitet wird
   }
 
   productInputs: {
