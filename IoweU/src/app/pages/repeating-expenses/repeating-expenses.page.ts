@@ -62,6 +62,7 @@ export class RepeatingExpensesPage implements OnInit {
   currentYear: number = 0;
 
   expenses: Expenses[] = [];
+  currentGroup: Groups | null = null;
 
   updateExpensesCallback: (() => void) | null = null;
   private navCtrl: any;
@@ -81,19 +82,24 @@ export class RepeatingExpensesPage implements OnInit {
         console.log('Benutzer GroupId:', groupId);
 
         if (groupId) {
-          const currentGroup = await this.groupService.getGroupById(groupId);
+          this.currentGroup = await this.groupService.getGroup();
+          console.log('diese jetzige gruppe', this.currentGroup);
+          if (this.currentGroup === null) {
+            this.currentGroup = await this.groupService.getGroupById(groupId);
+            console.log('leere Gruppe, hole gruppe aus der db');
+          }
 
-          if (currentGroup) {
-            this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-            this.groupId = currentGroup.groupId || '';
+          if (this.currentGroup) {
+            this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
+            this.groupId = this.currentGroup.groupId || '';
 
             // Lade die Ausgaben
             if (
-              currentGroup.hasOwnProperty('expenses') &&
-              Array.isArray(currentGroup.expenseId)
+              this.currentGroup.hasOwnProperty('expenses') &&
+              Array.isArray(this.currentGroup.expenseId)
             ) {
-              console.log('Expenses gefunden:', currentGroup.expenseId);
-              this.expenses = currentGroup.expenseId.map(
+              console.log('Expenses gefunden:', this.currentGroup.expenseId);
+              this.expenses = this.currentGroup.expenseId.map(
                 (expenseId: string) => ({
                   expenseId: expenseId,
                   description: '',
@@ -117,11 +123,16 @@ export class RepeatingExpensesPage implements OnInit {
             }
 
             // Initialisiere Mitglieder und expenseMember
-            if (currentGroup.members && currentGroup.members.length > 0) {
-              this.groupMembers = currentGroup.members.map((member: any) => ({
-                ...member,
-                amount: 0,
-              }));
+            if (
+              this.currentGroup.members &&
+              this.currentGroup.members.length > 0
+            ) {
+              this.groupMembers = this.currentGroup.members.map(
+                (member: any) => ({
+                  ...member,
+                  amount: 0,
+                })
+              );
 
               this.expenses.forEach((expense) => {
                 expense.expenseMember = this.groupMembers.map((member) => ({

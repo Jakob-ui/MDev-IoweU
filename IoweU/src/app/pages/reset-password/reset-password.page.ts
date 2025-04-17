@@ -9,6 +9,7 @@ import {
 } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/services/auth.service';
 import { Router } from '@angular/router';
+import { Users } from 'src/app/services/objects/Users';
 
 @Component({
   selector: 'app-reset-password',
@@ -31,7 +32,8 @@ export class ResetPasswordPage {
   email: string = '';
 
   ngOnInit() {
-    const loggedEmail = sessionStorage.getItem('email');
+    this.authService.waitForUser();
+    const loggedEmail = this.authService.currentUser?.email;
     this.email = loggedEmail || '';
   }
 

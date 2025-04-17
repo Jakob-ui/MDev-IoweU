@@ -77,6 +77,7 @@ export class AccountSettingsPage implements OnInit {
 
   ngOnInit() {
     this.loadingService.show();
+    this.authService.waitForUser;
     this.loadUserData().finally(() => {
       this.loadingService.hide();
     });
