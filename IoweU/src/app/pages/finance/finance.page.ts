@@ -16,6 +16,7 @@ import { AuthService } from '../../services/auth.service';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
 import { GroupService } from '../../services/group.service';
+import { ExpenseService } from "../../services/expense.service";
 
 @Component({
   selector: 'app-finance',
@@ -43,6 +44,7 @@ export class FinancePage implements OnInit {
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
+  private expenseService = inject(ExpenseService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -52,7 +54,10 @@ export class FinancePage implements OnInit {
   displayName: string | null = null;
   groupId: string | null = null;
 
-  myBalance: number = +200;
+  myExpenses: number = +120.5;
+  myIncome: number = +100.0;
+  myBalance: number = this.myIncome - this.myExpenses;
+
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   groupMembers: any[] = [];

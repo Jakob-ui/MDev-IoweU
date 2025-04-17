@@ -78,22 +78,23 @@ export class ExpenseService {
       await setDoc(expenseRef, expense);
 
       //Felder in der Collection "Members" aktualisieren:
- 
+
       //1. Sich das Dokument der Gruppe holen
       const groupRef = await getDoc(doc(this.firestore, 'groups', groupId));
       //2. Den Inhalt in einem Objekt speichern
       const groupData = groupRef.data() as Groups;
       //3. Die Mitglieder-Array durchlaufen und die Felder aktualisieren, die mit der Summe der Ausgaben zu tun haben (initialisieren wenn's sie nicht gibt)
-      for(const member of groupData.members) 
+      for(const member of groupData.members)
         {
-          for(const expenseMember of expenseMembersData) 
+          for(const expenseMember of expenseMembersData)
           {
-            if(expenseMember.memberId === member.uid) 
+            if(expenseMember.memberId === member.uid)
               {
                 if(expenseMember.memberId === expense.paidBy)
                 {
                   member.sumExpenseAmount += expense.totalAmount;
                   member.sumExpenseMemberAmount += expense.totalAmount - expenseMember.amountToPay;
+                  //sumAmountReceived
                 }
                 else
                 {
@@ -104,7 +105,7 @@ export class ExpenseService {
                 member.countExpenseMemberAmount += 1;
               }
           }
-        }    
+        }
       //4. Das Gruppendokument mit diesen Feldern updaten und speichern
       const groupDocRef = doc(this.firestore, 'groups', groupId);
       await updateDoc(groupDocRef, {
