@@ -28,10 +28,10 @@
       class="finance-card"
       [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }">
       <div class="card-content-finance">
+        <p>Du hast in dieser Gruppe insgesamt</p>
         <h2>{{ myBalance | currency: 'EUR' }}</h2>
         <p>
-          {{ myBalance < 0 ? 'Schulden' : 'Guthaben' }} | seit dem {{
-          lastTransactionDate | date:'dd.MM.yyyy' }}
+          {{ myBalance < 0 ? 'Schulden' : 'Guthaben' }}
         </p>
       </div>
     </ion-card>
