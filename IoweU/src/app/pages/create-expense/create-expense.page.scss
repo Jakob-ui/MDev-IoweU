@@ -281,7 +281,7 @@ ion-input::part(native) {
 }
 
 .Kategorie {
-  position: relative; /* Container für das absolute Positionieren des Dropdowns */
+  position: relative; 
 }
 .Kategorie .input-label {
   margin-left: 0;
@@ -294,15 +294,12 @@ ion-input::part(native) {
 .custom-dropdown {
   position: absolute;
   z-index: 9999;
-  border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
+  max-width: 300%;
   top: 100%;
   left: 0;
-  //background-color: var(--ion-color-light);
-  background-color: #1a65eb;
   margin-top: -20px;
-  left: -50px; /* Passe den Wert an, um das Dropdown weiter nach links zu verschieben */
+  left: -50px; 
 
 }
 
@@ -310,25 +307,8 @@ ion-input::part(native) {
   margin-left: 15px;
 }
 
-.custom-dropdown ion-item {
-  border-bottom: 1px solid var(--ion-color-dark);
-}
 
-.custom-dropdown ion-item:hover {
-  background-color: var(--ion-color-secondary);
-}
 
-ion-list::part(native) {
-  background: var(--ion-color-secondary) !important;
-  padding: 0;
-}
-
-ion-item.dropDownFelder::part(native) {
-  --background: var(--ion-color-light);
-  --color: var(--ion-color-dark);
-  background-color: var(--ion-color-light) !important;
-  color: var(--ion-color-dark) !important;
-}
 
 .selected-category {
   display: flex;
@@ -343,7 +323,7 @@ ion-item.dropDownFelder::part(native) {
   ion-item.dropDownFelder::part(native) {
     --background: #000000;
     --color: var(--ion-color-light);
-    background-color: #000000 !important;
+    background-color: #1e1e1e !important;
     color: var(--ion-color-light) !important;
   }
   .custom-dropdown {
@@ -353,7 +333,9 @@ ion-item.dropDownFelder::part(native) {
     color: #000000;
   }
 }
-
+ion-item.dropDownFelder::part(native) {
+  background-color: #ffffff !important;
+}
 .invoice-upload {
   .upload-label {
     display: flex;
@@ -375,7 +357,6 @@ ion-item.dropDownFelder::part(native) {
   .custom-dropdown {
     position: absolute;
     z-index: 9999;
-
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     max-width: 400px;
     top: 100%;
@@ -417,7 +398,7 @@ ion-item.dropDownFelder::part(native) {
     position: absolute;
     z-index: 9999;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-    max-width: 400px;
+    max-width: 200%;
     top: 100%;
     left: 0;
 
