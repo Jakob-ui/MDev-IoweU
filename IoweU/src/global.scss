@@ -760,32 +760,31 @@ ion-input:focus ~ .ionicon {
   content: url("/assets/logo/Logo_lang.png");
 }
 
-.custom-alert{
-    text-align: center;
+.custom-alert {
+  text-align: center;
 
+  button.cancel-button {
+    background-color: var(--ion-color-primary);
+    color: var(--ion-color-dark);
+    font-weight: 100;
+    padding: 10px 20px;
+    text-transform: uppercase;
+    border-radius: 50px;
+    box-shadow: none !important;
+  }
+  button.delete-button {
+    background-color: var(--ion-color-danger);
+    color: var(--ion-color-dark);
+    font-weight: 100;
+    text-transform: uppercase;
+    box-shadow: none !important;
+    padding: 10px 20px;
+    border-radius: 50px;
+    box-shadow: none !important;
+  }
+}
 
-    button.cancel-button {
-      background-color: var(--ion-color-primary);
-      color: var(--ion-color-dark);
-      font-weight: 100;
-      padding: 10px 20px;
-      text-transform: uppercase;
-      border-radius: 50px;
-      box-shadow: none !important;
-    }
-    button.delete-button{
-      background-color: var(--ion-color-danger);
-      color: var(--ion-color-dark);
-      font-weight: 100;
-      text-transform: uppercase;
-      box-shadow: none !important;
-      padding: 10px 20px;
-      border-radius: 50px;
-      box-shadow: none !important;
-    }
- }
-
- .custom-alert .alert-title {
+.custom-alert .alert-title {
   color: var(--ion-color-dark);
   font-weight: bold; /* Fett für die Überschrift */
   margin-bottom: 10px; /* Abstand unter der Überschrift */
@@ -803,7 +802,11 @@ body.color-blind {
   --ion-color-success: #3399ff !important; // Grün → Blau
 }
 
-
+@media (max-width: 768px) {
+  ion-toolbar {
+    padding-top: 65px !important;
+  }
+}
 
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
