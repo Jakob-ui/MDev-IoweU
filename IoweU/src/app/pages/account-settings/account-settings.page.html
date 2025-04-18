@@ -71,6 +71,16 @@
       <input type="color" [(ngModel)]="color" class="colorinput" />
     </ion-item>
 
+    <ion-item class="input-item">
+      <ion-label>Farbenblind-Modus</ion-label>
+      <ion-toggle 
+        slot="end"  
+        class="toggle"
+        [checked]="colorBlindMode"
+        (ionChange)="onColorBlindToggle($event)">
+      </ion-toggle>
+    </ion-item>
+
     <ion-button
       class="main-button"
       expand="block"

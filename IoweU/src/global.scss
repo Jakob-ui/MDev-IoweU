@@ -798,6 +798,13 @@ ion-input:focus ~ .ionicon {
   margin-bottom: 10px;
 }
 
+body.color-blind {
+  --ion-color-danger: #ff9900 !important; // Rot → Orange
+  --ion-color-success: #3399ff !important; // Grün → Blau
+}
+
+
+
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
   h1,

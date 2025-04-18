@@ -11,8 +11,7 @@ import {
   IonButton,
   IonIcon,
   IonInput,
-  IonAlert,
-} from '@ionic/angular/standalone';
+  IonAlert, IonToggle } from '@ionic/angular/standalone';
 import { OverlayEventDetail } from '@ionic/core/components';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
@@ -21,12 +20,14 @@ import { AccountService } from 'src/app/services/account.service';
 import { UserService } from 'src/app/services/user.service';
 import { AlertController } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
+import { ChangeDetectorRef } from '@angular/core';
+
 @Component({
   selector: 'app-account-settings',
   templateUrl: './account-settings.page.html',
   styleUrls: ['./account-settings.page.scss'],
   standalone: true,
-  imports: [
+  imports: [IonToggle, 
     IonAlert,
     IonIcon,
     IonButton,
@@ -72,17 +73,31 @@ export class AccountSettingsPage implements OnInit {
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false;
   lastedited: string = '';
+  colorBlindMode: boolean = false;
 
-  constructor() {}
+  constructor(private cdRef: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.loadingService.show();
+
+    // Lade den gespeicherten Zustand des Farbmodus-Toggles
+    this.colorBlindMode = localStorage.getItem('colorBlindMode') === 'true';
+    this.applyColorBlindMode(this.colorBlindMode); // Wende den Modus an
+
+    this.iosIcons = this.platform.is('ios');
+    this.newname = this.name;
+
     this.authService.waitForUser;
     this.loadUserData().finally(() => {
       this.loadingService.hide();
     });
-    this.iosIcons = this.platform.is('ios');
-    this.newname = this.name;
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.colorBlindMode = localStorage.getItem('colorBlindMode') === 'true';
+      this.cdRef.detectChanges();
+    });
   }
 
   async loadUserData() {
@@ -351,4 +366,19 @@ export class AccountSettingsPage implements OnInit {
       console.log(e);
     }
   }
+
+  onColorBlindToggle(event: any) {
+    this.colorBlindMode = event.detail.checked;
+    localStorage.setItem('colorBlindMode', this.colorBlindMode.toString());
+    this.applyColorBlindMode(this.colorBlindMode);
+  }
+  
+  applyColorBlindMode(enabled: boolean) {
+    if (enabled) {
+      document.body.classList.add('color-blind');
+    } else {
+      document.body.classList.remove('color-blind');
+    }
+  }
+
 }
