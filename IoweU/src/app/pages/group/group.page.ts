@@ -66,8 +66,9 @@ export class GroupPage implements OnInit {
   sumTotalExpensesMembers: number | undefined = undefined;
   countTotalExpensesMembers: number | undefined = undefined;
 
-  showQRCode: boolean = false; // Variable zum Steuern der QR-Code-Anzeige
+  showQRCode: boolean = false;
   qrCodeValue: string = '';
+  overlayState: 'start' | 'normal' | 'hidden' = 'start';
 
   myBalance: number = +200;
   currentMonth: string = 'März 2025';
@@ -193,11 +194,30 @@ export class GroupPage implements OnInit {
     }
   }
 
+  // Funktion zur QR-Code-Generierung und Toggle
   generateQRCode() {
     if (this.accessCode) {
       this.qrCodeValue = `http://localhost:8100/group/${this.groupId}`;
-      this.showQRCode = !this.showQRCode;
       console.log('Generated QR Code URL:', this.qrCodeValue);
     }
   }
+
+  toggleQRCodeOverlay() {
+    this.generateQRCode(); // QR-Code generieren
+    console.log('Overlay state:', this.overlayState);
+
+    // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
+    if (this.overlayState === 'start') {
+      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+    } else if (this.overlayState === 'normal') {
+      // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
+      this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
+    } else if (this.overlayState === 'hidden') {
+      // Wenn es im "hidden" Zustand ist, wird es wieder nach oben geschoben
+      this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
+    }
+
+    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
+  }
+
 }

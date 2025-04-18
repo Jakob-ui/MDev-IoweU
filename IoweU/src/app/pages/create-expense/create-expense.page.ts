@@ -24,17 +24,18 @@ addIcons({
   'ellipsis-horizontal-outline': ellipsisHorizontalOutline,
 });
 import {
-    IonContent,
-    IonItem,
-    IonInput,
-    IonSelect,
-    IonSelectOption,
-    IonButton,
-    IonDatetime,
-    IonIcon,
-    IonBadge,
-    IonLabel,
-    IonList, IonNote,
+  IonContent,
+  IonItem,
+  IonInput,
+  IonSelect,
+  IonSelectOption,
+  IonButton,
+  IonDatetime,
+  IonIcon,
+  IonBadge,
+  IonLabel,
+  IonList,
+  IonNote,
 } from '@ionic/angular/standalone';
 
 // Import interfaces
@@ -47,28 +48,29 @@ import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 import { Groups } from 'src/app/services/objects/Groups';
+import { HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-create-expense',
   templateUrl: './create-expense.page.html',
   styleUrls: ['./create-expense.page.scss'],
   standalone: true,
-    imports: [
-        IonList,
-        IonLabel,
-        IonContent,
-        IonItem,
-        IonInput,
-        IonSelect,
-        IonSelectOption,
-        IonButton,
-        IonDatetime,
-        IonIcon,
-        CommonModule,
-        FormsModule,
-        IonBadge,
-        IonNote,
-    ],
+  imports: [
+    IonList,
+    IonLabel,
+    IonContent,
+    IonItem,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonButton,
+    IonDatetime,
+    IonIcon,
+    CommonModule,
+    FormsModule,
+    IonBadge,
+    IonNote,
+  ],
 })
 export class CreateExpensePage {
   private authService = inject(AuthService);
@@ -102,11 +104,17 @@ export class CreateExpensePage {
   amountToPay: { [uid: string]: number } = {};
   products: (Products & {})[] = [];
 
-  dropdownOpen = false;
-  selectedMember: any = null;
-  selectedCurrency: string = 'EUR'; // Standardwährung
+  //Validation Bools
+  chooseSplitType = true;
   isFormValid: boolean = true;
   error: string = '';
+
+  dropdownOpen: boolean = false;
+  selectedCategory: any = null;
+
+  paidByDropdownOpen: boolean = false;
+  selectedMember: any = null;
+  selectedCurrency: string = 'EUR'; // Standardwährung
 
   showAddProductButton: { [key: string]: boolean } = {};
   showProductInputFields: { [key: string]: boolean } = {};
@@ -136,12 +144,13 @@ export class CreateExpensePage {
     { name: 'Rechnungen', icon: 'receipt-outline' },
     { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
-  selectedCategory: any = null;
+
 
   async ngOnInit() {
     this.loadingService.show();
 
     try {
+      await this.authService.waitForUser();
       if (this.authService.currentUser) {
         this.uid = this.authService.currentUser.uid;
         this.user = this.authService.currentUser.username;
@@ -151,8 +160,10 @@ export class CreateExpensePage {
 
         if (groupId) {
           this.currentGroup = await this.groupService.getGroup();
+          console.log('diese jetzige gruppe', this.currentGroup);
           if (this.currentGroup === null) {
             this.currentGroup = await this.groupService.getGroupById(groupId);
+            console.log('leere Gruppe, hole gruppe aus der db');
           }
 
           if (this.currentGroup) {
@@ -171,6 +182,12 @@ export class CreateExpensePage {
                   this.memberRoles.push(member.role || '');
                   this.memberUids.push(member.uid || '');
 
+                  // Initialisiere Summen- und Zählerwerte für jedes Mitglied
+                  member.sumExpenseAmount = member.sumExpenseAmount || 0;
+                  member.sumExpenseMemberAmount = member.sumExpenseMemberAmount || 0;
+                  member.countExpenseAmount = member.countExpenseAmount || 0;
+                  member.countExpenseMemberAmount = member.countExpenseMemberAmount || 0;
+
                   return {
                     ...member,
                     amount: 0,
@@ -185,12 +202,10 @@ export class CreateExpensePage {
                 products: [],
               }));
 
-              // Fallback: wenn paidBy nicht gesetzt ist, setze aktuellen User
               if (!this.expense.paidBy && this.uid) {
                 this.expense.paidBy = this.uid;
               }
 
-              // selectedMember setzen (ob vom expense oder durch Fallback)
               this.selectedMember =
                 this.groupMembers.find(
                   (member) => member.uid === this.expense.paidBy
@@ -207,7 +222,6 @@ export class CreateExpensePage {
           this.groupname = 'Unbekannte Gruppe';
         }
       } else {
-        console.error('Kein Benutzer eingeloggt.');
       }
 
       this.iosIcons = this.platform.is('ios');
@@ -218,9 +232,27 @@ export class CreateExpensePage {
     }
   }
 
-  toggleDropdown() {
+
+  // UI Handeling ---------------------------------->
+
+  onCategoryDropdownClick(event: Event) {
     this.dropdownOpen = !this.dropdownOpen;
+    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
   }
+  @HostListener('document:click', ['$event'])
+onDocumentClick(event: Event) {
+  const target = event.target as HTMLElement;
+
+  // Überprüfe, ob der Klick außerhalb des Dropdowns erfolgt ist
+  if (!target.closest('.Kategorie')) {
+    this.dropdownOpen = false;
+  }
+  if (!target.closest('.paid-by')) {
+    this.paidByDropdownOpen = false;
+  }
+}
+
+
   onInvoiceUpload(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -237,17 +269,23 @@ export class CreateExpensePage {
     this.expense.currency = [currency];
     this.dropdownOpen = false;
   }
-
-  selectMember(member: any) {
-    this.expense.paidBy = member.uid;
-    this.selectedMember = member;
-    this.dropdownOpen = false;
+  togglePaidByDropdown(event: Event) {
+    this.paidByDropdownOpen = !this.paidByDropdownOpen; // Öffnen/Schließen des Dropdowns
+    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
+  }
+  selectMember(member: any, event: Event) {
+    this.expense.paidBy = member.uid; // Setze die UID des ausgewählten Mitglieds
+    this.selectedMember = member; // Speichere das ausgewählte Mitglied
+    this.paidByDropdownOpen = false; // Schließe das Dropdown
+    console.log('Ausgewähltes Mitglied:', this.selectedMember);
+    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
   }
 
-  selectCategory(category: any) {
-    this.selectedCategory = category;
-    this.expense.category = category.name;
-    this.dropdownOpen = false;
+  selectCategory(category: any, event: Event) {
+    this.selectedCategory = category; // Setze die ausgewählte Kategorie
+    this.dropdownOpen = false; // Schließe das Dropdown
+    console.log('Ausgewählte Kategorie:', this.selectedCategory);
+    event.stopPropagation(); // Verhindere, dass das Klick-Event weitergeleitet wird
   }
 
   productInputs: {
@@ -272,17 +310,39 @@ export class CreateExpensePage {
     this.closeDatePicker();
   }
 
-  toggleProducts(memberName: string) {
-    if (!this.productInputs[memberName]) {
-      this.productInputs[memberName] = {
-        input: this.createEmptyProduct(memberName),
+  toggleProducts(memberUid: string) {
+    if (!this.productInputs[memberUid]) {
+      this.productInputs[memberUid] = {
+        input: this.createEmptyProduct(memberUid),
         products: [],
       };
+    }
+    if (this.showProductInputFields[memberUid] === undefined) {
+      this.showProductInputFields[memberUid] = true;
     } else {
-      delete this.productInputs[memberName];
+      this.showProductInputFields[memberUid] =
+        !this.showProductInputFields[memberUid];
     }
   }
 
+  toggleAddProductButton(uid: string) {
+    this.showAddProductButton[uid] = !this.showAddProductButton[uid];
+    // Optional: Reset the input field visibility
+    if (!this.showAddProductButton[uid]) {
+      this.showProductInputFields[uid] = false;
+    }
+  }
+
+  toggleProductInputFields(uid: string) {
+    this.showProductInputFields[uid] = !this.showProductInputFields[uid];
+  }
+
+  cancel() {
+    this.navCtrl.back();
+  }
+  // UI Handeling ende ---------------------------------->
+
+  //Produkte erstellen und hinzufügen
   private createEmptyProduct(memberName: string): Products {
     const member = this.groupMembers.find((m) => m.uid === memberName);
     return {
@@ -295,8 +355,8 @@ export class CreateExpensePage {
     };
   }
 
-  addProduct(memberId: string) {
-    const entry = this.productInputs[memberId];
+  addProduct(memberUid: string) {
+    const entry = this.productInputs[memberUid];
     if (!entry) return;
 
     const product = entry.input;
@@ -306,17 +366,11 @@ export class CreateExpensePage {
         productId: Date.now().toString(),
         price: Number(product.price),
       };
-
-      // Produkt zur Liste des Mitglieds hinzufügen
       entry.products.push(newProduct);
 
-      // Neuen leeren Produkteeintrag erstellen
-      entry.input = this.createEmptyProduct(memberId);
+      entry.input = this.createEmptyProduct(memberUid);
 
-      // Berechne die amountToPay für jedes Mitglied basierend auf den Produkten
       this.updateAmountToPayForProducts();
-
-      // Update die Gesamtsumme
       this.updateTotals();
     }
   }
@@ -330,50 +384,46 @@ export class CreateExpensePage {
     // Entferne das Produkt auch aus der Liste des entsprechenden Mitglieds
     for (let memberId in this.productInputs) {
       if (this.productInputs.hasOwnProperty(memberId)) {
-        this.productInputs[memberId].products = this.productInputs[
-          memberId
-          ].products.filter((p) => p.productId !== productToRemove.productId);
+        const memberProducts = this.productInputs[memberId].products;
+
+        // Überprüfe, ob das Produkt in der Liste des Mitglieds existiert
+        const productIndex = memberProducts.findIndex(
+          (p) => p.productId === productToRemove.productId
+        );
+
+        if (productIndex !== -1) {
+          // Entferne das Produkt aus der Liste des Mitglieds
+          memberProducts.splice(productIndex, 1);
+
+          // Aktualisiere den Betrag für den Benutzer
+          const updatedAmount = memberProducts.reduce(
+            (sum, product) => sum + product.price,
+            0
+          );
+          this.amountToPay[memberId] = parseFloat(updatedAmount.toFixed(2));
+        }
       }
     }
 
+    // Aktualisiere die Gesamtsumme
     this.updateTotals();
   }
 
-  private calculateTotal(): number {
-    if (!this.groupMembers || !Array.isArray(this.groupMembers)) {
-      return 0;
-    }
-
-    return this.groupMembers.reduce((sum, member) => {
-      const products: Products[] =
-        this.productInputs[member.uid]?.products || [];
-      return (
-        sum +
-        products.reduce(
-          (
-            productSum: number,
-            product: { price: number; quantity: number }
-          ) => {
-            return productSum + (product.price * product.quantity || 0);
-          },
-          0
-        )
-      );
-    }, 0);
-  }
-
+  //Hilfsrechnungsfunktionen
   private updateTotals() {
     if (this.expense.splitType === 'produkte') {
-      const total = this.calculateTotalFromProducts();
-      this.expense.totalAmount = total;
+      // Berechne den Gesamtbetrag aus allen amountToPay-Feldern
+      const total = Object.values(this.amountToPay).reduce(
+        (sum, amount) => sum + (amount || 0),
+        0
+      );
+      this.expense.totalAmount = parseFloat(total.toFixed(2));
     }
 
-    // Wenn "alle" gewählt ist, verteile manuell eingegebenen Betrag
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
 
-    // Update 'expenseMember' für jedes Mitglied
     this.expense.expenseMember.forEach((expenseMember, index) => {
       expenseMember.amountToPay =
         this.amountToPay[this.groupMembers[index].uid] || 0;
@@ -383,100 +433,155 @@ export class CreateExpensePage {
   }
 
   private calculateTotalFromProducts(): number {
-    return this.groupMembers.reduce((sum, member) => {
-      const products: Products[] =
-        this.productInputs[member.uid]?.products || [];
-      return (
-        sum +
-        products.reduce((productSum, product) => {
-          return productSum + (product.price || 0);
-        }, 0)
-      );
-    }, 0);
+    // Summiere alle Werte aus den amountToPay-Feldern
+    return Object.values(this.amountToPay).reduce(
+      (sum, amount) => sum + (amount || 0),
+      0
+    );
   }
 
   updateTotalAmount() {
     let newTotalAmount = 0;
 
-    // Summiere alle amountToPay-Werte und runde sie auf 2 Dezimalstellen
+    // Summiere alle amountToPay und auf 2 Dezimalstellen rund
     for (let memberUid in this.amountToPay) {
       if (this.amountToPay.hasOwnProperty(memberUid)) {
         newTotalAmount += this.amountToPay[memberUid];
       }
     }
 
-    // Verhindere das Zurücksetzen auf null und setze totalAmount nur, wenn es geändert wurde
     if (newTotalAmount !== this.expense.totalAmount) {
       this.expense.totalAmount = parseFloat(newTotalAmount.toFixed(2));
     }
 
-    // Wenn "alle" ausgewählt ist, teile den Betrag gleichmäßig auf alle Mitglieder
+    // Wenn "alle" ausgewählt ist, Betragauf alle Mitglieder
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
   }
 
   onAmountToPayChange() {
-    this.updateTotalAmount();
+    if (
+      this.expense.splitType === 'anteile' &&
+      this.expense.splitBy === 'frei'
+    ) {
+      // Berechne den Gesamtbetrag aus allen amountToPay-Feldern
+      const total = Object.values(this.amountToPay).reduce(
+        (sum, amount) => sum + (amount || 0),
+        0
+      );
+      this.expense.totalAmount = parseFloat(total.toFixed(2));
+    }
   }
 
+  //Rechnungsfunktion für die Produkte
   onSplitTypeChange() {
+    if (this.expense.splitType !== 'produkte') {
+      Object.keys(this.showProductInputFields).forEach((uid) => {
+        this.showProductInputFields[uid] = false;
+      });
+
+      // Lösche alle Produkte
+      this.productInputs = {};
+      this.products = [];
+      this.updateTotals();
+    }
+    if (this.expense.splitType === 'anteile') {
+      if (this.expense.splitBy === 'frei') {
+        // Setze alle Felder auf 0
+        this.groupMembers.forEach((member) => {
+          this.amountToPay[member.uid] = 0;
+        });
+
+        // Setze den Gesamtbetrag auf 0
+        this.expense.totalAmount = 0;
+
+        // Verteile den Betrag gleichmäßig (falls nötig)
+        this.splitAmountEqually();
+      }
+    }
     switch (this.expense.splitType) {
       case 'anteile':
-        this.expense.splitBy = 'alle';
+        this.expense.splitBy = 'frei';
+        this.chooseSplitType = true;
+        this.error = '';
         this.splitAmountEqually();
         this.isFormValid = true;
         break;
       case 'prozent':
+        this.error = '';
         this.expense.splitBy = 'frei';
-        this.calculateSplitByPercentage();
+        this.chooseSplitType = false;
+        this.groupMembers.forEach((member) => {
+          this.calculateSplitByPercentage(member.uid, 'percentage');
+        });
         break;
       case 'produkte':
         this.expense.splitBy = 'frei';
+        this.chooseSplitType = false;
+        this.error = '';
         this.updateAmountToPayForProducts();
         this.isFormValid = true;
         break;
     }
   }
 
+  //Neuberechnung wenn der Modus geändert wird
   onSplitByChange() {
-    switch (this.expense.splitBy) {
-      case 'alle':
+    if (this.expense.splitType === 'anteile') {
+      if (this.expense.splitBy === 'frei') {
+        // Setze alle Felder auf 0
+        this.groupMembers.forEach((member) => {
+          this.amountToPay[member.uid] = 0;
+        });
+
+        // Setze den Gesamtbetrag auf 0
+        this.expense.totalAmount = 0;
+
+        // Verteile den Betrag gleichmäßig (falls nötig)
         this.splitAmountEqually();
-        break;
-      case 'frei':
-        this.calculateSplitByPercentage();
-        break;
+      }
     }
   }
 
-  calculateSplitByPercentage() {
+  //Rechnungsfunktion für Prozente
+  calculateSplitByPercentage(
+    memberUid: string,
+    changedField: 'percentage' | 'amount'
+  ) {
     const totalAmount = this.expense.totalAmount;
-    let totalPercentage = 0;
 
-    // Berechne die Summe der eingegebenen Prozentwerte
+    if (changedField === 'percentage') {
+      const percentage = this.splitValue[memberUid] || 0;
+      const amount = (totalAmount * percentage) / 100;
+      this.amountToPay[memberUid] = parseFloat(amount.toFixed(2));
+    } else if (changedField === 'amount') {
+      const amount = this.amountToPay[memberUid] || 0;
+      const percentage = (amount / totalAmount) * 100;
+      this.splitValue[memberUid] = parseFloat(percentage.toFixed(2));
+    }
+
+    // Berechne die Summe der Prozentwerte
+    let totalPercentage = 0;
     this.groupMembers.forEach((member) => {
-      const percentage = this.splitValue[member.uid] || 0;
-      totalPercentage += percentage;
+      totalPercentage += this.splitValue[member.uid] || 0;
     });
 
     // Überprüfe, ob die Summe der Prozentwerte 100% ergibt
-    if (totalPercentage !== 100) {
-      this.error = 'Die Summe der Prozentwerte muss genau 100% betragen.';
-      this.isFormValid = false; // Nur im Prozentmodus ungültig
+    const difference = parseFloat((100 - totalPercentage).toFixed(2));
+    if (this.expense.splitType === 'prozent' && totalPercentage !== 100) {
+      if (difference > 0) {
+        this.error = `Die Summe der Prozentwerte muss genau 100% betragen. Es fehlen ${difference}%`;
+      } else {
+        this.error = `Die Summe der Prozentwerte muss genau 100% betragen. Sie sind ${Math.abs(
+          difference
+        )}% drüber.`;
+      }
+      this.isFormValid = false;
     } else {
-      this.error = ''; // Fehler zurücksetzen
-      this.isFormValid = true; // Prozentwerte sind korrekt
+      this.error = '';
+      this.isFormValid = true;
     }
-
-    // Verteile den Betrag basierend auf den Prozentwerten
-    this.groupMembers.forEach((member) => {
-      const percentage = this.splitValue[member.uid] || 0;
-      const amount = (totalAmount * percentage) / 100;
-      this.amountToPay[member.uid] = parseFloat(amount.toFixed(2)); // Runde auf 2 Dezimalstellen
-    });
-
-    console.log('Berechnete Beträge:', this.amountToPay);
   }
 
   updateAmountToPayForProducts() {
@@ -509,6 +614,39 @@ export class CreateExpensePage {
   onTotalAmountChange() {
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
+    }
+
+    // Prozente neu berechnen, wenn der Modus "Prozent" aktiv ist
+    if (this.expense.splitType === 'prozent') {
+      this.groupMembers.forEach((member) => {
+        const memberUid = member.uid;
+        const amount = this.amountToPay[memberUid] || 0;
+
+        // Berechne den neuen Prozentwert basierend auf dem aktualisierten Gesamtbetrag
+        const percentage = (amount / this.expense.totalAmount) * 100;
+        this.splitValue[memberUid] = parseFloat(percentage.toFixed(2));
+      });
+
+      // Überprüfe, ob die Summe der Prozentwerte 100% ergibt
+      let totalPercentage = 0;
+      this.groupMembers.forEach((member) => {
+        totalPercentage += this.splitValue[member.uid] || 0;
+      });
+
+      const difference = parseFloat((100 - totalPercentage).toFixed(2));
+      if (totalPercentage !== 100) {
+        if (difference > 0) {
+          this.error = `Die Summe der Prozentwerte muss genau 100% betragen. Es fehlen ${difference}%`;
+        } else {
+          this.error = `Die Summe der Prozentwerte muss genau 100% betragen. Sie sind ${Math.abs(
+            difference
+          )}% drüber.`;
+        }
+        this.isFormValid = false;
+      } else {
+        this.error = '';
+        this.isFormValid = true;
+      }
     }
   }
 
@@ -566,11 +704,6 @@ export class CreateExpensePage {
       console.error('Beschreibung darf nicht leer sein.');
       isValid = false;
     }
-    /*
-    if (!this.expense.totalAmount || this.expense.totalAmount <= 0) {
-      console.error('Betrag muss größer als 0 sein.');
-      isValid = false;
-    }*/
 
     // Optional: Standardwerte für optionale Felder setzen
     if (!this.expense.category) {
@@ -638,24 +771,5 @@ export class CreateExpensePage {
     } finally {
       this.loadingService.hide();
     }
-  }
-
-
-
-  toggleAddProductButton(uid: string) {
-    this.showAddProductButton[uid] = !this.showAddProductButton[uid];
-    // Optional: Reset the input field visibility
-    if (!this.showAddProductButton[uid]) {
-      this.showProductInputFields[uid] = false;
-    }
-  }
-
-  toggleProductInputFields(uid: string) {
-    this.showProductInputFields[uid] = !this.showProductInputFields[uid];
-  }
-
-
-  cancel() {
-    this.navCtrl.back();
   }
 }

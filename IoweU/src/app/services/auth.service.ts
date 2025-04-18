@@ -207,7 +207,7 @@ export class AuthService {
   //-------------Workaround---------------------muss besser gelöst werden!!!!!!
   async waitForUser(): Promise<void> {
     const maxRetries = 50; // Maximale Anzahl von Versuchen
-    const delay = 100; // Wartezeit zwischen den Versuchen (in Millisekunden)
+    const delay = 100; // Wartezeit
     let retries = 0;
 
     while (

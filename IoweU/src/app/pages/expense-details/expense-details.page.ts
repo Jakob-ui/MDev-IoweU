@@ -58,7 +58,6 @@ addIcons({
     CommonModule,
     FormsModule,
     IonBadge,
-    RouterLink,
   ],
 })
 export class ExpenseDetailsPage {
@@ -356,5 +355,4 @@ export class ExpenseDetailsPage {
     const memberIndex = this.memberUids.indexOf(uid);
     return memberIndex >= 0 ? this.memberUsernames[memberIndex] : '';
   }
-
 }

@@ -16,6 +16,7 @@ import { LoadingService } from '../../services/loading.service';
 import { GroupService } from '../../services/group.service';
 import { Transactions } from '../../services/objects/Transactions';
 import { Members } from '../../services/objects/Members';
+import { Groups } from 'src/app/services/objects/Groups';
 
 @Component({
   selector: 'app-transactions',
@@ -56,6 +57,7 @@ export class TransactionsPage implements OnInit {
 
   groupMembers: Members[] = []; // Mitglieder, die in der Gruppe sind
   transactions: Transactions[] = []; // Liste der Transaktionen
+  currentGroup: Groups | null = null;
 
   constructor() {}
 
@@ -71,34 +73,42 @@ export class TransactionsPage implements OnInit {
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
 
         if (groupId) {
-          const currentGroup = await this.groupService.getGroupById(groupId);
+          this.currentGroup = await this.groupService.currentGroup;
+          console.log('diese jetzige gruppe', this.currentGroup);
+          if (this.currentGroup === null) {
+            this.currentGroup = await this.groupService.getGroupById(groupId);
+            console.log('leere Gruppe, hole gruppe aus der db');
+          }
 
-          if (currentGroup) {
-            this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-            this.groupId = currentGroup.groupId || '';
+          if (this.currentGroup) {
+            this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
+            this.groupId = this.currentGroup.groupId || '';
 
-            if (currentGroup.members && currentGroup.members.length > 0) {
-              this.groupMembers = currentGroup.members;
+            if (
+              this.currentGroup.members &&
+              this.currentGroup.members.length > 0
+            ) {
+              this.groupMembers = this.currentGroup.members;
 
               // Dummy Transaktionen hinzufügen
               this.transactions = [
                 {
-                  from: currentGroup.members[0].uid,
-                  to: currentGroup.members[1].uid,
+                  from: this.currentGroup.members[0].uid,
+                  to: this.currentGroup.members[1].uid,
                   amount: 50,
                   reason: 'Schuldenausgleich',
                   date: new Date().toISOString(),
                 },
                 {
-                  from: currentGroup.members[1].uid,
-                  to: currentGroup.members[2].uid,
+                  from: this.currentGroup.members[1].uid,
+                  to: this.currentGroup.members[2].uid,
                   amount: 30,
                   reason: 'Getränke gekauft',
                   date: new Date().toISOString(),
                 },
                 {
-                  from: currentGroup.members[1].uid,
-                  to: currentGroup.members[0].uid,
+                  from: this.currentGroup.members[1].uid,
+                  to: this.currentGroup.members[0].uid,
                   amount: 40,
                   reason: 'Getränke gekauft',
                   date: new Date().toISOString(),

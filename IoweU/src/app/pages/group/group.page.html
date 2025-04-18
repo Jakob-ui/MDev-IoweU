@@ -16,7 +16,7 @@
         </div>
         <ion-icon
           [src]="'assets/icon/ionicons/qr-code-outline.svg'"
-          (click)="generateQRCode()">
+          (click)="toggleQRCodeOverlay()">
         </ion-icon>
 
         <ion-icon
@@ -30,7 +30,16 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div *ngIf="showQRCode" class="qr-code-overlay" (click)="generateQRCode()">
+  <div
+    class="qr-code-overlay"
+    [ngClass]="{
+      'hidden': overlayState === 'hidden',
+      'normal': overlayState === 'normal',
+      'start': overlayState === 'start',
+      'slideUp': overlayState === 'normal',
+      'slideDown': overlayState === 'hidden'
+    }"
+    (click)="toggleQRCodeOverlay()">
     <div class="qr-code-wrapper" (click)="$event.stopPropagation()">
       <h5>Scannen um Gruppe beizutreten.</h5>
       <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>
