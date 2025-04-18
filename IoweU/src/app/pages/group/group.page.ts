@@ -18,6 +18,7 @@ import { Groups } from 'src/app/services/objects/Groups';
 import { LoadingService } from '../../services/loading.service';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { FormsModule } from '@angular/forms';
+import { Members } from 'src/app/services/objects/Members';
 
 @Component({
   selector: 'app-group',
@@ -59,7 +60,7 @@ export class GroupPage implements OnInit {
   groupId: string = '';
   features: string[] = [];
   groupImage: string = '';
-  members: any[] = [];
+  members: Members[] = [];
   accessCode: string = '';
   sumTotalExpenses: number | undefined = undefined;
   countTotalExpenses: number | undefined = undefined;
@@ -70,12 +71,13 @@ export class GroupPage implements OnInit {
   qrCodeValue: string = '';
   overlayState: 'start' | 'normal' | 'hidden' = 'start';
 
-  myBalance: number = +200;
   currentMonth: string = 'März 2025';
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
   group: Groups | null = null;
+
+  myBalance: number = 0;
 
   async ngOnInit() {
     this.loadingService.show(); // Lade-Overlay aktivieren
@@ -98,6 +100,7 @@ export class GroupPage implements OnInit {
         const groupId = this.route.snapshot.paramMap.get('groupId');
         if (groupId) {
           this.groupId = groupId;
+          console.log('Bilanz:', this.myBalance);
 
           // Lade die Gruppendaten
           await this.loadGroupData(this.groupId);
@@ -112,21 +115,6 @@ export class GroupPage implements OnInit {
     } finally {
       this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
-  }
-
-  // Logout-Funktion
-  async logout() {
-    try {
-      this.authService.logout();
-      this.router.navigate(['login']);
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  // Navigation zur Gruppenübersicht
-  goBack() {
-    this.router.navigate(['group-overview']);
   }
 
   // Funktion zum Laden der Gruppendaten
@@ -156,6 +144,7 @@ export class GroupPage implements OnInit {
         if (group.countTotalExpensesMembers) {
           this.countTotalExpensesMembers = group.countTotalExpensesMembers;
         }
+        this.calculateBalance();
       } else {
         console.warn('Gruppe nicht gefunden!');
       }
@@ -165,6 +154,46 @@ export class GroupPage implements OnInit {
       this.loadingService.hide();
     }
   }
+
+
+  private calculateBalance() {
+    if (!this.members || this.members.length === 0) {
+      this.myBalance = 0;
+      return;
+    }
+
+    // Finde das eingeloggte Mitglied
+    const member = this.members.find(m => m.username === this.user);
+
+    if (!member) {
+      this.myBalance = 0;
+      return;
+    }
+
+    // Berechnung der Bilanz (Guthaben - Ausgaben)
+    const paidByUser = member.sumExpenseAmount; // Guthaben (Beträge, die ich bezahlt habe)
+    const paidByMember = member.sumExpenseMemberAmount;  // Ausgaben (Schulden, die ich bezahlt bekommen habe)
+
+    this.myBalance = paidByUser - paidByMember; // Speichere den berechneten Wert
+    console.log('Berechnete Bilanz:', this.myBalance);
+  }
+
+
+  // Logout-Funktion
+  async logout() {
+    try {
+      this.authService.logout();
+      this.router.navigate(['login']);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  // Navigation zur Gruppenübersicht
+  goBack() {
+    this.router.navigate(['group-overview']);
+  }
+
 
   // Funktion zur Generierung der Feature-Links mit groupId
   getFeatureLink(feature: string): string {

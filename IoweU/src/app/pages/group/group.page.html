@@ -81,9 +81,10 @@
               >
                 <span *ngIf="myBalance >= 0">Mein Guthaben:</span>
                 <span *ngIf="myBalance < 0">Meine Schulden:</span>
-                {{ myBalance | currency: 'EUR' }}
+                <strong>{{ myBalance | currency: 'EUR' }}</strong>
               </span>
             </div>
+
 
             <!-- Ausgaben -->
             <div *ngSwitchCase="'Ausgaben'">

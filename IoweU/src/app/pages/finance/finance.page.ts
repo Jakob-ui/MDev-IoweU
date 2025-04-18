@@ -75,72 +75,89 @@ export class FinancePage implements OnInit {
 
   async ngOnInit() {
     this.loadingService.show();
+
     try {
-      if (this.authService.currentUser) {
-        this.uid = this.authService.currentUser.uid;
-        this.user = this.authService.currentUser.username;
-        this.displayName = this.authService.currentUser.username;
-        console.log('Benutzerdaten:', this.authService.currentUser);
+      const currentUser = this.authService.currentUser;
 
-        const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-        console.log('Benutzer GroupId:', groupId);
+      if (!currentUser || !currentUser.uid || !currentUser.username) {
+        console.error('Kein Benutzer eingeloggt oder unvollständige Benutzerdaten.');
+        return;
+      }
 
-        if (groupId) {
-          const currentGroup = await this.groupService.getGroupById(groupId);
+      this.uid = currentUser.uid;
+      this.user = currentUser.username;
+      this.displayName = currentUser.username;
+      console.log('Benutzerdaten:', currentUser);
 
-          if (currentGroup) {
-            console.log('Alle Gruppendaten:', currentGroup);
-            this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-            this.groupId = currentGroup.groupId || '';
+      const rawGroupId = this.activeRoute.snapshot.paramMap.get('groupId');
 
-            if (currentGroup.members && currentGroup.members.length > 0) {
-              this.groupMembers = await Promise.all(
-                currentGroup.members
-                  .filter((member: any) => member.uid !== this.uid) // Filtere den aktuellen Benutzer heraus
-                  .map(async (member: any) => {
-                    this.memberUsernames.push(member.username || '');
-                    this.memberIds.push(member.memberId || '');
-                    this.memberColors.push(member.color || '');
-                    this.memberRoles.push(member.role || '');
-                    this.memberUids.push(member.uid || '');
+      if (!rawGroupId) {
+        console.error('Kein GroupId für den Benutzer gefunden');
+        this.groupname = 'Unbekannte Gruppe';
+        return;
+      }
 
-                    // Berechne den Saldo zwischen dem aktuellen Benutzer und jedem Gruppenmitglied
-                    const amount = await this.expenseService.calculateBalanceForLoggedInUser(this.uid!, member.uid);
+      const groupId: string = rawGroupId; // jetzt garantiert kein null
 
-                    console.log(`Saldo zwischen ${this.uid} und ${member.uid}: ${amount}`);
+      const currentGroup = await this.groupService.getGroupById(groupId);
 
-                    // Verteile auf Einnahmen und Ausgaben
-                    if (amount > 0) {
-                      this.myIncome += amount;
-                    } else {
-                      this.myExpenses += Math.abs(amount);
-                    }
+      if (!currentGroup) {
+        console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
+        this.groupname = 'Unbekannte Gruppe';
+        return;
+      }
 
-                    return {
-                      ...member,
-                      amount, // Füge den berechneten Betrag zum Mitglied hinzu
-                    };
-                  })
+      this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+      this.groupId = currentGroup.groupId || '';
+
+      if (!currentGroup.members || currentGroup.members.length === 0) {
+        console.error('Keine Mitglieder in der Gruppe gefunden');
+        return;
+      }
+
+      // Gruppenmitglieder laden (außer aktueller User)
+      this.groupMembers = await Promise.all(
+        currentGroup.members
+          .filter((member: any) => member.uid !== this.uid)
+          .map(async (member: any) => {
+            // Memberdaten sammeln
+            this.memberUsernames.push(member.username || '');
+            this.memberIds.push(member.memberId || '');
+            this.memberColors.push(member.color || '');
+            this.memberRoles.push(member.role || '');
+            this.memberUids.push(member.uid || '');
+
+            // Nur berechnen, wenn beide UIDs vorhanden sind
+            let saldo = 0;
+
+            if (member.uid && this.uid) {
+              const amount = await this.expenseService.getBalanceBetweenUsers(
+                groupId,
+                member.uid,
+                this.uid
               );
 
-              console.log('Mitglieder geladen:', this.groupMembers);
-              console.log('Usernames:', this.memberUsernames);
-              console.log('IDs:', this.memberIds);
-            } else {
-              console.error('Keine Mitglieder in der Gruppe gefunden');
-            }
+              const saldo = amount; // Positiv bedeutet: Ich bekomme Geld
+              console.log(`Saldo zwischen ${this.user} und ${member.username}: ${saldo}`);
 
-          } else {
-            console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
-            this.groupname = 'Unbekannte Gruppe';
-          }
-        } else {
-          console.error('Kein GroupId für den Benutzer gefunden');
-          this.groupname = 'Unbekannte Gruppe';
-        }
-      } else {
-        console.error('Kein Benutzer eingeloggt.');
-      }
+              if (saldo > 0) {
+                this.myIncome += saldo;
+              } else {
+                this.myExpenses += Math.abs(saldo);
+              }
+
+              return {
+                ...member,
+                amount: saldo,
+              };
+            }
+          })
+      );
+
+      console.log('Mitglieder geladen:', this.groupMembers);
+      console.log('Mein Saldo:', this.myBalance);
+      console.log('Meine Ausgaben:', this.myExpenses);
+      console.log('Mein Einkommen:', this.myIncome);
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -149,8 +166,6 @@ export class FinancePage implements OnInit {
       this.loadingService.hide();
     }
   }
-
-
 
 
   get myBalance(): number {

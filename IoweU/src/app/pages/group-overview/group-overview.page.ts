@@ -98,11 +98,23 @@ export class GroupOverviewPage implements OnInit {
         this.unsubscribeFromGroups = await this.groupService.getGroupsByUserId(
           uid,
           (groups) => {
-            this.groups = groups.map((group) => ({
-              name: group.groupname,
-              myBalance: Math.floor(Math.random() * (200 - -200 + 1)) + -200,
-              link: group.groupId,
-            }));
+            this.groups = groups.map((group) => {
+              // Berechne myBalance für jedes Mitglied der Gruppe
+              const myBalance = group.members.reduce((totalBalance, member) => {
+                // Berechnung der Bilanz für jedes Mitglied
+                if (member.uid === uid) { // Nur für das eingeloggte Mitglied
+                  const balance = member.sumExpenseAmount - member.sumExpenseMemberAmount;
+                  return balance; // Setze die Bilanz auf den berechneten Wert
+                }
+                return totalBalance;
+              }, 0);
+
+              return {
+                name: group.groupname,
+                myBalance: myBalance, // Berechnete Bilanz für das eingeloggte Mitglied
+                link: group.groupId,
+              };
+            });
           }
         );
       }
@@ -112,6 +124,7 @@ export class GroupOverviewPage implements OnInit {
       this.loadingService.hide();
     }
   }
+
 
   navigateToGroup(link: string) {
     this.router.navigate(['group/', link]);

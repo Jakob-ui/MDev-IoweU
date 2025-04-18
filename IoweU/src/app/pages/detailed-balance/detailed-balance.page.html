@@ -45,11 +45,11 @@
 
     <ion-badge
       [ngClass]="{
-        'negative': totalBalanceByMember < 0,
-        'positive': totalBalanceByMember > 0,
-        'normal': totalBalanceByMember === 0
+        'negative': myBalance < 0,
+        'positive': myBalance > 0,
+        'normal': myBalance === 0
       }"
-      class="balance">{{ totalBalanceByMember | currency: 'EUR' }}</ion-badge>
+      class="balance">{{ myBalance | currency: 'EUR' }}</ion-badge>
 
     <div class="separator"></div>
 
@@ -70,7 +70,7 @@
         </div>
         <ion-badge
           class="balance-price positive">
-          {{ getTotalPaidExpensesForUser(uid || '') | currency: 'EUR' }}
+          {{ myBalance | currency: 'EUR' }}
         </ion-badge>
       </div>
 
@@ -83,7 +83,7 @@
             </div>
           </div>
           <ion-badge class="expense-price positive">
-            {{ getExpenseOwedBy(selectedMember?.uid || '', expense) | currency: 'EUR' }}
+            {{ myBalance| currency: 'EUR' }}
           </ion-badge>
         </div>
         <div *ngIf="isProductsVisible(expense.expenseId)" class="product-list">
@@ -117,7 +117,7 @@
         </div>
         <ion-badge
           class="balance-price negative">
-          {{ getTotalPaidExpensesForMember(uid || '') | currency: 'EUR' }}
+          {{ myBalance | currency: 'EUR' }}
         </ion-badge>
       </div>
 
@@ -130,7 +130,7 @@
             </div>
           </div>
           <ion-badge class="expense-price negative">
-            {{ getExpenseOwedBy(uid || '', expense) | currency: 'EUR' }}
+            {{ myBalance | currency: 'EUR' }}
           </ion-badge>
         </div>
         <div *ngIf="isProductsVisible(expense.expenseId)" class="product-list">
