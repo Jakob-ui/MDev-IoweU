@@ -300,15 +300,11 @@ ion-input::part(native) {
   left: 0;
   margin-top: -20px;
   left: -50px;
-
 }
 
 .custom-dropdown ion-label {
   margin-left: 15px;
 }
-
-
-
 
 .selected-category {
   display: flex;
@@ -382,7 +378,6 @@ ion-item.dropDownFelder::part(native) {
     max-width: 400px;
     top: 100%;
     left: -10px;
-
   }
   .selected-repeat {
     display: flex;
@@ -401,7 +396,6 @@ ion-item.dropDownFelder::part(native) {
     max-width: 200%;
     top: 100%;
     left: 0;
-
   }
 
   .selected-paid-by {
@@ -415,22 +409,22 @@ ion-item.dropDownFelder::part(native) {
     display: flex;
     align-items: center;
     gap: 10px;
-  } .member-info {
-  display: flex;
-  align-items: center;
-        border: 2px solid var(--member-color, #1a65eb);
-        padding: 5px 10px 5px 5px;
-  border-radius: 50px;
-  gap: 10px;
-}
+  }
+  .member-info {
+    display: flex;
+    align-items: center;
+    border: 2px solid var(--member-color, #1a65eb);
+    padding: 5px 10px 5px 5px;
+    border-radius: 50px;
+    gap: 10px;
+  }
 
-.profile-placeholder {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid;
-}
-
+  .profile-placeholder {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid;
+  }
 
   .member-name {
     font-size: 14px;
@@ -448,7 +442,6 @@ ion-item.dropDownFelder::part(native) {
     max-width: 400px;
     top: 100%;
     left: 0;
-
   }
 
   .selected-split-by {
@@ -468,9 +461,7 @@ ion-item.dropDownFelder::part(native) {
     max-width: 800px;
     top: 100%;
     left: 0;
-
   }
-
 
   .selected-split-type {
     display: flex;
@@ -478,4 +469,22 @@ ion-item.dropDownFelder::part(native) {
     font-size: 16px;
     color: var(--ion-color-dark);
   }
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+ion-input {
+  flex: 1;
+  padding-right: 20px; /* Platz für das Prozentzeichen */
+}
+
+.percent-symbol {
+  position: absolute;
+  right: 10px; /* Abstand vom rechten Rand */
+  font-size: 16px;
+  color: #666; /* Optional: Farbe des Prozentzeichens */
 }

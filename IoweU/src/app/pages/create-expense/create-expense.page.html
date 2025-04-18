@@ -21,40 +21,37 @@
           </ion-item>
         </div>
 
-        <div 
-        class="Kategorie" 
-        (click)="onCategoryDropdownClick($event)"
-      >
-        <span class="input-label">Kategorie</span>
-        <ion-item class="input-item">
-          <ion-label>
-            <div class="selected-category">
-              <ion-icon
-                [name]="selectedCategory?.icon"
-                class="category-icon"
-                id="category-icon-label"
-              ></ion-icon>
-            </div>
-          </ion-label>
-        </ion-item>
-      
-        <div *ngIf="dropdownOpen" class="custom-dropdown">
-          <ion-list>
-            <ion-item
-              class="dropDownFelder"
-              button
-              *ngFor="let category of categories"
-              (click)="selectCategory(category, $event)"
-            >
-              <ion-icon
-                [name]="category.icon"
-                class="category-icon"
-              ></ion-icon>
-              <ion-label>{{ category.name }}</ion-label>
-            </ion-item>
-          </ion-list>
+        <div class="Kategorie" (click)="onCategoryDropdownClick($event)">
+          <span class="input-label">Kategorie</span>
+          <ion-item class="input-item">
+            <ion-label>
+              <div class="selected-category">
+                <ion-icon
+                  [name]="selectedCategory?.icon"
+                  class="category-icon"
+                  id="category-icon-label"
+                ></ion-icon>
+              </div>
+            </ion-label>
+          </ion-item>
+
+          <div *ngIf="dropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                class="dropDownFelder"
+                button
+                *ngFor="let category of categories"
+                (click)="selectCategory(category, $event)"
+              >
+                <ion-icon
+                  [name]="category.icon"
+                  class="category-icon"
+                ></ion-icon>
+                <ion-label>{{ category.name }}</ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
-      </div>
 
         <div class="invoice-upload">
           <span class="input-label">Rechnung</span>
@@ -79,15 +76,18 @@
         <div class="betrag">
           <span class="input-label">Betrag</span>
           <ion-item class="input-item">
-            <ion-input
-              type="number"
-              placeholder="0,00"
-              [(ngModel)]="expense.totalAmount"
-              [value]="expense.totalAmount === 0 ? '' : expense.totalAmount"
-              (ionInput)="onTotalAmountChange()"
-              step="0.01"
-            >
-            </ion-input>
+            <div class="input-wrapper">
+              <ion-input
+                type="number"
+                placeholder="0,00"
+                [(ngModel)]="expense.totalAmount"
+                [value]="expense.totalAmount === 0 ? '' : expense.totalAmount"
+                (ionInput)="onTotalAmountChange()"
+                step="0.01"
+              >
+              </ion-input>
+              <span class="percent-symbol">€</span>
+            </div>
           </ion-item>
         </div>
         <div class="Währung">
@@ -109,7 +109,7 @@
         </div>
       </div>
     </div>
-<!-- bezahlt -->
+    <!-- bezahlt -->
     <div class="section">
       <div class="amount-row">
         <div class="paid-by">
@@ -123,7 +123,7 @@
               </div>
             </ion-label>
           </ion-item>
-        
+
           <div *ngIf="paidByDropdownOpen" class="custom-dropdown">
             <ion-list>
               <ion-item
@@ -276,35 +276,49 @@
           <div class="right-container">
             <div class="input-field" *ngIf="expense.splitType === 'prozent'">
               <!-- Prozentfeld -->
-              <ion-input
-                type="number"
-                placeholder="%"
-                [(ngModel)]="splitValue[groupMember.uid]"
-                (ionInput)="calculateSplitByPercentage(groupMember.uid, 'percentage')"
-              ></ion-input>
+              <div class="input-wrapper">
+                <ion-input
+                  type="number"
+                  placeholder="0"
+                  [(ngModel)]="splitValue[groupMember.uid]"
+                  (ionInput)="calculateSplitByPercentage(groupMember.uid, 'percentage')"
+                ></ion-input>
+                <span class="percent-symbol">%</span>
+              </div>
             </div>
 
             <div class="input-field">
               <!-- Betragsfeld -->
-              <ion-input
-                type="number"
-                placeholder="0,00"
-                [(ngModel)]="amountToPay[groupMember.uid]"
+              <div
+                class="input-wrapper"
                 *ngIf="expense.splitType === 'prozent'"
-                [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
-                (ionInput)="calculateSplitByPercentage(groupMember.uid, 'amount')"
-                step="0.01"
-              ></ion-input>
-
-              <ion-input
-                type="number"
-                placeholder="0,00"
+              >
+                <ion-input
+                  type="number"
+                  placeholder="0,00"
+                  [(ngModel)]="amountToPay[groupMember.uid]"
+                  *ngIf="expense.splitType === 'prozent'"
+                  [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
+                  (ionInput)="calculateSplitByPercentage(groupMember.uid, 'amount')"
+                  step="0.01"
+                ></ion-input>
+                <span class="percent-symbol">€</span>
+              </div>
+              <div
+                class="input-wrapper"
                 *ngIf="expense.splitType === 'anteile' || expense.splitType === 'produkte'"
-                [(ngModel)]="amountToPay[groupMember.uid]"
-                [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
-                (ionInput)="onAmountToPayChange()"
-                step="0.01"
-              ></ion-input>
+              >
+                <ion-input
+                  type="number"
+                  placeholder="0,00"
+                  *ngIf="expense.splitType === 'anteile' || expense.splitType === 'produkte'"
+                  [(ngModel)]="amountToPay[groupMember.uid]"
+                  [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
+                  (ionInput)="onAmountToPayChange()"
+                  step="0.01"
+                ></ion-input>
+                <span class="percent-symbol">€</span>
+              </div>
             </div>
           </div>
         </div>
