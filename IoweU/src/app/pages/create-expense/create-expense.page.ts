@@ -145,7 +145,6 @@ export class CreateExpensePage {
     { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
 
-
   async ngOnInit() {
     this.loadingService.show();
 
@@ -184,9 +183,11 @@ export class CreateExpensePage {
 
                   // Initialisiere Summen- und Zählerwerte für jedes Mitglied
                   member.sumExpenseAmount = member.sumExpenseAmount || 0;
-                  member.sumExpenseMemberAmount = member.sumExpenseMemberAmount || 0;
+                  member.sumExpenseMemberAmount =
+                    member.sumExpenseMemberAmount || 0;
                   member.countExpenseAmount = member.countExpenseAmount || 0;
-                  member.countExpenseMemberAmount = member.countExpenseMemberAmount || 0;
+                  member.countExpenseMemberAmount =
+                    member.countExpenseMemberAmount || 0;
 
                   return {
                     ...member,
@@ -232,7 +233,6 @@ export class CreateExpensePage {
     }
   }
 
-
   // UI Handeling ---------------------------------->
 
   onCategoryDropdownClick(event: Event) {
@@ -240,18 +240,17 @@ export class CreateExpensePage {
     event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
   }
   @HostListener('document:click', ['$event'])
-onDocumentClick(event: Event) {
-  const target = event.target as HTMLElement;
+  onDocumentClick(event: Event) {
+    const target = event.target as HTMLElement;
 
-  // Überprüfe, ob der Klick außerhalb des Dropdowns erfolgt ist
-  if (!target.closest('.Kategorie')) {
-    this.dropdownOpen = false;
+    // Überprüfe, ob der Klick außerhalb des Dropdowns erfolgt ist
+    if (!target.closest('.Kategorie')) {
+      this.dropdownOpen = false;
+    }
+    if (!target.closest('.paid-by')) {
+      this.paidByDropdownOpen = false;
+    }
   }
-  if (!target.closest('.paid-by')) {
-    this.paidByDropdownOpen = false;
-  }
-}
-
 
   onInvoiceUpload(event: any) {
     const file = event.target.files[0];
