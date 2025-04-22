@@ -602,20 +602,20 @@ ion-input {
   }
   ion-item.dropDownFelder::part(native) {
   
-    background-color: #1e1e1e !important;
+    background-color: #000000 !important;
     color: var(--ion-color-light) !important;
   }
   .custom-dropdown {
-    background-color: #1e1e1e;
+    background-color: #000000;
   }
   #category-icon-label {
     color: #000000;
   }
   .paid-by .custom-dropdown { 
-    background-color: #1e1e1e; 
+    background-color: #000000; 
   }
   .paid-by ion-item.dropDownFelder::part(native) {
-    background-color: #1e1e1e !important;
+    background-color: #000000 !important;
   
 }
 
