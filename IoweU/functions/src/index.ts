@@ -11,7 +11,7 @@ import {
 admin.initializeApp();
 const firestore = admin.firestore();
 
-// Scheduled function to handle recurring expenses
+// Funktion um alle wiederkehrende Kosten zu handeln
 export const handleRecurringExpenses = onSchedule(
   {
     schedule: "every day 00:01",
@@ -74,7 +74,7 @@ export const handleRecurringExpenses = onSchedule(
   }
 );
 
-
+// Funktion um alle UserSummen upzudaten
 export const updateGroupSumsOnExpenseChange = onDocumentWritten(
   "groups/{groupId}/expenses/{expenseId}",
   async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {

@@ -60,7 +60,7 @@ export class ExpenseService {
         description: expenseData.description,
         totalAmount: expenseData.totalAmount,
         paidBy: expenseData.paidBy,
-        date: new Date().toISOString(),
+        date: expenseData.date,
         currency: expenseData.currency,
         category: expenseData.category || '',
         invoice: expenseData.invoice || '',
