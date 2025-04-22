@@ -579,7 +579,9 @@ ion-input {
 .split-percentage + .validation-content {
   margin-top: 0;
 }
-
+.upload-icon{
+  font-size: 24px;
+}
 
 
 @media (prefers-color-scheme: dark) {
@@ -604,6 +606,9 @@ ion-input {
   .paid-by ion-item.dropDownFelder::part(native) {
     background-color: #121212 !important;
   
+}
+.upload-icon{
+  color: #000000;
 }
 
 }
