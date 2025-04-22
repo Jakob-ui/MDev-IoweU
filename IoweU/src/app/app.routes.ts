@@ -3,13 +3,8 @@ import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
-    path: 'home',
-    loadComponent: () =>
-      import('./pages/home/home.page').then((m) => m.HomePage),
-  },
-  {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'login',
     pathMatch: 'full',
   },
   {
@@ -71,7 +66,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'expense-details/:groupId',
+    path: 'expense-details/:groupId/:expenseId',
     loadComponent: () =>
       import('./pages/expense-details/expense-details.page').then(
         (m) => m.ExpenseDetailsPage
@@ -87,7 +82,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'edit-expense/:id',
+    path: 'edit-expense/:groupId/:expenseId',
     loadComponent: () =>
       import('./pages/edit-expense/edit-expense.page').then(
         (m) => m.EditExpensePage
@@ -95,7 +90,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'edit-group/:id',
+    path: 'edit-group/:groupId',
     loadComponent: () =>
       import('./pages/edit-group/edit-group.page').then((m) => m.EditGroupPage),
     canActivate: [AuthGuard],
@@ -120,6 +115,26 @@ export const routes: Routes = [
       import('./pages/reset-password/reset-password.page').then(
         (m) => m.ResetPasswordPage
       ),
+  },
+  {
+    path: 'transactions/:groupId',
+    loadComponent: () =>
+      import('./pages/transactions/transactions.page').then(
+        (m) => m.TransactionsPage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'detailed-balance/:groupId/:uid',
+    loadComponent: () =>
+      import('./pages/detailed-balance/detailed-balance.page').then(
+        (m) => m.DetailedBalancePage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'landingpage',
+    loadComponent: () => import('./pages/landingpage/landingpage.page').then(m => m.LandingpagePage)
   },
   {
     path: 'not-found',

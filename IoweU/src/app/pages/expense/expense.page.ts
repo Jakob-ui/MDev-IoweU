@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
@@ -12,13 +12,13 @@ import {
   IonButton,
   IonIcon,
 } from '@ionic/angular/standalone';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
-import { GroupService } from '../../services/group.service'; // Importiere den GroupService
-import { Groups } from '../../services/objects/Groups'; // Falls benötigt, um Gruppentyp zu definieren
-import { ActivatedRoute } from '@angular/router';
+import { GroupService } from '../../services/group.service';
+import { ExpenseService } from 'src/app/services/expense.service';
+import { Expenses } from 'src/app/services/objects/Expenses';
+import { Members } from 'src/app/services/objects/Members';
 
 @Component({
   selector: 'app-expense',
@@ -39,151 +39,244 @@ import { ActivatedRoute } from '@angular/router';
     IonIcon,
   ],
 })
-export class ExpensePage implements OnInit {
-  private auth = inject(AuthService);
+export class ExpensePage implements OnInit, OnDestroy {
+  private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private activeRoute = inject(ActivatedRoute);
-  private platform = inject(Platform);
-  private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
-  private groupService = inject(GroupService); // Inject GroupService
+  private groupService = inject(GroupService);
+  private expenseService = inject(ExpenseService);
 
-  iosIcons: boolean = false;
-
+  uid: string | null = '';
   user: string | null = '';
   displayName: string | null = null;
+
   groupname: string = '';
-  groupId: string = ''; // ID der Gruppe, um Daten zu laden
+  groupId: string | null = '';
+  groupMembers: Members[] = []; // Verwenden Sie das Members-Interface
+  iosIcons: boolean = false;
+  lastTransactionDate: Date = new Date(2025, 2, 20);
 
-  groupMembers = [
-    { name: 'Livia', profileImage: 'assets/profiles/livia.jpg' },
-    { name: 'Michaela', profileImage: 'assets/profiles/michaela.jpg' },
-    { name: 'Jakob', profileImage: 'assets/profiles/jakob.jpg' },
-    { name: 'Sophie', profileImage: 'assets/profiles/sophie.jpg' },
-    { name: 'Mateusz', profileImage: 'assets/profiles/mateusz.jpg' },
-  ];
+  sumExpenses: number = 0;
+  countExpenses: number = 0;
+  currentMonth: string = '';
+  currentYear: number = 0;
 
-  expenses = [
-    {
-      id: 1,
-      expense: 'Pizza',
-      totalAmount: 50,
-      amountToPay: -10,
-      paidBy: this.groupMembers[0],
-      date: new Date(2025, 2, 20),
-    },
-    {
-      id: 2,
-      expense: 'Kinoabend',
-      totalAmount: 40,
-      amountToPay: -8,
-      paidBy: this.groupMembers[1],
-      date: new Date(2025, 3, 5),
-    },
-    {
-      id: 3,
-      expense: 'Restaurantbesuch',
-      totalAmount: 100,
-      amountToPay: -25,
-      paidBy: this.groupMembers[2],
-      date: new Date(2025, 3, 5),
-    },
-  ];
+  expenses: Expenses[] = [];
+  groupedExpenses: { date: string; expenses: Expenses[] }[] = [];
 
-  balance: number = 0;
-  lastTransactionDate = new Date(2025, 2, 20);
+  updateExpensesCallback: (() => void) | null = null;
 
-  constructor() {}
+  async ngOnInit() {
+    this.loadingService.show();
 
-  ngOnInit() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+    try {
+      await this.authService.waitForUser();
 
-    setTimeout(async () => {
-      try {
-        // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
-        if (this.auth.currentUser) {
-          this.user = this.auth.currentUser.username;
-          this.displayName = this.auth.currentUser.username;
-          console.log('Benutzerdaten:', this.auth.currentUser); // Logge die Benutzerdaten zur Überprüfung
+      if (this.authService.currentUser) {
+        this.uid = this.authService.currentUser.uid;
+        this.user = this.authService.currentUser.username;
+        this.displayName = this.authService.currentUser.username;
 
-          const userColor = this.auth.currentUser.color || '#000000'; // Standardfarbe setzen, falls nicht verfügbar
-          document.documentElement.style.setProperty('--user-color', userColor); // Benutzerfarbe setzen
+        const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
+        console.log('Benutzer GroupId:', groupId);
 
-          // Holen der groupId als String aus dem AuthService
-          const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-          if (groupId) {
-            // Holen der Gruppendaten über den GroupService
-            const currentGroup = await this.groupService.getGroupById(groupId); // Verwenden der tatsächlichen groupId hier
+        if (groupId) {
+          const currentGroup = await this.groupService.getGroupById(groupId);
 
-            if (currentGroup) {
-              this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-              this.groupId = currentGroup.groupId || '';
+          if (currentGroup) {
+            this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+            this.groupId = currentGroup.groupId || '';
+
+            // Lade die Mitglieder der Gruppe
+            if (currentGroup.members && Array.isArray(currentGroup.members)) {
+              this.groupMembers = currentGroup.members;
             } else {
-              console.error('Gruppe nicht gefunden');
-              this.groupname = 'Unbekannte Gruppe';
+              console.warn('Keine Mitglieder in der Gruppe gefunden oder members ist kein Array');
+              this.groupMembers = [];
             }
+
+            // Lade die Ausgaben
+            if (
+              currentGroup.hasOwnProperty('expenses') &&
+              Array.isArray(currentGroup.expenseId)
+            ) {
+              console.log('Expenses gefunden:', currentGroup.expenseId);
+              this.expenses = currentGroup.expenseId.map(
+                (expenseId: string) => ({
+                  expenseId: expenseId,
+                  description: '',
+                  totalAmount: 0,
+                  paidBy: '',
+                  date: new Date().toISOString().split('T')[0],
+                  currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
+                  category: '',
+                  invoice: '',
+                  repeat: '',
+                  splitBy: 'alle',
+                  splitType: 'prozent',
+                  expenseMember: [],
+                })
+              );
+            } else {
+              console.warn(
+                'Keine Ausgaben gefunden oder expenses ist kein Array'
+              );
+              this.expenses = [];
+            }
+
+            // Initialisiere expenseMember
+            this.expenses.forEach((expense) => {
+              expense.expenseMember = this.groupMembers.map((member) => ({
+                memberId: member.uid,
+                amountToPay: 0,
+                split: 1,
+                products: [],
+              }));
+            });
+
+            // Berechne die Balance, nachdem die Ausgaben geladen wurden
+            const { total, count } = this.expenseService.calculateBalance(
+              this.expenses
+            );
+
+            this.sumExpenses = total;
+            this.countExpenses = count;
           } else {
-            console.error('Kein GroupId für den Benutzer gefunden');
+            console.error(
+              'Gruppe mit der ID ' + this.groupId + ' nicht gefunden'
+            );
             this.groupname = 'Unbekannte Gruppe';
           }
-        } else {
-          console.error('Kein Benutzer eingeloggt.');
         }
 
-        this.iosIcons = this.platform.is('ios');
-        // Berechne die Balance
-        this.calculateBalance();
-      } catch (error) {
-        console.error('Fehler beim Initialisieren der Seite:', error);
-      } finally {
-        this.loadingService.hide(); // Lade-Overlay deaktivieren
+        // Echtzeit-Listener für Ausgaben
+        this.updateExpensesCallback = await this.expenseService.getExpenseByGroup(
+          this.groupId || '',
+          (expensestest) => {
+            this.expenses = Array.isArray(expensestest) ? expensestest : [];
+
+            // Neue Zeile für Gruppierung
+            this.groupExpensesByDate();
+
+            const { total, count } = this.expenseService.calculateBalance(this.expenses);
+            this.sumExpenses = total;
+            this.countExpenses = count;
+            this.expenseService.updateSums(
+              this.groupId || '',
+              this.sumExpenses,
+              this.countExpenses,
+              'sumTotalExpenses',
+              'countTotalExpenses'
+            );
+          }
+        );
+
+      } else {
+        console.error('Kein Benutzer eingeloggt.');
       }
-    }, 500); // Verzögerung von 500ms, bevor der Prozess gestartet wird
+    } catch (error) {
+      console.error('Fehler beim Initialisieren der Seite:', error);
+    } finally {
+      this.loadingService.hide();
+    }
   }
 
-  // Berechnet den Kontostand basierend auf den Ausgaben
-  calculateBalance() {
-    this.balance = this.expenses.reduce(
-      (sum, expense) => sum + expense.totalAmount,
-      0
-    );
+  ngOnDestroy() {
+    if (this.updateExpensesCallback) {
+      this.updateExpensesCallback();
+      console.log('Unsubscribed from expense updates');
+    }
   }
 
-  // Logout-Funktion
   async logout() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+    this.loadingService.show();
     try {
-      await this.auth.logout();
-      this.router.navigate(['home']);
+      await this.authService.logout();
+      this.router.navigate(['login']);
     } catch (e) {
       console.error('Fehler beim Logout:', e);
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
   // Navigation zu den Details einer Ausgabe
-  goToExpenseDetails(expenseId: number) {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+  goToExpenseDetails(expenseId: string) {
+    this.loadingService.show();
     try {
-      this.router.navigate(['expense-details', expenseId]);
+      // Hier wird der expenseId der aktuellen Ausgabe übergeben
+      this.router.navigate(['expense-details', this.groupId, expenseId]);
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
   // Navigation zur Seite zum Erstellen einer neuen Ausgabe
   goToCreateExpense() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+    this.loadingService.show();
     try {
-      this.router.navigate(['create-expense']);
+      this.router.navigate(['create-expense', this.groupId]);
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
-  // Zurück zur vorherigen Seite
+  getUserAmount(expense: Expenses): number {
+    const userEntry = expense.expenseMember?.find(
+      (member) => member.memberId === this.uid
+    );
+    return userEntry?.amountToPay ?? 0;
+  }
+
+  getAmountClass(expense: Expenses): string {
+    const amount = this.getUserAmount(expense);
+    const isPaidByCurrentUser = expense.paidBy === this.uid;
+
+    if (isPaidByCurrentUser) {
+      return 'neutral';
+    }
+    if (amount > 0) {
+      return 'negative';
+    }
+    return 'neutral';
+  }
+
+  groupExpensesByDate() {
+    const grouped: { [key: string]: Expenses[] } = {};
+
+    for (const expense of this.expenses) {
+      const formattedDate = new Date(expense.date).toISOString().split('T')[0]; //YYYY-MM-DD
+      if (!grouped[formattedDate]) {
+        grouped[formattedDate] = [];
+      }
+      grouped[formattedDate].push(expense);
+    }
+
+    // Sortieren nach Datum absteigend (neuestes Datum zuerst)
+    const sortedDates = Object.keys(grouped).sort((a, b) => {
+      return new Date(b).getTime() - new Date(a).getTime();
+    });
+
+    // Sortiere innerhalb jeder Gruppe nach Uhrzeit absteigend
+    this.groupedExpenses = sortedDates.map((date) => ({
+      date,
+      expenses: grouped[date].sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }),
+    }));
+  }
+
+  getFirstLetter(paidBy: string): string {
+    const member = this.groupMembers.find((m) => m.uid === paidBy);
+    if (member && member.username && member.username.length > 0) {
+      return member.username.charAt(0).toUpperCase();
+    }
+    return '';
+  }
+
   goBack() {
-    this.navCtrl.back();
+    this.router.navigate(['/group', this.groupId]);
   }
 }

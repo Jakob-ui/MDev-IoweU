@@ -1,8 +1,6 @@
-
 <ion-content [fullscreen]="true">
-
   <div id="container" class="container">
-    <img src="'assets/logo/Logo_lang.png' : 'assets/logo/LogoWeiss.png'" alt="Logo" class="logo" />
+    <img [src]="groupImage || 'assets/logo/LogoWeiss.png'" alt="Logo" class="logo" />
 
     <h3>Gruppe bearbeiten</h3>
 
@@ -16,61 +14,66 @@
     </div>
     <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
 
-    <ion-item class="input-item">
-      <ion-input
-        type="text"
-        placeholder="Gruppenname"
-        [(ngModel)]="groupname"
-      ></ion-input>
-    </ion-item>
-
-    <ion-item class="input-item">
-      <ion-input
-        type="text"
-        placeholder="Mitglied hinzufügen"
-        [(ngModel)]="newMember"
-      ></ion-input>
-      <ion-button fill="clear" (click)="addMember()">+</ion-button>
-    </ion-item>
-
-    <ion-list>
-      <ion-item class="member-item" *ngFor="let member of members">
-        <ion-label>{{ member }}</ion-label>
-        <ion-button fill="clear" color="danger" (click)="removeMember(member)"
-        >X</ion-button
-        >
+    <div class="edit-fields">
+      <span class="input-label">Access Code</span>
+      <ion-item class="input-item">
+        <ion-input
+          type="text"
+          placeholder="Access Code"
+          [(ngModel)]="accessCode"
+        ></ion-input>
+        <ion-icon [src]="'assets/icon/ionicons/qr-code-outline.svg'" (click)="generateQRCode()"></ion-icon>
       </ion-item>
-    </ion-list>
-
-    <ion-item class="input-item">
-      <ion-label *ngIf="!selectedTemplate" class="Dropdown-label">Template auswählen</ion-label>
-      <ion-select [(ngModel)]="selectedTemplate">
-        <ion-select-option *ngFor="let template of templates" [value]="template">
-          {{ template }}
-        </ion-select-option>
-      </ion-select>
-    </ion-item>
-
-    <!-- Button, um den QR-Code zu generieren -->
-    <ion-button class="main-button" expand="block" (click)="generateGroupLink()">
-      QR-Code generieren
-    </ion-button>
-
-    <!-- QR-Code wird angezeigt, wenn groupLink gesetzt ist -->
-    <div *ngIf="groupLink">
-      <!--<qrcode [qrdata]="groupLink" [width]="256"></qrcode> -->
     </div>
 
-    <ion-button
-      class="main-button"
-      expand="block"
-      [routerLink]="'/group-overview'"
-    >Abbrechen</ion-button
-    >
-    <ion-button class="main-button" expand="block" [routerLink]="'/group'"
-    >Speichern</ion-button
-    >
+    <div *ngIf="showQRCode" class="qr-code-wrapper">
+      <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>
+    </div>
+
+
+    <div class="edit-fields">
+      <span class="input-label">Gruppenname</span>
+      <ion-item class="input-item">
+        <ion-input
+          type="text"
+          placeholder="Gruppenname"
+          [(ngModel)]="groupname"
+        ></ion-input>
+      </ion-item>
+    </div>
+
+    <div class="edit-fields">
+      <span class="input-label">Mitglieder</span>
+      <ion-list class="member-list">
+        <ion-item class="member-item" *ngFor="let member of members">
+          <div class="member-info"
+               [ngStyle]="{
+                 'background-color': 'var(--member-color-background-' + member.uid + ')',
+                 'border-color': 'var(--member-color-' + member.uid + ')'
+               }">
+            <div
+              class="profile-placeholder"
+              [ngStyle]="{
+                'background-color': 'var(--member-color-' + member.uid + ')',
+                'border-color': 'var(--member-color-' + member.uid + ')'
+              }">
+            </div>
+            <span class="member-name">{{ member.username }}</span>
+          </div>
+          <ion-button fill="clear" color="danger" (click)="removeMember(member)">X</ion-button>
+        </ion-item>
+      </ion-list>
+    </div>
+
+    <div class="buttonclass">
+      <ion-button id="delete-alert" class="delete-button" color="danger" (click)="confirmDelete()">
+        Gruppe löschen
+      </ion-button>
+    </div>
+
+    <div class="button-row">
+      <ion-button class="main-button" expand="block" [routerLink]="['/group', groupId]">Abbrechen</ion-button>
+      <ion-button class="main-button" expand="block" (click)="saveeditedGroup()">Speichern</ion-button>
+    </div>
   </div>
-
-
 </ion-content>

@@ -16,7 +16,7 @@
   font-size: 48px;
   color: var(--ion-color-dark);
   font-weight: bold;
-  pointer-events: none; 
+  pointer-events: none;
 }
 
 .group-image {
@@ -28,5 +28,13 @@
 .label {
   white-space: nowrap;
   padding-right: 5px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
 

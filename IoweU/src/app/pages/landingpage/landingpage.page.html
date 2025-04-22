@@ -1,0 +1,111 @@
+<ion-header class="main-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>IoweU</ion-title>
+    <div class="nav-links" slot="primary">
+      <a href="#introduction">Home</a>
+      <a href="#features">Features</a>
+      <a href="#team">Team</a>
+      <div class="user-info" slot="end" [routerLink]="'/login'">
+        <div class="profile-placeholder"></div>
+        <span class="member-name">Login</span>
+      </div>
+    </div>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen class="landingpage-content">
+  <section id="introduction" class="hero">
+    <div class="hero-text">
+      <h1>Deine Ausgaben im Griff</h1>
+      <p>Organisiere Gruppen-Ausgaben einfach und schnell.</p>
+    </div>
+  </section>
+
+  <section id="features" class="features-section">
+    <div class="features-container">
+      <h2>App-Features</h2>
+      <!-- Phone Container - This will be positioned sticky -->
+      <div class="phone-container">
+
+        <div class="phone-frame" id="phone-frame">
+          <div class="phone-screen">
+            <img
+              [src]="features[currentFeatureIndex].image"
+              alt="Feature Screenshot"
+              id="screen-img"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Items - These will be detected by Scrollama -->
+      <div class="features-list">
+        <div
+          class="feature-item"
+          *ngFor="let feature of features; let i = index"
+          #featureItem
+        >
+          <div
+            [ngClass]="i % 2 === 0 ? 'feature-text-left' : 'feature-text-right'"
+          >
+            <ion-icon [name]="feature.icon" size="large"></ion-icon>
+            <h2>{{ feature.title }}</h2>
+            <p>{{ feature.description }}</p>
+            <div *ngIf="feature.hasDetails" class="feature-details">
+              <p><em>{{ feature.details }}</em></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="team" class="team-section">
+    <h2>Unser Team</h2>
+    <div class="team-container">
+      <div class="team-member" *ngFor="let member of teamMembers">
+        <img [src]="member.photo" [alt]="member.name" />
+        <h3>{{ member.name }}</h3>
+        <p>{{ member.role }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="cta" class="cta-section">
+    <div class="cta-container">
+      <h2>Bereit, Gruppenfinanzen zu vereinfachen?</h2>
+      <p>Lade die IowU App jetzt herunter und starte noch heute mit dem einfachen Management deiner Gruppenausgaben.</p>
+
+      <div class="app-buttons">
+        <a href="#" class="app-button">
+          <div>Play</div>
+          <span>
+            <span class="small-text">Erhältlich bei</span>
+            <span class="big-text">Google Play</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-links">
+        <a href="#">Über uns</a>
+        <a href="#">Kontakt</a>
+        <a href="#">Impressum</a>
+        <a href="#">Datenschutz</a>
+        <a href="#">AGB</a>
+      </div>
+
+      <div class="copyright">
+        <p>Copyright © 2025 IowU. Alle Rechte vorbehalten.</p>
+      </div>
+    </div>
+  </footer>
+</ion-content>
+

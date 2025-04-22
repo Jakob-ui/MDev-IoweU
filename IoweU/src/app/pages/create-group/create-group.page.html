@@ -1,8 +1,10 @@
-
 <ion-content [fullscreen]="true">
-
   <div id="container" class="container">
-    <img src="'assets/logo/Logo_lang.png' : 'assets/logo/LogoWeiss.png'" alt="Logo" class="logo" />
+    <img
+      src="'assets/logo/Logo_lang.png' : 'assets/logo/LogoWeiss.png'"
+      alt="Logo"
+      class="logo"
+    />
 
     <h3>Gruppe erstellen</h3>
 
@@ -21,7 +23,9 @@
         type="text"
         placeholder="Gruppenname"
         [(ngModel)]="groupname"
+        maxlength="20"
       ></ion-input>
+      <ion-note slot="end">{{ groupname.length || 0 }}/20</ion-note>
     </ion-item>
 
     <!-- <ion-item class="input-item">
@@ -43,15 +47,18 @@
     </ion-list> -->
 
     <ion-item class="input-item">
-      <ion-label *ngIf="!selectedTemplate" class="Dropdown-label">Template auswählen</ion-label>
+      <ion-label *ngIf="!selectedTemplate" class="Dropdown-label"
+        >Template auswählen</ion-label
+      >
       <ion-select [(ngModel)]="selectedTemplate">
-        <ion-select-option *ngFor="let template of templates" [value]="template">
+        <ion-select-option
+          *ngFor="let template of templates"
+          [value]="template"
+        >
           {{ template }}
         </ion-select-option>
       </ion-select>
     </ion-item>
-
-
 
     <ion-button
       class="main-button"

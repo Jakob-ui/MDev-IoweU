@@ -8,15 +8,13 @@ import {
   IonIcon,
   IonCard,
   IonCardSubtitle,
-  IonCardTitle,
+  IonCardTitle, IonList,
 } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
 import { LoadingService } from 'src/app/services/loading.service';
-import { timeout } from 'rxjs';
-import { collection, onSnapshot, query, where } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-group-overview',
@@ -34,6 +32,7 @@ import { collection, onSnapshot, query, where } from '@angular/fire/firestore';
     IonCard,
     IonCardSubtitle,
     IonCardTitle,
+    IonList,
   ],
 })
 export class GroupOverviewPage implements OnInit {
@@ -43,10 +42,16 @@ export class GroupOverviewPage implements OnInit {
   private navCtrl = inject(NavController);
   private groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
+  private unsubscribeFromGroups: (() => void) | null = null;
 
   username: string | null = '';
   iosIcons: boolean = false;
   groups: { name: string; myBalance: number; link: string }[] = [];
+
+  draggedGroup: any = null;
+  isEditMode = false;
+  touchStartY: number | null = null;
+  longPressTimeout: any = null;
 
   constructor() {}
 
@@ -54,7 +59,7 @@ export class GroupOverviewPage implements OnInit {
     this.loadingService.show();
 
     try {
-      await this.waitForUser();
+      await this.authService.waitForUser();
 
       if (this.authService.currentUser) {
         this.username = this.authService.currentUser.username;
@@ -77,63 +82,49 @@ export class GroupOverviewPage implements OnInit {
     }
   }
 
-  //-------------Workaround---------------------muss besser gelöst werden!!!!!!
-  private async waitForUser(): Promise<void> {
-    const maxRetries = 50; // Maximale Anzahl von Versuchen
-    const delay = 100; // Wartezeit zwischen den Versuchen (in Millisekunden)
-    let retries = 0;
-
-    while (
-      (!this.authService.currentUser ||
-        this.authService.currentUser.username === '') &&
-      retries < maxRetries
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      retries++;
-    }
-
-    if (
-      !this.authService.currentUser ||
-      this.authService.currentUser.username === ''
-    ) {
-      throw new Error('Benutzer konnte nicht vollständig geladen werden.');
+  ngOnDestroy() {
+    if (this.unsubscribeFromGroups) {
+      this.unsubscribeFromGroups();
+      console.log('Unsubscribed from group updates');
     }
   }
+
   async loadMyGroups() {
     try {
-      const currentUser = this.authService.currentUser;
-      if (!currentUser) {
-        console.error('No user is currently logged in.');
-        this.loadingService.hide();
-        return;
+      if (this.authService.currentUser) {
+        const uid = this.authService.currentUser.uid;
+
+        // Echtzeit-Updates für Gruppen
+        this.unsubscribeFromGroups = await this.groupService.getGroupsByUserId(
+          uid,
+          (groups) => {
+            this.groups = groups.map((group) => {
+              // Berechne myBalance für jedes Mitglied der Gruppe
+              const myBalance = group.members.reduce((totalBalance, member) => {
+                // Berechnung der Bilanz für jedes Mitglied
+                if (member.uid === uid) { // Nur für das eingeloggte Mitglied
+                  const balance = member.sumExpenseAmount - member.sumExpenseMemberAmount;
+                  return balance; // Setze die Bilanz auf den berechneten Wert
+                }
+                return totalBalance;
+              }, 0);
+
+              return {
+                name: group.groupname,
+                myBalance: myBalance, // Berechnete Bilanz für das eingeloggte Mitglied
+                link: group.groupId,
+              };
+            });
+          }
+        );
       }
-
-      const uid = currentUser.uid;
-      console.log('User UID:', uid);
-      const groupsCollection = collection(
-        this.groupService.firestore,
-        'groups'
-      );
-      const groupsQuery = query(
-        groupsCollection,
-        where('members', 'array-contains', uid)
-      );
-      // Gruppen abrufen, bei denen der Nutzer Mitglied ist
-      const groupsAsMember = await this.groupService.getGroupsByUserId(uid);
-      console.log('Groups as Member:', groupsAsMember);
-
-      // Kombiniere alle Gruppen in denen der Benutzer Mitglied ist
-      this.groups = groupsAsMember.map((g) => ({
-        name: g.groupname,
-        myBalance: Math.floor(Math.random() * (200 - -200 + 1)) + -200,
-        link: g.groupId,
-      }));
     } catch (e) {
       console.log('Error loading Groups:', e);
     } finally {
       this.loadingService.hide();
     }
   }
+
 
   navigateToGroup(link: string) {
     this.router.navigate(['group/', link]);
@@ -146,9 +137,73 @@ export class GroupOverviewPage implements OnInit {
   async logout() {
     try {
       await this.authService.logout();
-      this.router.navigate(['home']);
+      this.router.navigate(['login']);
     } catch (e) {
       console.log(e);
+    }
+  }
+
+  startEditMode() {
+    this.isEditMode = true;
+  }
+
+  stopEditMode() {
+    this.isEditMode = false;
+  }
+
+  onLongPressStart(group: any) {
+    this.longPressTimeout = setTimeout(() => {
+      this.startEditMode();
+    }, 500);
+  }
+
+  onLongPressCancel() {
+    clearTimeout(this.longPressTimeout);
+  }
+
+// Für Desktop Drag & Drop
+  onDragStart(event: DragEvent, group: any) {
+    this.draggedGroup = group;
+  }
+
+  onDrop(event: DragEvent, targetGroup: any) {
+    event.preventDefault();
+    this.swapGroups(targetGroup);
+    this.draggedGroup = null;
+  }
+
+  allowDrop(event: DragEvent) {
+    event.preventDefault();
+  }
+
+  swapGroups(targetGroup: any) {
+    const fromIndex = this.groups.indexOf(this.draggedGroup);
+    const toIndex = this.groups.indexOf(targetGroup);
+
+    if (fromIndex > -1 && toIndex > -1 && fromIndex !== toIndex) {
+      const updatedGroups = [...this.groups];
+      const [moved] = updatedGroups.splice(fromIndex, 1);
+      updatedGroups.splice(toIndex, 0, moved);
+      this.groups = updatedGroups;
+    }
+  }
+
+// Für Touch Drag & Drop
+  onTouchStart(event: TouchEvent, group: any) {
+    if (!this.isEditMode) return;
+    this.draggedGroup = group;
+    this.touchStartY = event.touches[0].clientY;
+  }
+
+  onTouchMove(event: TouchEvent, group: any) {
+    if (!this.isEditMode || !this.draggedGroup) return;
+
+    const currentY = event.touches[0].clientY;
+    const deltaY = currentY - (this.touchStartY ?? 0);
+
+    if (Math.abs(deltaY) > 40) {
+      this.swapGroups(group);
+      this.touchStartY = currentY;
     }
   }
 }

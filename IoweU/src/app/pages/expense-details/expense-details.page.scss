@@ -1,6 +1,6 @@
 .detailedprice-overview {
   width: 80%;
-  }
+}
 
 .detailedprice-list {
   width: 100%;
@@ -18,11 +18,11 @@
 
 .detailedprice {
   display: inline-block;
-  margin-left: 10px; /* Abstand zwischen den Elementen */
-  flex-grow: 0; /* Verhindert, dass die detailedprice-Box wächst */
+  margin-bottom: 20px;
+  flex-grow: 0;
 }
 
-.payed-by{
+.payed-by {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,11 +31,11 @@
   margin-bottom: 30px;
 }
 
-.payed-by span{
+.payed-by-lbl {
   margin-bottom: 5px;
 }
 
-.edit-button{
+.edit-button {
   margin-top: 30px;
 }
 
@@ -82,7 +82,6 @@
   text-align: end;
 }
 
-
 .product {
   flex-grow: 1;
   text-align: left;
@@ -97,4 +96,3 @@
   padding: 5px 10px;
   font-weight: 200;
 }
-

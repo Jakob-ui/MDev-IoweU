@@ -6,7 +6,6 @@ import {
   IonHeader,
   IonToolbar,
   IonContent,
-  IonButton,
   IonCard,
   IonCardTitle,
   IonCardSubtitle,
@@ -17,6 +16,9 @@ import { AuthService } from '../../services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
 import { Groups } from 'src/app/services/objects/Groups';
 import { LoadingService } from '../../services/loading.service';
+import { QRCodeComponent } from 'angularx-qrcode';
+import { FormsModule } from '@angular/forms';
+import { Members } from 'src/app/services/objects/Members';
 
 @Component({
   selector: 'app-group',
@@ -28,12 +30,13 @@ import { LoadingService } from '../../services/loading.service';
     IonHeader,
     IonToolbar,
     IonContent,
-    IonButton,
     IonCard,
     IonCardTitle,
     IonCardSubtitle,
     RouterModule,
     IonIcon,
+    QRCodeComponent,
+    FormsModule,
   ],
 })
 export class GroupPage implements OnInit {
@@ -54,78 +57,80 @@ export class GroupPage implements OnInit {
   displayName: string | null = null;
 
   groupname: string = '';
-  groupid: string = '';
+  groupId: string = '';
   features: string[] = [];
   groupImage: string = '';
-  members: any[] = [];
+  members: Members[] = [];
   accessCode: string = '';
   sumTotalExpenses: number | undefined = undefined;
   countTotalExpenses: number | undefined = undefined;
   sumTotalExpensesMembers: number | undefined = undefined;
   countTotalExpensesMembers: number | undefined = undefined;
 
-  myBalance: number = +200;
+  showQRCode: boolean = false;
+  qrCodeValue: string = '';
+  overlayState: 'start' | 'normal' | 'hidden' = 'start';
+
   currentMonth: string = 'März 2025';
 
   shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
+  group: Groups | null = null;
 
-  ngOnInit() {
+  myBalance: number = 0;
+
+  async ngOnInit() {
     this.loadingService.show(); // Lade-Overlay aktivieren
 
-    (async () => {
-      try {
-        // Sicherstellen, dass AuthService initialisiert ist und currentUser verfügbar ist
-        if (this.authService.currentUser) {
-          // Benutzername wird nur gesetzt, wenn der currentUser verfügbar ist
-          this.user = this.authService.currentUser.username;
-          this.displayName = this.authService.currentUser.username;
-          console.log('Benutzerdaten:', this.authService.currentUser); // Logge die Benutzerdaten zur Überprüfung
-        } else {
-          console.error('Kein Benutzer eingeloggt.');
-          return; // Wenn kein Benutzer eingeloggt, wird der Rest des Codes nicht ausgeführt.
-        }
+    try {
+      // Warte, bis der Benutzer vollständig geladen ist
+      await this.authService.waitForUser();
 
-        this.iosIcons = this.platform.is('ios'); // Überprüfe, ob iOS
+      if (this.authService.currentUser) {
+        // Setze Benutzerdaten
+        this.user = this.authService.currentUser.username;
+        this.displayName = this.authService.currentUser.username;
+        const userColor = this.authService.currentUser.color || '#000000';
+        document.documentElement.style.setProperty('--user-color', userColor);
+
+        // Überprüfe, ob die Plattform iOS ist
+        this.iosIcons = this.platform.is('ios');
 
         // Holen der Gruppen-ID aus den Routenparametern
-        this.route.params.subscribe((params) => {
-          this.groupid = params['groupId'];
-          this.loadGroupData(this.groupid).finally(() => {
-            this.loadingService.hide(); // Lade-Overlay deaktivieren
-          });
-        });
-      } catch (error) {
-        console.error('Fehler beim Initialisieren der Seite:', error);
-        this.loadingService.hide(); // Lade-Overlay deaktivieren
+        const groupId = this.route.snapshot.paramMap.get('groupId');
+        if (groupId) {
+          this.groupId = groupId;
+          console.log('Bilanz:', this.myBalance);
+
+          // Lade die Gruppendaten
+          await this.loadGroupData(this.groupId);
+        } else {
+          console.error('Keine Gruppen-ID in den Routenparametern gefunden.');
+        }
+      } else {
+        console.error('Kein Benutzer eingeloggt.');
       }
-    })();
-  }
-
-  // Logout-Funktion
-  async logout() {
-    try {
-      this.authService.logout();
-      this.router.navigate(['home']);
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
+      console.error('Fehler beim Initialisieren der Seite:', error);
+    } finally {
+      this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
-  }
-
-  // Navigation zur Gruppenübersicht
-  goBack() {
-    this.router.navigate(['group-overview']);
   }
 
   // Funktion zum Laden der Gruppendaten
   async loadGroupData(id: string): Promise<void> {
     try {
       const group = await this.groupService.getGroupById(id);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (group) {
+        this.group = group;
+        this.groupService.setGroup(group);
+      } else {
+        console.warn('Gruppe nicht gefunden!');
+      }
 
       if (group) {
         this.groupname = group.groupname;
-        this.groupid = group.groupId;
+        this.groupId = group.groupId;
         this.features = group.features;
         this.groupImage = group.groupimage;
         this.members = group.members;
@@ -139,6 +144,7 @@ export class GroupPage implements OnInit {
         if (group.countTotalExpensesMembers) {
           this.countTotalExpensesMembers = group.countTotalExpensesMembers;
         }
+        this.calculateBalance();
       } else {
         console.warn('Gruppe nicht gefunden!');
       }
@@ -149,17 +155,57 @@ export class GroupPage implements OnInit {
     }
   }
 
+
+  private calculateBalance() {
+    if (!this.members || this.members.length === 0) {
+      this.myBalance = 0;
+      return;
+    }
+
+    // Finde das eingeloggte Mitglied
+    const member = this.members.find(m => m.username === this.user);
+
+    if (!member) {
+      this.myBalance = 0;
+      return;
+    }
+
+    // Berechnung der Bilanz (Guthaben - Ausgaben)
+    const paidByUser = member.sumExpenseAmount; // Guthaben (Beträge, die ich bezahlt habe)
+    const paidByMember = member.sumExpenseMemberAmount;  // Ausgaben (Schulden, die ich bezahlt bekommen habe)
+
+    this.myBalance = paidByUser - paidByMember; // Speichere den berechneten Wert
+    console.log('Berechnete Bilanz:', this.myBalance);
+  }
+
+
+  // Logout-Funktion
+  async logout() {
+    try {
+      this.authService.logout();
+      this.router.navigate(['login']);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  // Navigation zur Gruppenübersicht
+  goBack() {
+    this.router.navigate(['group-overview']);
+  }
+
+
   // Funktion zur Generierung der Feature-Links mit groupId
   getFeatureLink(feature: string): string {
     switch (feature) {
       case 'Finanzübersicht':
-        return `/finance/${this.groupid}`;
+        return `/finance/${this.groupId}`;
       case 'Ausgaben':
-        return `/expense/${this.groupid}`;
+        return `/expense/${this.groupId}`;
       case 'Einkaufsliste':
-        return `/shopping-list/${this.groupid}`; // Beispiel-Link für Shopping-List
+        return `/shopping-list/${this.groupId}`; // Beispiel-Link für Shopping-List
       case 'Anlagegüter':
-        return `/assets/${this.groupid}`; // Beispiel-Link für Assets
+        return `/assets/${this.groupId}`; // Beispiel-Link für Assets
       default:
         return '/'; // Rückfalloption für unbekannte Features
     }
@@ -176,4 +222,31 @@ export class GroupPage implements OnInit {
       this.loadingService.hide();
     }
   }
+
+  // Funktion zur QR-Code-Generierung und Toggle
+  generateQRCode() {
+    if (this.accessCode) {
+      this.qrCodeValue = `http://localhost:8100/group/${this.groupId}`;
+      console.log('Generated QR Code URL:', this.qrCodeValue);
+    }
+  }
+
+  toggleQRCodeOverlay() {
+    this.generateQRCode(); // QR-Code generieren
+    console.log('Overlay state:', this.overlayState);
+
+    // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
+    if (this.overlayState === 'start') {
+      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+    } else if (this.overlayState === 'normal') {
+      // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
+      this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
+    } else if (this.overlayState === 'hidden') {
+      // Wenn es im "hidden" Zustand ist, wird es wieder nach oben geschoben
+      this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
+    }
+
+    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
+  }
+
 }

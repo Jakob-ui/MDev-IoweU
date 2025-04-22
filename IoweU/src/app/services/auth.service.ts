@@ -10,6 +10,7 @@ import {
   UserCredential,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
+import { GroupService } from './group.service';
 
 @Injectable({
   providedIn: 'root',
@@ -18,11 +19,12 @@ export class AuthService {
   getFirestoreInstance(): import('@firebase/firestore').Firestore {
     throw new Error('Method not implemented.');
   }
+
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+  private groupService = inject(GroupService);
   currentUser: Users | null = null;
 
-  //Holt alle Daten vom user aus der Datenbank
   constructor() {
     this.auth.onAuthStateChanged((user) => {
       if (user) {
@@ -46,10 +48,14 @@ export class AuthService {
               lastedited: docsnap.data()['lastedited'],
               groupId: docsnap.data()['groupId'],
             };
+
             console.log(
               'Benutzer eingeloggt und in Datenbank geladen',
               this.currentUser
             );
+
+            // Farben anwenden
+            this.applyUserColors(this.currentUser.color);
           } else {
             this.currentUser = null;
             console.log(
@@ -64,7 +70,46 @@ export class AuthService {
     });
   }
 
-  //Erstellt einen neuen User im Firebase Auth und der Datenbank
+  getCurrentUser() {
+    return this.auth.currentUser;
+  }
+
+  private applyUserColors(color: string) {
+    const background = this.lightenColor(color, 0.9);
+    document.documentElement.style.setProperty('--user-color', color);
+    document.documentElement.style.setProperty(
+      '--user-color-background',
+      background
+    );
+  }
+
+  private lightenColor(hex: string, factor: number): string {
+    let r = 0,
+      g = 0,
+      b = 0;
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else if (hex.length === 6) {
+      r = parseInt(hex.substring(0, 2), 16);
+      g = parseInt(hex.substring(2, 4), 16);
+      b = parseInt(hex.substring(4, 6), 16);
+    }
+    r = Math.min(255, r + (255 - r) * factor);
+    g = Math.min(255, g + (255 - g) * factor);
+    b = Math.min(255, b + (255 - b) * factor);
+    return `#${(
+      (1 << 24) |
+      (Math.round(r) << 16) |
+      (Math.round(g) << 8) |
+      Math.round(b)
+    )
+      .toString(16)
+      .slice(1)}`;
+  }
+
   async signup(
     email: string,
     password: string,
@@ -77,27 +122,17 @@ export class AuthService {
       email.trim(),
       password.trim()
     );
-    /* versuch user in User Auth zu speichern
-    const db = getDatabase();
-    update(ref(db, 'users/' + userCredential.user.uid), {
-      username: username,
-      color: color,
-      lastedited: new Date().toISOString(),
-      groupId: [],
-    });
-    */
 
     if (userCredential.user) {
       const userData: Users = {
-        uid: userCredential.user.uid, // UID des Benutzers
+        uid: userCredential.user.uid,
         username: username,
         email: email,
         color: color,
         lastedited: new Date().toISOString(),
-        groupId: [], // Initialisiere groupId als leeres Array
+        groupId: [],
       };
 
-      //Speichere die Benutzerdaten in Firestore
       const success = await this.saveUserData(
         userCredential.user.uid,
         userData
@@ -111,15 +146,11 @@ export class AuthService {
     return userCredential;
   }
 
-  //Updated den User in Users in Firestore
   private async saveUserData(uid: string, data: Users): Promise<boolean> {
     try {
       const userRef = doc(this.firestore, 'users', uid);
       await setDoc(userRef, data);
-      console.log(
-        'Benutzerdaten erfolgreich gespeichert mit UID als Dokument-ID:',
-        uid
-      );
+      console.log('Benutzerdaten erfolgreich gespeichert:', uid);
       return true;
     } catch (e) {
       console.error('Fehler beim Speichern der Benutzerdaten:', e);
@@ -127,7 +158,6 @@ export class AuthService {
     }
   }
 
-  //Logged den User ein mithilfe der Auth von Firebase
   login(email: string, password: string, rememberMe: boolean): Promise<void> {
     const persistence = rememberMe
       ? browserLocalPersistence
@@ -153,6 +183,14 @@ export class AuthService {
   logout(): void {
     this.auth.signOut().then(() => {
       console.log('Benutzer wurde abgemeldet.');
+
+      // Setze alle Benutzerdaten zurück
+      this.currentUser = null;
+      document.documentElement.style.removeProperty('--user-color');
+      document.documentElement.style.removeProperty('--user-color-background');
+
+      // Weitere globale Daten zurücksetzen
+      this.groupService.clearGroupData();
     });
   }
 
@@ -164,5 +202,24 @@ export class AuthService {
     return sendPasswordResetEmail(this.auth, email.trim(), {
       url: 'http://localhost:8100/login',
     });
+  }
+
+  //-------------Workaround---------------------muss besser gelöst werden!!!!!!
+  async waitForUser(): Promise<void> {
+    const maxRetries = 50; // Maximale Anzahl von Versuchen
+    const delay = 100; // Wartezeit
+    let retries = 0;
+
+    while (
+      (!this.currentUser || this.currentUser.username === '') &&
+      retries < maxRetries
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      retries++;
+    }
+
+    if (!this.currentUser || this.currentUser.username === '') {
+      throw new Error('Benutzer konnte nicht vollständig geladen werden.');
+    }
   }
 }

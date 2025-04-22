@@ -16,6 +16,8 @@ import { AuthService } from '../../services/auth.service';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
 import { GroupService } from '../../services/group.service';
+import { ExpenseService } from "../../services/expense.service";
+import {QRCodeComponent} from "angularx-qrcode";
 
 @Component({
   selector: 'app-finance',
@@ -33,6 +35,7 @@ import { GroupService } from '../../services/group.service';
     IonCard,
     IonIcon,
     RouterModule,
+    QRCodeComponent,
   ],
 })
 export class FinancePage implements OnInit {
@@ -43,20 +46,25 @@ export class FinancePage implements OnInit {
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
+  private expenseService = inject(ExpenseService);
 
   groupname: string = '';
   iosIcons: boolean = false;
 
+  overlayState: 'start' | 'normal' | 'hidden' = 'start';
+
+  uid: string | null = '';
   user: string | null = '';
   displayName: string | null = null;
   groupId: string | null = null;
 
-  myBalance: number = +200;
+  myExpenses: number = 0;
+  myIncome: number = 0;
+
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   groupMembers: any[] = [];
 
-  // 🆕 Member-Variablen
   memberUsernames: string[] = [];
   memberIds: string[] = [];
   memberColors: string[] = [];
@@ -69,78 +77,87 @@ export class FinancePage implements OnInit {
     this.loadingService.show();
 
     try {
-      if (this.authService.currentUser) {
-        this.user = this.authService.currentUser.username;
-        this.displayName = this.authService.currentUser.username;
-        console.log('Benutzerdaten:', this.authService.currentUser);
+      const currentUser = this.authService.currentUser;
 
-        const userColor = this.authService.currentUser.color || '#000000';
-        const userBackgroundColor = this.lightenColor(userColor, 0.9);
-        document.documentElement.style.setProperty('--user-color', userColor);
-        document.documentElement.style.setProperty(
-          '--user-color-background',
-          userBackgroundColor
-        );
-
-        const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-        console.log('Benutzer GroupId:', groupId);
-
-        if (groupId) {
-          const currentGroup = await this.groupService.getGroupById(groupId);
-
-          if (currentGroup) {
-            console.log('Alle Gruppendaten:', currentGroup);
-            this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-            this.groupId = currentGroup.groupId || '';
-
-            if (currentGroup.members && currentGroup.members.length > 0) {
-              this.groupMembers = currentGroup.members.map((member: any) => {
-                // Setze dynamische Farben für jedes Mitglied
-                const memberColor = member.color || '#000000';
-                const memberBackgroundColor = this.lightenColor(
-                  memberColor,
-                  0.9
-                );
-
-                // Setze die CSS-Properties für die Farben basierend auf der uid
-                document.documentElement.style.setProperty(
-                  `--member-color-${member.uid}`,
-                  memberColor
-                );
-                document.documentElement.style.setProperty(
-                  `--member-color-background-${member.uid}`,
-                  memberBackgroundColor
-                );
-
-                this.memberUsernames.push(member.username || '');
-                this.memberIds.push(member.memberId || '');
-                this.memberColors.push(member.color || '');
-                this.memberRoles.push(member.role || '');
-                this.memberUids.push(member.uid || '');
-
-                return {
-                  ...member,
-                  amount: 0, // Dummy-Wert
-                };
-              });
-
-              console.log('Mitglieder geladen:', this.groupMembers);
-              console.log('Usernames:', this.memberUsernames);
-              console.log('IDs:', this.memberIds);
-            } else {
-              console.error('Keine Mitglieder in der Gruppe gefunden');
-            }
-          } else {
-            console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
-            this.groupname = 'Unbekannte Gruppe';
-          }
-        } else {
-          console.error('Kein GroupId für den Benutzer gefunden');
-          this.groupname = 'Unbekannte Gruppe';
-        }
-      } else {
-        console.error('Kein Benutzer eingeloggt.');
+      if (!currentUser || !currentUser.uid || !currentUser.username) {
+        console.error('Kein Benutzer eingeloggt oder unvollständige Benutzerdaten.');
+        return;
       }
+
+      this.uid = currentUser.uid;
+      this.user = currentUser.username;
+      this.displayName = currentUser.username;
+      console.log('Benutzerdaten:', currentUser);
+
+      const rawGroupId = this.activeRoute.snapshot.paramMap.get('groupId');
+
+      if (!rawGroupId) {
+        console.error('Kein GroupId für den Benutzer gefunden');
+        this.groupname = 'Unbekannte Gruppe';
+        return;
+      }
+
+      const groupId: string = rawGroupId; // jetzt garantiert kein null
+
+      const currentGroup = await this.groupService.getGroupById(groupId);
+
+      if (!currentGroup) {
+        console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
+        this.groupname = 'Unbekannte Gruppe';
+        return;
+      }
+
+      this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+      this.groupId = currentGroup.groupId || '';
+
+      if (!currentGroup.members || currentGroup.members.length === 0) {
+        console.error('Keine Mitglieder in der Gruppe gefunden');
+        return;
+      }
+
+      // Gruppenmitglieder laden (außer aktueller User)
+      this.groupMembers = await Promise.all(
+        currentGroup.members
+          .filter((member: any) => member.uid !== this.uid)
+          .map(async (member: any) => {
+            // Memberdaten sammeln
+            this.memberUsernames.push(member.username || '');
+            this.memberIds.push(member.memberId || '');
+            this.memberColors.push(member.color || '');
+            this.memberRoles.push(member.role || '');
+            this.memberUids.push(member.uid || '');
+
+            // Nur berechnen, wenn beide UIDs vorhanden sind
+            let saldo = 0;
+
+            if (member.uid && this.uid) {
+              const amount = await this.expenseService.getBalanceBetweenUsers(
+                groupId,
+                member.uid,
+                this.uid
+              );
+
+              const saldo = amount; // Positiv bedeutet: Ich bekomme Geld
+              console.log(`Saldo zwischen ${this.user} und ${member.username}: ${saldo}`);
+
+              if (saldo > 0) {
+                this.myIncome += saldo;
+              } else {
+                this.myExpenses += Math.abs(saldo);
+              }
+
+              return {
+                ...member,
+                amount: saldo,
+              };
+            }
+          })
+      );
+
+      console.log('Mitglieder geladen:', this.groupMembers);
+      console.log('Mein Saldo:', this.myBalance);
+      console.log('Meine Ausgaben:', this.myExpenses);
+      console.log('Mein Einkommen:', this.myIncome);
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -150,56 +167,17 @@ export class FinancePage implements OnInit {
     }
   }
 
-  // Helper function zum Aufhellen der Farbe (nur Helligkeit wird verändert)
-  private lightenColor(hex: string, factor: number): string {
-    let r: number = 0;
-    let g: number = 0;
-    let b: number = 0;
 
-    // Entferne das "#" aus dem Hex-Code, falls vorhanden
-    hex = hex.replace('#', '');
-
-    // Konvertiere Hex in RGB
-    if (hex.length === 3) {
-      r = parseInt(hex[0] + hex[0], 16);
-      g = parseInt(hex[1] + hex[1], 16);
-      b = parseInt(hex[2] + hex[2], 16);
-    } else if (hex.length === 6) {
-      r = parseInt(hex.substr(0, 2), 16);
-      g = parseInt(hex.substr(2, 2), 16);
-      b = parseInt(hex.substr(4, 2), 16);
-    }
-
-    // Erhöhe die RGB-Werte proportional, ohne sie über 255 hinaus steigen zu lassen
-    r = Math.min(255, r + (255 - r) * factor);
-    g = Math.min(255, g + (255 - g) * factor);
-    b = Math.min(255, b + (255 - b) * factor);
-
-    // Konvertiere zurück in Hex
-    return `#${(
-      (1 << 24) |
-      (Math.round(r) << 16) |
-      (Math.round(g) << 8) |
-      Math.round(b)
-    )
-      .toString(16)
-      .slice(1)}`;
+  get myBalance(): number {
+    return this.myIncome - this.myExpenses;
   }
 
-  goToCreateExpense() {
-    this.loadingService.show();
-    try {
-      this.router.navigate(['create-expense']);
-    } finally {
-      this.loadingService.hide();
-    }
-  }
 
   async logout() {
     this.loadingService.show();
     try {
       this.authService.logout();
-      this.router.navigate(['home']);
+      this.router.navigate(['login']);
     } catch (e) {
       console.error('Fehler beim Logout:', e);
     } finally {
@@ -208,6 +186,24 @@ export class FinancePage implements OnInit {
   }
 
   goBack() {
-    this.navCtrl.back();
+    this.router.navigate(['/group', this.groupId]);
+  }
+
+  toggleInfoOverlay() {
+
+    console.log('Overlay state:', this.overlayState);
+
+    // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
+    if (this.overlayState === 'start') {
+      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+    } else if (this.overlayState === 'normal') {
+      // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
+      this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
+    } else if (this.overlayState === 'hidden') {
+      // Wenn es im "hidden" Zustand ist, wird es wieder nach oben geschoben
+      this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
+    }
+
+    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 }
