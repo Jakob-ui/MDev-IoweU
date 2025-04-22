@@ -164,7 +164,6 @@ export class CreateExpensePage {
 
         if (groupId) {
           this.currentGroup = await this.groupService.getGroup();
-          console.log('diese jetzige gruppe', this.currentGroup);
           if (this.currentGroup === null) {
             this.currentGroup = await this.groupService.getGroupById(groupId);
             console.log('leere Gruppe, hole gruppe aus der db');
@@ -263,7 +262,6 @@ export class CreateExpensePage {
       const reader = new FileReader();
       reader.onload = () => {
         this.expense.invoice = reader.result as string; // Speichere das Bild als Base64-String
-        console.log('Rechnung hochgeladen:', this.expense.invoice);
       };
       reader.readAsDataURL(file); // Lese die Datei als Base64
     }
@@ -281,14 +279,12 @@ export class CreateExpensePage {
     this.expense.paidBy = member.uid; // Setze die UID des ausgewählten Mitglieds
     this.selectedMember = member; // Speichere das ausgewählte Mitglied
     this.paidByDropdownOpen = false; // Schließe das Dropdown
-    console.log('Ausgewähltes Mitglied:', this.selectedMember);
     event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
   }
 
   selectCategory(category: any, event: Event) {
     this.selectedCategory = category; // Setze die ausgewählte Kategorie
     this.dropdownOpen = false; // Schließe das Dropdown
-    console.log('Ausgewählte Kategorie:', this.selectedCategory);
     event.stopPropagation(); // Verhindere, dass das Klick-Event weitergeleitet wird
   }
 
@@ -739,8 +735,6 @@ export class CreateExpensePage {
           i = 0;
         }
       }
-
-      console.log('Gleichmäßige Aufteilung mit Rest:', this.amountToPay);
     }
   }
 

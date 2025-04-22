@@ -195,7 +195,7 @@ ion-select {
   right: auto;
   display: flex;
   align-items: center;
-  padding: 20px 10px;
+  padding: 14px 10px;
   background: rgba(255, 255, 255, 0.6); /* White with 80% opacity */
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -295,13 +295,21 @@ ion-input::part(native) {
   position: absolute;
   z-index: 9999;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-  max-width: 300%;
+  max-width: 400%;
   top: 100%;
   left: 0;
   margin-top: -20px;
   left: -50px;
+  padding-top: 15%;
+  padding-bottom: 15%;
+  border-radius: 10px;
+  background-color: #ffffff;
 }
+ion-item.dropDownFelder::part(native) {
+  --background: #ffffff;
+  background-color: #ffffff !important;
 
+}
 .custom-dropdown ion-label {
   margin-left: 15px;
 }
@@ -310,41 +318,6 @@ ion-input::part(native) {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-@media (prefers-color-scheme: dark) {
-  .input-label {
-    color: #989797;
-  }
-  ion-item.dropDownFelder::part(native) {
-    --background: #000000;
-    --color: var(--ion-color-light);
-    background-color: #1e1e1e !important;
-    color: var(--ion-color-light) !important;
-  }
-  .custom-dropdown {
-    background-color: #000000;
-  }
-  #category-icon-label {
-    color: #000000;
-  }
-}
-ion-item.dropDownFelder::part(native) {
-  background-color: #ffffff !important;
-}
-.invoice-upload {
-  .upload-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    width: 10px;
-  }
-
-  .upload-icon {
-    font-size: 30px;
-    color: var(--ion-color-primary);
-  }
 }
 
 .Währung {
@@ -396,8 +369,16 @@ ion-item.dropDownFelder::part(native) {
     max-width: 200%;
     top: 100%;
     left: 0;
+    padding-top: 15%;
+    padding-bottom: 15%;
+    border-radius: 10px;
+    background-color: #ffffff;
   }
-
+  ion-item.dropDownFelder::part(native) {
+  
+    background-color: #ffffff !important;
+    color: var(--ion-color-light) !important;
+  }
   .selected-paid-by {
     display: flex;
     align-items: center;
@@ -493,7 +474,6 @@ ion-input {
   font-size: 16px;
   color: #666;
 }
-
 .overlay-backdrop {
   position: fixed;
   top: 0;
@@ -599,5 +579,36 @@ ion-input {
 .split-percentage + .validation-content {
   margin-top: 0;
 }
+.upload-icon{
+  font-size: 24px;
+}
 
 
+@media (prefers-color-scheme: dark) {
+  .input-label {
+    color: #989797;
+  }
+  ion-item.dropDownFelder::part(native) {
+  
+    background-color: #121212 !important;
+    color: var(--ion-color-light) !important;
+  }
+  .custom-dropdown {
+    background-color: #121212;
+  }
+  #category-icon-label {
+    color: #000000;
+  
+  }
+  .paid-by .custom-dropdown { 
+    background-color: #121212; 
+  }
+  .paid-by ion-item.dropDownFelder::part(native) {
+    background-color: #121212 !important;
+  
+}
+.upload-icon{
+  color: #000000;
+}
+
+}

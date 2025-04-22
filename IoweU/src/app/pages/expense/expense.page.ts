@@ -93,7 +93,9 @@ export class ExpensePage implements OnInit, OnDestroy {
             if (currentGroup.members && Array.isArray(currentGroup.members)) {
               this.groupMembers = currentGroup.members;
             } else {
-              console.warn('Keine Mitglieder in der Gruppe gefunden oder members ist kein Array');
+              console.warn(
+                'Keine Mitglieder in der Gruppe gefunden oder members ist kein Array'
+              );
               this.groupMembers = [];
             }
 
@@ -136,13 +138,14 @@ export class ExpensePage implements OnInit, OnDestroy {
               }));
             });
 
+            /*
             // Berechne die Balance, nachdem die Ausgaben geladen wurden
             const { total, count } = this.expenseService.calculateBalance(
               this.expenses
             );
 
             this.sumExpenses = total;
-            this.countExpenses = count;
+            this.countExpenses = count;*/
           } else {
             console.error(
               'Gruppe mit der ID ' + this.groupId + ' nicht gefunden'
@@ -152,27 +155,31 @@ export class ExpensePage implements OnInit, OnDestroy {
         }
 
         // Echtzeit-Listener für Ausgaben
-        this.updateExpensesCallback = await this.expenseService.getExpenseByGroup(
-          this.groupId || '',
-          (expensestest) => {
-            this.expenses = Array.isArray(expensestest) ? expensestest : [];
+        this.updateExpensesCallback =
+          await this.expenseService.getExpenseByGroup(
+            this.groupId || '',
+            (expensestest) => {
+              this.expenses = Array.isArray(expensestest) ? expensestest : [];
 
-            // Neue Zeile für Gruppierung
-            this.groupExpensesByDate();
+              // Neue Zeile für Gruppierung
+              this.groupExpensesByDate();
 
-            const { total, count } = this.expenseService.calculateBalance(this.expenses);
-            this.sumExpenses = total;
-            this.countExpenses = count;
-            this.expenseService.updateSums(
-              this.groupId || '',
-              this.sumExpenses,
-              this.countExpenses,
-              'sumTotalExpenses',
-              'countTotalExpenses'
-            );
-          }
-        );
-
+              const { total, count } = this.expenseService.calculateBalance(
+                this.expenses
+              );
+              this.sumExpenses = total;
+              this.countExpenses = count;
+              console.log(this.sumExpenses);
+              console.log(this.countExpenses);
+              /*this.expenseService.updateSums(
+                this.groupId || '',
+                this.sumExpenses,
+                this.countExpenses,
+                'sumTotalExpenses',
+                'countTotalExpenses'
+              );*/
+            }
+          );
       } else {
         console.error('Kein Benutzer eingeloggt.');
       }

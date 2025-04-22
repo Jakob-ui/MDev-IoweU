@@ -2,7 +2,6 @@
   <div id="container" class="container">
     <h3>Neue Ausgaben</h3>
     <div class="separator"></div>
-
     <!-- Beschreibung -->
     <div class="section">
       <div class="amount-row">
@@ -57,7 +56,10 @@
           <span class="input-label">Rechnung</span>
           <ion-item class="input-item">
             <label class="upload-label">
-              <ion-icon name="add-outline" class="upload-icon"></ion-icon>
+              <ion-icon
+                [src]="expense.invoice ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/ios-add.svg'"
+                class="upload-icon"
+              ></ion-icon>
               <input
                 type="file"
                 accept="image/*"

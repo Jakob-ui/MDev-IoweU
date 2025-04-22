@@ -1,11 +1,17 @@
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import * as admin from "firebase-admin";
 import {logger} from "firebase-functions";
+import {
+  onDocumentWritten,
+  Change,
+  FirestoreEvent,
+  DocumentSnapshot,
+} from "firebase-functions/v2/firestore";
 
 admin.initializeApp();
 const firestore = admin.firestore();
 
-// Scheduled function to handle recurring expenses
+// Funktion um alle wiederkehrende Kosten zu handeln
 export const handleRecurringExpenses = onSchedule(
   {
     schedule: "every day 00:01",
@@ -64,6 +70,61 @@ export const handleRecurringExpenses = onSchedule(
       }
     } catch (error) {
       logger.error("Error handling recurring expenses:", error);
+    }
+  }
+);
+
+// Funktion um alle UserSummen upzudaten
+export const updateGroupSumsOnExpenseChange = onDocumentWritten(
+  "groups/{groupId}/expenses/{expenseId}",
+  async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
+    const groupId = event.params.groupId;
+
+    try {
+      // Neue oder aktualisierte Ausgabe
+      const newExpense = event.data?.after?.data();
+      // Gelöschte Ausgabe
+      const oldExpense = event.data?.before?.data();
+
+      // Referenz zur Gruppe
+      const groupRef = firestore.collection("groups").doc(groupId);
+      const groupSnapshot = await groupRef.get();
+
+      if (!groupSnapshot.exists) {
+        console.error(`Gruppe mit der ID ${groupId} nicht gefunden.`);
+        return;
+      }
+
+      const groupData = groupSnapshot.data();
+
+      // Aktuelle Summen und Zähler
+      let sumTotalExpenses = groupData?.sumTotalExpenses || 0;
+      let countTotalExpenses = groupData?.countTotalExpenses || 0;
+
+      // Summen und Zähler aktualisieren
+      if (newExpense && !oldExpense) {
+        // Neue Ausgabe hinzugefügt
+        sumTotalExpenses += newExpense.totalAmount || 0;
+        countTotalExpenses += 1;
+      } else if (!newExpense && oldExpense) {
+        // Ausgabe gelöscht
+        sumTotalExpenses -= oldExpense.totalAmount || 0;
+        countTotalExpenses -= 1;
+      } else if (newExpense && oldExpense) {
+        // Ausgabe aktualisiert
+        sumTotalExpenses +=
+          (newExpense.totalAmount || 0) - (oldExpense.totalAmount || 0);
+      }
+
+      // Gruppe aktualisieren
+      await groupRef.update({
+        sumTotalExpenses,
+        countTotalExpenses,
+      });
+
+      console.log(`Summen für Gruppe ${groupId} erfolgreich aktualisiert.`);
+    } catch (error) {
+      console.error("Fehler beim Aktualisieren der Gruppensummen:", error);
     }
   }
 );

@@ -1,14 +1,6 @@
 <ion-header [translucent]="true" class="header">
   <div class="backdrop-wrapper">
     <ion-toolbar>
-      <div class="left-container" slot="start">
-        <ion-icon
-          [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
-          class="back-button"
-          (click)="goBack()"
-        ></ion-icon>
-      </div>
-
       <div class="right-container" slot="end">
         <div class="user-info" [routerLink]="'/account-settings'">
           <div class="profile-placeholder"></div>
@@ -38,15 +30,12 @@
         [class.edit-mode]="isEditMode"
         [draggable]="isEditMode"
         (click)="!isEditMode && navigateToGroup(group.link)"
-
         (mousedown)="onLongPressStart(group)"
         (mouseup)="onLongPressCancel()"
         (mouseleave)="onLongPressCancel()"
-
         (touchstart)="onLongPressStart(group); onTouchStart($event, group)"
         (touchend)="onLongPressCancel()"
         (touchmove)="onTouchMove($event, group)"
-
         (dragstart)="onDragStart($event, group)"
         (dragover)="allowDrop($event)"
         (drop)="onDrop($event, group)"
@@ -64,7 +53,6 @@
       </ion-card>
     </ion-list>
 
-
     <div class="space"></div>
 
     <div class="button-container">
@@ -72,19 +60,22 @@
         *ngIf="isEditMode"
         expand="block"
         class="main-button"
-        (click)="stopEditMode()">Fertig
+        (click)="stopEditMode()"
+        >Fertig
       </ion-button>
 
       <ion-button
         class="main-button"
         expand="block"
-        [routerLink]="'/create-group'">
+        [routerLink]="'/create-group'"
+      >
         Neue Gruppe erstellen +
       </ion-button>
       <ion-button
         class="main-button"
         expand="block"
-        [routerLink]="'/join-group'">
+        [routerLink]="'/join-group'"
+      >
         Gruppe beitreten
       </ion-button>
     </div>
