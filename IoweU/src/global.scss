@@ -803,6 +803,9 @@ body.color-blind {
 }
 
 @media (max-width: 768px) {
+  ion-header {
+    padding-top: env(safe-area-inset-top);
+  }
   ion-toolbar {
     padding-top: 70px !important;
   }
