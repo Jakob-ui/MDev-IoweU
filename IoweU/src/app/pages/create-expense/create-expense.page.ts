@@ -35,7 +35,7 @@ import {
   IonBadge,
   IonLabel,
   IonList,
-  IonNote,
+  IonNote, IonText,
 } from '@ionic/angular/standalone';
 
 // Import interfaces
@@ -70,6 +70,7 @@ import { HostListener } from '@angular/core';
     FormsModule,
     IonBadge,
     IonNote,
+    IonText,
   ],
 })
 export class CreateExpensePage {
@@ -108,6 +109,10 @@ export class CreateExpensePage {
   chooseSplitType = true;
   isFormValid: boolean = true;
   error: string = '';
+  validationErrors: string[] = [];
+  showValidationError: boolean = false;
+
+  canDistributeRest = false;
 
   dropdownOpen: boolean = false;
   selectedCategory: any = null;
@@ -566,22 +571,66 @@ export class CreateExpensePage {
       totalPercentage += this.splitValue[member.uid] || 0;
     });
 
-    // Überprüfe, ob die Summe der Prozentwerte 100% ergibt
     const difference = parseFloat((100 - totalPercentage).toFixed(2));
-    if (this.expense.splitType === 'prozent' && totalPercentage !== 100) {
-      if (difference > 0) {
-        this.error = `Die Summe der Prozentwerte muss genau 100% betragen. Es fehlen ${difference}%`;
+
+    // Neue Logik:
+    if (this.expense.splitType === 'prozent') {
+      if (difference < 0) {
+        // Mehr als 100 % → Fehler
+        this.error = `Die Summe der Prozentwerte überschreitet 100 %. Sie sind ${Math.abs(difference)} % drüber.`;
+        this.isFormValid = false;
+        this.canDistributeRest = false;
+      } else if (difference > 0) {
+        // Weniger als 100 % → Hinweis + Button anzeigen
+        this.error = `Es fehlen noch ${difference} % – du kannst den Rest auf die verbleibenden Mitglieder verteilen.`;
+        this.isFormValid = false;
+        this.canDistributeRest = true;
       } else {
-        this.error = `Die Summe der Prozentwerte muss genau 100% betragen. Sie sind ${Math.abs(
-          difference
-        )}% drüber.`;
+        // Genau 100 % → alles okay
+        this.error = '';
+        this.isFormValid = true;
+        this.canDistributeRest = false;
       }
-      this.isFormValid = false;
     } else {
       this.error = '';
       this.isFormValid = true;
+      this.canDistributeRest = false;
     }
   }
+
+  distributeRemainingPercentage() {
+    let totalPercentage = 0;
+    this.groupMembers.forEach((member) => {
+      totalPercentage += this.splitValue[member.uid] || 0;
+    });
+
+    const remainingPercentage = parseFloat((100 - totalPercentage).toFixed(2));
+
+    // Finde Mitglieder mit 0 %
+    const eligibleMembers = this.groupMembers.filter(member =>
+      !this.splitValue[member.uid] || this.splitValue[member.uid] === 0
+    );
+
+    const count = eligibleMembers.length;
+    if (count > 0) {
+      const share = parseFloat((remainingPercentage / count).toFixed(2));
+      eligibleMembers.forEach((member, index) => {
+        // Beim letzten etwas „ausgleichen“, um Rundungsfehler zu vermeiden
+        if (index === count - 1) {
+          const sumBefore = this.groupMembers.reduce((sum, m) => sum + (this.splitValue[m.uid] || 0), 0);
+          this.splitValue[member.uid] = parseFloat((100 - sumBefore).toFixed(2));
+        } else {
+          this.splitValue[member.uid] = share;
+        }
+        // auch gleich amountToPay aktualisieren
+        this.amountToPay[member.uid] = parseFloat(((this.expense.totalAmount * this.splitValue[member.uid]) / 100).toFixed(2));
+      });
+    }
+
+    this.calculateSplitByPercentage('', 'percentage'); // zur Validierung neu prüfen
+  }
+
+
 
   updateAmountToPayForProducts() {
     let totalAmount = 0;
@@ -696,44 +745,61 @@ export class CreateExpensePage {
   }
 
   validateExpense(): boolean {
+    this.validationErrors = [];
     let isValid = true;
 
-    // Überprüfe Pflichtfelder
     if (!this.expense.description || this.expense.description.trim() === '') {
-      console.error('Beschreibung darf nicht leer sein.');
+      this.validationErrors.push('Beschreibung darf nicht leer sein.');
       isValid = false;
     }
 
-    // Optional: Standardwerte für optionale Felder setzen
-    if (!this.expense.category) {
-      this.expense.category = ''; // Kategorie darf leer sein
+    if (this.expense.totalAmount == null || this.expense.totalAmount <= 0) {
+      this.validationErrors.push('Der Betrag muss größer als 0 sein.');
+      isValid = false;
     }
 
-    if (!this.expense.invoice) {
-      this.expense.invoice = ''; // Rechnung darf leer sein
+    if (!this.expense.date || this.expense.date.trim() === '') {
+      this.validationErrors.push('Ein Datum muss ausgewählt werden.');
+      isValid = false;
     }
 
-    if (!this.expense.repeat) {
-      this.expense.repeat = ''; // Wiederholung darf leer sein
+    if (!this.selectedMember) {
+      this.validationErrors.push('Es muss angegeben werden, wer bezahlt hat.');
+      isValid = false;
     }
 
+    if (!this.expense.splitType || this.expense.splitType.trim() === '') {
+      this.validationErrors.push('Es muss eine Aufteilungsart gewählt werden.');
+      isValid = false;
+    }
+
+    if (!this.expense.splitBy || this.expense.splitBy.trim() === '') {
+      this.validationErrors.push('Es muss angegeben werden, wie geteilt wird.');
+      isValid = false;
+    }
+
+    // Optionale Felder: setze Defaults, aber ohne Validierung
+    if (!this.expense.category) this.expense.category = '';
+    if (!this.expense.invoice) this.expense.invoice = '';
+    if (!this.expense.repeat) this.expense.repeat = '';
+
+    this.showValidationError = !isValid;
     return isValid;
   }
-  saveExpense() {
-    // Rufe die Validierungsmethode auf
-    if (!this.validateExpense()) {
-      console.error(
-        'Die Eingabe ist ungültig. Bitte füllen Sie alle Pflichtfelder aus.'
-      );
 
-      alert('Bitte füllen Sie alle Pflichtfelder aus.');
-      return;
+
+  closeValidationOverlay() {
+    this.showValidationError = false;
+  }
+
+  saveExpense() {
+    if (!this.validateExpense()) {
+      return; // Fehler werden nun in der UI angezeigt
     }
 
     this.loadingService.show();
 
     try {
-      // Aktualisiere die Beträge und Produktlisten in expenseMember
       this.expense.expenseMember = this.groupMembers.map((member) => {
         const uid = member.uid;
         const amount = this.amountToPay[uid] || 0;
@@ -742,7 +808,7 @@ export class CreateExpensePage {
         return {
           memberId: uid,
           amountToPay: parseFloat(amount.toFixed(2)),
-          split: 1, // du kannst das auch dynamisch machen, wenn nötig
+          split: 1,
           products: products.map((p) => ({
             ...p,
             price: Number(p.price),
@@ -751,18 +817,15 @@ export class CreateExpensePage {
         };
       });
 
-      // Aktualisiere die Gesamtsumme noch einmal zur Sicherheit
       this.updateTotalAmount();
       this.expense.totalAmount = Number(this.expense.totalAmount.toFixed(2));
 
-      // Speichere die Ausgabe über den Service
       this.expenseService.createExpense(
         this.expense,
         this.expense.expenseMember,
         this.groupId
       );
 
-      // Navigiere zurück oder zu einer Bestätigungsseite
       this.navCtrl.back();
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);
@@ -771,4 +834,5 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
+
 }
