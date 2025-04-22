@@ -295,13 +295,21 @@ ion-input::part(native) {
   position: absolute;
   z-index: 9999;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-  max-width: 300%;
+  max-width: 400%;
   top: 100%;
   left: 0;
   margin-top: -20px;
   left: -50px;
+  padding-top: 15%;
+  padding-bottom: 15%;
+  border-radius: 10px;
+  background-color: #ffffff;
 }
+ion-item.dropDownFelder::part(native) {
+  --background: #ffffff;
+  background-color: #ffffff !important;
 
+}
 .custom-dropdown ion-label {
   margin-left: 15px;
 }
@@ -310,27 +318,6 @@ ion-input::part(native) {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-@media (prefers-color-scheme: dark) {
-  .input-label {
-    color: #989797;
-  }
-  ion-item.dropDownFelder::part(native) {
-    --background: #000000;
-    --color: var(--ion-color-light);
-    background-color: #1e1e1e !important;
-    color: var(--ion-color-light) !important;
-  }
-  .custom-dropdown {
-    background-color: #000000;
-  }
-  #category-icon-label {
-    color: #000000;
-  }
-}
-ion-item.dropDownFelder::part(native) {
-  background-color: #ffffff !important;
 }
 .invoice-upload {
   .upload-label {
@@ -396,8 +383,16 @@ ion-item.dropDownFelder::part(native) {
     max-width: 200%;
     top: 100%;
     left: 0;
+    padding-top: 15%;
+    padding-bottom: 15%;
+    border-radius: 10px;
+    background-color: #ffffff;
   }
-
+  ion-item.dropDownFelder::part(native) {
+  
+    background-color: #ffffff !important;
+    color: var(--ion-color-light) !important;
+  }
   .selected-paid-by {
     display: flex;
     align-items: center;
@@ -493,7 +488,6 @@ ion-input {
   font-size: 16px;
   color: #666;
 }
-
 .overlay-backdrop {
   position: fixed;
   top: 0;
@@ -601,3 +595,28 @@ ion-input {
 }
 
 
+
+@media (prefers-color-scheme: dark) {
+  .input-label {
+    color: #989797;
+  }
+  ion-item.dropDownFelder::part(native) {
+  
+    background-color: #1e1e1e !important;
+    color: var(--ion-color-light) !important;
+  }
+  .custom-dropdown {
+    background-color: #1e1e1e;
+  }
+  #category-icon-label {
+    color: #000000;
+  }
+  .paid-by .custom-dropdown { 
+    background-color: #1e1e1e; 
+  }
+  .paid-by ion-item.dropDownFelder::part(native) {
+    background-color: #1e1e1e !important;
+  
+}
+
+}
