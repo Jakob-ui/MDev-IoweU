@@ -188,6 +188,7 @@ export class ExpenseDetailsPage {
       await this.expenseService.getExpenseById(
         this.groupId,
         this.expenseId,
+        false,
         (fetchedExpense) => {
           if (fetchedExpense) {
             this.expense = [fetchedExpense]; // Setze die komplette Expense-Daten als Array

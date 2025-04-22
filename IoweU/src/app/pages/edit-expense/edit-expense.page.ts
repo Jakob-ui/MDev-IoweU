@@ -192,6 +192,7 @@ export class EditExpensePage {
                 this.unsubscribe = await this.expenseService.getExpenseById(
                   this.groupId,
                   expenseId,
+                  false,
                   (loadedExpense) => {
                     if (loadedExpense) {
                       this.expense = loadedExpense;
@@ -607,7 +608,19 @@ export class EditExpensePage {
 
   async deleteExpense() {
     try {
-      await this.expenseService.deleteExpense(this.groupId, this.expenseId);
+      console.log('this.expense.repeat', this.expense.repeat);
+      let repeating;
+      if (this.expense.repeat !== 'nein') {
+        repeating = true;
+      } else {
+        repeating = false;
+      }
+      console.log("reapeating", repeating)
+      await this.expenseService.deleteExpense(
+        this.groupId,
+        this.expenseId,
+        repeating
+      );
       this.router.navigate(['/expense', this.groupId]);
     } catch (e) {
       console.error('Fehler beim Löschen der Ausgabe:', e);

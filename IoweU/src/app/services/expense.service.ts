@@ -12,13 +12,15 @@ import {
   where,
   writeBatch,
   addDoc,
+  doc,
+  setDoc,
 } from '@angular/fire/firestore';
-import { doc, setDoc } from 'firebase/firestore';
 import { inject } from '@angular/core';
 import { ExpenseMember } from './objects/ExpenseMember';
 import { Groups } from './objects/Groups';
 import { Members } from './objects/Members';
 import { Balances } from './objects/Balances';
+import { RepeatingExpenses } from './objects/RepeatingExpenses';
 
 @Injectable({
   providedIn: 'root',
@@ -31,7 +33,8 @@ export class ExpenseService {
   async createExpense(
     expenseData: Expenses,
     expenseMembersData: ExpenseMember[],
-    groupId: string
+    groupId: string,
+    repeating: boolean
   ): Promise<Expenses | null> {
     try {
       // Pflichtfelder prüfen
@@ -60,7 +63,9 @@ export class ExpenseService {
         description: expenseData.description,
         totalAmount: expenseData.totalAmount,
         paidBy: expenseData.paidBy,
-        date: expenseData.date ? new Date(expenseData.date).toISOString() : new Date().toISOString(),
+        date: expenseData.date
+          ? new Date(expenseData.date).toISOString()
+          : new Date().toISOString(),
         currency: expenseData.currency,
         category: expenseData.category || '',
         invoice: expenseData.invoice || '',
@@ -71,16 +76,17 @@ export class ExpenseService {
       };
 
       // In Firestore speichern
-      const expenseRef = doc(
-        this.firestore,
-        'groups',
-        groupId,
-        'expenses',
-        expense.expenseId
-      );
-      await setDoc(expenseRef, expense);
+      if (repeating) {
+        const expenseRef = doc(
+          this.firestore,
+          'groups',
+          groupId,
+          'expenses',
+          expense.expenseId
+        );
+        await setDoc(expenseRef, expense);
 
-      /*
+        /*
       //Felder in der Collection "Members" aktualisieren:
 
       //1. Sich das Dokument der Gruppe holen
@@ -113,14 +119,31 @@ export class ExpenseService {
 
        */
 
-      await this.updateMemberSumsOnNewExpense(groupId, expense);
+        await this.updateMemberSumsOnNewExpense(groupId, expense);
 
-      const groupRef = await getDoc(doc(this.firestore, 'groups', groupId));
-      const groupData = groupRef.data() as Groups;
-      await this.initializeBalancesIfNotExist(groupId, groupData.members);
-      await this.updateBalancesOnNewExpense(groupId, expense);
+        const groupRef = await getDoc(doc(this.firestore, 'groups', groupId));
+        const groupData = groupRef.data() as Groups;
+        await this.initializeBalancesIfNotExist(groupId, groupData.members);
+        await this.updateBalancesOnNewExpense(groupId, expense);
 
-      return expense;
+        return expense;
+      } else {
+        const repeatingExpense : RepeatingExpenses = {
+          ...expense,
+          lastPay: expenseData.date
+            ? new Date(expenseData.date).toISOString()
+            : new Date().toISOString(),
+        };
+        const expenseRef = doc(
+          this.firestore,
+          'groups',
+          groupId,
+          'repeatingExpenses',
+          expense.expenseId
+        );
+        await setDoc(expenseRef, expense);
+        return expense;
+      }
     } catch (error) {
       console.error('Fehler beim Erstellen der Ausgabe: ', error);
       return null;
@@ -222,28 +245,50 @@ export class ExpenseService {
     }
   }
 
-  async deleteExpense(groupId: string, expenseId: string): Promise<void> {
-    const expensesRef = doc(
-      this.firestore,
-      'groups',
-      groupId,
-      'expenses',
-      expenseId
-    );
+  async deleteExpense(
+    groupId: string,
+    expenseId: string,
+    repeating: boolean
+  ): Promise<void> {
+    let expensesRef;
+    if (!repeating) {
+      expensesRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'expenses',
+        expenseId
+      );
+    } else {
+      expensesRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'repeatingExpenses',
+        expenseId
+      );
+    }
+
     await deleteDoc(expensesRef);
   }
 
   async getExpenseByGroup(
     groupId: string,
+    repeating: boolean,
     updateExpensesCallback: (expenses: Expenses[]) => void
   ): Promise<() => void> {
     // Referenz auf die Subcollection "expenses" der Gruppe
-    const expensesRef = collection(
-      this.firestore,
-      'groups',
-      groupId,
-      'expenses'
-    );
+    let expensesRef;
+    if (!repeating) {
+      expensesRef = collection(this.firestore, 'groups', groupId, 'expenses');
+    } else {
+      expensesRef = collection(
+        this.firestore,
+        'groups',
+        groupId,
+        'repeatingExpenses'
+      );
+    }
 
     // Echtzeit-Listener auf die Subcollection
     const unsubscribe = onSnapshot(expensesRef, (snapshot) => {
@@ -264,15 +309,17 @@ export class ExpenseService {
   async getExpenseById(
     groupId: string,
     expenseId: string,
+    repeating: boolean,
     updateExpenseCallback: (expense: Expenses | null) => void
   ): Promise<() => void> {
     try {
       // Zugriff auf das richtige Dokument in der verschachtelten Collection
+      const collectionName = repeating ? 'repeatingExpenses' : 'expenses';
       const expenseRef = doc(
         this.firestore,
         'groups',
         groupId,
-        'expenses',
+        collectionName,
         expenseId
       );
 

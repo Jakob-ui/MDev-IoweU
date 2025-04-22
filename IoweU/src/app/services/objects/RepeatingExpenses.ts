@@ -7,7 +7,7 @@ export interface RepeatingExpenses {
   totalAmount: number;
   paidBy: string;
   date: string;
-  lastEdit: string;
+  lastPay?: string;
   currency: string[];
   category?: string;
   invoice?: string;
