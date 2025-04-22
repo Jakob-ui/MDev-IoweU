@@ -2,7 +2,6 @@
   <div id="container" class="container">
     <h3>Neue Ausgaben</h3>
     <div class="separator"></div>
-
     <!-- Beschreibung -->
     <div class="section">
       <div class="amount-row">
@@ -57,7 +56,10 @@
           <span class="input-label">Rechnung</span>
           <ion-item class="input-item">
             <label class="upload-label">
-              <ion-icon name="add-outline" class="upload-icon"></ion-icon>
+              <ion-icon
+                [src]="expense.invoice ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/ios-add.svg'"
+                class="upload-icon"
+              ></ion-icon>
               <input
                 type="file"
                 accept="image/*"
@@ -114,15 +116,29 @@
       <div class="amount-row">
         <div class="paid-by">
           <span class="input-label">bezahlt von</span>
-          <ion-item class="input-item" (click)="togglePaidByDropdown($event)">
-            <ion-label>
-              <div class="selected-paid-by">
-                <span class="paid-by-label">
-                  {{ selectedMember?.username || 'bezahlt von' }}
-                </span>
-              </div>
-            </ion-label>
-          </ion-item>
+        <ion-item class="input-item" (click)="togglePaidByDropdown($event)">
+  <ion-label>
+    <div class="selected-paid-by">
+      <!-- Hintergrund und Rand dynamisch basierend auf der UID des Mitglieds -->
+      <div
+        class="member-info"
+        [ngStyle]="{
+          'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
+          'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+        }"
+      >
+        <div
+          class="profile-placeholder"
+          [ngStyle]="{
+            'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
+            'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+          }"
+        ></div>
+        <span class="member-name">{{ selectedMember?.username || 'Bezahlt von' }}</span>
+      </div>
+    </div>
+  </ion-label>
+</ion-item>
 
           <div *ngIf="paidByDropdownOpen" class="custom-dropdown">
             <ion-list>

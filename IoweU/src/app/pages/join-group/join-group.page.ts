@@ -52,7 +52,7 @@ export class JoinGroupPage {
 
   constructor(
     private router: Router,
-    private alertCrontroller: AlertController
+    private alertController: AlertController
   ) {}
 
   ngOnInit() {
@@ -95,7 +95,7 @@ export class JoinGroupPage {
         email: this.authService.currentUser?.email || '',
         color: this.authService.currentUser?.color || '',
         lastedited: '',
-        groupId: [],
+        groupId: [this.joinCode],
       };
       console.log('userData', userData);
 
@@ -140,28 +140,29 @@ export class JoinGroupPage {
   }
   async scanNativeQRCode() {
     try {
-      // Erst Berechtigungen holen
+      // Berechtigungen anfordern
       const status = await BarcodeScanner.requestPermissions();
-  
-      // Wenn keine Berechtigung, direkt abbrechen
+
       if (status.camera !== 'granted') {
         this.error = 'Kamerazugriff wurde verweigert.';
         this.joinFailed = true;
         return;
       }
-  
-      // Ein kleiner Timeout hilft manchmal (besonders bei Android 12+)
-      await new Promise((resolve) => setTimeout(resolve, 500));
-  
-      // Dann scannen
+
+      // QR-Code scannen
       const result = await BarcodeScanner.scan();
-  
+
       if (result.barcodes.length > 0) {
         const qrValue = result.barcodes[0].rawValue;
-        const groupId = qrValue.split('/').pop();
-  
+        const groupId = qrValue.split('/').pop(); // Extrahiere die groupId aus der URL
+
+        console.log('QR-Code erfolgreich gescannt:', qrValue);
+        console.log('Extrahierte groupId:', groupId);
+
         if (groupId) {
-          this.router.navigate(['/group', groupId]);
+          // Setze den `joinCode` und rufe die bestehende Methode auf
+          this.joinCode = groupId;
+          this.confirmJoinGroup(); // Zeige das Pop-up an
         } else {
           this.error = 'Ungültiger QR-Code-Inhalt.';
           this.joinFailed = true;
@@ -197,16 +198,42 @@ export class JoinGroupPage {
       );
 
       scanner.render(
-        (result: string) => {
+        async (result: string) => {
           this.qrCodeScanner?.clear();
-          const lastSegment = result.split('/').pop(); // holt nur den AccessCode aus der URL
-          this.router.navigate(['/group', lastSegment]);
+      
+          const groupId = result.split('/').pop();
+      
+          if (!groupId) {
+            this.error = 'Ungültiger QR-Code.';
+            this.joinFailed = true;
+            return;
+          }
+      
+          this.joinCode = groupId;
+      
+          try {
+            const group = await this.groupService.getGroupByGroupId(groupId);
+      
+            if (!group) {
+              this.error = 'Gruppe nicht gefunden.';
+              this.joinFailed = true;
+              return;
+            }
+      
+            // Optional: Bestätigungsdialog vor dem Beitreten
+            await this.confirmJoinGroup();
+      
+          } catch (err) {
+            console.error('Fehler beim Beitreten zur Gruppe:', err);
+            this.error = 'Fehler beim Gruppenbeitritt.';
+            this.joinFailed = true;
+          }
         },
         (error: string) => {
-          console.warn(error);
+          console.warn('Scan-Fehler:', error);
         }
       );
-
+      
       this.qrCodeScanner = scanner;
     } catch (error) {
       console.error('Fehler beim Initialisieren des QR-Code-Scanners:', error);
@@ -220,17 +247,20 @@ export class JoinGroupPage {
     this.loadingService.show();
 
     try {
-      const group = await this.groupService.getGroupByAccessCode(this.joinCode);
+      let group = null;
 
-      if (!group) {
-        this.error = 'Gruppe nicht gefunden.';
-        this.joinFailed = true;
-        return;
+      if (this.joinCode.length === 5) {
+        group = await this.groupService.getGroupByAccessCode(this.joinCode);
+      } else {
+        group = await this.groupService.getGroupByGroupId(this.joinCode);
+        if (group && group.accessCode) {
+          this.joinCode = group.accessCode; // ⚠️ hier wird der AccessCode gesetzt!
+        }
       }
 
-      const alert = await this.alertCrontroller.create({
+      const alert = await this.alertController.create({
         header: 'Gruppe beitreten',
-        message: `Möchtest du wirklich der Gruppe ${group.groupname} beitreten?`,
+        message: group ? `Möchtest du wirklich der Gruppe ${group.groupname} beitreten?` : 'Gruppe konnte nicht geladen werden.',
         buttons: [
           {
             text: 'Abbrechen',
