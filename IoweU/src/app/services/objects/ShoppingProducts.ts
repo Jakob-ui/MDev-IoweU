@@ -7,7 +7,9 @@ export interface ShoppingProducts {
   shoppingProductId: string;
   memberId: string;
   forMemberId: string;
-  product: Products[];
+  productname: string;
+  quantity: number;
+  unit: string;
   date: string;
   status: string;
 }

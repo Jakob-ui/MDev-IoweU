@@ -26,7 +26,9 @@ export class ShoppinglistService {
         shoppingProductId,
         memberId: productData.memberId,
         forMemberId: productData.forMemberId,
-        product: productData.product,
+        productname: productData.productname,
+        quantity: productData.quantity,
+        unit: productData.unit,
         date: productData.date,
         status: productData.status,
       };
@@ -49,11 +51,8 @@ export class ShoppinglistService {
   }
 
   async getShoppingProducts(groupId: string): Promise<ShoppingProducts[]> {
-    const shoppingProductRef = collection(this.firestore, 'groups', groupId, 'shoppingProducts'); // Korrektur hier
+    const shoppingProductRef = collection(this.firestore, 'groups', groupId, 'shoppingProducts');
     const snapshot = await getDocs(shoppingProductRef);
     return snapshot.docs.map(doc => doc.data() as ShoppingProducts);
   }
-
-
-
 }

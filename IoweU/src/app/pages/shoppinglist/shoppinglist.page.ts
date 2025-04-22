@@ -11,7 +11,7 @@ import {
   IonCard,
   IonButton,
   IonIcon,
-  IonCheckbox
+  IonCheckbox, IonLabel, IonSelect, IonInput, IonSelectOption, IonDatetime
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -22,6 +22,7 @@ import { Shoppinglists } from "../../services/objects/Shoppinglists";
 import { ShoppingCarts } from "../../services/objects/ShoppingCarts";
 import { ShoppingProducts } from "../../services/objects/ShoppingProducts";
 import { ShoppinglistService } from "../../services/shoppinglist.service";
+import {FormsModule} from "@angular/forms";
 
 @Component({
   selector: 'app-shoppinglist',
@@ -41,6 +42,12 @@ import { ShoppinglistService } from "../../services/shoppinglist.service";
     RouterModule,
     IonButton,
     IonCheckbox,
+    IonLabel,
+    IonSelect,
+    IonInput,
+    FormsModule,
+    IonSelectOption,
+    IonDatetime,
   ],
 })
 export class ShoppinglistPage implements OnInit {
@@ -68,10 +75,22 @@ export class ShoppinglistPage implements OnInit {
 
   earliestDueDate: Date = new Date(2025, 2, 20);
 
+  addProductOpen = false;
+
+  newProduct = {
+    quantity: null,
+    unit: '',
+    productname: '',
+    forMemberId: '',
+    dueDate: null
+  };
+
+
   async ngOnInit() {
     this.loadingService.show();
 
     try {
+      // Benutzer wird gewartet und überprüft
       await this.authService.waitForUser();
 
       if (!this.authService.currentUser) {
@@ -83,6 +102,7 @@ export class ShoppinglistPage implements OnInit {
       this.user = this.authService.currentUser.username;
       this.displayName = this.authService.currentUser.username;
 
+      // Die groupId aus der URL erhalten
       const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
 
       if (!groupId) {
@@ -92,7 +112,7 @@ export class ShoppinglistPage implements OnInit {
 
       this.groupId = groupId;
 
-      // Hier kannst du Mock-Daten für die Gruppe setzen
+      // Hole die Gruppe basierend auf der groupId
       const currentGroup = await this.groupService.getGroupById(groupId);
 
       if (currentGroup) {
@@ -104,9 +124,8 @@ export class ShoppinglistPage implements OnInit {
         this.groupMembers = [];
       }
 
-      // Füge Mock-Daten für die Produkte hinzu
-      this.shoppingproducts = this.getMockShoppingProducts();
-      this.groupProductsByDate();
+      // Holen der Produkte für diese Gruppe
+      await this.loadShoppingProducts(this.groupId);
 
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
@@ -115,70 +134,15 @@ export class ShoppinglistPage implements OnInit {
     }
   }
 
-  getMockShoppingProducts(): ShoppingProducts[] {
-    return [
-      {
-        shoppingProductId: 'sp1',
-        memberId: 'm1',
-        forMemberId: 'm2',
-        product: [
-          {
-            productId: 'p1',
-            memberId: 'm1',
-            productname: 'Äpfel',
-            quantity: 2,
-            unit: 'kg',
-            price: 3.5,
-          },
-          {
-            productId: 'p2',
-            memberId: 'm1',
-            productname: 'Bananen',
-            quantity: 1,
-            unit: 'kg',
-            price: 2.0,
-          },
-        ],
-        date: '2025-04-20',
-        status: 'pending',
-      },
-      {
-        shoppingProductId: 'sp2',
-        memberId: 'm2',
-        forMemberId: 'm3',
-        product: [
-          {
-            productId: 'p3',
-            memberId: 'm2',
-            productname: 'Tomaten',
-            quantity: 3,
-            unit: 'kg',
-            price: 4.0,
-          },
-        ],
-        date: '2025-04-20',
-        status: 'completed',
-      },
-      {
-        shoppingProductId: 'sp3',
-        memberId: 'm3',
-        forMemberId: 'm1',
-        product: [
-          {
-            productId: 'p4',
-            memberId: 'm3',
-            productname: 'Kartoffeln',
-            quantity: 5,
-            unit: 'kg',
-            price: 2.5,
-          },
-        ],
-        date: '2025-04-18',
-        status: 'pending',
-      },
-    ];
+// Methode zum Laden der Produkte aus der Firebase-Datenbank
+  async loadShoppingProducts(groupId: string) {
+    try {
+      this.shoppingproducts = await this.shoppinglistService.getShoppingProducts(groupId); // Hier wird die asynchrone Methode aufgerufen
+      this.groupProductsByDate(); // Produkte nach Datum gruppieren
+    } catch (error) {
+      console.error('Fehler beim Laden der Produkte:', error);
+    }
   }
-
 
   groupProductsByDate() {
     const grouped: { [key: string]: ShoppingProducts[] } = {};
@@ -213,6 +177,13 @@ export class ShoppinglistPage implements OnInit {
     return '';
   }
 
+  // Methode, um den Benutzernamen anhand der forMemberId zu finden
+  getUsernameById(memberId: string): string {
+    const member = this.groupMembers.find(m => m.uid === memberId);
+    return member ? member.username : 'Unbekanntes Mitglied';
+  }
+
+
   goBack() {
     this.router.navigate(['/group', this.groupId]);
   }
@@ -245,19 +216,61 @@ export class ShoppinglistPage implements OnInit {
     }
   }
 
-  // Navigation zur Seite zum Erstellen einer neuen Ausgabe
-  goToAddProduct() {
-    this.loadingService.show();
-    try {
-      this.router.navigate(['add-product', this.groupId]);
-    } finally {
-      this.loadingService.hide();
-    }
-  }
-
   toggleChecked(shoppingproduct: ShoppingProducts) {
     // Hier kannst du die Logik hinzufügen, um den Status des Produktes zu ändern
     // Zum Beispiel: shoppingproduct.status = 'completed' oder 'pending'
     console.log('Produkt-Status geändert:', shoppingproduct);
   }
+
+  toggleAddProductOverlay() {
+    this.addProductOpen = !this.addProductOpen;
+  }
+
+  async saveNewProduct() {
+    // Überprüfen, ob die groupId null ist, bevor sie weiterverwendet wird
+    if (!this.groupId) {
+      console.error('Group ID ist null oder undefined');
+      alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
+      return; // Verhindert das Fortfahren, wenn groupId ungültig ist
+    }
+
+    if (this.newProduct.quantity && this.newProduct.productname && this.uid) {
+      // Fälligkeitsdatum prüfen, falls null, Standardwert setzen
+      const dueDate: string = this.newProduct.dueDate ? this.newProduct.dueDate : 'nicht dringend';
+
+      const shoppingProductData: ShoppingProducts = {
+        shoppingProductId: '', // Wird durch den Service generiert
+        memberId: this.uid, // Angemeldeter Benutzer
+        forMemberId: this.newProduct.forMemberId,
+        productname: this.newProduct.productname,
+        quantity: this.newProduct.quantity,
+        unit: this.newProduct.unit,
+        status: 'open',
+        date: dueDate, // Hier das validierte dueDate verwenden
+      };
+
+      try {
+        // Verwende die groupId und stelle sicher, dass sie nicht null ist
+        await this.shoppinglistService.addShoppingProduct(this.groupId!, 'shoppingListId', shoppingProductData);
+        console.log('Produkt erfolgreich gespeichert!');
+        this.toggleAddProductOverlay();
+
+        // Zurücksetzen der Eingabewerte
+        this.newProduct = {
+          quantity: null,
+          unit: '',
+          productname: '',
+          forMemberId: '',
+          dueDate: null,
+        };
+      } catch (error) {
+        console.error('Fehler beim Speichern:', error);
+        alert('Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
+      }
+    } else {
+      alert('Bitte fülle alle Pflichtfelder aus und stelle sicher, dass du eingeloggt bist.');
+    }
+  }
+
+
 }
