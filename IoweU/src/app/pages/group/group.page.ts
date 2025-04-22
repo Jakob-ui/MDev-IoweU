@@ -223,7 +223,7 @@ export class GroupPage implements OnInit {
       case 'Ausgaben':
         return `/expense/${this.groupId}`;
       case 'Einkaufsliste':
-        return `/shopping-list/${this.groupId}`; // Beispiel-Link für Shopping-List
+        return `/shoppinglist/${this.groupId}`; // Beispiel-Link für Shopping-List
       case 'Anlagegüter':
         return `/assets/${this.groupId}`; // Beispiel-Link für Assets
       default:
