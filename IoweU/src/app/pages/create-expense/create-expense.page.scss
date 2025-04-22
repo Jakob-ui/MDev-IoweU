@@ -28,6 +28,7 @@
 .input-item {
   flex: 1;
   width: 100%;
+  
 }
 
 .Beschreibung {
@@ -583,7 +584,7 @@ ion-input {
   margin-top: 0;
 }
 .upload-icon{
-  font-size: 24px;
+  font-size: 26px;
 }
 
 
@@ -601,7 +602,7 @@ ion-input {
   }
   #category-icon-label {
     color: #000000;
-  
+    font-size: 24px;
   }
   .paid-by .custom-dropdown { 
     background-color: #121212; 

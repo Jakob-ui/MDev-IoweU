@@ -158,6 +158,7 @@ export class ExpensePage implements OnInit, OnDestroy {
         this.updateExpensesCallback =
           await this.expenseService.getExpenseByGroup(
             this.groupId || '',
+            false,
             (expensestest) => {
               this.expenses = Array.isArray(expensestest) ? expensestest : [];
 
