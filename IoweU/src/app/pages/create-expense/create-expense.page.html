@@ -381,6 +381,16 @@
           </div>
         </div>
       </div>
+      <ion-text color="danger" *ngIf="error" class="split-percentage">
+        <p>{{ error }}</p>
+        <ion-button
+          class="main-button"
+          *ngIf="canDistributeRest"
+          (click)="distributeRemainingPercentage()">
+          Rest aufteilen
+        </ion-button>
+      </ion-text>
+
     </div>
 
     <!-- Buttons -->
@@ -393,8 +403,24 @@
         >Speichern</ion-button
       >
     </div>
-    <div>{{error}}</div>
   </div>
+
+  <!-- Fehleranzeige -->
+  <div *ngIf="showValidationError" class="overlay-backdrop" (click)="closeValidationOverlay()">
+    <div class="validation-overlay" (click)="$event.stopPropagation()">
+      <div class="validation-content">
+        <ion-icon [src]="iosIcons ? 'assets/icon/ionicons/ios-alert.svg' : 'assets/icon/ionicons/md-alert.svg'" class="warning-icon" ></ion-icon>
+        <p><strong>Bitte behebe folgende Fehler:</strong></p>
+        <ul>
+          <li *ngFor="let error of validationErrors">{{ error }}</li>
+        </ul>
+        <ion-button expand="block" color="danger" class="edit-button" (click)="closeValidationOverlay()">OK</ion-button>
+      </div>
+    </div>
+  </div>
+
+
+
 
   <!-- Datepicker Modal -->
   <ion-datetime
