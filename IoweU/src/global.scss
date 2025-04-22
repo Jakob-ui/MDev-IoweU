@@ -253,7 +253,8 @@ ion-card-subtitle h6 {
 }
 
 .finance-card,
-.expense-card {
+.expense-card,
+.shopping-card {
   width: 60%;
   max-width: 800px;
   margin: auto;
@@ -267,7 +268,8 @@ ion-card-subtitle h6 {
 }
 
 .card-content-finance,
-.card-content-expance {
+.card-content-expance,
+.card-content-shopping {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -276,12 +278,14 @@ ion-card-subtitle h6 {
 }
 
 .card-content-finance h2,
-.card-content-expance h2 {
+.card-content-expance h2,
+.card-content-shopping h2 {
   margin: 0px;
 }
 
 .card-content-finance p,
-.card-content-expance p {
+.card-content-expance p,
+.card-content-shopping p {
   margin: 0px;
 }
 
@@ -291,6 +295,32 @@ ion-card-subtitle h6 {
   justify-content: center;
   align-items: flex-end;
   flex-grow: 1;
+}
+
+.shoppingproduct-item {
+  margin-left: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+  justify-content: left;
+  flex-grow: 1;
+}
+
+.shoppingproduct-item h5{
+  margin: 0 !important;
+  top: 3px;
+  position: relative;
+}
+
+.shoppingproduct-item .forMember{
+  margin-left: 10px;
+}
+
+.checkboxToShoppingcart{
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .info-item h5 {
@@ -501,7 +531,8 @@ ion-item.select-interface-option::part(native) {
 }
 
 .balance-list,
-.expense-list {
+.expense-list,
+.shopping-list{
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -865,6 +896,8 @@ body.color-blind {
   .product,
   ion-card.finance-card h2,
   ion-card.finance-card p,
+  ion-card.shopping-card h2,
+  ion-card.shopping-card p,
   .card-content h6,
   .card-content p,
   .label,
