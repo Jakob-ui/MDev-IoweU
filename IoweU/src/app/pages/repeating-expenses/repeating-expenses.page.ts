@@ -163,6 +163,7 @@ export class RepeatingExpensesPage implements OnInit {
         this.updateExpensesCallback =
           await this.expenseService.getExpenseByGroup(
             this.groupId || '',
+            true,
             (expensestest) => {
               console.log('Updated expenses:', expensestest);
               this.expenses = Array.isArray(expensestest) ? expensestest : [];
