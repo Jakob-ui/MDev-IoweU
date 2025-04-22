@@ -762,37 +762,34 @@ ion-input:focus ~ .ionicon {
   content: url("/assets/logo/Logo_lang.png");
 }
 
+//POPUP Styling Delete Gruppe
 .custom-alert {
-  text-align: center;
-
-  button.cancel-button {
+  ion-alert-button-group,
+  .alert-button-group {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center;
+  }
+  button.cancel-button,
+  button.delete-button {
     background-color: var(--ion-color-primary);
     color: var(--ion-color-dark);
     font-weight: 100;
-    padding: 10px 20px;
+    //padding: 10px 20px;
     text-transform: uppercase;
     border-radius: 50px;
     box-shadow: none !important;
   }
   button.delete-button {
     background-color: var(--ion-color-danger);
-    color: var(--ion-color-dark);
-    font-weight: 100;
-    text-transform: uppercase;
-    box-shadow: none !important;
-    padding: 10px 20px;
-    border-radius: 50px;
-    box-shadow: none !important;
   }
 }
-
 .custom-alert .alert-title {
   color: var(--ion-color-dark);
   font-weight: bold; /* Fett für die Überschrift */
   margin-bottom: 10px; /* Abstand unter der Überschrift */
   text-align: center;
 }
-
 .custom-alert .alert-message {
   font-size: 16px;
   color: var(--ion-color-medium);
