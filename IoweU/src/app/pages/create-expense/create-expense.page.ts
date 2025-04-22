@@ -35,7 +35,8 @@ import {
   IonBadge,
   IonLabel,
   IonList,
-  IonNote, IonText,
+  IonNote,
+  IonText,
 } from '@ionic/angular/standalone';
 
 // Import interfaces
@@ -111,6 +112,7 @@ export class CreateExpensePage {
   error: string = '';
   validationErrors: string[] = [];
   showValidationError: boolean = false;
+  repeating: boolean = false;
 
   canDistributeRest = false;
 
@@ -573,7 +575,9 @@ export class CreateExpensePage {
     if (this.expense.splitType === 'prozent') {
       if (difference < 0) {
         // Mehr als 100 % → Fehler
-        this.error = `Die Summe der Prozentwerte überschreitet 100 %. Sie sind ${Math.abs(difference)} % drüber.`;
+        this.error = `Die Summe der Prozentwerte überschreitet 100 %. Sie sind ${Math.abs(
+          difference
+        )} % drüber.`;
         this.isFormValid = false;
         this.canDistributeRest = false;
       } else if (difference > 0) {
@@ -603,8 +607,9 @@ export class CreateExpensePage {
     const remainingPercentage = parseFloat((100 - totalPercentage).toFixed(2));
 
     // Finde Mitglieder mit 0 %
-    const eligibleMembers = this.groupMembers.filter(member =>
-      !this.splitValue[member.uid] || this.splitValue[member.uid] === 0
+    const eligibleMembers = this.groupMembers.filter(
+      (member) =>
+        !this.splitValue[member.uid] || this.splitValue[member.uid] === 0
     );
 
     const count = eligibleMembers.length;
@@ -613,20 +618,28 @@ export class CreateExpensePage {
       eligibleMembers.forEach((member, index) => {
         // Beim letzten etwas „ausgleichen“, um Rundungsfehler zu vermeiden
         if (index === count - 1) {
-          const sumBefore = this.groupMembers.reduce((sum, m) => sum + (this.splitValue[m.uid] || 0), 0);
-          this.splitValue[member.uid] = parseFloat((100 - sumBefore).toFixed(2));
+          const sumBefore = this.groupMembers.reduce(
+            (sum, m) => sum + (this.splitValue[m.uid] || 0),
+            0
+          );
+          this.splitValue[member.uid] = parseFloat(
+            (100 - sumBefore).toFixed(2)
+          );
         } else {
           this.splitValue[member.uid] = share;
         }
         // auch gleich amountToPay aktualisieren
-        this.amountToPay[member.uid] = parseFloat(((this.expense.totalAmount * this.splitValue[member.uid]) / 100).toFixed(2));
+        this.amountToPay[member.uid] = parseFloat(
+          (
+            (this.expense.totalAmount * this.splitValue[member.uid]) /
+            100
+          ).toFixed(2)
+        );
       });
     }
 
     this.calculateSplitByPercentage('', 'percentage'); // zur Validierung neu prüfen
   }
-
-
 
   updateAmountToPayForProducts() {
     let totalAmount = 0;
@@ -781,7 +794,6 @@ export class CreateExpensePage {
     return isValid;
   }
 
-
   closeValidationOverlay() {
     this.showValidationError = false;
   }
@@ -789,6 +801,12 @@ export class CreateExpensePage {
   saveExpense() {
     if (!this.validateExpense()) {
       return; // Fehler werden nun in der UI angezeigt
+    }
+    console.log('this.expense.repeat', this.expense.repeat);
+    if (this.expense.repeat !== 'nein') {
+      this.repeating = false;
+    } else {
+      this.repeating = true;
     }
 
     this.loadingService.show();
@@ -817,7 +835,8 @@ export class CreateExpensePage {
       this.expenseService.createExpense(
         this.expense,
         this.expense.expenseMember,
-        this.groupId
+        this.groupId,
+        this.repeating
       );
 
       this.navCtrl.back();
@@ -828,5 +847,4 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
-
 }

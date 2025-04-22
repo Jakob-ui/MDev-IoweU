@@ -12,7 +12,7 @@ admin.initializeApp();
 const firestore = admin.firestore();
 
 // Funktion um alle wiederkehrende Kosten zu handeln
-export const handleRecurringExpenses = onSchedule(
+export const handlerepeatingExpenses = onSchedule(
   {
     schedule: "every day 00:01",
     timeZone: "Europe/Berlin",
@@ -20,7 +20,7 @@ export const handleRecurringExpenses = onSchedule(
   },
   async (event) => {
     const now = new Date();
-    const expensesRef = firestore.collectionGroup("expenses");
+    const expensesRef = firestore.collectionGroup("repeatingExpenses");
 
     try {
       // Query all expenses with a repeat field
@@ -63,13 +63,13 @@ export const handleRecurringExpenses = onSchedule(
               .doc(newExpense.expenseId)
               .set(newExpense);
 
-            logger.info(`Recurring expense created: ${newExpense.expenseId}`);
+            logger.info(`repeating expense created: ${newExpense.expenseId}`);
           }
         }
         logger.info(`Function triggered: ${event}`);
       }
     } catch (error) {
-      logger.error("Error handling recurring expenses:", error);
+      logger.error("Error handling repeating expenses:", error);
     }
   }
 );
