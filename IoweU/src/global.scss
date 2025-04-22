@@ -44,6 +44,8 @@ ion-header {
   --border-color: transparent !important;
   --box-shadow: none !important;
   --webkit--box-shadow: none !important;
+  padding-top: env(safe-area-inset-top); /* Abstand zur Statusleiste */
+  --padding-top: env(safe-area-inset-top); /* Alternative für Ionic-Variablen */
 }
 
 ion-header,
