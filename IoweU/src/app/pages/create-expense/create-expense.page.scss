@@ -475,16 +475,21 @@ ion-item.dropDownFelder::part(native) {
   display: flex;
   align-items: center;
   position: relative;
+  width: 100%;
 }
 
 ion-input {
   flex: 1;
-  padding-right: 20px; /* Platz für das Prozentzeichen */
+  padding-right: 20px;
+}
+
+#input-totalAmount .percent-symbol{
+  right: 10px !important;
 }
 
 .percent-symbol {
   position: absolute;
-  right: 10px; /* Abstand vom rechten Rand */
+  right: 20px;
   font-size: 16px;
-  color: #666; /* Optional: Farbe des Prozentzeichens */
+  color: #666;
 }
