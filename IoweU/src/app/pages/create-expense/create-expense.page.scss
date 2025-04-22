@@ -593,19 +593,19 @@ ion-input {
     color: #989797;
   }
   ion-item.dropDownFelder::part(native) {
-    --background: #000000;
+    --background: #1e1e1e;
     --color: var(--ion-color-light);
-    background-color: #000000 !important;
+    background-color: #1e1e1e !important;
     color: var(--ion-color-light) !important;
   }
   .custom-dropdown {
-    background-color: #000000;
+    background-color: #1e1e1e;
   }
   #category-icon-label {
     color: #000000;
   }
   .paid-by .custom-dropdown { 
-    background-color: #000000; 
+    background-color: #1e1e1e; 
   }
 }
 
