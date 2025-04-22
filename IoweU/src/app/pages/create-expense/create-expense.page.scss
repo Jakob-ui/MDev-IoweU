@@ -303,9 +303,13 @@ ion-input::part(native) {
   padding-top: 15%;
   padding-bottom: 15%;
   border-radius: 10px;
-  
+  background-color: #ffffff;
 }
+ion-item.dropDownFelder::part(native) {
+  --background: #ffffff;
+  background-color: #ffffff !important;
 
+}
 .custom-dropdown ion-label {
   margin-left: 15px;
 }
@@ -384,7 +388,12 @@ ion-input::part(native) {
     border-radius: 10px;
     background-color: #ffffff;
   }
-
+  ion-item.dropDownFelder::part(native) {
+    --background: #ffffff;
+    --color: var(--ion-color-light);
+    background-color: #ffffff !important;
+    color: var(--ion-color-light) !important;
+  }
   .selected-paid-by {
     display: flex;
     align-items: center;
