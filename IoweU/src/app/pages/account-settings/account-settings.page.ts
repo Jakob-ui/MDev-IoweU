@@ -212,7 +212,7 @@ export class AccountSettingsPage implements OnInit {
       role: 'confirm',
       handler: async (data: { email: string; password: string }) => {
         try {
-          await this.authService.login(data.email, data.password, false);
+          await this.authService.login(data.email, data.password);
           // Nach erfolgreichem Login das Bestätigungs-Alert anzeigen
           const confirmDelete = await this.alertController.create({
             header: 'Konto endgültig löschen',
@@ -301,7 +301,7 @@ export class AccountSettingsPage implements OnInit {
 
   async deleteLogin(email: string, password: string) {
     try {
-      await this.authService.login(email, password, false);
+      await this.authService.login(email, password);
       this.isLoginVerified = true;
 
       console.log('Login erfolgreich. Zweiter Alert wird geöffnet...');
@@ -349,7 +349,7 @@ export class AccountSettingsPage implements OnInit {
 
   async verifyLogin() {
     try {
-      await this.authService.login(this.emailInput, this.passwordInput, false);
+      await this.authService.login(this.emailInput, this.passwordInput);
       this.isLoginVerified = true;
       console.log('Login erfolgreich. Jetzt kann das Konto gelöscht werden.');
     } catch (e) {

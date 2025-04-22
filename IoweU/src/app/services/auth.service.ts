@@ -154,13 +154,9 @@ export class AuthService {
     }
   }
 
-  login(email: string, password: string, rememberMe: boolean): Promise<void> {
-    const persistence = rememberMe
-      ? browserLocalPersistence
-      : browserSessionPersistence;
-
+  login(email: string, password: string): Promise<void> {
     return this.auth
-      .setPersistence(persistence)
+      .setPersistence(browserLocalPersistence)
       .then(() => {
         return signInWithEmailAndPassword(
           this.auth,
