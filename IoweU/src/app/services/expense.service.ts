@@ -9,14 +9,16 @@ import {
   onSnapshot,
   getDoc,
   query,
-  where, writeBatch, addDoc,
+  where,
+  writeBatch,
+  addDoc,
 } from '@angular/fire/firestore';
 import { doc, setDoc } from 'firebase/firestore';
 import { inject } from '@angular/core';
 import { ExpenseMember } from './objects/ExpenseMember';
 import { Groups } from './objects/Groups';
 import { Members } from './objects/Members';
-import {Balances} from "./objects/Balances";
+import { Balances } from './objects/Balances';
 
 @Injectable({
   providedIn: 'root',
@@ -353,7 +355,10 @@ export class ExpenseService {
     console.error('Fehler beim Synchronisieren von sumTotalExpenses:', e);
   }
 
-  async updateMemberSumsOnNewExpense(groupId: string, expense: Expenses): Promise<void> {
+  async updateMemberSumsOnNewExpense(
+    groupId: string,
+    expense: Expenses
+  ): Promise<void> {
     const groupRef = doc(this.firestore, 'groups', groupId);
     const groupSnapshot = await getDoc(groupRef);
     if (!groupSnapshot.exists()) return;
@@ -362,7 +367,7 @@ export class ExpenseService {
     const updatedMembers = [...groupData.members];
 
     for (const memberData of expense.expenseMember) {
-      const member = updatedMembers.find(m => m.uid === memberData.memberId);
+      const member = updatedMembers.find((m) => m.uid === memberData.memberId);
       if (!member) continue;
 
       // Wenn das Mitglied die Ausgabe bezahlt hat
@@ -387,7 +392,6 @@ export class ExpenseService {
     console.log('Mitglieder:', updatedMembers);
   }
 
-
   async updateMemberSumsOnDeleteExpense(
     groupId: string,
     expense: Expenses
@@ -400,19 +404,28 @@ export class ExpenseService {
     const updatedMembers = [...groupData.members];
 
     for (const memberData of expense.expenseMember) {
-      const member = updatedMembers.find(m => m.uid === memberData.memberId);
+      const member = updatedMembers.find((m) => m.uid === memberData.memberId);
       if (!member) continue;
 
       // Wenn das Mitglied die Ausgabe bezahlt hat
       if (member.uid === expense.paidBy) {
         const amountForOthers = expense.totalAmount - memberData.amountToPay;
 
-        member.sumExpenseAmount = Math.max(0, member.sumExpenseAmount - amountForOthers);
+        member.sumExpenseAmount = Math.max(
+          0,
+          member.sumExpenseAmount - amountForOthers
+        );
         member.countExpenseAmount = Math.max(0, member.countExpenseAmount - 1);
       } else {
         // Das Mitglied war beteiligt, aber hat nicht bezahlt
-        member.sumExpenseMemberAmount = Math.max(0, member.sumExpenseMemberAmount - memberData.amountToPay);
-        member.countExpenseMemberAmount = Math.max(0, member.countExpenseMemberAmount - 1);
+        member.sumExpenseMemberAmount = Math.max(
+          0,
+          member.sumExpenseMemberAmount - memberData.amountToPay
+        );
+        member.countExpenseMemberAmount = Math.max(
+          0,
+          member.countExpenseMemberAmount - 1
+        );
       }
     }
 
@@ -423,8 +436,12 @@ export class ExpenseService {
     console.log('Mitgliedssummen nach Löschung einer Ausgabe aktualisiert.');
   }
 
-
-  async updateMemberSumsOnPayment(groupId: string, payerId: string, receiverId: string, amount: number): Promise<void> {
+  async updateMemberSumsOnPayment(
+    groupId: string,
+    payerId: string,
+    receiverId: string,
+    amount: number
+  ): Promise<void> {
     const groupRef = doc(this.firestore, 'groups', groupId);
     const groupSnapshot = await getDoc(groupRef);
     if (!groupSnapshot.exists()) return;
@@ -432,8 +449,8 @@ export class ExpenseService {
     const groupData = groupSnapshot.data() as Groups;
     const updatedMembers = [...groupData.members];
 
-    const payer = updatedMembers.find(m => m.uid === payerId);
-    const receiver = updatedMembers.find(m => m.uid === receiverId);
+    const payer = updatedMembers.find((m) => m.uid === payerId);
+    const receiver = updatedMembers.find((m) => m.uid === receiverId);
     if (!payer || !receiver) return;
 
     payer.sumAmountPaid += amount;
@@ -448,7 +465,12 @@ export class ExpenseService {
 
     console.log('Zahlung erfolgreich verbucht.');
   }
-  async updateMemberSumsOnPaymentDelete(groupId: string, payerId: string, receiverId: string, amount: number): Promise<void> {
+  async updateMemberSumsOnPaymentDelete(
+    groupId: string,
+    payerId: string,
+    receiverId: string,
+    amount: number
+  ): Promise<void> {
     const groupRef = doc(this.firestore, 'groups', groupId);
     const groupSnapshot = await getDoc(groupRef);
     if (!groupSnapshot.exists()) return;
@@ -456,8 +478,8 @@ export class ExpenseService {
     const groupData = groupSnapshot.data() as Groups;
     const updatedMembers = [...groupData.members];
 
-    const payer = updatedMembers.find(m => m.uid === payerId);
-    const receiver = updatedMembers.find(m => m.uid === receiverId);
+    const payer = updatedMembers.find((m) => m.uid === payerId);
+    const receiver = updatedMembers.find((m) => m.uid === receiverId);
     if (!payer || !receiver) return;
 
     payer.sumAmountPaid -= amount;
@@ -473,8 +495,16 @@ export class ExpenseService {
     console.log('Zahlung erfolgreich gelöscht.');
   }
 
-  async initializeBalancesIfNotExist(groupId: string, members: Members[]): Promise<void> {
-    const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+  async initializeBalancesIfNotExist(
+    groupId: string,
+    members: Members[]
+  ): Promise<void> {
+    const balancesRef = collection(
+      this.firestore,
+      'groups',
+      groupId,
+      'balances'
+    );
     const snapshot = await getDocs(balancesRef);
 
     if (snapshot.empty) {
@@ -502,9 +532,17 @@ export class ExpenseService {
     }
   }
 
-  async updateBalancesOnNewExpense(groupId: string, expense: Expenses): Promise<void> {
+  async updateBalancesOnNewExpense(
+    groupId: string,
+    expense: Expenses
+  ): Promise<void> {
     try {
-      const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+      const balancesRef = collection(
+        this.firestore,
+        'groups',
+        groupId,
+        'balances'
+      );
 
       for (const member of expense.expenseMember) {
         if (member.memberId !== expense.paidBy) {
@@ -527,7 +565,9 @@ export class ExpenseService {
             await updateDoc(docRef, {
               amount: Number((data.amount + amount).toFixed(2)),
               lastUpdated: new Date().toISOString(),
-              relatedExpenseId: Array.from(new Set([...data.relatedExpenseId, expense.expenseId])),
+              relatedExpenseId: Array.from(
+                new Set([...data.relatedExpenseId, expense.expenseId])
+              ),
             });
           } else {
             // Neue Balance anlegen
@@ -555,7 +595,9 @@ export class ExpenseService {
             await updateDoc(docRef, {
               amount: Number((data.amount - amount).toFixed(2)),
               lastUpdated: new Date().toISOString(),
-              relatedExpenseId: Array.from(new Set([...data.relatedExpenseId, expense.expenseId])),
+              relatedExpenseId: Array.from(
+                new Set([...data.relatedExpenseId, expense.expenseId])
+              ),
             });
           } else {
             await addDoc(balancesRef, {
@@ -573,30 +615,37 @@ export class ExpenseService {
     }
   }
 
-
-  async updateBalancesOnDeleteExpense(groupId: string, expense: Expenses): Promise<void> {
+  async updateBalancesOnDeleteExpense(
+    groupId: string,
+    expense: Expenses
+  ): Promise<void> {
     try {
-
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Balances: ', error);
     }
   }
 
-  async updateBalancesOnEditExpense(groupId: string, expense: Expenses): Promise<void> {
+  async updateBalancesOnEditExpense(
+    groupId: string,
+    expense: Expenses
+  ): Promise<void> {
     try {
-
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Balances: ', error);
     }
   }
-
 
   async getBalanceBetweenUsers(
     groupId: string,
     fromMemberId: string,
     toMemberId: string
   ): Promise<number> {
-    const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+    const balancesRef = collection(
+      this.firestore,
+      'groups',
+      groupId,
+      'balances'
+    );
     const q = query(
       balancesRef,
       where('fromMemberId', '==', fromMemberId),
@@ -620,13 +669,22 @@ export class ExpenseService {
   ): Promise<Expenses[]> {
     const expenses: Expenses[] = [];
 
-    if (!balanceEntry.relatedExpenseId || balanceEntry.relatedExpenseId.length === 0) {
+    if (
+      !balanceEntry.relatedExpenseId ||
+      balanceEntry.relatedExpenseId.length === 0
+    ) {
       return expenses;
     }
 
     for (const expenseId of balanceEntry.relatedExpenseId) {
       try {
-        const expenseRef = doc(this.firestore, 'groups', groupId, 'expenses', expenseId);
+        const expenseRef = doc(
+          this.firestore,
+          'groups',
+          groupId,
+          'expenses',
+          expenseId
+        );
         const expenseSnap = await getDoc(expenseRef);
 
         if (expenseSnap.exists()) {
@@ -645,6 +703,4 @@ export class ExpenseService {
 
     return expenses;
   }
-
-
 }
