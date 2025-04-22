@@ -9,7 +9,10 @@ import {
   IonCard,
   IonCardTitle,
   IonCardSubtitle,
-  IonIcon, IonButton, IonItem, IonLabel, IonSelect, IonSelectOption,
+  IonIcon,
+  IonItem,
+  IonSelect,
+  IonSelectOption,
 } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -37,9 +40,7 @@ import { Members } from 'src/app/services/objects/Members';
     IonIcon,
     QRCodeComponent,
     FormsModule,
-    IonButton,
     IonItem,
-    IonLabel,
     IonSelect,
     IonSelectOption,
   ],
@@ -85,7 +86,12 @@ export class GroupPage implements OnInit {
 
   myBalance: number = 0;
 
-  availableFeatures: string[] = ['Einkaufsliste', 'Anlagegüter', 'Finanzübersicht', 'Ausgaben'];
+  availableFeatures: string[] = [
+    'Einkaufsliste',
+    'Anlagegüter',
+    'Finanzübersicht',
+    'Ausgaben',
+  ];
   canAddFeatures: boolean = true;
 
   async ngOnInit() {
@@ -127,7 +133,7 @@ export class GroupPage implements OnInit {
     }
   }
 
-// Funktion zum Laden der Gruppendaten
+  // Funktion zum Laden der Gruppendaten
   async loadGroupData(id: string): Promise<void> {
     try {
       const group = await this.groupService.getGroupById(id);
@@ -177,7 +183,6 @@ export class GroupPage implements OnInit {
     }
   }
 
-
   private calculateBalance() {
     if (!this.members || this.members.length === 0) {
       this.myBalance = 0;
@@ -185,7 +190,7 @@ export class GroupPage implements OnInit {
     }
 
     // Finde das eingeloggte Mitglied
-    const member = this.members.find(m => m.username === this.user);
+    const member = this.members.find((m) => m.username === this.user);
 
     if (!member) {
       this.myBalance = 0;
@@ -194,7 +199,7 @@ export class GroupPage implements OnInit {
 
     // Berechnung der Bilanz (Guthaben - Ausgaben)
     const paidByUser = member.sumExpenseAmount; // Guthaben (Beträge, die ich bezahlt habe)
-    const paidByMember = member.sumExpenseMemberAmount;  // Ausgaben (Schulden, die ich bezahlt bekommen habe)
+    const paidByMember = member.sumExpenseMemberAmount; // Ausgaben (Schulden, die ich bezahlt bekommen habe)
 
     this.myBalance = paidByUser - paidByMember; // Speichere den berechneten Wert
     console.log('Berechnete Bilanz:', this.myBalance);
@@ -271,13 +276,19 @@ export class GroupPage implements OnInit {
 
   // Funktion zum Hinzufügen von Features, nur für den Gründer sichtbar
   async onFeaturesSelected(selectedFeatures: string[]) {
-    if (!selectedFeatures?.length || !this.groupId || !this.authService.currentUser) {
+    if (
+      !selectedFeatures?.length ||
+      !this.groupId ||
+      !this.authService.currentUser
+    ) {
       console.warn('Keine gültigen Features ausgewählt.');
       return;
     }
 
     // Neue Features herausfiltern (nur die, die noch nicht enthalten sind)
-    const newFeatures = selectedFeatures.filter(f => !this.features.includes(f));
+    const newFeatures = selectedFeatures.filter(
+      (f) => !this.features.includes(f)
+    );
 
     if (newFeatures.length === 0) {
       console.warn('Alle ausgewählten Features sind bereits vorhanden.');
@@ -298,5 +309,4 @@ export class GroupPage implements OnInit {
       console.error('Fehler beim Hinzufügen der Features:', error);
     }
   }
-
 }
