@@ -101,3 +101,14 @@ margin-bottom: 5%;
   border-radius: 50px;
 }
 
+@media (prefers-color-scheme: dark) {
+  .qr-code-overlay {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: saturate(180%) blur(40px);
+    --webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+  .access-code {
+    color: #000000 !important;
+  }
+ 
+}

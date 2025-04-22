@@ -813,6 +813,27 @@ body.color-blind {
   }
 }
 
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-video {
+  width: 200px; /* Passe die Größe des Videos an */
+  height: auto;
+  border-radius: 10px; /* Optional: Abgerundete Ecken */
+}
+.member-username {
+  color: #2f2f2f;
+}
+
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
   h1,
@@ -888,25 +909,11 @@ body.color-blind {
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
-}
-
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.loading-video {
-  width: 200px; /* Passe die Größe des Videos an */
-  height: auto;
-  border-radius: 10px; /* Optional: Abgerundete Ecken */
-}
-.member-username {
-  color: #2f2f2f;
+  ion-icon.qr-code-icon,
+  ion-icon.edit-button,
+  ion-icon.logout-button,
+  ion-icon.back-button {
+    color: #000 !important;
+  }
+  
 }
