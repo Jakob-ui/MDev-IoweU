@@ -131,38 +131,55 @@
     <div class="add-product-wrapper" (click)="$event.stopPropagation()">
       <h5>Neues Produkt hinzufügen</h5>
 
-      <ion-item>
-        <ion-label position="floating">Menge</ion-label>
-        <ion-input type="number" [(ngModel)]="newProduct.quantity"></ion-input>
-      </ion-item>
+      <div class="top-container">
+        <div class="input-container">
+          <span class="input-label" >Menge</span>
+          <ion-item>
+            <ion-input type="number" [(ngModel)]="newProduct.quantity"></ion-input>
+          </ion-item>
+        </div>
 
-      <ion-item>
-        <ion-label position="floating">Einheit</ion-label>
-        <ion-input type="text" [(ngModel)]="newProduct.unit"></ion-input>
-      </ion-item>
+        <div class="input-container">
+          <span class="input-label" >Einheit</span>
+          <ion-item>
+            <ion-input type="text" [(ngModel)]="newProduct.unit"></ion-input>
+          </ion-item>
+        </div>
+      </div>
 
-      <ion-item>
-        <ion-label position="floating">Produktname</ion-label>
-        <ion-input type="text" [(ngModel)]="newProduct.productname"></ion-input>
-      </ion-item>
+      <div class="middle-container">
+        <div class="input-container">
+          <span class="input-label" >Produktname</span>
+          <ion-item>
+            <ion-input type="text" [(ngModel)]="newProduct.productname"></ion-input>
+          </ion-item>
+        </div>
+      </div>
 
-      <ion-item>
-        <ion-label position="floating">Fälligkeitsdatum</ion-label>
-        <ion-datetime [(ngModel)]="newProduct.dueDate" placeholder="Wähle ein Datum"></ion-datetime>
-      </ion-item>
+      <div class="bottom-container">
+        <div class="input-container">
+          <span class="input-label" >Fälligkeitsdatum</span>
+          <ion-item>
+            <ion-datetime [(ngModel)]="newProduct.dueDate" placeholder="Wähle ein Datum"></ion-datetime>
+          </ion-item>
+        </div>
 
-      <ion-item>
-        <ion-label>Zugewiesen für</ion-label>
-        <ion-select [(ngModel)]="newProduct.forMemberId">
-          <ion-select-option *ngFor="let member of groupMembers" [value]="member.uid">
-            {{ member.username }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
+        <div class="input-container">
+          <span class="input-label" >Zugewiesen an</span>
+          <ion-item>
+            <ion-select [(ngModel)]="newProduct.forMemberId">
+              <ion-select-option *ngFor="let member of groupMembers" [value]="member.uid">
+                {{ member.username }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+      </div>
+
 
       <div class="button-row">
-        <ion-button color="medium" (click)="toggleAddProductOverlay()">Abbrechen</ion-button>
-        <ion-button color="primary" (click)="saveNewProduct()">Speichern</ion-button>
+        <ion-button class="main-button" color="medium" (click)="toggleAddProductOverlay()">Abbrechen</ion-button>
+        <ion-button class="main-button" color="primary" (click)="saveNewProduct()">Speichern</ion-button>
       </div>
     </div>
   </div>

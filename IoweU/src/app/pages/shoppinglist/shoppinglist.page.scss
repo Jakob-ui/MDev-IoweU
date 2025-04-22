@@ -143,3 +143,21 @@ strong {
   margin-top: 1rem;
 }
 
+.top-container{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 10px;
+  flex-direction: row;
+}
+
+.bottom-container{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 10px;
+  flex-direction: row;
+}
+
