@@ -386,6 +386,33 @@ export class GroupService {
     }
   }
 
+  async getGroupByGroupId(groupId: string): Promise<Groups | null> {
+    if (!groupId) {
+      console.error('groupId ist undefined. Abfrage abgebrochen.');
+      return null;
+    }
+  
+    console.log('Suche Gruppe mit groupId:', groupId);
+  
+    try {
+      const groupRef = collection(this.firestore, 'groups');
+      const q = query(groupRef, where('groupId', '==', groupId));
+      const querySnapshot = await getDocs(q);
+  
+      if (!querySnapshot.empty) {
+        const group = querySnapshot.docs[0].data() as Groups;
+        console.log('Gruppe gefunden:', group);
+        return group;
+      } else {
+        console.warn('Keine Gruppe mit dieser groupId gefunden.');
+        return null;
+      }
+    } catch (error) {
+      console.error('Fehler beim Abrufen der Gruppe:', error);
+      throw error;
+    }
+  }
+
   clearGroupData(): void {
     this.currentGroup = null;
     console.log('Gruppendaten wurden zurückgesetzt.');
