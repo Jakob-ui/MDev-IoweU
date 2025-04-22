@@ -46,6 +46,8 @@ import { QRCodeComponent } from 'angularx-qrcode';
 export class EditGroupPage implements OnInit {
   groupname: string = '';
   members: Members[] = [];
+  features: string[] = [];
+  availableFeatures: string[] = ['Einkaufsliste', 'Anlagegüter', 'Finanzübersicht', 'Ausgaben'];
   accessCode: string = '';
   selectedTemplate: string[] = [];
   founder: string = '';
@@ -88,6 +90,7 @@ export class EditGroupPage implements OnInit {
       const group = await this.groupService.getGroupById(groupId);
       if (group) {
         this.groupname = group.groupname;
+        this.features = group.features || [];
         this.members = group.members || [];
         this.accessCode = group.accessCode || '';
         this.selectedTemplate = group.features || [];
@@ -102,6 +105,91 @@ export class EditGroupPage implements OnInit {
       this.loadingService.hide();
     }
   }
+
+  isFeatureInDB(feature: string): boolean {
+    // Überprüft, ob das Feature in den gespeicherten Features der DB enthalten ist
+    return this.features.includes(feature);
+  }
+
+  toggleFeatureVisibility(feature: string) {
+    // Wenn das Feature bereits in der DB gespeichert ist, entfernen wir es
+    if (this.isFeatureInDB(feature)) {
+      this.removeFeature(feature);  // Feature entfernen
+    } else {
+      // Wenn es noch nicht gespeichert ist, fügen wir es hinzu
+      this.addFeature(feature);  // Feature hinzufügen
+    }
+  }
+
+  async addFeature(selectedFeature: string) {
+    if (!selectedFeature || !this.groupId || !this.authService.currentUser) {
+      console.warn('Ungültiges Feature oder keine Gruppendaten vorhanden.');
+      return;
+    }
+
+    console.log('Versuche Feature hinzuzufügen:', selectedFeature);
+
+    // Lade die aktuellen Gruppendaten neu, bevor das Feature hinzugefügt wird
+    await this.loadGroupData(this.groupId);  // Stelle sicher, dass die aktuelle Features-Liste neu geladen wird
+
+    // Überprüfe vor dem Hinzufügen, ob das Feature bereits in der Liste vorhanden ist
+    if (this.features.includes(selectedFeature)) {
+      console.warn('Feature bereits hinzugefügt:', selectedFeature);
+      return;
+    }
+
+    try {
+      // Speichert das Feature in der DB, bevor es lokal hinzugefügt wird
+      await this.groupService.addFeaturesToGroup(
+        this.authService.currentUser.uid,
+        this.groupId,
+        [selectedFeature]
+      );
+
+      // Wenn das Feature erfolgreich hinzugefügt wurde, füge es zur lokalen Liste hinzu
+      this.features.push(selectedFeature);
+
+      console.log('Feature erfolgreich hinzugefügt:', selectedFeature);
+    } catch (error) {
+      console.error('Fehler beim Hinzufügen des Features:', error);
+    }
+  }
+
+
+  async removeFeature(selectedFeature: string) {
+    if (!selectedFeature || !this.groupId || !this.authService.currentUser) {
+      console.warn('Ungültiges Feature oder keine Gruppendaten vorhanden.');
+      return;
+    }
+
+    console.log('Versuche Feature zu entfernen:', selectedFeature);
+
+    // Lade die aktuellen Gruppendaten neu, bevor das Feature entfernt wird
+    await this.loadGroupData(this.groupId);  // Stelle sicher, dass die aktuelle Features-Liste neu geladen wird
+
+    // Überprüfe, ob das Feature in der Liste vorhanden ist
+    if (!this.features.includes(selectedFeature)) {
+      console.warn('Feature nicht vorhanden:', selectedFeature);
+      return;
+    }
+
+    try {
+      // Entferne das Feature aus der DB
+      await this.groupService.removeFeatureFromGroup(
+        this.authService.currentUser.uid,
+        this.groupId,
+        selectedFeature
+      );
+
+      // Wenn das Feature erfolgreich entfernt wurde, entferne es auch aus der lokalen Liste
+      this.features = this.features.filter(f => f !== selectedFeature);
+
+      console.log('Feature erfolgreich entfernt:', selectedFeature);
+    } catch (error) {
+      console.error('Fehler beim Entfernen des Features:', error);
+    }
+  }
+
 
   removeMember(member: Members) {
     this.members = this.members.filter((m) => m.uid !== member.uid);
@@ -154,11 +242,11 @@ export class EditGroupPage implements OnInit {
           },
         ],
       });
-  
+
       await alert.present();
       return;
     }
-  
+
     // Benutzer ist der Gründer, zeige das Lösch-Popup an
     const alert = await this.alertController.create({
       header: 'Gruppe endgültig löschen!',
@@ -183,7 +271,7 @@ export class EditGroupPage implements OnInit {
         },
       ],
     });
-  
+
     await alert.present();
   }
 
@@ -210,5 +298,7 @@ export class EditGroupPage implements OnInit {
       }
     }
   }
+
+
 }
 

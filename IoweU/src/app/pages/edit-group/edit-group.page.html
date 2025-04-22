@@ -65,6 +65,25 @@
       </ion-list>
     </div>
 
+    <div class="edit-fields">
+      <span class="input-label">Features</span>
+      <ion-list class="feature-list">
+        <ion-item *ngFor="let feature of availableFeatures; let i = index">
+          <div class="feature-name-container"
+               [ngClass]="{'active-feature': isFeatureInDB(feature), 'inactive-feature': !isFeatureInDB(feature)}">
+            <span class="feature-name">
+              {{ feature }}
+            </span>
+            <ion-icon
+              [src]="isFeatureInDB(feature) ? 'assets/icon/ionicons/md-eye.svg' : 'assets/icon/ionicons/md-eye-off.svg'"
+              (click)="toggleFeatureVisibility(feature)"
+              class="eye-icon">
+            </ion-icon>
+          </div>
+        </ion-item>
+      </ion-list>
+    </div>
+
     <div class="buttonclass">
       <ion-button id="delete-alert" class="delete-button" color="danger" (click)="confirmDelete()">
         Gruppe löschen

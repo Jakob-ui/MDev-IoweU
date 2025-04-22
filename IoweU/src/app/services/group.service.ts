@@ -76,7 +76,7 @@ export class GroupService {
       if (template === 'Standard') {
         newGroup.features.push('Finanzübersicht');
       } else if (template === 'Projekt') {
-        newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Anlagegüter');
+        newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Einkaufsliste', 'Anlagegüter');
       } else if (template === 'Reise') {
         newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Einkaufsliste');
       } else {
@@ -230,6 +230,84 @@ export class GroupService {
       throw new Error('Error joining group: ' + error);
     }
   }
+
+  // Features hinzufügen
+  async addFeaturesToGroup(uid: string, groupId: string, newFeatures: string[]): Promise<void> {
+    try {
+      // Hole die Gruppe aus der DB
+      const group = await this.getGroupById(groupId);
+      if (!group) {
+        console.error(`Gruppe mit ID ${groupId} wurde nicht gefunden.`);
+        return;
+      }
+
+      // Überprüfe, ob der Nutzer der Gründer der Gruppe ist
+      if (group.founder !== uid) {
+        console.warn('Nur der Gründer kann Features hinzufügen.');
+        return;
+      }
+
+      // Hole die bestehenden Features der Gruppe
+      const existingFeatures = group.features || [];
+      const featuresToAdd = newFeatures.filter(f => !existingFeatures.includes(f));
+
+      if (featuresToAdd.length === 0) {
+        console.log('Keine neuen Features zum Hinzufügen.');
+        return;
+      }
+
+      // Füge neue Features hinzu
+      const updatedFeatures = [...existingFeatures, ...featuresToAdd];
+
+      // Aktualisiere die Gruppe in der DB
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      await updateDoc(groupRef, { features: updatedFeatures });
+
+      console.log('Features erfolgreich hinzugefügt:', featuresToAdd);
+    } catch (error) {
+      console.error('Fehler beim Hinzufügen der Features:', error);
+    }
+  }
+
+  async removeFeatureFromGroup(uid: string, groupId: string, featureToRemove: string): Promise<void> {
+    try {
+      // Hole die Gruppe aus der DB
+      const group = await this.getGroupById(groupId);
+      if (!group) {
+        console.error(`Gruppe mit ID ${groupId} wurde nicht gefunden.`);
+        return;
+      }
+
+      // Überprüfe, ob der Nutzer der Gründer der Gruppe ist
+      if (group.founder !== uid) {
+        console.warn('Nur der Gründer kann Features entfernen.');
+        return;
+      }
+
+      // Hole die bestehenden Features der Gruppe
+      const existingFeatures = group.features || [];
+
+      // Überprüfe, ob das Feature überhaupt in der Liste ist
+      if (!existingFeatures.includes(featureToRemove)) {
+        console.warn(`Feature "${featureToRemove}" existiert nicht in der Gruppe.`);
+        return;
+      }
+
+      // Entferne das Feature aus der Liste
+      const updatedFeatures = existingFeatures.filter(f => f !== featureToRemove);
+
+      // Aktualisiere die Gruppe in der DB
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      await updateDoc(groupRef, { features: updatedFeatures });
+
+      console.log(`Feature "${featureToRemove}" erfolgreich entfernt.`);
+    } catch (error) {
+      console.error('Fehler beim Entfernen des Features:', error);
+    }
+  }
+
+
+
 
   //Gruppe verlassen:
   async leaveGroup(groupId: string, userId: string): Promise<void> {
