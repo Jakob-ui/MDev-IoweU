@@ -21,4 +21,24 @@
   width: 80%; 
   max-width: 400px;
 }
+ion-toggle {
+  --track-background: #848383;
+  --track-background-checked: #dedede;
+}
 
+ion-toggle::part(handle) {
+  background: #ffffff !important;
+}
+@media (prefers-color-scheme: dark) {
+  .farbenblind-label {
+    color: #000;
+  }
+  ion-toggle {
+    --track-background: #989696;
+    --track-background-checked: #3a3a3a;
+  }
+
+  ion-toggle::part(handle) {
+    background: #3a3a3a !important;
+  }
+}
