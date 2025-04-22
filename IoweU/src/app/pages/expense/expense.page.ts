@@ -163,13 +163,13 @@ export class ExpensePage implements OnInit, OnDestroy {
             const { total, count } = this.expenseService.calculateBalance(this.expenses);
             this.sumExpenses = total;
             this.countExpenses = count;
-            this.expenseService.updateSums(
+            /*this.expenseService.updateSums(
               this.groupId || '',
               this.sumExpenses,
               this.countExpenses,
               'sumTotalExpenses',
               'countTotalExpenses'
-            );
+            );*/
           }
         );
 

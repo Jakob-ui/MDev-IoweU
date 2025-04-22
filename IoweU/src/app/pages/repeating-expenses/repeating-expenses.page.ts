@@ -171,13 +171,13 @@ export class RepeatingExpensesPage implements OnInit {
               );
               this.sumExpenses = total;
               this.countExpenses = count;
-              this.expenseService.updateSums(
+              /*this.expenseService.updateSums(
                 this.groupId || '',
                 this.sumExpenses,
                 this.countExpenses,
                 'sumTotalExpenses',
                 'countTotalExpenses'
-              );
+              );*/
             }
           );
       } else {
