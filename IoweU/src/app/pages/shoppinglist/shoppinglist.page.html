@@ -1,13 +1,129 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>shoppinglist</ion-title>
-  </ion-toolbar>
+<ion-header [translucent]="true" class="header">
+  <div class="backdrop-wrapper">
+    <ion-toolbar>
+      <div class="left-container" slot="start">
+        <ion-icon
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+          class="back-button"
+          (click)="goBack()"
+        ></ion-icon>
+      </div>
+
+      <div class="right-container" slot="end">
+        <div class="user-info" [routerLink]="'/account-settings'">
+          <div class="profile-placeholder"></div>
+          <span class="member-name">{{ user }}</span>
+        </div>
+        <ion-icon
+          [src]="'assets/icon/ionicons/information-outline.svg'"
+          class="info-button"
+          (click)="toggleInfoOverlay()"
+        ></ion-icon>
+      </div>
+    </ion-toolbar>
+  </div>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">shoppinglist</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div
+    class="info-overlay"
+    [ngClass]="{
+      'hidden': overlayState === 'hidden',
+      'normal': overlayState === 'normal',
+      'start': overlayState === 'start',
+      'slideUp': overlayState === 'normal',
+      'slideDown': overlayState === 'hidden'
+    }"
+    (click)="toggleInfoOverlay()">
+    <div class="info-wrapper" (click)="$event.stopPropagation()">
+      <h5>Info – Einkaufsliste</h5>
+      <p>
+        Auf dieser Seite findest du die <strong>gemeinsame Einkaufsliste</strong> deiner Gruppe. Sie zeigt alle Produkte, die noch eingekauft werden sollen.
+      </p>
+      <p>
+        Die Produkte sind nach dem <strong>Fälligkeitsdatum</strong> gruppiert – so behältst du den Überblick, welche Dinge bald benötigt werden.
+        Mit einem Tippen auf einen Eintrag kannst du <strong>weitere Details</strong> sehen oder Änderungen vornehmen.
+      </p>
+      <p>
+        Über die <strong>Checkbox</strong> am rechten Rand kannst du Produkte als „eingekauft“ markieren – so sehen alle in der Gruppe, was schon erledigt ist.
+      </p>
+      <p>
+        Tippe auf das <strong>Plus-Symbol</strong>, um neue Produkte zur Liste hinzuzufügen.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="page-container">
+    <h4>{{ groupname }}</h4>
+    <h1>Einkaufsliste</h1>
+
+    <ion-card class="shopping-card">
+      <div class="card-content-shopping">
+        <h2>{{ shoppingproducts.length }} {{ shoppingproducts.length === 1 ? 'Produkt' : 'Produkte' }}</h2>
+
+        <p>
+          früheste Fälligkeit: {{ earliestDueDate | date: 'dd.MM.yyyy' }}
+        </p>
+      </div>
+    </ion-card>
+
+    <div class="menu">
+      <div class="menu-text active">
+        <span>Einkaufsliste</span>
+      </div>
+      <div class="divider"></div>
+      <div class="menu-text" [routerLink]="['/shoppingcart', groupId]">
+        <span>Warenkorb</span>
+      </div>
+    </div>
+
+    <ion-list class="shopping-list">
+      <ng-container *ngFor="let group of groupedProducts">
+    <span class="date">
+      {{ group.date | date: 'dd.MM.yyyy' }}
+    </span>
+
+        <ion-item
+          class="info-item"
+          *ngFor="let shoppingproduct of group.shoppingproducts"
+          (click)="goToShoppingDetails(shoppingproduct.shoppingProductId)"
+        >
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{
+          'background-color': 'var(--member-color-' + shoppingproduct.memberId + ')',
+          'border-color': 'var(--member-color-' + shoppingproduct.memberId + ')'
+        }">
+            <span class="username">{{ getFirstLetter(shoppingproduct.memberId) }}</span>
+          </div>
+          <div class="shoppingproduct-item">
+            <!-- Zugriff auf das erste Produkt im Array -->
+            <span>{{ shoppingproduct.product[0]?.quantity }} {{ shoppingproduct.product[0]?.unit }}</span>
+            <div class="divider"></div>
+            <h5 class="shoppingproduct-name">{{ shoppingproduct.product[0]?.productname }}</h5>
+            <span class="forMember">{{ shoppingproduct.forMemberId }}</span>
+          </div>
+          <div class="checkboxToShoppingcart">
+            <ion-checkbox
+              slot="end"
+              [checked]="shoppingproduct.status === 'done'"
+              (ionChange)="toggleChecked(shoppingproduct)"
+            ></ion-checkbox>
+          </div>
+        </ion-item>
+      </ng-container>
+    </ion-list>
+
+
+    <div class="button-container">
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="goToAddProduct()"
+      >
+        Neues Produkt hinzufügen +
+      </ion-button>
+    </div>
+  </div>
 </ion-content>
