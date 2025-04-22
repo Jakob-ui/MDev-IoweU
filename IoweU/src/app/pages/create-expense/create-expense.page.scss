@@ -319,20 +319,6 @@ ion-item.dropDownFelder::part(native) {
   align-items: center;
   justify-content: center;
 }
-.invoice-upload {
-  .upload-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    width: 10px;
-  }
-
-  .upload-icon {
-    font-size: 30px;
-    color: var(--ion-color-primary);
-  }
-}
 
 .Währung {
   position: relative;
@@ -610,6 +596,7 @@ ion-input {
   }
   #category-icon-label {
     color: #000000;
+  
   }
   .paid-by .custom-dropdown { 
     background-color: #121212; 
