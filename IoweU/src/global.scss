@@ -929,13 +929,13 @@ body.color-blind {
     color: var(--ion-color-light) !important;
   }
   .button-container {
-    background: rgba(43, 43, 43, 0.6);
+    background: rgba(25, 25, 25, 0.912);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
 
   .backdrop-wrapper {
-    background: rgba(43, 43, 43, 0.6);
+    background: rgba(25, 25, 25, 0.912);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
@@ -944,15 +944,6 @@ body.color-blind {
   ion-icon.logout-button,
   ion-icon.back-button {
     color: #000 !important;
-  }
-  .button-container{
-    background-color: #121212 !important;
-  }
-  .backdrop-wrapper{
-    background-color: #121212 !important;
-  }
-  ion-toolbar {
-    background-color: #121212 !important;
   }
   ion-list {
     background-color: #121212 !important;
