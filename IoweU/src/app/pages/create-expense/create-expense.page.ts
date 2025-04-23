@@ -149,7 +149,7 @@ export class CreateExpensePage {
     { name: 'Freizeit', icon: 'game-controller-outline' },
     { name: 'Wohnen', icon: 'home-outline' },
     { name: 'Rechnungen', icon: 'receipt-outline' },
-    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
+    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' }
   ];
 
   async ngOnInit() {

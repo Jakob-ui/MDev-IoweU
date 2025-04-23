@@ -659,7 +659,7 @@ ion-item.select-interface-option::part(native) {
 
 .button-container {
   position: fixed;
-  bottom: 0;
+  bottom: -5px;
   left: 0;
   right: 0;
   display: flex;
@@ -667,7 +667,6 @@ ion-item.select-interface-option::part(native) {
   justify-content: center;
   align-items: center;
   padding-bottom: 20px;
-  background: rgba(255, 255, 255, 0.6);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
