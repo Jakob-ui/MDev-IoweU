@@ -141,10 +141,6 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'landingpage',
-    loadComponent: () => import('./pages/landingpage/landingpage.page').then(m => m.LandingpagePage)
-  },
-  {
     path: 'not-found',
     loadComponent: () =>
       import('./pages/not-found/not-found.page').then((m) => m.NotFoundPage),
