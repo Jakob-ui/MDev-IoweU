@@ -807,6 +807,7 @@ export class CreateExpensePage {
       this.repeating = false;
     } else {
       this.repeating = true;
+      
     }
 
     this.loadingService.show();

@@ -89,9 +89,9 @@ export class RegisterPage {
         'groupId'
       );
       if (userCredential.user) {
-        sessionStorage.setItem('username', this.name);
-        sessionStorage.setItem('usercolor', usercolor);
-        sessionStorage.setItem('email', this.email);
+        localStorage.setItem('username', this.name);
+        localStorage.setItem('usercolor', usercolor);
+        localStorage.setItem('email', this.email);
         console.log('Registrierung erfolgreich:', userCredential.user);
         this.router.navigate(['/group-overview']);
       }

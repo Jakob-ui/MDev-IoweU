@@ -3,7 +3,6 @@ import { Firestore, setDoc, doc, getDoc } from '@angular/fire/firestore';
 import {
   Auth,
   browserLocalPersistence,
-  browserSessionPersistence,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,

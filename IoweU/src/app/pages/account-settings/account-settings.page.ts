@@ -27,7 +27,8 @@ import { ChangeDetectorRef } from '@angular/core';
   templateUrl: './account-settings.page.html',
   styleUrls: ['./account-settings.page.scss'],
   standalone: true,
-  imports: [IonToggle, 
+  imports: [
+    IonToggle,
     IonAlert,
     IonIcon,
     IonButton,
@@ -141,7 +142,7 @@ export class AccountSettingsPage implements OnInit {
   }
   cancel() {
     this.userEditing = false;
-    this.newname = sessionStorage.getItem('username') || '';
+    this.newname = localStorage.getItem('username') || '';
   }
   confirm() {
     this.userEditing = false;
@@ -152,7 +153,7 @@ export class AccountSettingsPage implements OnInit {
   }
 
   proofTime(): boolean {
-    const lastedited = sessionStorage.getItem('lastedited');
+    const lastedited = localStorage.getItem('lastedited');
     if (!lastedited) {
       return true;
     }
@@ -185,9 +186,9 @@ export class AccountSettingsPage implements OnInit {
         lastedited: new Date().toISOString(),
       });
 
-      sessionStorage.setItem('username', this.newname);
-      sessionStorage.setItem('usercolor', this.color);
-      sessionStorage.setItem('lastedited', new Date().toISOString());
+      localStorage.setItem('username', this.newname);
+      localStorage.setItem('usercolor', this.color);
+      localStorage.setItem('lastedited', new Date().toISOString());
 
       console.log('Änderungen erfolgreich gespeichert.');
 
@@ -269,7 +270,7 @@ export class AccountSettingsPage implements OnInit {
       name: 'email',
       placeholder: 'E-Mail',
       type: 'email',
-      value: sessionStorage.getItem('email') || '',
+      value: localStorage.getItem('email') || '',
     },
     {
       name: 'password',
@@ -372,7 +373,7 @@ export class AccountSettingsPage implements OnInit {
     localStorage.setItem('colorBlindMode', this.colorBlindMode.toString());
     this.applyColorBlindMode(this.colorBlindMode);
   }
-  
+
   applyColorBlindMode(enabled: boolean) {
     if (enabled) {
       document.body.classList.add('color-blind');
@@ -380,5 +381,4 @@ export class AccountSettingsPage implements OnInit {
       document.body.classList.remove('color-blind');
     }
   }
-
 }

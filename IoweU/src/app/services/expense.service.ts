@@ -139,10 +139,10 @@ export class ExpenseService {
           'groups',
           groupId,
           'repeatingExpenses',
-          expense.expenseId
+          repeatingExpense.expenseId
         );
-        await setDoc(expenseRef, expense);
-        return expense;
+        await setDoc(expenseRef, repeatingExpense);
+        return repeatingExpense;
       }
     } catch (error) {
       console.error('Fehler beim Erstellen der Ausgabe: ', error);
