@@ -50,9 +50,9 @@
   </div>
   <div class="page-container">
     <div class="image-upload">
-      <ng-container *ngIf="currentGroup?.groupimage; else placeholder">
+      <ng-container *ngIf="group?.groupimage; else placeholder">
         <img
-          [src]="currentGroup?.groupimage"
+          [src]="group?.groupimage"
           alt="Gruppenbild"
           class="group-image"
         />

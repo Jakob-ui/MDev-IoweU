@@ -1,0 +1,12 @@
+[
+	{
+		"origin": ["http://localhost:8100"],
+		"method": ["GET"],
+		"maxAgeSeconds": 3600
+	},
+	{
+		"origin": ["https://app.ioweu.eu"],
+		"method": ["GET"],
+		"maxAgeSeconds": 3600
+	}
+]

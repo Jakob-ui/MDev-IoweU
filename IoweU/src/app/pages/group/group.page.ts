@@ -173,6 +173,7 @@ export class GroupPage implements OnInit {
           // Wenn Features vorhanden sind, sollen keine weiteren hinzugefügt werden
           this.canAddFeatures = false;
         }
+        console.log('Geladene Bild-URL:', this.groupImage);
       } else {
         console.warn('Gruppe nicht gefunden!');
       }
