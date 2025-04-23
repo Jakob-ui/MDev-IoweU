@@ -8,6 +8,38 @@ import {
   DocumentSnapshot,
 } from "firebase-functions/v2/firestore";
 
+interface RepeatingExpenses {
+  expenseId: string;
+  description: string;
+  totalAmount: number;
+  paidBy: string;
+  date: string;
+  lastPay?: string;
+  currency: string[];
+  category?: string;
+  invoice?: string;
+  repeat?: string;
+  splitType: "prozent" | "anteile" | "produkte";
+  splitBy: "alle" | "frei";
+  expenseMember: ExpenseMember[];
+}
+
+export interface ExpenseMember {
+  memberId: string;
+  amountToPay: number;
+  split?: number;
+  products?: Products[];
+}
+
+export interface Products {
+  productId: string;
+  memberId: string;
+  productname: string;
+  quantity: number;
+  unit: string;
+  price: number;
+}
+
 admin.initializeApp();
 const firestore = admin.firestore();
 
@@ -18,55 +50,71 @@ export const handlerepeatingExpenses = onSchedule(
     timeZone: "Europe/Berlin",
     region: "europe-west1",
   },
-  async (event) => {
+  async () => {
     const now = new Date();
     const expensesRef = firestore.collectionGroup("repeatingExpenses");
 
     try {
-      // Query all expenses with a repeat field
+      // Query all repeating expenses with a valid repeat field
       const snapshot = await expensesRef
         .where("repeat", "in", ["täglich", "wöchentlich", "monatlich"])
         .get();
 
       for (const doc of snapshot.docs) {
-        const expense = doc.data();
-        // const expenseId = doc.id;
+        const expense = doc.data() as RepeatingExpenses;
+        const groupId = doc.ref.parent.parent?.id;
 
-        // Parse the date of the last expense
-        const lastExpenseDate = new Date(expense.date);
+        if (!groupId) {
+          logger.error(`Group ID not found for repeating expense: ${doc.id}`);
+          continue;
+        }
+
+        // Parse the lastPay date
+        const lastPayDate = expense.lastPay ?
+          new Date(expense.lastPay) :
+          new Date(expense.date);
         const repeatInterval = expense.repeat;
 
         // Calculate the next expense date
-        const nextExpenseDate = new Date(lastExpenseDate);
+        const nextExpenseDate = new Date(lastPayDate);
         if (repeatInterval === "täglich") {
           nextExpenseDate.setDate(nextExpenseDate.getDate() + 1);
         } else if (repeatInterval === "wöchentlich") {
-          nextExpenseDate.setMonth(nextExpenseDate.getDate() + 7);
+          nextExpenseDate.setDate(nextExpenseDate.getDate() + 7);
         } else if (repeatInterval === "monatlich") {
-          nextExpenseDate.setFullYear(nextExpenseDate.getMonth() + 1);
+          nextExpenseDate.setMonth(nextExpenseDate.getMonth() + 1);
         }
 
+        logger.info(`Processing repeating expense: ${doc.id}`);
+        logger.info(`Next expense date: ${nextExpenseDate.toISOString()}`);
+
+        // Check if the next expense date is due
         if (nextExpenseDate <= now) {
           const newExpense = {
             ...expense,
             date: nextExpenseDate.toISOString(),
+            lastPay: now.toISOString(),
             expenseId: firestore.collection("dummy").doc().id,
           };
 
-          // Save the new expense in Firestore
-          const groupId = doc.ref.parent.parent?.id;
-          if (groupId) {
-            await firestore
-              .collection("groups")
-              .doc(groupId)
-              .collection("expenses")
-              .doc(newExpense.expenseId)
-              .set(newExpense);
+          // Remove unnecessary fields for the new expense
+          const {repeat, lastPay, ...cleanedExpense} = newExpense;
 
-            logger.info(`repeating expense created: ${newExpense.expenseId}`);
-          }
+          // Save the new expense in the "expenses" collection
+          await firestore
+            .collection("groups")
+            .doc(groupId)
+            .collection("expenses")
+            .doc(cleanedExpense.expenseId)
+            .set(cleanedExpense);
+
+          // Update the lastPay field in the repeating expense
+          await doc.ref.update({
+            lastPay: now.toISOString(),
+          });
+
+          logger.info(`Repeating expense created: ${cleanedExpense.expenseId}`);
         }
-        logger.info(`Function triggered: ${event}`);
       }
     } catch (error) {
       logger.error("Error handling repeating expenses:", error);
