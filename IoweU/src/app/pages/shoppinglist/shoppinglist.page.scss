@@ -113,20 +113,31 @@ strong {
 }
 
 .add-product-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background: none;
   display: none;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  width: 100%;
+}
+
+.edit-button {
+  flex-shrink: 0;
+  font-size: 24px;
+  color: var(--ion-color-dark);
+  background-color: var(--ion-color-primary);
+  border-radius: 50%;
+  padding: 5px;
 }
 
 .add-product-overlay.open {
   display: flex;
+}
+
+.input-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
 }
 
 .add-product-wrapper {
@@ -137,13 +148,51 @@ strong {
   max-width: 400px;
 }
 
+.show-details-button{
+  display: flex;
+  justify-content: left;
+  margin-left: 10px;
+  margin-top: 5px;
+  margin-bottom: 35px;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.show-details-button span{
+  background: none;
+  border-bottom: 1px solid var(--ion-color-dark);
+  color: var(--ion-color-dark);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.input-label{
+  text-align: left;
+  margin-left: 10px;
+}
+
+.shoppingproduct-item .first-container{
+  width: 45px;
+  text-align: right;
+}
+
+.shoppingproduct-item span{
+  font-size: 12px;
+}
+
+.shoppingproduct-item h5{
+  font-size: 18px;
+}
+
 .button-row {
   display: flex;
   justify-content: space-between;
   margin-top: 1rem;
 }
 
-.top-container{
+.middle-container{
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -152,12 +201,66 @@ strong {
   flex-direction: row;
 }
 
-.bottom-container{
+
+.bottom-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 1rem;
   gap: 10px;
   flex-direction: row;
+  width: 100%;
 }
+
+.bottom-container .input-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.selected-forMember {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.shopping-list {
+  margin-bottom: 85px;
+}
+
+.date {
+  margin-top: 20px;
+}
+.button-container {
+  padding-top: 10px;
+}
+
+.datepicker {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  width: 80%;
+  max-width: 500px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .date {
+    color: var(--ion-color-light);
+  }
+}
+
+.profile-placeholder .username{
+  color: var(--ion-color-light);
+  font-size: 12px;
+  font-weight: 300;
+}
+
 

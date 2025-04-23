@@ -116,29 +116,28 @@
       <div class="amount-row">
         <div class="paid-by">
           <span class="input-label">bezahlt von</span>
-        <ion-item class="input-item" (click)="togglePaidByDropdown($event)">
-  <ion-label>
-    <div class="selected-paid-by">
-      <div
-        class="member-info"
-        [ngStyle]="{
-          'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
-          'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
-        }"
-      >
-        <div
-          class="profile-placeholder"
-          [ngStyle]="{
-            'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
-            'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
-          }"
-        ></div>
-        <span class="member-name">{{ selectedMember?.username || 'Bezahlt von' }}</span>
-      </div>
-    </div>
-  </ion-label>
-</ion-item>
-
+          <ion-item class="input-item" (click)="togglePaidByDropdown($event)">
+            <ion-label>
+              <div class="selected-paid-by">
+                <div
+                  class="member-info"
+                  [ngStyle]="{
+                    'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
+                    'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+                  }"
+                >
+                  <div
+                    class="profile-placeholder"
+                    [ngStyle]="{
+                      'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
+                      'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+                    }"
+                  ></div>
+                  <span class="member-name">{{ selectedMember?.username || 'Bezahlt von' }}</span>
+                </div>
+              </div>
+            </ion-label>
+          </ion-item>
           <div *ngIf="paidByDropdownOpen" class="custom-dropdown">
             <ion-list>
               <ion-item

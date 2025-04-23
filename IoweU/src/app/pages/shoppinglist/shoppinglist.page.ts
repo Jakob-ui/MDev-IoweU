@@ -9,7 +9,7 @@ import {
   IonCard,
   IonButton,
   IonIcon,
-  IonCheckbox, IonSelect, IonInput, IonSelectOption, IonDatetime
+  IonCheckbox, IonSelect, IonInput, IonSelectOption, IonDatetime, IonLabel
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -21,6 +21,7 @@ import { ShoppingCarts } from "../../services/objects/ShoppingCarts";
 import { ShoppingProducts } from "../../services/objects/ShoppingProducts";
 import { ShoppinglistService } from "../../services/shoppinglist.service";
 import {FormsModule} from "@angular/forms";
+import { formatDate } from '@angular/common';
 
 @Component({
   selector: 'app-shoppinglist',
@@ -44,6 +45,7 @@ import {FormsModule} from "@angular/forms";
     FormsModule,
     IonSelectOption,
     IonDatetime,
+    IonLabel,
   ],
 })
 export class ShoppinglistPage implements OnInit {
@@ -64,6 +66,12 @@ export class ShoppinglistPage implements OnInit {
   groupMembers: Members[] = []; // Verwenden Sie das Members-Interface
   iosIcons: boolean = false;
 
+  forMemberDropdownOpen: boolean = false;
+  selectedMember: any = this.uid ? { uid: this.uid, username: 'Dein Name' } : null;
+
+  showDetails: boolean = false;
+
+
   shoppingproducts: ShoppingProducts[] = [];
   groupedProducts: { date: string; shoppingproducts: ShoppingProducts[] }[] = [];
 
@@ -74,13 +82,15 @@ export class ShoppinglistPage implements OnInit {
   addProductOpen = false;
 
   newProduct = {
-    quantity: null,
-    unit: '',
+    quantity: 1,
+    unit: 'Stück',
     productname: '',
-    forMemberId: '',
+    forMemberId: this.uid || '',
     dueDate: null
   };
 
+
+  isDatePickerOpen = false;
 
   async ngOnInit() {
     this.loadingService.show();
@@ -120,6 +130,12 @@ export class ShoppinglistPage implements OnInit {
         this.groupMembers = [];
       }
 
+      this.selectedMember =
+        this.groupMembers.find(
+          (member) => member.uid === this.shoppingproducts[0]?.forMemberId
+        ) ||
+        { uid: this.uid, username: this.displayName || 'Unbekannt' };
+
       // Holen der Produkte für diese Gruppe
       await this.loadShoppingProducts(this.groupId);
 
@@ -141,29 +157,82 @@ export class ShoppinglistPage implements OnInit {
   }
 
   groupProductsByDate() {
-    const grouped: { [key: string]: ShoppingProducts[] } = {};
+    const grouped: { [key: string]: ShoppingProducts[] } = {
+      'Nicht dringend': [] // Hier wird die "Nicht dringend"-Kategorie eingeführt
+    };
+
+    // Heute, gestern und morgen definieren
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1); // Morgen
 
     for (const product of this.shoppingproducts) {
       if (!product['date']) continue; // Sicherstellen, dass ein Datum vorhanden ist
       const formattedDate = new Date(product['date']).toISOString().split('T')[0]; // YYYY-MM-DD
 
-      if (!grouped[formattedDate]) {
-        grouped[formattedDate] = [];
+      // Überprüfen, ob das Datum mehr als einen Monat entfernt ist
+      const dueDate = new Date(product['date']);
+      const oneMonthLater = new Date(today);
+      oneMonthLater.setMonth(today.getMonth() + 1);
+
+      // Wenn das Datum mehr als einen Monat entfernt ist, in "Nicht dringend" hinzufügen
+      if (dueDate > oneMonthLater) {
+        grouped['Nicht dringend'].push(product);
+      } else {
+        // Ansonsten nach Datum gruppieren
+        if (!grouped[formattedDate]) {
+          grouped[formattedDate] = [];
+        }
+        grouped[formattedDate].push(product);
       }
-      grouped[formattedDate].push(product);
     }
 
+    // Gruppierte Daten sortieren, die Daten werden weiterhin nach Datum sortiert
     const sortedDates = Object.keys(grouped).sort((a, b) => {
-      return new Date(b).getTime() - new Date(a).getTime();
+      // Sonderbehandlung für "Nicht dringend", das immer unten angezeigt wird
+      if (a === 'Nicht dringend') return 1;
+      if (b === 'Nicht dringend') return -1;
+      return new Date(a).getTime() - new Date(b).getTime();
     });
 
+    // Um die Ausgabe von 'Heute', 'Gestern' und 'Morgen' zu ermöglichen
     this.groupedProducts = sortedDates.map((date) => ({
-      date,
+      date: date === 'Nicht dringend'
+        ? 'Nicht dringend'  // Hier wird "Nicht dringend" direkt angezeigt
+        : this.formatDateLabel(date, today, yesterday, tomorrow),
       shoppingproducts: grouped[date].sort((a, b) => {
         return new Date(b['date']).getTime() - new Date(a['date']).getTime();
       }),
     }));
   }
+
+  formatDateLabel(date: string, today: Date, yesterday: Date, tomorrow: Date): string {
+    const dateObj = new Date(date);
+
+    if (dateObj.toDateString() === today.toDateString()) {
+      return 'Heute';
+    }
+
+    if (dateObj.toDateString() === yesterday.toDateString()) {
+      return 'Gestern';
+    }
+
+    if (dateObj.toDateString() === tomorrow.toDateString()) {
+      return 'Morgen';
+    }
+
+    // Wenn es kein spezielles Datum wie "Heute", "Gestern" oder "Morgen" ist,
+    // formatiere es als dd.MM.yyyy
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Monate sind 0-indexiert
+    const year = dateObj.getFullYear();
+
+    return `${day}.${month}.${year}`;
+  }
+
+
 
   getFirstLetter(paidBy: string): string {
     const member = this.groupMembers.find((m) => m.uid === paidBy);
@@ -202,6 +271,31 @@ export class ShoppinglistPage implements OnInit {
     console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 
+  openDatePicker() {
+    this.isDatePickerOpen = true;
+  }
+
+  closeDatePicker() {
+    this.isDatePickerOpen = false;
+  }
+
+  onDateChange(event: any) {
+    this.newProduct.dueDate = event.detail.value;
+    this.closeDatePicker();
+  }
+
+  toggleForMemberDropdown(event: Event) {
+    this.forMemberDropdownOpen = !this.forMemberDropdownOpen; // Öffnen/Schließen des Dropdowns
+    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
+  }
+  selectMember(member: any, event: Event) {
+    this.newProduct.forMemberId = member.uid; // Setze die UID des ausgewählten Mitglieds
+    this.selectedMember = member; // Speichere das ausgewählte Mitglied
+    this.forMemberDropdownOpen = false; // Schließe das Dropdown
+    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
+  }
+
+
   goToShoppingDetails(expenseId: string) {
     this.loadingService.show();
     try {
@@ -222,51 +316,63 @@ export class ShoppinglistPage implements OnInit {
     this.addProductOpen = !this.addProductOpen;
   }
 
-  async saveNewProduct() {
-    // Überprüfen, ob die groupId null ist, bevor sie weiterverwendet wird
-    if (!this.groupId) {
-      console.error('Group ID ist null oder undefined');
-      alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
-      return; // Verhindert das Fortfahren, wenn groupId ungültig ist
-    }
+  handleOverlayClick() {
+    const trimmedName = this.newProduct.productname?.trim();
 
-    if (this.newProduct.quantity && this.newProduct.productname && this.uid) {
-      // Fälligkeitsdatum prüfen, falls null, Standardwert setzen
-      const dueDate: string = this.newProduct.dueDate ? this.newProduct.dueDate : 'nicht dringend';
-
-      const shoppingProductData: ShoppingProducts = {
-        shoppingProductId: '', // Wird durch den Service generiert
-        memberId: this.uid, // Angemeldeter Benutzer
-        forMemberId: this.newProduct.forMemberId,
-        productname: this.newProduct.productname,
-        quantity: this.newProduct.quantity,
-        unit: this.newProduct.unit,
-        status: 'open',
-        date: dueDate, // Hier das validierte dueDate verwenden
-      };
-
-      try {
-        // Verwende die groupId und stelle sicher, dass sie nicht null ist
-        await this.shoppinglistService.addShoppingProduct(this.groupId!, 'shoppingListId', shoppingProductData);
-        console.log('Produkt erfolgreich gespeichert!');
-        this.toggleAddProductOverlay();
-
-        // Zurücksetzen der Eingabewerte
-        this.newProduct = {
-          quantity: null,
-          unit: '',
-          productname: '',
-          forMemberId: '',
-          dueDate: null,
-        };
-      } catch (error) {
-        console.error('Fehler beim Speichern:', error);
-        alert('Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
-      }
+    if (trimmedName) {
+      // Produktname vorhanden → speichern und Overlay schließen
+      this.saveNewProduct();
     } else {
-      alert('Bitte fülle alle Pflichtfelder aus und stelle sicher, dass du eingeloggt bist.');
+      // Kein Produktname → Overlay einfach schließen
+      this.addProductOpen = false;
     }
   }
 
+  async saveNewProduct() {
+    if (!this.groupId) {
+      console.error('Group ID ist null oder undefined');
+      alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
+      return;
+    }
+
+    const trimmedName = this.newProduct.productname?.trim();
+
+    if (!trimmedName || !this.uid) {
+      alert('Bitte gib mindestens einen Produktnamen ein.');
+      return;
+    }
+
+    // Setze ein extrem weit entferntes Datum, wenn kein Datum gesetzt ist
+    const dueDate = this.newProduct.dueDate || '9999-12-31';
+
+    const shoppingProductData: ShoppingProducts = {
+      shoppingProductId: '',
+      memberId: this.uid,
+      forMemberId: this.newProduct.forMemberId?.trim() || this.uid,
+      productname: trimmedName,
+      quantity: this.newProduct.quantity ?? 1, // Default: 1
+      unit: this.newProduct.unit?.trim() || 'Stück', // Default: 'Stück'
+      status: 'open',
+      date: dueDate // Speichere das weit entfernte Datum
+    };
+
+    try {
+      await this.shoppinglistService.addShoppingProduct(this.groupId!, 'shoppingListId', shoppingProductData);
+      console.log('Produkt erfolgreich gespeichert!');
+      this.toggleAddProductOverlay();
+
+      // Reset mit Defaults
+      this.newProduct = {
+        quantity: 1,
+        unit: 'Stück',
+        productname: '',
+        forMemberId: this.uid || '',
+        dueDate: null,
+      };
+    } catch (error) {
+      console.error('Fehler beim Speichern:', error);
+      alert('Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
+    }
+  }
 
 }
