@@ -28,6 +28,7 @@
 .input-item {
   flex: 1;
   width: 100%;
+
 }
 
 .Beschreibung {
@@ -52,19 +53,72 @@
   flex-direction: column;
   width: 100%;
   margin-bottom: 10px;
+  align-items: center;
+  justify-content: center;
 }
 
-.product-input-fields .top-container,
-.product-input-fields .bottom-container {
+.product-input {
   display: flex;
   flex-direction: row;
+  width: 100%;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--ion-color-secondary);
+  border-radius: 10px;
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.product-input ion-input[placeholder="Menge"] {
+  flex: 0.5;
+  margin-right: 5px;
+  background-color: white;
+  border-radius: 50px;
+}
+
+.product-input ion-input[placeholder="Einheit"] {
+  flex: 1.5;
+  margin-right: 5px;
+  background-color: white;
+  border-radius: 20px;
+}
+
+.product-input ion-input[placeholder="Produktname"] {
+  flex: 2.5;
+  margin-right: 5px;
+  background-color: white;
+  border-radius: 50px;
+}
+
+.product-input ion-input[placeholder="Preis"] {
+  width: auto;
+  flex: 1;
+  margin-right: 10px;
+  background-color: white;
+  border-radius: 50px;
+}
+
+.product-input .edit-button {
+  flex-shrink: 0;
+  font-size: 24px;
+  color: var(--ion-color-dark);
+  background-color: var(--ion-color-primary);
+  border-radius: 50%;
+  padding: 5px;
+}
+
+/* Optional: Adjust spacing for the last input before the icon */
+.product-input ion-input:last-of-type {
+  margin-right: 10px; /* Ensure spacing before the icon */
 }
 
 .product-list {
-  margin: 10px 0 30px;
+  margin: 10px 0 10px;
   padding-left: 10px;
   background-color: var(--ion-color-secondary);
   border-radius: 10px;
+  width: 100%;
 }
 
 .product-list ul {
@@ -125,6 +179,8 @@
   margin-right: 5%;
 }
 
+
+
 ion-input,
 ion-select {
   width: 100%;
@@ -142,7 +198,7 @@ ion-select {
   right: auto;
   display: flex;
   align-items: center;
-  padding: 20px 10px;
+  padding: 14px 10px;
   background: rgba(255, 255, 255, 0.6); /* White with 80% opacity */
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -150,6 +206,13 @@ ion-select {
 
 .button-row > * {
   flex-grow: 1;
+}
+@media (prefers-color-scheme: dark) {
+  .button-row {
+    background: rgba(43, 43, 43, 0.6);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
 }
 
 button {
@@ -213,60 +276,45 @@ ion-input::part(native) {
   border-radius: 50px;
 }
 
-.right-container{
+.right-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: end;
   width: 60%;
 }
 
 .Kategorie {
-  position: relative; /* Container für das absolute Positionieren des Dropdowns */
+  position: relative;
 }
-.Kategorie .input-label{
+.Kategorie .input-label {
   margin-left: 0;
 }
 
-.invoice-upload .input-label{
+.invoice-upload .input-label {
   margin-left: 0;
 }
 
 .custom-dropdown {
   position: absolute;
   z-index: 9999;
-  border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
+  max-width: 400%;
   top: 100%;
   left: 0;
-  //background-color: var(--ion-color-light);
-  background-color: #1a65eb;
   margin-top: -20px;
+  left: -50px;
+  padding-top: 15%;
+  padding-bottom: 15%;
+  border-radius: 10px;
+  background-color: #ffffff;
 }
-
-.custom-dropdown ion-label{
-  margin-left: 15px;
-}
-
-.custom-dropdown ion-item {
-  border-bottom: 1px solid var(--ion-color-dark);
-}
-
-.custom-dropdown ion-item:hover{
-  background-color: var(--ion-color-secondary);
-}
-
-ion-list::part(native) {
-  background: var(--ion-color-secondary) !important;
-  padding: 0
-;
-}
-
 ion-item.dropDownFelder::part(native) {
-  --background: var(--ion-color-light);
-  --color: var(--ion-color-dark);
-  background-color: var(--ion-color-light) !important;
-  color: var(--ion-color-dark) !important;
+  --background: #ffffff;
+  background-color: #ffffff !important;
+
+}
+.custom-dropdown ion-label {
+  margin-left: 15px;
 }
 
 .selected-category {
@@ -275,38 +323,296 @@ ion-item.dropDownFelder::part(native) {
   justify-content: center;
 }
 
+.Währung {
+  position: relative;
+
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    top: 100%;
+    left: -10px;
+  }
+
+  .selected-currency {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    font-size: 16px;
+    justify-content: center;
+    color: var(--ion-color-dark);
+  }
+}
+.wiederholung {
+  position: relative;
+
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    top: 100%;
+    left: -10px;
+  }
+  .selected-repeat {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--ion-color-dark);
+  }
+}
+.paid-by {
+  position: relative;
+
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 200%;
+    top: 100%;
+    left: 0;
+    padding-top: 15%;
+    padding-bottom: 15%;
+    border-radius: 10px;
+    background-color: #ffffff;
+  }
+  ion-item.dropDownFelder::part(native) {
+
+    background-color: #ffffff !important;
+    color: var(--ion-color-light) !important;
+  }
+  .selected-paid-by {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--ion-color-dark);
+    max-height: 28px;
+  }
+
+  .member-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .member-info {
+    display: flex;
+    align-items: center;
+    border: 2px solid var(--member-color, #1a65eb);
+    padding: 5px 10px 5px 5px;
+    border-radius: 50px;
+    gap: 10px;
+  }
+
+  .profile-placeholder {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid;
+  }
+
+  .member-name {
+    font-size: 14px;
+    color: var(--ion-color-dark);
+  }
+}
+.split-by {
+  position: relative;
+  width: 40%;
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    top: 100%;
+    left: 0;
+  }
+
+  .selected-split-by {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--ion-color-dark);
+  }
+}
+.split-type {
+  position: relative;
+  width: 60%;
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 800px;
+    top: 100%;
+    left: 0;
+  }
+
+  .selected-split-type {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--ion-color-dark);
+  }
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+ion-input {
+  flex: 1;
+  padding-right: 20px;
+}
+
+#input-totalAmount .percent-symbol{
+  right: 10px !important;
+}
+
+.percent-symbol {
+  position: absolute;
+  right: 20px;
+  font-size: 16px;
+  color: #666;
+}
+.overlay-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: saturate(180%) blur(20px);
+  --webkit-backdrop-filter: saturate(180%) blur(20px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.validation-overlay {
+  background: #fff0f0;
+  color: #d32f2f;
+  padding: 20px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  animation: popIn 0.3s ease;
+  border-left: 6px solid #d32f2f;
+}
+
+.validation-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.warning-icon {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 16px;
+  color: #d32f2f;
+}
+
+
+.validation-content p {
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.validation-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  text-align: left;
+  width: 100%;
+}
+
+.validation-content li {
+  margin-bottom: 6px;
+  position: relative;
+  text-align: center;
+}
+
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* Fehlerbereich mit Text */
+.split-percentage {
+  font-size: 14px;
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Fehlertext */
+.split-percentage p {
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Button zum Rest aufteilen */
+.split-percentage ion-button {
+  width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: transparent;
+  text-transform: uppercase;
+  margin-top: 12px;
+}
+
+/* Wenn der Fehlertext nicht vorhanden ist, kein Abstand */
+.split-percentage + .validation-content {
+  margin-top: 0;
+}
+.upload-icon{
+  font-size: 26px;
+}
+
+
 @media (prefers-color-scheme: dark) {
   .input-label {
     color: #989797;
   }
   ion-item.dropDownFelder::part(native) {
-    --background: #000000;
-    --color: var(--ion-color-light);
-    background-color: #000000 !important;
+
+    background-color: #121212 !important;
     color: var(--ion-color-light) !important;
   }
   .custom-dropdown {
-    background-color: #000000;
+    background-color: #121212;
   }
-  #category-icon-label{
+  #category-icon-label {
     color: #000000;
+    font-size: 24px;
   }
-}
-
-.invoice-upload {
-
-  .upload-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    width: 10px;
+  .paid-by .custom-dropdown {
+    background-color: #121212;
+  }
+  .paid-by ion-item.dropDownFelder::part(native) {
+    background-color: #121212 !important;
 
   }
-
-  .upload-icon {
-    font-size: 30px;
-    color: var(--ion-color-primary);
+  .upload-icon{
+    color: #000000;
   }
 
 }

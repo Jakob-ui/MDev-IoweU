@@ -349,11 +349,19 @@ export class ExpenseDetailsPage {
   }
   editExpense() {
     if (this.expenseId) {
-      this.router.navigate(['/edit-expense', this.groupId, this.expenseId]);
+      this.router.navigate(
+        ['/edit-expense', this.groupId, this.expenseId],
+        {
+          queryParams: {
+            repeating: this.repeatingExpense // true oder false übergeben
+          }
+        }
+      );
     } else {
       console.error('Expense ID not found');
     }
   }
+
 
   getPaidByName(uid: string): string {
     const memberIndex = this.memberUids.indexOf(uid);
