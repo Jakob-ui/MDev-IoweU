@@ -167,6 +167,11 @@ export class EditExpensePage {
         const repeatingParam = this.activeRoute.snapshot.queryParamMap.get('repeating');
         const isRepeating = repeatingParam === 'true'; // true, wenn repeating=true in URL
 
+        this.repeating = isRepeating;
+        if (!this.repeating) {
+          this.expense.repeat = 'nein';
+        }
+
         if (groupId) {
           const currentGroup = await this.groupService.getGroupById(groupId);
 

@@ -174,6 +174,7 @@ export class CreateExpensePage {
           if (this.currentGroup) {
             this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = this.currentGroup.groupId || '';
+            console.log("gruppeninfos:", this.currentGroup);
 
             if (
               this.currentGroup.members &&
@@ -807,7 +808,7 @@ export class CreateExpensePage {
       this.repeating = false;
     } else {
       this.repeating = true;
-      
+
     }
 
     this.loadingService.show();
