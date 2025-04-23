@@ -50,6 +50,7 @@ export class CreateGroupPage {
   selectedTemplate: string = '';
   templates: string[] = ['Standard', 'Projekt', 'Reise'];
   groupImage: string | ArrayBuffer | null = null;
+  uploadImage: any;
   showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige
   newGroup: Groups | null = null; // Initialisierung der newGroup-Variable
 
@@ -94,6 +95,7 @@ export class CreateGroupPage {
         this.groupname,
         founder,
         this.selectedTemplate,
+        this.uploadImage,
         this.defaultCategories
       );
       console.log('Groups successfully created!');
@@ -115,6 +117,9 @@ export class CreateGroupPage {
       const reader = new FileReader();
       reader.onload = () => {
         this.groupImage = reader.result;
+        if (typeof this.groupImage === 'string') {
+          this.uploadImage = this.userService.dataURLtoBlob(this.groupImage);
+        }
       };
       reader.readAsDataURL(file);
     }
