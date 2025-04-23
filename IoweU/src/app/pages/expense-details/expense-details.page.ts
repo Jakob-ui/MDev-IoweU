@@ -101,6 +101,8 @@ export class ExpenseDetailsPage {
   expenseMemberPaidByName: string = '';
   expenseMemberPaidByUid: string = '';
 
+  repeatingExpense: boolean = false;
+
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
   products: Products[] = [];
@@ -156,6 +158,11 @@ export class ExpenseDetailsPage {
   async ngOnInit() {
     this.loadingService.show();
     try {
+      // Query-Parameter lesen, um festzustellen, ob es sich um eine wiederkehrende Ausgabe handelt
+      this.activeRoute.queryParams.subscribe(params => {
+        this.repeatingExpense = params['repeating'] === 'true';
+      });
+
       if (!this.authService.currentUser) {
         console.error('Kein Benutzer eingeloggt.');
         return;
@@ -188,28 +195,23 @@ export class ExpenseDetailsPage {
       await this.expenseService.getExpenseById(
         this.groupId,
         this.expenseId,
-        false,
+        this.repeatingExpense,
         (fetchedExpense) => {
           if (fetchedExpense) {
-            this.expense = [fetchedExpense]; // Setze die komplette Expense-Daten als Array
+            this.expense = [fetchedExpense];
 
-            // Extrahiere die Werte aus der Expense und speichere sie in separaten Variablen
             const expenseData = this.expense[0];
-            this.expenseDescription = expenseData.description || ''; // Beschreibung der Ausgabe
-            this.expenseTotalAmount = expenseData.totalAmount || 0; // Gesamtbetrag
-            this.expensePaidBy = expenseData.paidBy || ''; // Wer hat gezahlt?
-            this.expenseDate = expenseData.date || ''; // Datum der Ausgabe
-            this.expenseMember = expenseData.expenseMember || []; // Mitglieder der Ausgabe
-            this.expenseMemberIds = this.expenseMember.map(
-              (m) => m.memberId || ''
-            ); // IDs der Mitglieder
-            this.expenseMemberSplitType = expenseData.splitType || ''; // Art der Aufteilung
-            this.expenseMemberSplitBy = expenseData.splitBy || ''; // Wer hat die Ausgabe geteilt?
-            this.expenseMemberPaidBy = expenseData.paidBy || ''; // Wer hat die Ausgabe bezahlt?
+            this.expenseDescription = expenseData.description || '';
+            this.expenseTotalAmount = expenseData.totalAmount || 0;
+            this.expensePaidBy = expenseData.paidBy || '';
+            this.expenseDate = expenseData.date || '';
+            this.expenseMember = expenseData.expenseMember || [];
+            this.expenseMemberIds = this.expenseMember.map(m => m.memberId || '');
+            this.expenseMemberSplitType = expenseData.splitType || '';
+            this.expenseMemberSplitBy = expenseData.splitBy || '';
+            this.expenseMemberPaidBy = expenseData.paidBy || '';
 
-            const currentMember = this.expenseMember.find(
-              (m) => m.memberId === this.uid
-            );
+            const currentMember = this.expenseMember.find(m => m.memberId === this.uid);
             this.expenseAmountToPay = currentMember?.amountToPay || 0;
 
             this.expensePaidByUsername = this.getPaidByName(this.expensePaidBy);
@@ -220,6 +222,7 @@ export class ExpenseDetailsPage {
           }
         }
       );
+
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {

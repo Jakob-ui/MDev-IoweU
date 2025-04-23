@@ -196,15 +196,20 @@ export class RepeatingExpensesPage implements OnInit {
     );
   }
 
-  goToExpenseDetails(expenseId: string) {
+  goToExpenseDetails(expenseId: string, isRepeating: boolean = true) {
     this.loadingService.show();
     try {
-      // Hier wird der expenseId der aktuellen Ausgabe übergeben
-      this.router.navigate(['expense-details', this.groupId, expenseId]);
+      this.router.navigate(
+        ['expense-details', this.groupId, expenseId],
+        {
+          queryParams: { repeating: isRepeating }
+        }
+      );
     } finally {
       this.loadingService.hide();
     }
   }
+
 
   goToCreateExpense() {
     this.loadingService.show();
