@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import {Component, ElementRef, inject, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -50,6 +50,7 @@ import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 import { Groups } from 'src/app/services/objects/Groups';
 import { HostListener } from '@angular/core';
+import {ImageService} from "../../services/image.service";
 
 @Component({
   selector: 'app-create-expense',
@@ -84,6 +85,7 @@ export class CreateExpensePage {
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
+  private imageService = inject(ImageService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -125,6 +127,10 @@ export class CreateExpensePage {
 
   showAddProductButton: { [key: string]: boolean } = {};
   showProductInputFields: { [key: string]: boolean } = {};
+
+  invoice: string | ArrayBuffer | null = null;
+  uploadInvoice: any;
+  @ViewChild('fileInput') fileInput!: ElementRef;
 
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
@@ -259,16 +265,24 @@ export class CreateExpensePage {
     }
   }
 
-  onInvoiceUpload(event: any) {
+  selectImage() {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        this.expense.invoice = reader.result as string; // Speichere das Bild als Base64-String
+        this.invoice = reader.result;
+        if (typeof this.invoice === 'string') {
+          this.uploadInvoice = this.imageService.dataURLtoBlob(this.invoice);
+        }
       };
-      reader.readAsDataURL(file); // Lese die Datei als Base64
+      reader.readAsDataURL(file);
     }
   }
+
   selectCurrency(currency: string) {
     this.selectedCurrency = currency;
     this.expense.currency = [currency];
@@ -701,21 +715,16 @@ export class CreateExpensePage {
     this.showValidationError = false;
   }
 
-  saveExpense() {
+  async saveExpense() {
     if (!this.validateExpense()) {
-      return; // Fehler werden nun in der UI angezeigt
-    }
-    console.log('this.expense.repeat', this.expense.repeat);
-    if (this.expense.repeat !== 'nein') {
-      this.repeating = false;
-    } else {
-      this.repeating = true;
-
+      return;
     }
 
+    this.repeating = this.expense.repeat === 'nein';
     this.loadingService.show();
 
     try {
+      // Members vorbereiten
       this.expense.expenseMember = this.groupMembers.map((member) => {
         const uid = member.uid;
         const amount = this.amountToPay[uid] || 0;
@@ -736,7 +745,19 @@ export class CreateExpensePage {
       this.updateTotalAmount();
       this.expense.totalAmount = Number(this.expense.totalAmount.toFixed(2));
 
-      this.expenseService.createExpense(
+      // Wenn Rechnung ausgewählt wurde → hochladen und URL setzen
+      if (this.uploadInvoice) {
+        const invoicePath = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+        const downloadURL = await this.imageService.uploadImage(
+          this.expense.expenseId,
+          this.uploadInvoice,
+          invoicePath
+        );
+        this.expense.invoice = downloadURL;
+      }
+
+      // Expense erstellen
+      await this.expenseService.createExpense(
         this.expense,
         this.expense.expenseMember,
         this.groupId,
@@ -751,4 +772,5 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
+
 }
