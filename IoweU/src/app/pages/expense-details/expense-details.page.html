@@ -11,6 +11,7 @@
     <div class="right-container" slot="end">
       <ion-icon
         class="edit-button"
+        (click)="toggleInvoiceOverlay()"
         [src]="iosIcons ? 'assets/icon/ionicons/ios-paper.svg' : 'assets/icon/ionicons/md-paper.svg'"
       ></ion-icon>
       <ion-icon
@@ -23,6 +24,38 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <div
+    class="invoice-overlay"
+    [ngClass]="{
+      'hidden': overlayState === 'hidden',
+      'normal': overlayState === 'normal',
+      'start': overlayState === 'start',
+      'slideUp': overlayState === 'normal',
+      'slideDown': overlayState === 'hidden'
+    }"
+    (click)="toggleInvoiceOverlay()">
+    <div class="invoice-wrapper" (click)="$event.stopPropagation()">
+      <span>Rechnung zur Ausgabe:</span>
+      <h5>{{ expense[0].description }}</h5>
+
+      <ng-container *ngIf="expense[0]?.invoice; else noInvoice">
+        <img
+          [src]="expense[0].invoice"
+          alt="Rechnung"
+          class="invoice-image"
+        />
+      </ng-container>
+
+      <ng-template #noInvoice>
+        <p>Keine Rechnung vorhanden.</p>
+        <ion-button class="main-button" expand="block" (click)="editExpense()">
+          Rechnung hinzufügen
+        </ion-button>
+      </ng-template>
+
+    </div>
+  </div>
+
   <div class="page-container" *ngIf="expense">
 
     <div class="payed-by">

@@ -205,6 +205,11 @@ export class ExpenseService {
         expenseMember: updatedExpenseMembersData,
       };
 
+      // Wenn ein Bild vorhanden ist, wird es auch in das aktualisierte Objekt übernommen
+      if (updatedExpenseData.invoice) {
+        updatedExpense.invoice = updatedExpenseData.invoice; // Bild-URL zu `invoice` hinzufügen
+      }
+
       if (repeating) {
         const repeatingExpense: RepeatingExpenses = {
           ...updatedExpense,

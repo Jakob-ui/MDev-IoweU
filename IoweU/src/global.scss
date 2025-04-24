@@ -633,6 +633,7 @@ ion-item.select-interface-option::part(native) {
   justify-content: center;
   align-items: center;
   text-align: center;
+  padding-top: calc(env(safe-area-inset-top) + 50px) !important;
 }
 
 .page-container {
@@ -860,6 +861,10 @@ body.color-blind {
 .member-username {
   color: #2f2f2f;
 }
+.alert-button-inner.sc-ion-alert-md {
+  color: var(--ion-color-dark) !important;
+ 
+}
 
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
@@ -938,6 +943,9 @@ body.color-blind {
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
+  .info-button{
+    color: #000;
+  } 
   ion-icon.qr-code-icon,
   ion-icon.edit-button,
   ion-icon.logout-button,
@@ -953,4 +961,10 @@ body.color-blind {
   .button-row{
     background-color: #121212 !important;
   }
+  .alert-button-inner.sc-ion-alert-md {
+    color: var(--ion-color-light) !important;
+   
+  }
 }
+
+

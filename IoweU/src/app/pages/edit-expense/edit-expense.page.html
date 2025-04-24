@@ -55,20 +55,15 @@
           </div>
         </div>
 
-        <div class="invoice-upload">
+        <div class="invoice-upload" >
           <span class="input-label">Rechnung</span>
           <ion-item class="input-item">
-            <label class="upload-label">
+            <label class="upload-label" (click)="selectImage()">
               <ion-icon
                 [src]="expense.invoice ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/ios-add.svg'"
                 class="upload-icon"
               ></ion-icon>
-              <input
-                type="file"
-                accept="image/*"
-                (change)="onInvoiceUpload($event)"
-                hidden
-              />
+              <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
             </label>
           </ion-item>
         </div>
@@ -228,20 +223,19 @@
               [(ngModel)]="expense.splitBy"
               (ngModelChange)="onSplitByChange()"
               interface="popover"
-              [disabled]="!chooseSplitType"
-            >
+              [disabled]="!chooseSplitType">
+
               <ion-select-option
                 class="custom-select-option"
                 value="alle"
-                [disabled]="!chooseSplitType"
-              >alle</ion-select-option
-              >
+                [disabled]="!chooseSplitType">
+                alle
+              </ion-select-option>
               <ion-select-option
-                (ngModelChange)="onSplitByChange()"
                 class="custom-select-option"
-                value="frei"
-              >frei</ion-select-option
-              >
+                value="frei">
+                frei
+              </ion-select-option>
             </ion-select>
           </ion-item>
         </div>
@@ -406,7 +400,7 @@
       <ion-button class="main-button" (click)="cancel()">Abbrechen</ion-button>
       <ion-button
         class="main-button"
-        (click)="saveExpense()"
+        (click)="saveExpenseChanges()"
         [disabled]="!isFormValid"
       >Speichern</ion-button
       >
