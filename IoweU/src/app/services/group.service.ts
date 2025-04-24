@@ -527,6 +527,45 @@ export class GroupService {
     }
   }
 
+  async getGroupAboByGroupId(
+    groupId: string,
+    updateGroupCallback: (group: Groups[]) => void
+  ): Promise<() => void> {
+    if (!groupId) {
+      console.error('groupId ist undefined. Abfrage abgebrochen.');
+      return () => {};
+    }
+
+    console.log('Suche Gruppe mit groupId:', groupId);
+
+    try {
+      const groupRef = collection(this.firestore, 'groups');
+      const q = query(groupRef, where('groupId', '==', groupId));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+          // Mappe die Dokumente auf ein Array von Gruppen
+          const group = snapshot.docs.map((doc) => ({
+            groupId: doc.id,
+            ...doc.data(),
+          })) as Groups[];
+
+          // Callback mit den aktualisierten Daten
+          updateGroupCallback(group);
+        } else {
+          console.warn('Keine Gruppe mit dieser groupId gefunden.');
+          updateGroupCallback([]);
+        }
+      });
+
+      // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
+      return unsubscribe;
+    } catch (error) {
+      console.error('Fehler beim Abrufen der Gruppe:', error);
+      throw error;
+    }
+  }
+
   clearGroupData(): void {
     this.currentGroup = null;
     console.log('Gruppendaten wurden zurückgesetzt.');
