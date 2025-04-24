@@ -76,6 +76,8 @@ export class ShoppinglistPage implements OnInit {
   overlayState: 'start' | 'normal' | 'hidden' = 'start';
 
   earliestDueDate: Date = new Date(2025, 2, 20);
+  earliestDueDateLabel: string = '';
+
 
   addProductOpen = false;
 
@@ -156,53 +158,57 @@ export class ShoppinglistPage implements OnInit {
 
   groupProductsByDate() {
     const grouped: { [key: string]: ShoppingProducts[] } = {
-      'Nicht dringend': [] // Hier wird die "Nicht dringend"-Kategorie eingeführt
+      'Nicht dringend': []
     };
 
-    // Heute, gestern und morgen definieren
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
     const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1); // Morgen
+    tomorrow.setDate(today.getDate() + 1);
+
+    const validDates: Date[] = [];
 
     for (const product of this.shoppingproducts) {
-      if (!product['date']) continue; // Sicherstellen, dass ein Datum vorhanden ist
-      const formattedDate = new Date(product['date']).toISOString().split('T')[0]; // YYYY-MM-DD
-
-      // Überprüfen, ob das Datum mehr als einen Monat entfernt ist
+      if (!product['date']) continue;
       const dueDate = new Date(product['date']);
+      const formattedDate = dueDate.toISOString().split('T')[0]; // YYYY-MM-DD
+
       const oneMonthLater = new Date(today);
       oneMonthLater.setMonth(today.getMonth() + 1);
 
-      // Wenn das Datum mehr als einen Monat entfernt ist, in "Nicht dringend" hinzufügen
-      if (dueDate > oneMonthLater) {
+      if (dueDate > oneMonthLater || formattedDate === '9999-12-31') {
         grouped['Nicht dringend'].push(product);
       } else {
-        // Ansonsten nach Datum gruppieren
         if (!grouped[formattedDate]) {
           grouped[formattedDate] = [];
         }
         grouped[formattedDate].push(product);
+        validDates.push(dueDate);
       }
     }
 
-    // Gruppierte Daten sortieren, die Daten werden weiterhin nach Datum sortiert
+    // Frühestes Fälligkeitsdatum berechnen (außer "Nicht dringend")
+    if (validDates.length > 0) {
+      this.earliestDueDate = new Date(Math.min(...validDates.map(d => d.getTime())));
+    } else {
+      this.earliestDueDate = new Date(); // Fallback
+    }
+
+    // earliestDueDate Label erzeugen
+    this.earliestDueDateLabel = this.formatDateLabel(this.earliestDueDate.toISOString().split('T')[0], today, yesterday, tomorrow);
+
     const sortedDates = Object.keys(grouped).sort((a, b) => {
-      // Sonderbehandlung für "Nicht dringend", das immer unten angezeigt wird
       if (a === 'Nicht dringend') return 1;
       if (b === 'Nicht dringend') return -1;
       return new Date(a).getTime() - new Date(b).getTime();
     });
 
-    // Um die Ausgabe von 'Heute', 'Gestern' und 'Morgen' zu ermöglichen
     this.groupedProducts = sortedDates.map((date) => ({
       date: date === 'Nicht dringend'
-        ? 'Nicht dringend'  // Hier wird "Nicht dringend" direkt angezeigt
+        ? 'Nicht dringend'
         : this.formatDateLabel(date, today, yesterday, tomorrow),
-      shoppingproducts: grouped[date].sort((a, b) => {
-        return new Date(b['date']).getTime() - new Date(a['date']).getTime();
-      }),
+      shoppingproducts: grouped[date].sort((a, b) => new Date(b['date']).getTime() - new Date(a['date']).getTime()),
     }));
   }
 
@@ -212,24 +218,36 @@ export class ShoppinglistPage implements OnInit {
     if (dateObj.toDateString() === today.toDateString()) {
       return 'Heute';
     }
-
     if (dateObj.toDateString() === yesterday.toDateString()) {
       return 'Gestern';
     }
-
     if (dateObj.toDateString() === tomorrow.toDateString()) {
       return 'Morgen';
     }
 
-    // Wenn es kein spezielles Datum wie "Heute", "Gestern" oder "Morgen" ist,
-    // formatiere es als dd.MM.yyyy
     const day = String(dateObj.getDate()).padStart(2, '0');
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Monate sind 0-indexiert
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const year = dateObj.getFullYear();
 
     return `${day}.${month}.${year}`;
   }
 
+  isPast(date: string | Date): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Wenn "Gestern", "Heute", "Morgen" als Label übergeben wird
+    if (typeof date === 'string') {
+      const lower = date.toLowerCase();
+      if (lower === 'gestern') return true;
+      if (lower === 'heute' || lower === 'morgen') return false;
+    }
+
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+
+    return d < today;
+  }
 
 
   getFirstLetter(paidBy: string): string {
