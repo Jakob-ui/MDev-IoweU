@@ -87,10 +87,13 @@ export class AccountSettingsPage implements OnInit {
 
     this.iosIcons = this.platform.is('ios');
 
-    // Setze den aktuellen Namen direkt in das Eingabefeld
-    this.newname = this.name = this.authService.currentUser?.username || '';
+    // Versuche, Daten aus dem lokalen Speicher zu laden
+    this.name = localStorage.getItem('username') || '';
+    this.newname = this.name;
+    this.email = localStorage.getItem('email') || '';
+    this.color = localStorage.getItem('usercolor') || '#ffffff';
 
-    this.authService.waitForUser;
+    // Lade Benutzerdaten aus dem Backend
     this.loadUserData().finally(() => {
       this.loadingService.hide();
     });
