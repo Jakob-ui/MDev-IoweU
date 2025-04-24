@@ -542,7 +542,9 @@ export class ExpenseService {
             const balance: Balances = {
               groupId,
               fromMemberId: from.uid,
+              sumFrom: 0,
               toMemberId: to.uid,
+              sumTo: 0,
               amount: 0,
               lastUpdated: new Date().toISOString(),
               relatedExpenseId: [],
@@ -572,15 +574,15 @@ export class ExpenseService {
 
       for (const member of expense.expenseMember) {
         if (member.memberId !== expense.paidBy) {
-          const payer = expense.paidBy;
-          const borrower = member.memberId;
+          const creditor = expense.paidBy;
+          const debtor = member.memberId;
           const amount = member.amountToPay;
 
-          // A) borrower → payer (positive Betrag)
+          // A) borrower → payer
           const q1 = query(
             balancesRef,
-            where('fromMemberId', '==', borrower),
-            where('toMemberId', '==', payer)
+            where('fromMemberId', '==', debtor),
+            where('toMemberId', '==', creditor)
           );
           const snapshot1 = await getDocs(q1);
 
@@ -590,50 +592,79 @@ export class ExpenseService {
 
             await updateDoc(docRef, {
               amount: Number((data.amount + amount).toFixed(2)),
+              sumTo: Number((data.sumTo + amount).toFixed(2)),
               lastUpdated: new Date().toISOString(),
               relatedExpenseId: Array.from(
                 new Set([...data.relatedExpenseId, expense.expenseId])
               ),
             });
-          } else {
-            // Neue Balance anlegen
-            await addDoc(balancesRef, {
-              fromMemberId: borrower,
-              toMemberId: payer,
-              amount: Number(amount.toFixed(2)),
-              lastUpdated: new Date().toISOString(),
-              relatedExpenseId: [expense.expenseId],
-            });
+          } else
+          {
+            //payer -> borrower
+            const q2 = query(
+              balancesRef,
+              where('fromMemberId', '==', creditor),
+              where('toMemberId', '==', debtor)
+            );
+            const snapshot1 = await getDocs(q2);
+  
+            if (!snapshot1.empty) {
+              const docRef = snapshot1.docs[0].ref;
+              const data = snapshot1.docs[0].data() as Balances;
+  
+              await updateDoc(docRef, {
+                amount: Number((data.amount + amount).toFixed(2)),
+                sumFrom: Number((data.sumFrom + amount).toFixed(2)),
+                lastUpdated: new Date().toISOString(),
+                relatedExpenseId: Array.from(
+                  new Set([...data.relatedExpenseId, expense.expenseId])
+                ),
+              });
+            }
+
           }
+          // else {
+          //   // Neue Balance anlegen
+          //   await addDoc(balancesRef, {
+          //     fromMemberId: debtor,
+          //     sumFrom: 0,
+          //     toMemberId: creditor,
+          //     sumTo: amount,
+          //     amount: Number(amount.toFixed(2)),
+          //     lastUpdated: new Date().toISOString(),
+          //     relatedExpenseId: [expense.expenseId],
+          //   }
+          // );
+          // }
 
           // B) payer → borrower (negativer Betrag)
-          const q2 = query(
-            balancesRef,
-            where('fromMemberId', '==', payer),
-            where('toMemberId', '==', borrower)
-          );
-          const snapshot2 = await getDocs(q2);
+          // const q2 = query(
+          //   balancesRef,
+          //   where('fromMemberId', '==', payer),
+          //   where('toMemberId', '==', borrower)
+          // );
+          // const snapshot2 = await getDocs(q2);
 
-          if (!snapshot2.empty) {
-            const docRef = snapshot2.docs[0].ref;
-            const data = snapshot2.docs[0].data() as Balances;
+          // if (!snapshot2.empty) {
+          //   const docRef = snapshot2.docs[0].ref;
+          //   const data = snapshot2.docs[0].data() as Balances;
 
-            await updateDoc(docRef, {
-              amount: Number((data.amount - amount).toFixed(2)),
-              lastUpdated: new Date().toISOString(),
-              relatedExpenseId: Array.from(
-                new Set([...data.relatedExpenseId, expense.expenseId])
-              ),
-            });
-          } else {
-            await addDoc(balancesRef, {
-              fromMemberId: payer,
-              toMemberId: borrower,
-              amount: Number((-amount).toFixed(2)),
-              lastUpdated: new Date().toISOString(),
-              relatedExpenseId: [expense.expenseId],
-            });
-          }
+          //   await updateDoc(docRef, {
+          //     amount: Number((data.amount - amount).toFixed(2)),
+          //     lastUpdated: new Date().toISOString(),
+          //     relatedExpenseId: Array.from(
+          //       new Set([...data.relatedExpenseId, expense.expenseId])
+          //     ),
+          //   });
+          // } else {
+          //   await addDoc(balancesRef, {
+          //     fromMemberId: payer,
+          //     toMemberId: borrower,
+          //     amount: Number((-amount).toFixed(2)),
+          //     lastUpdated: new Date().toISOString(),
+          //     relatedExpenseId: [expense.expenseId],
+          //   });
+          // }
         }
       }
     } catch (error) {
