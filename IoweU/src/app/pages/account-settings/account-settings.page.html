@@ -36,10 +36,10 @@
     <ion-item class="input-item">
       <ion-input
         type="text"
-        placeholder="{{changeMessage}}"
         [(ngModel)]="newname"
-      >
-      </ion-input>
+        [value]="name"
+        placeholder="Gib einen Namen ein"
+      ></ion-input>
       <ion-icon
         *ngIf="userEditing"
         [src]="iosIcons ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/md-checkmark.svg'"

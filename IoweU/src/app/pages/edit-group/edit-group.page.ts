@@ -23,6 +23,7 @@ import { CommonModule } from '@angular/common';
 import { AlertController } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth.service';
 import { QRCodeComponent } from 'angularx-qrcode';
+import { ImageService } from 'src/app/services/image.service';
 
 
 @Component({
@@ -47,12 +48,19 @@ export class EditGroupPage implements OnInit {
   groupname: string = '';
   members: Members[] = [];
   features: string[] = [];
-  availableFeatures: string[] = ['Einkaufsliste', 'Anlagegüter', 'Finanzübersicht', 'Ausgaben'];
+  availableFeatures: string[] = [
+    'Einkaufsliste',
+    'Anlagegüter',
+    'Finanzübersicht',
+    'Ausgaben',
+  ];
+  newFeatures: string[] = [];
   accessCode: string = '';
   selectedTemplate: string[] = [];
   founder: string = '';
   groupImage: string | ArrayBuffer | null = null;
   groupLink: string = '';
+  uploadImage: any;
   groupId: string = ''; // groupId sollte als String deklariert werden
   userUid: string = ''; // UID des aktuellen Benutzers
   showQRCode: boolean = false; // Variable zum Steuern der QR-Code-Anzeige
@@ -63,6 +71,7 @@ export class EditGroupPage implements OnInit {
   private route = inject(ActivatedRoute);
   private alertController = inject(AlertController);
   private authService = inject(AuthService);
+  private imageService = inject(ImageService);
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
@@ -94,6 +103,7 @@ export class EditGroupPage implements OnInit {
         this.members = group.members || [];
         this.accessCode = group.accessCode || '';
         this.selectedTemplate = group.features || [];
+        this.newFeatures = group.features || [];
         this.groupImage = group.groupimage || null;
         this.founder = group.founder || ''; // Gründer der Gruppe
       } else {
@@ -114,82 +124,23 @@ export class EditGroupPage implements OnInit {
   toggleFeatureVisibility(feature: string) {
     // Wenn das Feature bereits in der DB gespeichert ist, entfernen wir es
     if (this.isFeatureInDB(feature)) {
-      this.removeFeature(feature);  // Feature entfernen
+      this.removeFeatures(feature); // Feature entfernen
     } else {
       // Wenn es noch nicht gespeichert ist, fügen wir es hinzu
-      this.addFeature(feature);  // Feature hinzufügen
+      this.addFeatures(feature); // Feature hinzufügen
     }
   }
 
-  async addFeature(selectedFeature: string) {
-    if (!selectedFeature || !this.groupId || !this.authService.currentUser) {
-      console.warn('Ungültiges Feature oder keine Gruppendaten vorhanden.');
-      return;
-    }
-
-    console.log('Versuche Feature hinzuzufügen:', selectedFeature);
-
-    // Lade die aktuellen Gruppendaten neu, bevor das Feature hinzugefügt wird
-    await this.loadGroupData(this.groupId);  // Stelle sicher, dass die aktuelle Features-Liste neu geladen wird
-
-    // Überprüfe vor dem Hinzufügen, ob das Feature bereits in der Liste vorhanden ist
-    if (this.features.includes(selectedFeature)) {
-      console.warn('Feature bereits hinzugefügt:', selectedFeature);
-      return;
-    }
-
-    try {
-      // Speichert das Feature in der DB, bevor es lokal hinzugefügt wird
-      await this.groupService.addFeaturesToGroup(
-        this.authService.currentUser.uid,
-        this.groupId,
-        [selectedFeature]
-      );
-
-      // Wenn das Feature erfolgreich hinzugefügt wurde, füge es zur lokalen Liste hinzu
-      this.features.push(selectedFeature);
-
-      console.log('Feature erfolgreich hinzugefügt:', selectedFeature);
-    } catch (error) {
-      console.error('Fehler beim Hinzufügen des Features:', error);
-    }
+  addFeatures(selectedFeature: string) {
+    this.newFeatures.push(selectedFeature);
   }
 
-
-  async removeFeature(selectedFeature: string) {
-    if (!selectedFeature || !this.groupId || !this.authService.currentUser) {
-      console.warn('Ungültiges Feature oder keine Gruppendaten vorhanden.');
-      return;
-    }
-
-    console.log('Versuche Feature zu entfernen:', selectedFeature);
-
-    // Lade die aktuellen Gruppendaten neu, bevor das Feature entfernt wird
-    await this.loadGroupData(this.groupId);  // Stelle sicher, dass die aktuelle Features-Liste neu geladen wird
-
-    // Überprüfe, ob das Feature in der Liste vorhanden ist
-    if (!this.features.includes(selectedFeature)) {
-      console.warn('Feature nicht vorhanden:', selectedFeature);
-      return;
-    }
-
-    try {
-      // Entferne das Feature aus der DB
-      await this.groupService.removeFeatureFromGroup(
-        this.authService.currentUser.uid,
-        this.groupId,
-        selectedFeature
-      );
-
-      // Wenn das Feature erfolgreich entfernt wurde, entferne es auch aus der lokalen Liste
-      this.features = this.features.filter(f => f !== selectedFeature);
-
-      console.log('Feature erfolgreich entfernt:', selectedFeature);
-    } catch (error) {
-      console.error('Fehler beim Entfernen des Features:', error);
+  removeFeatures(selectedFeature: string) {
+    const index = this.newFeatures.indexOf(selectedFeature);
+    if (index > - 1) {
+      this.newFeatures.splice(index, 1);
     }
   }
-
 
   removeMember(member: Members) {
     this.members = this.members.filter((m) => m.uid !== member.uid);
@@ -205,6 +156,9 @@ export class EditGroupPage implements OnInit {
       const reader = new FileReader();
       reader.onload = () => {
         this.groupImage = reader.result;
+        if (typeof this.groupImage === 'string') {
+          this.uploadImage = this.imageService.dataURLtoBlob(this.groupImage);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -232,7 +186,8 @@ export class EditGroupPage implements OnInit {
       // Benutzer ist nicht der Gründer, zeige eine Warnung an
       const alert = await this.alertController.create({
         header: 'Aktion nicht erlaubt',
-        message: 'Sie sind nicht der Gründer dieser Gruppe und können sie daher nicht löschen.',
+        message:
+          'Sie sind nicht der Gründer dieser Gruppe und können sie daher nicht löschen.',
         cssClass: 'custom-alert', // Eigene CSS-Klasse zuweisen
         buttons: [
           {
@@ -275,13 +230,13 @@ export class EditGroupPage implements OnInit {
     await alert.present();
   }
 
-  saveeditedGroup() {
-    console.log(
-      'Gruppe gespeichert:',
+  async saveeditedGroup() {
+    await this.groupService.updateGroup(
+      this.userUid,
+      this.groupId,
       this.groupname,
-      this.members,
-      this.selectedTemplate,
-      this.groupImage
+      this.newFeatures,
+      this.uploadImage
     );
     this.router.navigate([`/group`, this.groupId]);
   }
@@ -298,7 +253,5 @@ export class EditGroupPage implements OnInit {
       }
     }
   }
-
-
 }
 

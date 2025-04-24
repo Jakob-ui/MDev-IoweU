@@ -149,3 +149,13 @@
   justify-content: space-between;
   width: 100%;
 }
+.member-name-big{
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 5px;
+ }
+@media(prefers-color-scheme: dark) {
+ .member-name-big{
+  color: var(--ion-color-light);
+ }
+}
