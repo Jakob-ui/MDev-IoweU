@@ -251,6 +251,11 @@ strong {
   max-width: 500px;
 }
 
+.past-date {
+  color: #da2f2f !important;
+}
+
+
 @media (prefers-color-scheme: dark) {
   .date {
     color: var(--ion-color-light);

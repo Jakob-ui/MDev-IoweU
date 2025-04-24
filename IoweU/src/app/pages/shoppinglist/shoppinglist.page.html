@@ -62,9 +62,10 @@
       <div class="card-content-shopping">
         <h2>{{ shoppingproducts.length }} {{ shoppingproducts.length === 1 ? 'Produkt' : 'Produkte' }}</h2>
 
-        <p>
-          früheste Fälligkeit: {{ earliestDueDate | date: 'dd.MM.yyyy' }}
+        <p [ngClass]="{'past-date': isPast(earliestDueDateLabel)}">
+          früheste Fälligkeit: {{ earliestDueDateLabel }}
         </p>
+
       </div>
     </ion-card>
 
@@ -202,9 +203,12 @@
     <ion-list class="shopping-list">
       <ng-container *ngFor="let group of groupedProducts">
         <!-- Datum anzeigen (heute, gestern oder tatsächliches Datum) -->
-        <span class="date">
-      {{ group.date }}
-    </span>
+        <span
+          class="date"
+          [ngClass]="{'past-date': isPast(group.date)}">
+          {{ group.date }}
+        </span>
+
 
         <ion-item
           class="info-item"
