@@ -86,38 +86,13 @@ export class ExpenseService {
         );
         await setDoc(expenseRef, expense);
 
-        /*
       //Felder in der Collection "Members" aktualisieren:
 
-      //1. Sich das Dokument der Gruppe holen
-      const groupRef = await getDoc(doc(this.firestore, 'groups', groupId));
-      //2. Den Inhalt in einem Objekt speichern
-      const groupData = groupRef.data() as Groups;
-      //3. Die Mitglieder-Array durchlaufen und die Felder aktualisieren, die mit der Summe der Ausgaben zu tun haben (initialisieren wenn's sie nicht gibt)
-      for (const member of groupData.members) {
-        for (const expenseMember of expenseMembersData) {
-          if (expenseMember.memberId === member.uid) {
-            if (expenseMember.memberId === expense.paidBy) {
-              member.sumExpenseAmount += expense.totalAmount;
-              member.sumExpenseMemberAmount +=
-                expense.totalAmount - expenseMember.amountToPay;
-              //sumAmountReceived
-            } else {
-              member.sumExpenseAmount -= expenseMember.amountToPay;
-            }
-            // Wenn amount nicht definiert ist, wird 0 verwendet
-            member.countExpenseAmount += 1;
-            member.countExpenseMemberAmount += 1;
-          }
-        }
-      }
-      //4. Das Gruppendokument mit diesen Feldern updaten und speichern
-      const groupDocRef = doc(this.firestore, 'groups', groupId);
-      await updateDoc(groupDocRef, {
-        members: groupData.members, // Update the "members" array in the group document
-      });
-
-       */
+      //Für jedes Mitglied in der Gruppe wird abgefragt:
+      //1. Wenn das Mitglied die Ausgabe bezahlt hat, wird sumExpenseAmount um totalAmount - amountToPay erhöht und countExpenseAmount um 1 erhöht.
+      //2. sumAmountReceived & countAmountReceived bleiben gleich (werden erst dann aktualisiert wenn dem Mitglied ein anderes Mitglied eine Schuld begleicht) => von der for-Schleife weggelassen
+      //3. Wenn das Mitglied an der Ausgabe beteiligt war aber sie nicht bezahlt hat, wird sumExpenseMemberAmount um amountToPay erhöht und countExpenseMemberAmount um 1 erhöht.
+      //4. sumAmountPaid & countAmountPaid bleiben gleich (werden erst dann aktualisiert wenn das Mitglied einem anderen Mitglied eine Schuld begleicht) => von der for-Schleife weggelassen
 
         await this.updateMemberSumsOnNewExpense(groupId, expense);
 

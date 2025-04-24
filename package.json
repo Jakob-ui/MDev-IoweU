@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@capacitor-mlkit/barcode-scanning": "^7.2.1",
+    "firebase-functions": "^6.3.2",
     "html5-qrcode": "^2.3.8",
     "http": "^0.0.1-security"
   }
