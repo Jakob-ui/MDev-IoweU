@@ -415,146 +415,133 @@ export class EditExpensePage {
     this.updateTotals();
   }
 
-  //Hilfsrechnungsfunktionen
-  private updateTotals() {
-    if (this.expense.splitType === 'produkte') {
-      // Berechne den Gesamtbetrag aus allen amountToPay-Feldern
-      const total = Object.values(this.amountToPay).reduce(
-        (sum, amount) => sum + (amount || 0),
-        0
-      );
-      this.expense.totalAmount = parseFloat(total.toFixed(2));
-    }
+  //------------------------------------------RECHENFUNKTIONEN-------------------------------------------
 
+  private updateTotals() {
+    // Berechnung des Gesamtbetrags
+    const total = this.calculateTotalFromAmountToPay();
+
+    this.expense.totalAmount = parseFloat(total.toFixed(2));
+
+    // Wenn "alle" ausgewählt ist, Betrag gleichmäßig verteilen
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
 
+    // Aktualisiere amountToPay und Produkte für jedes Mitglied
     this.expense.expenseMember.forEach((expenseMember, index) => {
-      expenseMember.amountToPay =
-        this.amountToPay[this.groupMembers[index].uid] || 0;
-      expenseMember.products =
-        this.productInputs[this.groupMembers[index].uid]?.products || [];
+      const memberUid = this.groupMembers[index].uid;
+      expenseMember.amountToPay = this.amountToPay[memberUid] || 0;
+      expenseMember.products = this.productInputs[memberUid]?.products || [];
     });
   }
 
-  private calculateTotalFromProducts(): number {
-    // Summiere alle Werte aus den amountToPay-Feldern
-    return Object.values(this.amountToPay).reduce(
-      (sum, amount) => sum + (amount || 0),
-      0
-    );
+// Berechnet den Gesamtbetrag aus den amountToPay-Werten
+  private calculateTotalFromAmountToPay(): number {
+    return Object.values(this.amountToPay).reduce((sum, amount) => sum + (amount || 0), 0);
   }
 
-  updateTotalAmount() {
-    let newTotalAmount = 0;
-
-    // Summiere alle amountToPay und auf 2 Dezimalstellen rund
-    for (let memberUid in this.amountToPay) {
-      if (this.amountToPay.hasOwnProperty(memberUid)) {
-        newTotalAmount += this.amountToPay[memberUid];
-      }
-    }
+  private updateTotalAmount() {
+    const newTotalAmount = this.calculateTotalFromAmountToPay();
 
     if (newTotalAmount !== this.expense.totalAmount) {
       this.expense.totalAmount = parseFloat(newTotalAmount.toFixed(2));
     }
 
-    // Wenn "alle" ausgewählt ist, Betragauf alle Mitglieder
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
   }
 
+// Überprüft, ob der Betrag nach Änderung angepasst werden muss
   onAmountToPayChange() {
-    if (
-      this.expense.splitType === 'anteile' &&
-      this.expense.splitBy === 'frei'
-    ) {
-      // Berechne den Gesamtbetrag aus allen amountToPay-Feldern
-      const total = Object.values(this.amountToPay).reduce(
-        (sum, amount) => sum + (amount || 0),
-        0
-      );
-      this.expense.totalAmount = parseFloat(total.toFixed(2));
-    }
-  }
-
-  //Rechnungsfunktion für die Produkte
-  onSplitTypeChange() {
-    if (this.expense.splitType !== 'produkte') {
-      Object.keys(this.showProductInputFields).forEach((uid) => {
-        this.showProductInputFields[uid] = false;
-      });
-
-      // Lösche alle Produkte
-      this.productInputs = {};
-      this.products = [];
+    if (this.expense.splitType === 'anteile' && this.expense.splitBy === 'frei') {
       this.updateTotals();
     }
-    if (this.expense.splitType === 'anteile') {
-      if (this.expense.splitBy === 'frei') {
-        // Setze alle Felder auf 0
-        this.groupMembers.forEach((member) => {
-          this.amountToPay[member.uid] = 0;
-        });
+  }
 
-        // Setze den Gesamtbetrag auf 0
-        this.expense.totalAmount = 0;
-
-        // Verteile den Betrag gleichmäßig (falls nötig)
-        this.splitAmountEqually();
-      }
+  onSplitByChange() {
+    // Wenn wir von Anteilen auf Prozente wechseln, können wir `splitBy` wieder anpassen
+    if (this.expense.splitBy === 'frei') {
+      this.resetSplitValues();
+    } else if (this.expense.splitBy === 'alle') {
+      this.splitAmountEqually();
     }
+  }
+
+  onSplitTypeChange() {
+    if (this.expense.splitType !== 'produkte') {
+      this.resetProductInputs();
+      this.updateTotals();
+    }
+
     switch (this.expense.splitType) {
       case 'anteile':
-        this.expense.splitBy = 'frei';
-        this.chooseSplitType = true;
-        this.error = '';
-        this.splitAmountEqually();
-        this.isFormValid = true;
+        this.handleAnteileChange();
         break;
       case 'prozent':
-        this.error = '';
-        this.expense.splitBy = 'frei';
-        this.chooseSplitType = false;
-        this.groupMembers.forEach((member) => {
-          this.calculateSplitByPercentage(member.uid, 'percentage');
-        });
+        this.handleProzentChange();
         break;
       case 'produkte':
-        this.expense.splitBy = 'frei';
-        this.chooseSplitType = false;
-        this.error = '';
-        this.updateAmountToPayForProducts();
-        this.isFormValid = true;
+        this.handleProdukteChange();
         break;
     }
   }
 
-  //Neuberechnung wenn der Modus geändert wird
-  onSplitByChange() {
-    if (this.expense.splitType === 'anteile') {
-      if (this.expense.splitBy === 'frei') {
-        // Setze alle Felder auf 0
-        this.groupMembers.forEach((member) => {
-          this.amountToPay[member.uid] = 0;
-        });
+// Rücksetzung der Produkt-Inputs und Berechnungen
+  private resetProductInputs() {
+    Object.keys(this.showProductInputFields).forEach(uid => {
+      this.showProductInputFields[uid] = false;
+    });
+    this.productInputs = {};
+    this.products = [];
+  }
 
-        // Setze den Gesamtbetrag auf 0
-        this.expense.totalAmount = 0;
+// Fall: Split-Typ 'anteile'
+  private handleAnteileChange() {
+    if (this.expense.splitBy === 'frei') {
+      this.onAmountToPayChange();
+      this.expense.splitBy = 'frei';
+      this.chooseSplitType = true;
+      /*this.groupMembers.forEach(member => {
+        this.amountToPay[member.uid] = 0;
 
-        // Verteile den Betrag gleichmäßig (falls nötig)
-        this.splitAmountEqually();
-      }
+      });*/
+    } else if (this.expense.splitBy === 'alle') {
+
+      this.chooseSplitType = true;
+      this.expense.splitBy = 'alle';
+      this.splitAmountEqually();
+
     }
   }
 
-  //Rechnungsfunktion für Prozente
-  calculateSplitByPercentage(
-    memberUid: string,
-    changedField: 'percentage' | 'amount'
-  ) {
+// Fall: Split-Typ 'prozent'
+  private handleProzentChange() {
+    this.error = '';
+    this.expense.splitBy = 'frei';
+    this.chooseSplitType = false;
+    this.groupMembers.forEach(member => {
+      this.calculateSplitByPercentage(member.uid, 'percentage');
+    });
+  }
+
+// Fall: Split-Typ 'produkte'
+  private handleProdukteChange() {
+    this.expense.splitBy = 'frei';
+    this.chooseSplitType = false;
+    this.error = '';
+    this.updateAmountToPayForProducts();
+  }
+
+  private resetSplitValues() {
+    this.groupMembers.forEach(member => {
+      this.amountToPay[member.uid] = 0;
+    });
+    //this.expense.totalAmount = 0;
+  }
+
+  calculateSplitByPercentage(memberUid: string, changedField: 'percentage' | 'amount') {
     const totalAmount = this.expense.totalAmount;
 
     if (changedField === 'percentage') {
@@ -567,34 +554,24 @@ export class EditExpensePage {
       this.splitValue[memberUid] = parseFloat(percentage.toFixed(2));
     }
 
-    // Berechne die Summe der Prozentwerte
+    this.validatePercentageSum();
+  }
+
+  private validatePercentageSum() {
     let totalPercentage = 0;
-    this.groupMembers.forEach((member) => {
+    this.groupMembers.forEach(member => {
       totalPercentage += this.splitValue[member.uid] || 0;
     });
 
     const difference = parseFloat((100 - totalPercentage).toFixed(2));
 
-    // Neue Logik:
-    if (this.expense.splitType === 'prozent') {
-      if (difference < 0) {
-        // Mehr als 100 % → Fehler
-        this.error = `Die Summe der Prozentwerte überschreitet 100 %. Sie sind ${Math.abs(
-          difference
-        )} % drüber.`;
-        this.isFormValid = false;
-        this.canDistributeRest = false;
-      } else if (difference > 0) {
-        // Weniger als 100 % → Hinweis + Button anzeigen
-        this.error = `Es fehlen noch ${difference} % – du kannst den Rest auf die verbleibenden Mitglieder verteilen.`;
-        this.isFormValid = false;
-        this.canDistributeRest = true;
-      } else {
-        // Genau 100 % → alles okay
-        this.error = '';
-        this.isFormValid = true;
-        this.canDistributeRest = false;
-      }
+    if (difference !== 0) {
+      this.error = difference > 0
+        ? `Es fehlen noch ${difference}% – du kannst den Rest auf die verbleibenden Mitglieder verteilen.`
+        : `Die Summe der Prozentwerte überschreitet 100 %. Sie sind ${Math.abs(difference)}% drüber.`;
+
+      this.isFormValid = false;
+      this.canDistributeRest = difference > 0;
     } else {
       this.error = '';
       this.isFormValid = true;
@@ -603,157 +580,82 @@ export class EditExpensePage {
   }
 
   distributeRemainingPercentage() {
-    let totalPercentage = 0;
-    this.groupMembers.forEach((member) => {
-      totalPercentage += this.splitValue[member.uid] || 0;
-    });
+    const remainingPercentage = 100 - this.groupMembers.reduce((sum, member) => sum + (this.splitValue[member.uid] || 0), 0);
 
-    const remainingPercentage = parseFloat((100 - totalPercentage).toFixed(2));
+    const eligibleMembers = this.groupMembers.filter(member => !this.splitValue[member.uid] || this.splitValue[member.uid] === 0);
 
-    // Finde Mitglieder mit 0 %
-    const eligibleMembers = this.groupMembers.filter(
-      (member) =>
-        !this.splitValue[member.uid] || this.splitValue[member.uid] === 0
-    );
-
-    const count = eligibleMembers.length;
-    if (count > 0) {
-      const share = parseFloat((remainingPercentage / count).toFixed(2));
+    if (eligibleMembers.length > 0) {
+      const share = remainingPercentage / eligibleMembers.length;
       eligibleMembers.forEach((member, index) => {
-        // Beim letzten etwas „ausgleichen“, um Rundungsfehler zu vermeiden
-        if (index === count - 1) {
-          const sumBefore = this.groupMembers.reduce(
-            (sum, m) => sum + (this.splitValue[m.uid] || 0),
-            0
-          );
-          this.splitValue[member.uid] = parseFloat(
-            (100 - sumBefore).toFixed(2)
-          );
+        if (index === eligibleMembers.length - 1) {
+          this.splitValue[member.uid] = 100 - this.groupMembers.reduce((sum, m) => sum + (this.splitValue[m.uid] || 0), 0);
         } else {
           this.splitValue[member.uid] = share;
         }
-        // auch gleich amountToPay aktualisieren
-        this.amountToPay[member.uid] = parseFloat(
-          (
-            (this.expense.totalAmount * this.splitValue[member.uid]) /
-            100
-          ).toFixed(2)
-        );
+        this.amountToPay[member.uid] = (this.expense.totalAmount * this.splitValue[member.uid]) / 100;
       });
     }
 
-    this.calculateSplitByPercentage('', 'percentage'); // zur Validierung neu prüfen
+    this.calculateSplitByPercentage('', 'percentage');
   }
 
   updateAmountToPayForProducts() {
     let totalAmount = 0;
 
-    // Berechne die amountToPay für jedes Mitglied basierend auf den Produkten
     this.groupMembers.forEach((member) => {
       let memberAmountToPay = 0;
-
-      // Überprüfe die Produkte des Mitglieds
-      const products: Products[] =
-        this.productInputs[member.uid]?.products || [];
+      const products: Products[] = this.productInputs[member.uid]?.products || [];
       products.forEach((product) => {
-        memberAmountToPay += product.price; // Berechne den Gesamtpreis für dieses Produkt
+        memberAmountToPay += product.price;
       });
-
-      // Setze den amountToPay für das Mitglied
       this.amountToPay[member.uid] = memberAmountToPay;
-
-      // Füge den Betrag zum Gesamtbetrag hinzu
       totalAmount += memberAmountToPay;
     });
 
-    // Aktualisiere den Gesamtbetrag der Ausgabe
     this.expense.totalAmount = totalAmount;
-    this.updateTotals(); // Stelle sicher, dass alle anderen Berechnungen auch aktualisiert werden
+    this.updateTotals();
   }
 
-  // Diese Methode wird aufgerufen, wenn sich der Gesamtbetrag ändert
   onTotalAmountChange() {
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
-
-    // Prozente neu berechnen, wenn der Modus "Prozent" aktiv ist
     if (this.expense.splitType === 'prozent') {
-      this.groupMembers.forEach((member) => {
-        const memberUid = member.uid;
-        const amount = this.amountToPay[memberUid] || 0;
-
-        // Berechne den neuen Prozentwert basierend auf dem aktualisierten Gesamtbetrag
-        const percentage = (amount / this.expense.totalAmount) * 100;
-        this.splitValue[memberUid] = parseFloat(percentage.toFixed(2));
-      });
-
-      // Überprüfe, ob die Summe der Prozentwerte 100% ergibt
-      let totalPercentage = 0;
-      this.groupMembers.forEach((member) => {
-        totalPercentage += this.splitValue[member.uid] || 0;
-      });
-
-      const difference = parseFloat((100 - totalPercentage).toFixed(2));
-      if (totalPercentage !== 100) {
-        if (difference > 0) {
-          this.error = `Die Summe der Prozentwerte muss genau 100% betragen. Es fehlen ${difference}%`;
-        } else {
-          this.error = `Die Summe der Prozentwerte muss genau 100% betragen. Sie sind ${Math.abs(
-            difference
-          )}% drüber.`;
-        }
-        this.isFormValid = false;
-      } else {
-        this.error = '';
-        this.isFormValid = true;
-      }
+      this.updatePercentageValues();
     }
   }
 
+  private updatePercentageValues() {
+    this.groupMembers.forEach((member) => {
+      const amount = this.amountToPay[member.uid] || 0;
+      const percentage = (amount / this.expense.totalAmount) * 100;
+      this.splitValue[member.uid] = parseFloat(percentage.toFixed(2));
+    });
+
+    this.validatePercentageSum();
+  }
+
   splitAmountEqually() {
-    let totalAmount = this.expense.totalAmount;
+    const totalAmount = this.expense.totalAmount;
     const numberOfMembers = this.groupMembers.length;
 
     if (numberOfMembers > 0 && totalAmount > 0) {
-      const amountPerMember =
-        Math.floor((totalAmount / numberOfMembers) * 100) / 100;
-      let distributedTotal = parseFloat(
-        (amountPerMember * numberOfMembers).toFixed(2)
-      );
-      let remainingAmount = parseFloat(
-        (totalAmount - distributedTotal).toFixed(2)
-      );
+      const amountPerMember = (Math.floor((totalAmount / numberOfMembers) * 100) / 100);
+      let distributedTotal = amountPerMember * numberOfMembers;
+      let remainingAmount = totalAmount - distributedTotal;
 
       this.groupMembers.forEach((member) => {
         this.amountToPay[member.uid] = amountPerMember;
       });
 
       if (remainingAmount > 0) {
-        totalAmount += 1;
-        remainingAmount = parseFloat((remainingAmount + 1).toFixed(2));
-      }
-
-      const payerUid = this.expense.paidBy;
-      let i = 0;
-
-      while (remainingAmount > 0) {
-        const member = this.groupMembers[i];
-
-        if (member.uid !== payerUid) {
-          this.amountToPay[member.uid] = parseFloat(
-            (this.amountToPay[member.uid] + 0.01).toFixed(2)
-          );
-          remainingAmount = parseFloat((remainingAmount - 0.01).toFixed(2));
-        }
-
-        i++;
-        if (i >= this.groupMembers.length) {
-          i = 0;
-        }
+        remainingAmount = parseFloat(remainingAmount.toFixed(2));
+        this.amountToPay[this.expense.paidBy] += remainingAmount; // Paid by member gets the remaining amount
       }
     }
   }
+
+  //----------------------------------------------------------------------------------------------------------------------
 
   validateExpense(): boolean {
     this.validationErrors = [];
