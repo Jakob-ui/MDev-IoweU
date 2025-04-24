@@ -633,11 +633,7 @@ ion-item.select-interface-option::part(native) {
   justify-content: center;
   align-items: center;
   text-align: center;
-}
-
-#container {
-  padding-top: env(safe-area-inset-top);  /* Abstand zur Statusleiste */
-  padding-top: 50px; /* Nur zusätzliches Padding */
+  padding-top: calc(env(safe-area-inset-top) + 50px) !important;
 }
 
 .page-container {
