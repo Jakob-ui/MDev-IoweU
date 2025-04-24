@@ -86,9 +86,14 @@ export class AccountSettingsPage implements OnInit {
     this.applyColorBlindMode(this.colorBlindMode); // Wende den Modus an
 
     this.iosIcons = this.platform.is('ios');
-    this.newname = this.name;
 
-    this.authService.waitForUser;
+    // Versuche, Daten aus dem lokalen Speicher zu laden
+    this.name = localStorage.getItem('username') || '';
+    this.newname = this.name;
+    this.email = localStorage.getItem('email') || '';
+    this.color = localStorage.getItem('usercolor') || '#ffffff';
+
+    // Lade Benutzerdaten aus dem Backend
     this.loadUserData().finally(() => {
       this.loadingService.hide();
     });
