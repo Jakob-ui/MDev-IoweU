@@ -228,20 +228,19 @@
               [(ngModel)]="expense.splitBy"
               (ngModelChange)="onSplitByChange()"
               interface="popover"
-              [disabled]="!chooseSplitType"
-            >
+              [disabled]="!chooseSplitType">
+
               <ion-select-option
                 class="custom-select-option"
                 value="alle"
-                [disabled]="!chooseSplitType"
-              >alle</ion-select-option
-              >
+                [disabled]="!chooseSplitType">
+                alle
+              </ion-select-option>
               <ion-select-option
-                (ngModelChange)="onSplitByChange()"
                 class="custom-select-option"
-                value="frei"
-              >frei</ion-select-option
-              >
+                value="frei">
+                frei
+              </ion-select-option>
             </ion-select>
           </ion-item>
         </div>

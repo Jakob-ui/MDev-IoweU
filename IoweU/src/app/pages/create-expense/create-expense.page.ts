@@ -412,6 +412,8 @@ export class CreateExpensePage {
     this.updateTotals();
   }
 
+  //------------------------------------------RECHENFUNKTIONEN-------------------------------------------
+
   private updateTotals() {
     // Berechnung des Gesamtbetrags
     const total = this.calculateTotalFromAmountToPay();
@@ -650,6 +652,7 @@ export class CreateExpensePage {
     }
   }
 
+  //---------------------------------------------------------------------------------------------------------------
 
   validateExpense(): boolean {
     this.validationErrors = [];
