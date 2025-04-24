@@ -43,7 +43,7 @@ export interface Products {
 admin.initializeApp();
 const firestore = admin.firestore();
 
-// Funktion um alle wiederkehrende Kosten zu handeln
+// Funktion um alle wiederkehrende Kosten zu behandeln
 export const handlerepeatingExpenses = onSchedule(
   {
     schedule: "every day 00:01",

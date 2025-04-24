@@ -9,7 +9,7 @@ import {
   IonCard,
   IonButton,
   IonIcon,
-  IonCheckbox, IonSelect, IonInput, IonSelectOption, IonDatetime, IonLabel
+  IonCheckbox, IonInput, IonDatetime, IonLabel
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -40,10 +40,8 @@ import { formatDate } from '@angular/common';
     RouterModule,
     IonButton,
     IonCheckbox,
-    IonSelect,
     IonInput,
     FormsModule,
-    IonSelectOption,
     IonDatetime,
     IonLabel,
   ],
