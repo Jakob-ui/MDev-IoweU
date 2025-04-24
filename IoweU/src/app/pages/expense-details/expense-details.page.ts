@@ -33,6 +33,7 @@ import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 
+
 addIcons({
   'fast-food-outline': fastFoodOutline,
   'cart-outline': cartOutline,
@@ -108,6 +109,8 @@ export class ExpenseDetailsPage {
   products: Products[] = [];
 
   visibleProducts: { [key: string]: boolean } = {};
+
+  overlayState: 'start' | 'normal' | 'hidden' = 'start';
 
   categories = [
     { name: 'Lebensmittel', icon: 'fast-food-outline' },
@@ -366,5 +369,23 @@ export class ExpenseDetailsPage {
   getPaidByName(uid: string): string {
     const memberIndex = this.memberUids.indexOf(uid);
     return memberIndex >= 0 ? this.memberUsernames[memberIndex] : '';
+  }
+
+  toggleInvoiceOverlay() {
+
+    console.log('Overlay state:', this.overlayState);
+
+    // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
+    if (this.overlayState === 'start') {
+      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+    } else if (this.overlayState === 'normal') {
+      // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
+      this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
+    } else if (this.overlayState === 'hidden') {
+      // Wenn es im "hidden" Zustand ist, wird es wieder nach oben geschoben
+      this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
+    }
+
+    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 }
