@@ -86,7 +86,9 @@ export class AccountSettingsPage implements OnInit {
     this.applyColorBlindMode(this.colorBlindMode); // Wende den Modus an
 
     this.iosIcons = this.platform.is('ios');
-    this.newname = this.name;
+
+    // Setze den aktuellen Namen direkt in das Eingabefeld
+    this.newname = this.name = this.authService.currentUser?.username || '';
 
     this.authService.waitForUser;
     this.loadUserData().finally(() => {
