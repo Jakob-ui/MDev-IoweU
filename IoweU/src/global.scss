@@ -938,6 +938,9 @@ body.color-blind {
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
+  .info-button{
+    color: #000;
+  } 
   ion-icon.qr-code-icon,
   ion-icon.edit-button,
   ion-icon.logout-button,
