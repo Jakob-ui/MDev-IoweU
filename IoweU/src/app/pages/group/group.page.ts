@@ -94,6 +94,8 @@ export class GroupPage implements OnInit {
   ];
   canAddFeatures: boolean = true;
 
+  updateGroupCallback: (() => void) | null = null;
+
   async ngOnInit() {
     this.loadingService.show();
     await this.loadGroupData(this.groupId);
@@ -133,50 +135,56 @@ export class GroupPage implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    if (this.updateGroupCallback) {
+      this.updateGroupCallback(); // Entfernt den Echtzeit-Listener
+      console.log('Echtzeit-Listener entfernt.');
+    }
+  }
+
   // Funktion zum Laden der Gruppendaten
   async loadGroupData(id: string): Promise<void> {
     try {
-      const group = await this.groupService.getGroupById(id);
-      if (group) {
-        this.group = group;
-        this.groupService.setGroup(group);
-      } else {
-        console.warn('Gruppe nicht gefunden!');
-      }
+      // Setze den Echtzeit-Listener
+      this.updateGroupCallback = await this.groupService.getGroupAboByGroupId(
+        id,
+        (updatedGroups) => {
+          if (updatedGroups.length > 0) {
+            const group = updatedGroups[0]; // Es sollte nur eine Gruppe mit dieser ID geben
+            this.group = group;
+            this.groupService.setGroup(group);
 
-      if (group) {
-        this.groupname = group.groupname;
-        this.groupId = group.groupId;
-        this.features = group.features || [];
-        this.groupImage = group.groupimage;
-        this.members = group.members;
-        this.accessCode = group.accessCode;
-        this.sumTotalExpenses = group.sumTotalExpenses;
-        this.countTotalExpenses = group.countTotalExpenses;
+            // Aktualisiere die lokalen Variablen
+            this.groupname = group.groupname;
+            this.groupId = group.groupId;
+            this.features = group.features || [];
+            this.groupImage = group.groupimage;
+            this.members = group.members;
+            this.accessCode = group.accessCode;
+            this.sumTotalExpenses = group.sumTotalExpenses;
+            this.countTotalExpenses = group.countTotalExpenses;
 
-        if (group.sumTotalExpensesMembers) {
-          this.sumTotalExpensesMembers = group.sumTotalExpensesMembers;
-        }
-        if (group.countTotalExpensesMembers) {
-          this.countTotalExpensesMembers = group.countTotalExpensesMembers;
-        }
-        this.calculateBalance();
+            if (group.sumTotalExpensesMembers) {
+              this.sumTotalExpensesMembers = group.sumTotalExpensesMembers;
+            }
+            if (group.countTotalExpensesMembers) {
+              this.countTotalExpensesMembers = group.countTotalExpensesMembers;
+            }
+            this.calculateBalance();
 
-        // Überprüfen, ob der eingeloggte Benutzer der Gründer der Gruppe ist
-        const currentUserId = this.authService.currentUser?.uid;
-        if (currentUserId && group.founder === currentUserId) {
-          this.isFounder = true; // Nur wenn der Benutzer der Gründer ist
-        }
+            // Überprüfen, ob der eingeloggte Benutzer der Gründer der Gruppe ist
+            const currentUserId = this.authService.currentUser?.uid;
+            this.isFounder = currentUserId === group.founder;
 
-        // Überprüfe, ob Features in der DB vorhanden sind
-        if (this.features.length > 0) {
-          // Wenn Features vorhanden sind, sollen keine weiteren hinzugefügt werden
-          this.canAddFeatures = false;
+            // Überprüfe, ob Features in der DB vorhanden sind
+            this.canAddFeatures = this.features.length === 0;
+
+            console.log('Echtzeit-Update der Gruppe:', group);
+          } else {
+            console.warn('Gruppe nicht gefunden!');
+          }
         }
-        console.log('Geladene Bild-URL:', this.groupImage);
-      } else {
-        console.warn('Gruppe nicht gefunden!');
-      }
+      );
     } catch (e) {
       console.error('Fehler beim Abrufen der Gruppen-Daten: ', e);
     } finally {
