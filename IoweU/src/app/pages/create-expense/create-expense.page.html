@@ -52,20 +52,15 @@
           </div>
         </div>
 
-        <div class="invoice-upload">
+        <div class="invoice-upload" >
           <span class="input-label">Rechnung</span>
           <ion-item class="input-item">
-            <label class="upload-label">
+            <label class="upload-label" (click)="selectImage()">
               <ion-icon
                 [src]="expense.invoice ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/ios-add.svg'"
                 class="upload-icon"
               ></ion-icon>
-              <input
-                type="file"
-                accept="image/*"
-                (change)="onInvoiceUpload($event)"
-                hidden
-              />
+              <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
             </label>
           </ion-item>
         </div>
