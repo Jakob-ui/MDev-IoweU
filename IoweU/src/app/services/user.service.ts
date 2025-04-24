@@ -52,35 +52,4 @@ export class UserService {
 
     throw new Error('Benutzername konnte nicht gefunden werden.');
   }
-  async uploadImage(
-    Id: string,
-    imageBlob: Blob,
-    path: string
-  ): Promise<string> {
-    try {
-      const storageRef = ref(this.storage, path);
-      const uploadResult = await uploadBytes(storageRef, imageBlob);
-      console.log('Image uploaded successfully:', uploadResult);
-
-      // Hole die Download-URL des hochgeladenen Bildes
-      const downloadURL = await getDownloadURL(storageRef);
-      console.log('Download URL:', downloadURL);
-      return downloadURL;
-    } catch (error) {
-      console.error('Error uploading group image:', error);
-      throw error;
-    }
-  }
-
-  dataURLtoBlob(dataurl: string): Blob {
-    const arr = dataurl.split(',');
-    const mime = arr[0].match(/:(.*?);/)?.[1] || '';
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], { type: mime });
-  }
 }
