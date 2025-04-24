@@ -19,6 +19,7 @@ import { UserService } from 'src/app/services/user.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { Categories } from 'src/app/services/objects/Categories';
+import { ImageService } from 'src/app/services/image.service';
 @Component({
   selector: 'app-create-group',
   templateUrl: './create-group.page.html',
@@ -45,6 +46,7 @@ export class CreateGroupPage {
   firestore = inject(Firestore);
   router = inject(Router);
   private userService = inject(UserService);
+  private imageService = inject(ImageService);
 
   groupname: string = '';
   selectedTemplate: string = '';
@@ -96,7 +98,6 @@ export class CreateGroupPage {
         founder,
         this.selectedTemplate,
         this.uploadImage,
-        this.defaultCategories
       );
       console.log('Groups successfully created!');
       console.log('Group successfully created!');
@@ -118,7 +119,7 @@ export class CreateGroupPage {
       reader.onload = () => {
         this.groupImage = reader.result;
         if (typeof this.groupImage === 'string') {
-          this.uploadImage = this.userService.dataURLtoBlob(this.groupImage);
+          this.uploadImage = this.imageService.dataURLtoBlob(this.groupImage);
         }
       };
       reader.readAsDataURL(file);

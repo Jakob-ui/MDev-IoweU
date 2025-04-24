@@ -35,43 +35,39 @@ import { PermissionStatus, Camera } from '@capacitor/camera';
   ],
 })
 export class JoinGroupPage {
+  private groupService = inject(GroupService);
+  private loadingService = inject(LoadingService);
+  private auth = inject(Auth);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private alertController = inject(AlertController);
+
   showScanner: any;
   joinCode: string = '';
-  auth = inject(Auth);
-  authService = inject(AuthService);
   platformIsNative = Capacitor.isNativePlatform();
   error: string = '';
   joinFailed: boolean = false;
-  groupService = inject(GroupService);
-  private loadingService = inject(LoadingService);
 
-  //private validJoinCodes: string[] = ['abc123', 'xyz456', 'test123']; // Beispiel gültiger Codes
-  private qrCodeScanner: Html5QrcodeScanner | null = null; // Verweis auf den QR-Code-Scanner
+  private qrCodeScanner: Html5QrcodeScanner | null = null; 
   Capacitor: any;
   isSupported: boolean | undefined;
 
-  constructor(
-    private router: Router,
-    private alertController: AlertController
-  ) {}
+  updateExpensesCallback: (() => void) | null = null;
 
   ngOnInit() {
-    // Den QR-Code-Scanner initialisieren
-    // Wir initialisieren ihn hier, aber er wird nur aktiviert, wenn der Benutzer auf den Button klickt
-    // Überprüfen, ob der Barcode Scanner unterstützt wird
     BarcodeScanner.isSupported().then(
       (result: { supported: boolean | undefined }) => {
         this.isSupported = result.supported;
       }
     );
     // Optional: direkt fragen, damit's beim ersten Scan nicht hakt
-  if (this.platformIsNative) {
-    BarcodeScanner.checkPermissions().then((status) => {
-      if (status.camera !== 'granted') {
-        BarcodeScanner.requestPermissions();
-      }
-    });
-  }
+    if (this.platformIsNative) {
+      BarcodeScanner.checkPermissions().then((status) => {
+        if (status.camera !== 'granted') {
+          BarcodeScanner.requestPermissions();
+        }
+      });
+    }
   }
 
   ngOnDestroy() {
@@ -176,7 +172,7 @@ export class JoinGroupPage {
       this.error = 'Fehler beim Scannen des QR-Codes.';
       this.joinFailed = true;
     }
-  }  
+  }
 
   // Funktion zum Scannen von QR-Codes, die bei Button-Klick ausgelöst wird
   initializeQRCodeScanner() {
@@ -200,29 +196,28 @@ export class JoinGroupPage {
       scanner.render(
         async (result: string) => {
           this.qrCodeScanner?.clear();
-      
+
           const groupId = result.split('/').pop();
-      
+
           if (!groupId) {
             this.error = 'Ungültiger QR-Code.';
             this.joinFailed = true;
             return;
           }
-      
+
           this.joinCode = groupId;
-      
+
           try {
             const group = await this.groupService.getGroupByGroupId(groupId);
-      
+
             if (!group) {
               this.error = 'Gruppe nicht gefunden.';
               this.joinFailed = true;
               return;
             }
-      
+
             // Optional: Bestätigungsdialog vor dem Beitreten
             await this.confirmJoinGroup();
-      
           } catch (err) {
             console.error('Fehler beim Beitreten zur Gruppe:', err);
             this.error = 'Fehler beim Gruppenbeitritt.';
@@ -233,7 +228,7 @@ export class JoinGroupPage {
           console.warn('Scan-Fehler:', error);
         }
       );
-      
+
       this.qrCodeScanner = scanner;
     } catch (error) {
       console.error('Fehler beim Initialisieren des QR-Code-Scanners:', error);
@@ -260,7 +255,9 @@ export class JoinGroupPage {
 
       const alert = await this.alertController.create({
         header: 'Gruppe beitreten',
-        message: group ? `Möchtest du wirklich der Gruppe ${group.groupname} beitreten?` : 'Gruppe konnte nicht geladen werden.',
+        message: group
+          ? `Möchtest du wirklich der Gruppe ${group.groupname} beitreten?`
+          : 'Gruppe konnte nicht geladen werden.',
         buttons: [
           {
             text: 'Abbrechen',

@@ -20,6 +20,7 @@ import { elementAt } from 'rxjs';
 import { Categories } from './objects/Categories';
 import { Storage } from '@angular/fire/storage';
 import { UserService } from './user.service';
+import { ImageService } from './image.service';
 
 @Injectable({
   providedIn: 'root',
@@ -27,8 +28,8 @@ import { UserService } from './user.service';
 export class GroupService {
   public router = inject(Router);
   public firestore: Firestore = inject(Firestore);
-  private storage: Storage = inject(Storage);
   private userService = inject(UserService);
+  private imageService = inject(ImageService);
 
   currentGroup: Groups | null = null;
 
@@ -45,8 +46,7 @@ export class GroupService {
     name: string,
     founder: Users,
     template: string,
-    groupImage: any,
-    categories: Categories
+    groupImage: any
   ): Promise<void> {
     try {
       const newGroup: Groups = {
@@ -98,21 +98,9 @@ export class GroupService {
         newGroup
       );
 
-      const categoriesRef = collection(
-        this.firestore,
-        `groups/${newGroup.groupId}/categories`
-      );
-
-      const defaultCategories = categories;
-      for (const category of [defaultCategories]) {
-        await setDoc(doc(categoriesRef), category);
-      }
-
-      console.log('Standardkategorien erfolgreich hinzugefügt.');
-
       //Bild hochladen
       if (groupImage) {
-        const imageUrl = await this.userService.uploadImage(
+        const imageUrl = await this.imageService.uploadImage(
           newGroup.groupId,
           groupImage,
           `groups/${newGroup.groupId}/groupImage`
@@ -152,7 +140,7 @@ export class GroupService {
     uid: string,
     groupId: string,
     name: string,
-    template: string,
+    features: string[],
     photo: File | null
   ): Promise<void> {
     const group = await this.getGroupById(groupId);
@@ -160,10 +148,9 @@ export class GroupService {
       try {
         const groupRef = doc(this.firestore, 'groups', groupId);
 
-        // Wenn ein neues Bild hochgeladen wird, lade es hoch und aktualisiere die URL
-        let photoUrl = group.groupimage; // Behalte die aktuelle URL bei
+        let photoUrl = group.groupimage;
         if (photo) {
-          photoUrl = await this.userService.uploadImage(
+          photoUrl = await this.imageService.uploadImage(
             groupId,
             photo,
             `groups/${groupId}/groupImage`
@@ -173,7 +160,7 @@ export class GroupService {
         // Aktualisiere die Gruppe in der Datenbank
         await updateDoc(groupRef, {
           groupname: name,
-          template: template,
+          features: features, // Aktualisiere das features-Feld
           groupimage: photoUrl,
         });
 
@@ -192,6 +179,7 @@ export class GroupService {
       const groupRef = doc(this.firestore, 'groups', groupId); // Holen der Gruppenreferenz
       if (uid) {
         await deleteDoc(groupRef); // Löschen der Gruppe
+        await this.removeUserFromGroup(groupId);
         console.log('Gruppe erfolgreich gelöscht!');
       } else {
         throw new Error('Fehler: UID nicht gefunden');
@@ -200,6 +188,41 @@ export class GroupService {
       console.error('Fehler beim Löschen der Gruppe:', error);
     }
   }
+
+  async removeUserFromGroup(groupId: string): Promise<void> {
+    try {
+      const usersRef = collection(this.firestore, 'users');
+
+      const usersQuery = query(
+        usersRef,
+        where('groupId', 'array-contains', groupId)
+      );
+      const userSnapshot = await getDocs(usersQuery);
+
+      if (!userSnapshot.empty) {
+        // Iteriere über alle Benutzer, die die groupId haben
+        for (const userDoc of userSnapshot.docs) {
+          const userData = userDoc.data();
+          const updatedGroupIds = (userData['groupId'] || ['']).filter(
+            (id: string) => id !== groupId
+          );
+
+          const userRef = doc(this.firestore, 'users', userDoc.id);
+          await updateDoc(userRef, { groupId: updatedGroupIds });
+          console.log(
+            `groupId "${groupId}" aus Benutzer "${userDoc.id}" entfernt.`
+          );
+        }
+      } else {
+        console.log(
+          `Keine Benutzer gefunden, die die groupId "${groupId}" haben.`
+        );
+      }
+    } catch (error) {
+      console.error('Fehler beim Entfernen der groupId aus Benutzern:', error);
+    }
+  }
+
   async joinGroup(joinee: Users, accessCode: string): Promise<void> {
     try {
       const groupToJoin = await this.getGroupByAccessCode(accessCode);
@@ -304,51 +327,6 @@ export class GroupService {
       console.log('Features erfolgreich hinzugefügt:', featuresToAdd);
     } catch (error) {
       console.error('Fehler beim Hinzufügen der Features:', error);
-    }
-  }
-
-  async removeFeatureFromGroup(
-    uid: string,
-    groupId: string,
-    featureToRemove: string
-  ): Promise<void> {
-    try {
-      // Hole die Gruppe aus der DB
-      const group = await this.getGroupById(groupId);
-      if (!group) {
-        console.error(`Gruppe mit ID ${groupId} wurde nicht gefunden.`);
-        return;
-      }
-
-      // Überprüfe, ob der Nutzer der Gründer der Gruppe ist
-      if (group.founder !== uid) {
-        console.warn('Nur der Gründer kann Features entfernen.');
-        return;
-      }
-
-      // Hole die bestehenden Features der Gruppe
-      const existingFeatures = group.features || [];
-
-      // Überprüfe, ob das Feature überhaupt in der Liste ist
-      if (!existingFeatures.includes(featureToRemove)) {
-        console.warn(
-          `Feature "${featureToRemove}" existiert nicht in der Gruppe.`
-        );
-        return;
-      }
-
-      // Entferne das Feature aus der Liste
-      const updatedFeatures = existingFeatures.filter(
-        (f) => f !== featureToRemove
-      );
-
-      // Aktualisiere die Gruppe in der DB
-      const groupRef = doc(this.firestore, 'groups', groupId);
-      await updateDoc(groupRef, { features: updatedFeatures });
-
-      console.log(`Feature "${featureToRemove}" erfolgreich entfernt.`);
-    } catch (error) {
-      console.error('Fehler beim Entfernen des Features:', error);
     }
   }
 
