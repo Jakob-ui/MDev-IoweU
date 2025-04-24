@@ -133,16 +133,23 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'landingpage',
-    loadComponent: () => import('./pages/landingpage/landingpage.page').then(m => m.LandingpagePage)
+    path: 'shoppinglist/:groupId',
+    loadComponent: () =>
+      import('./pages/shoppinglist/shoppinglist.page').then(
+        (m) => m.ShoppinglistPage
+      ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'not-found',
     loadComponent: () =>
       import('./pages/not-found/not-found.page').then((m) => m.NotFoundPage),
   },
+
   {
     path: '**',
     redirectTo: 'not-found',
   },
+
+
 ];

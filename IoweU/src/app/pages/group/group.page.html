@@ -16,6 +16,7 @@
         </div>
         <ion-icon
           [src]="'assets/icon/ionicons/qr-code-outline.svg'"
+          class="qr-code-icon"
           (click)="toggleQRCodeOverlay()">
         </ion-icon>
 
@@ -49,9 +50,9 @@
   </div>
   <div class="page-container">
     <div class="image-upload">
-      <ng-container *ngIf="currentGroup?.groupimage; else placeholder">
+      <ng-container *ngIf="group?.groupimage; else placeholder">
         <img
-          [src]="currentGroup?.groupimage"
+          [src]="group?.groupimage"
           alt="Gruppenbild"
           class="group-image"
         />
@@ -110,6 +111,31 @@
         </ion-card-subtitle>
       </div>
     </ion-card>
+
+    <div class="feature-select-container" *ngIf="isFounder && canAddFeatures && features.length === 0">
+      <!-- Hinweis nur anzeigen, wenn keine Features vorhanden sind -->
+      <span>
+        In diese Gruppe wurden noch keine Features hinzugefügt.
+      </span>
+
+      <ion-item>
+        <ion-select
+          placeholder="Features hinzufügen"
+          multiple="true"
+          (ionChange)="onFeaturesSelected($event.detail.value)"
+        >
+          <ion-select-option *ngFor="let f of availableFeatures" [value]="f">
+            {{ f }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <span>
+        Du kannst jetzt welche hinzufügen – später kannst du sie unter
+        "Gruppe bearbeiten" verwalten.
+      </span>
+    </div>
+
   </div>
 </ion-content>
 

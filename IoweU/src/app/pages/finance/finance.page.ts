@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import {
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
   IonItem,
   IonList,
@@ -35,7 +34,6 @@ import {QRCodeComponent} from "angularx-qrcode";
     IonCard,
     IonIcon,
     RouterModule,
-    QRCodeComponent,
   ],
 })
 export class FinancePage implements OnInit {

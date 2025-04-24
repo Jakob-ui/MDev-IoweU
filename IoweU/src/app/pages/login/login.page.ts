@@ -22,7 +22,6 @@ export class LoginPage {
   error: string = '';
   email: string = '';
   password: string = '';
-  rememberMe: boolean = false;
   loginFailed: boolean = false;
   loading: boolean = false;
   timeout: any;
@@ -30,6 +29,18 @@ export class LoginPage {
   inputChange() {
     this.error = '';
     this.loginFailed = false;
+  }
+
+  async ngOnInit() {
+    try {
+      await this.authService.waitForUser();
+
+      if (this.authService.currentUser) {
+        this.router.navigate(['/group-overview']);
+      }
+    } catch (error) {
+      console.error('Benutzer konnte nicht geladen werden:', error);
+    }
   }
 
   async login() {
@@ -44,7 +55,7 @@ export class LoginPage {
       return;
     }
     try {
-      await this.authService.login(this.email, this.password, this.rememberMe);
+      await this.authService.login(this.email, this.password);
       while (!this.authService.currentUser) {
         this.loadingService.show();
       }

@@ -1,0 +1,271 @@
+h4{
+  margin-bottom: 0px;
+}
+
+h1{
+  margin-top: 0px;
+}
+
+
+.info-overlay {
+  position: fixed;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: top 0.5s ease-in-out, visibility 0s 0.5s;
+  padding: 20px;
+}
+
+.info-overlay.start {
+  top: 100%;
+}
+
+.info-overlay.normal {
+  visibility: visible;
+}
+
+.info-overlay.slideUp {
+  animation: slideUp 0.5s ease-in-out forwards;
+}
+
+.info-overlay.slideDown {
+  animation: slideDown 0.5s ease-in-out forwards;
+}
+
+@keyframes slideUp {
+  0% {
+    top: 100%;
+  }
+  100% {
+    top: 0;
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+.info-wrapper {
+  background: white;
+  margin-top: 60px;
+  border-radius: 20px;
+  padding: 30px 25px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: #2c2c2c;
+}
+
+.info-wrapper h5 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #111;
+}
+
+.info-wrapper p {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.info-wrapper ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-wrapper ul li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.info-wrapper ul li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--ion-color-dark);
+  font-size: 18px;
+  line-height: 1;
+}
+
+strong {
+  font-weight: 600;
+}
+
+.add-product-overlay {
+  background: none;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  width: 100%;
+}
+
+.edit-button {
+  flex-shrink: 0;
+  font-size: 24px;
+  color: var(--ion-color-dark);
+  background-color: var(--ion-color-primary);
+  border-radius: 50%;
+  padding: 5px;
+}
+
+.add-product-overlay.open {
+  display: flex;
+}
+
+.input-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+}
+
+.add-product-wrapper {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.show-details-button{
+  display: flex;
+  justify-content: left;
+  margin-left: 10px;
+  margin-top: 5px;
+  margin-bottom: 35px;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.show-details-button span{
+  background: none;
+  border-bottom: 1px solid var(--ion-color-dark);
+  color: var(--ion-color-dark);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.input-label{
+  text-align: left;
+  margin-left: 10px;
+}
+
+.shoppingproduct-item .first-container{
+  width: 45px;
+  text-align: right;
+}
+
+.shoppingproduct-item span{
+  font-size: 12px;
+}
+
+.shoppingproduct-item h5{
+  font-size: 18px;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.middle-container{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 10px;
+  flex-direction: row;
+}
+
+
+.bottom-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 10px;
+  flex-direction: row;
+  width: 100%;
+}
+
+.bottom-container .input-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.selected-forMember {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.shopping-list {
+  margin-bottom: 85px;
+}
+
+.date {
+  margin-top: 20px;
+}
+.button-container {
+  padding-top: 10px;
+}
+
+.datepicker {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  width: 80%;
+  max-width: 500px;
+}
+
+.past-date {
+  color: #da2f2f !important;
+}
+
+
+@media (prefers-color-scheme: dark) {
+  .date {
+    color: var(--ion-color-light);
+  }
+}
+
+.profile-placeholder .username{
+  color: var(--ion-color-light);
+  font-size: 12px;
+  font-weight: 300;
+}
+
+
