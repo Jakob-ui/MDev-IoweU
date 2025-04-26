@@ -16,7 +16,16 @@
     <div class="profile-placeholder"></div>
 
     <h2>Meine Gruppen</h2>
-    <div class="separator"></div>
+
+    <div class="menu">
+      <div class="menu-text active">
+        <span>Meine Gruppen</span>
+      </div>
+      <div class="divider"></div>
+      <div class="menu-text" [routerLink]="['/overall-balance']">
+        <span>Meine Gesamtbilanz</span>
+      </div>
+    </div>
 
     <div *ngIf="groups.length === 0" class="no-groups">
       <p>Noch keine Gruppen vorhanden.</p>

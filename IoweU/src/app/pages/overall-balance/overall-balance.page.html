@@ -1,0 +1,35 @@
+<ion-header [translucent]="true" class="header">
+  <div class="backdrop-wrapper">
+    <ion-toolbar>
+      <div class="right-container" slot="end">
+        <div class="user-info" [routerLink]="'/account-settings'">
+          <div class="profile-placeholder"></div>
+          <span class="member-name">{{ username }}</span>
+        </div>
+      </div>
+    </ion-toolbar>
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="page-container">
+    <div class="profile-placeholder"></div>
+
+    <h2>Meine Gesamtbilanz</h2>
+
+    <div class="menu">
+      <div class="menu-text" [routerLink]="['/group-overview']">
+        <span>Meine Gruppen</span>
+      </div>
+      <div class="divider"></div>
+      <div class="menu-text active">
+        <span>Meine Gesamtbilanz</span>
+      </div>
+    </div>
+
+    <div class="balance-chart">
+
+    </div>
+
+  </div>
+</ion-content>
