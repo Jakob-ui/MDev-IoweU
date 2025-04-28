@@ -9,7 +9,7 @@ import {
   IonCard,
   IonCardSubtitle,
   IonCardTitle,
-  IonList,
+  IonList, IonItem,
 } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -37,6 +37,7 @@ import { Groups } from "../../services/objects/Groups";
     IonCardSubtitle,
     IonCardTitle,
     IonList,
+    IonItem,
   ],
 })
 export class OverallBalancePage implements OnInit {
@@ -55,12 +56,11 @@ export class OverallBalancePage implements OnInit {
 
   expenses: Expenses[] = [];
   groups: Groups[] = [];
+  groupExpenses: { groupName: string; sum: number }[] = [];
 
   groupId: string | null = '';
-  sumExpenses: number = 0;
-  countExpenses: number = 0;
-
   myGroupSum: number = 0;
+  myExpenseSum: number = 0;
 
   constructor() {}
 
@@ -102,29 +102,36 @@ export class OverallBalancePage implements OnInit {
             console.log('Gefundene Gruppen:', groups);
             this.groups = groups;
 
-            // Array für Promises erstellen
+            // Setze myExpenseSum auf 0, bevor wir die Berechnungen durchführen
+            this.myExpenseSum = 0;
+
             const groupPromises = groups.map(group =>
               new Promise<void>((resolve) => {
                 this.expenseService.getExpenseByGroup(group.groupId, false, (expenses) => {
                   console.log(`Ausgaben für Gruppe ${group.groupname}:`, expenses);
-                  this.expenses = expenses;
 
-                  // Rufe calculateExpenseSum für jede Gruppe auf
-                  const sumForGroup = this.calculateExpenseSum(group, uid);
-                  console.log(`Summe der Ausgaben für Gruppe "${group.groupname}" für Benutzer ${uid}:`, sumForGroup);
+                  // Berechne die Summe der Ausgaben für diese Gruppe
+                  const sumForGroup = this.calculateExpenseSum(expenses, uid);
 
-                  // Summe speichern oder weiterverwenden
-                  this.sumExpenses += sumForGroup;
-                  this.countExpenses += 1;
+                  // Speichere den Gruppennamen und die Summe in einem neuen Array
+                  this.groupExpenses.push({
+                    groupName: group.groupname,
+                    sum: sumForGroup
+                  });
+
+                  console.log(`Summe für Gruppe "${group.groupname}":`, sumForGroup);
+
+                  // Addiere die Gruppensumme zu myExpenseSum
+                  this.myExpenseSum += sumForGroup;
+
                   resolve();
                 });
               })
             );
 
-            // Warten, bis alle Gruppen verarbeitet sind
             await Promise.all(groupPromises);
 
-            // Nachdem alle Daten geladen sind, PieChart erstellen
+            // PieChart erstellen mit den gesammelten Gruppensummen
             this.createPieChart();
           }
         );
@@ -134,44 +141,30 @@ export class OverallBalancePage implements OnInit {
     }
   }
 
-  calculateExpenseSum(group: Groups, uid: string): number {
-    let myGroupSum = 0; // Um sicherzustellen, dass jede Gruppe eine eigene Summe bekommt
 
-    // Logge alle Ausgaben, um die Struktur zu überprüfen
-    this.expenses.forEach(expense => {
-      //console.log('Expense:', expense); // Log für jede Ausgabe
+  calculateExpenseSum(expenses: Expenses[], uid: string): number {
+    let sum = 0;
 
-      // Prüfen, ob diese Ausgabe zu der aktuellen Gruppe gehört
-      if (expense.expenseId) {
-        //console.log(`ExpenseID "${expense.expenseId}" gehört zu dieser Gruppe.`);
-
-        // Iteriere über alle Mitglieder der Ausgabe und summiere die amountToPay, wenn die memberId übereinstimmt
-        myGroupSum += expense.expenseMember.reduce((sum, expenseMember) => {
-          //console.log('Member:', expenseMember.memberId); // Log für jedes Mitglied der Ausgabe
-          if (expenseMember.memberId === uid) {
-            //console.log(`Benutzer ${uid} schuldet:`, expenseMember.amountToPay);
-            return sum + (expenseMember.amountToPay || 0); // Falls amountToPay nicht gesetzt ist, gehe von 0 aus
-          }
-          return sum;
-        }, 0);
-      }
+    expenses.forEach(expense => {
+      sum += expense.expenseMember.reduce((acc, member) => {
+        return acc + (member.memberId === uid ? (member.amountToPay || 0) : 0);
+      }, 0);
     });
 
-    //console.log(`Berechnete Summe für Gruppe "${group.groupname}" für Benutzer ${uid}:`, myGroupSum);
-    return myGroupSum;
+    return sum;
   }
 
+
   createPieChart() {
-    console.log('Erstelle PieChart...');
+    console.log('Erstelle PieChart...', this.groupExpenses);
 
-    const width = 300;
-    const height = 300;
-    const radius = Math.min(width, height) / 2;
+    const containerWidth = Math.min((window.innerWidth - 20), 500);
+    const width = containerWidth;
+    const height = containerWidth;
+    const radius = containerWidth / 2 * 0.6; // 70% der halben Breite = großer Kreis
 
-    // Leere den Container für das Diagramm
     d3.select('.balance-chart').html('');
 
-    // Füge ein SVG-Element hinzu, das das PieChart enthält
     const svg = d3.select('.balance-chart')
       .append('svg')
       .attr('width', width)
@@ -179,72 +172,163 @@ export class OverallBalancePage implements OnInit {
       .append('g')
       .attr('transform', `translate(${width / 2},${height / 2})`);
 
-    const color = d3.scaleOrdinal(d3.schemeCategory10);
+    const color = d3.scaleOrdinal(d3.schemeSet3);
 
-    // Erstelle ein Objekt, um die Gruppennamen und die Summen der Ausgaben pro Gruppe zu speichern
-    const expensesByGroup: { [key: string]: { groupName: string, myGroupSum: number } } = {};
-
-    // Durchlaufe alle Gruppen und berechne die Summe der Ausgaben pro Gruppe
-    this.groups.forEach(group => {
-      // Berechne die Summe für diese Gruppe
-      const groupSum = this.calculateExpenseSum(group, this.uid || '');
-
-      // Speichere sowohl den Gruppennamen als auch die berechnete Summe
-      expensesByGroup[group.groupname] = {
-        groupName: group.groupname,
-        myGroupSum: groupSum
-      };
-
-      console.log(`Berechnete Summe für Gruppe "${group.groupname}": ${groupSum}`);
-    });
-
-    console.log('Gruppierte Ausgaben für PieChart:', expensesByGroup);
-
-    // Bereite die Daten für das PieChart vor
-    const pieData = Object.values(expensesByGroup); // Extrahiere die Werte (die Objekte mit name und summe)
-
-    console.log('PieData vor der Diagrammerstellung:', pieData);
-
-    // Sicherstellen, dass pieData korrekt an d3.pie() übergeben wird
-    if (pieData.length === 0) {
+    if (this.groupExpenses.length === 0) {
       console.log("Keine Daten für das PieChart verfügbar.");
       return;
     }
 
-    // Erstelle das PieChart mit d3.pie()
-    const pie = d3.pie<{ groupName: string; myGroupSum: number }>()
-      .value(d => d.myGroupSum);
+    const pie = d3.pie<{ groupName: string; sum: number }>()
+      .value(d => d.sum)
+      .sort(null);
 
-    const data_ready = pie(pieData);
+    const data_ready = pie(this.groupExpenses);
 
-    console.log('Data Ready für PieChart:', data_ready);
-
-    // Erstelle den arc für das PieChart
-    const arc = d3.arc<d3.PieArcDatum<{ groupName: string; myGroupSum: number }>>()
+    const arc = d3.arc<d3.PieArcDatum<{ groupName: string; sum: number }>>()
       .innerRadius(0)
       .outerRadius(radius);
 
-    // Füge die Segmente des PieCharts hinzu
+    const outerArc = d3.arc<d3.PieArcDatum<{ groupName: string; sum: number }>>()
+      .innerRadius(radius * 1.05) // nur 5% größer als der Kreis
+      .outerRadius(radius * 1.05);
+
+    // Pie-Segmente
     svg.selectAll('slices')
       .data(data_ready)
       .enter()
       .append('path')
       .attr('d', arc)
-      .attr('fill', (d, i) => color(i.toString()))
+      .attr('fill', (d, i) => color(i.toString()))  // Ausgangsfarbe setzen
       .attr('stroke', '#fff')
-      .style('stroke-width', '2px');
+      .style('stroke-width', '2px')
+      .each(function(event, d) {
+        // Speichern der Ausgangsfarbe im Element
+        d3.select(this).attr('data-original-color', d3.select(this).attr('fill'));
+      })
+      .on('mouseover', function(event, d) {
+        const currentColor = d3.select(this).attr('data-original-color'); // Hole die gespeicherte Ausgangsfarbe
+        const darkerColor = d3.rgb(currentColor).darker(0.2).toString();  // Umwandlung in einen String
+        d3.select(this)
+          .transition()
+          .duration(200)  // Dauer der Übergangsanimation
+          .attr('fill', darkerColor);  // Dunklere Farbe setzen
+      })
+      .on('mouseout', function(event, d) {
+        const originalColor = d3.select(this).attr('data-original-color'); // Hole die gespeicherte Ausgangsfarbe
+        d3.select(this)
+          .transition()
+          .duration(200)  // Dauer der Übergangsanimation
+          .attr('fill', originalColor);  // Rücksetzen der ursprünglichen Farbe
+      });
 
-    // Füge die Labels für jedes Segment hinzu
-    svg.selectAll('labels')
+    // Leader Lines
+    svg.selectAll('allPolylines')
+      .data(data_ready)
+      .enter()
+      .append('polyline')
+      .attr('stroke', 'black')
+      .style('fill', 'none')
+      .attr('stroke-width', 1)
+      .attr('points', (d) => {
+        const posA = arc.centroid(d);
+        const posB = outerArc.centroid(d);
+        const posC = [...posB];
+        const midAngle = d.startAngle + (d.endAngle - d.startAngle) / 2;
+
+        // Verschiebe den Startpunkt der Linie in das äußere Drittel des Arcs
+        const offset = radius * 0.33; // Verschiebung im äußeren Drittel (kann angepasst werden)
+        posA[0] = posA[0] * (1 + offset / radius); // Position weiter nach außen verschieben
+        posA[1] = posA[1] * (1 + offset / radius);
+
+        // Berechne den Endpunkt (verbleibt bei posB und posC)
+        posC[0] = radius * 1.05 * (midAngle < Math.PI ? 1 : -1); // nur leicht raus
+        return [posA, posB, posC].map(p => p.join(',')).join(' ');
+      });
+
+
+    svg.selectAll('allLabels')
       .data(data_ready)
       .enter()
       .append('text')
-      .text(d => d.data.groupName)
-      .attr('transform', d => `translate(${arc.centroid(d)})`)
-      .style('text-anchor', 'middle')
-      .style('font-size', 12);
+      .attr('transform', (d) => {
+        const pos = outerArc.centroid(d);
+        const midAngle = d.startAngle + (d.endAngle - d.startAngle) / 2;
+        pos[0] = radius * 1.10 * (midAngle < Math.PI ? 1 : -1);
+        return `translate(${pos})`;
+      })
+      .style('text-anchor', (d) => {
+        const midAngle = d.startAngle + (d.endAngle - d.startAngle) / 2;
+        return (midAngle < Math.PI) ? 'start' : 'end';
+      })
+      .style('font-size', '12px')
+      .style('font-weight', 'bold')
+      .style('fill', 'black')
+      .style('alignment-baseline', 'middle')
+      .each(function(d) {
+        const text = d3.select(this);
+        const label = d.data.groupName;
+        const myGroupSum = d.data.sum;  // Füge den Wert von myGroupSum hinzu
+
+        const words = label.split(' ');
+        const lineHeight = 1.2;
+        let dy = 0;
+        let line = '';
+        const maxWidth = radius * 1.2;
+
+        words.forEach((word) => {
+          const tempText = text.append('tspan').text(line + word + ' ');
+          const textWidth = tempText.node()?.getComputedTextLength();
+          tempText.remove();
+
+          if (textWidth && textWidth > maxWidth) {
+            text.append('tspan')
+              .text(line)
+              .attr('x', 0)
+              .attr('dy', `${dy === 0 ? 0 : lineHeight}em`);
+            dy += 1;
+            line = word + ' ';
+          } else {
+            line += word + ' ';
+          }
+        });
+
+        if (line) {
+          text.append('tspan')
+            .text(line)
+            .attr('x', 0)
+            .attr('dy', `${dy === 0 ? 0 : lineHeight}em`);
+        }
+
+        // Füge myGroupSum als Wert unter dem Gruppennamen hinzu
+        if (myGroupSum) {
+          // Berechne die Position des Rechtecks basierend auf der Textposition
+          const rectWidth = 40;  // Breite des Rechtecks
+          const rectHeight = 15; // Höhe des Rechtecks
+          const rectX = -20;     // Horizontale Position (relative Position zur Mitte)
+          const rectY = dy * 12; // Vertikale Position, abhängig von der Textzeilenhöhe
+
+          // Füge das Rechteck hinter den Text hinzu
+          text.append('rect')
+            .attr('x', rectX)
+            .attr('y', rectY)
+            .attr('width', rectWidth)
+            .attr('height', rectHeight)
+            .attr('rx', 5)  // Abgerundete Ecken
+            .attr('ry', 5)  // Abgerundete Ecken
+            .style('fill', '#808080'); // Grauer Hintergrund
+
+          // Der Text, der den Wert anzeigt
+          text.append('tspan')
+            .text(`${myGroupSum}€`)
+            .attr('x', 0)
+            .attr('dy', `${dy * 12 + 1.2}em`)  // Position des Texts unterhalb des Rechtecks
+            .style('font-size', '10px')
+            .style('fill', 'black');
+        }
+      });
 
     console.log('PieChart erfolgreich erstellt.');
-  }
 
+  }
 }
