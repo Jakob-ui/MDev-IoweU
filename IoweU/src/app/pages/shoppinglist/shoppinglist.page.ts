@@ -77,6 +77,7 @@ export class ShoppinglistPage implements OnInit {
   groupedProducts: { date: string; shoppingproducts: ShoppingProducts[] }[] = [];
 
   overlayState: 'start' | 'normal' | 'hidden' = 'start';
+  detailsOverlayState: 'start' | 'normal' | 'hidden' = 'start';
 
   earliestDueDate: Date = new Date(2025, 2, 20);
   earliestDueDateLabel: string = '';
@@ -342,15 +343,15 @@ export class ShoppinglistPage implements OnInit {
     }
 
     // Wechsel des Overlay-Zustands
-    if (this.overlayState === 'start') {
-      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
-    } else if (this.overlayState === 'normal') {
-      this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
-    } else if (this.overlayState === 'hidden') {
-      this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
+    if (this.detailsOverlayState === 'start') {
+      this.detailsOverlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+    } else if (this.detailsOverlayState === 'normal') {
+      this.detailsOverlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
+    } else if (this.detailsOverlayState === 'hidden') {
+      this.detailsOverlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
     }
 
-    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
+    console.log('Details Overlay state:', this.detailsOverlayState); // Debugging-Ausgabe
   }
 
 

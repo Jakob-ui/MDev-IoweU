@@ -57,11 +57,11 @@
   <!-- Details-Overlay für Detailansicht -->
   <div class="info-overlay" id="details-overlay"
        [ngClass]="{
-       'hidden': overlayState === 'hidden',
-       'normal': overlayState === 'normal',
-       'start': overlayState === 'start',
-       'slideUp': overlayState === 'normal',
-       'slideDown': overlayState === 'hidden'
+       'hidden': detailsOverlayState === 'hidden',
+       'normal': detailsOverlayState === 'normal',
+       'start': detailsOverlayState === 'start',
+       'slideUp': detailsOverlayState === 'normal',
+       'slideDown': detailsOverlayState === 'hidden'
      }"
        (click)="toggleDetailsOverlay(selectedProduct?.shoppingProductId || '')">
     <div class="info-wrapper" (click)="$event.stopPropagation()">
