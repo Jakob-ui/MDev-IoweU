@@ -254,19 +254,37 @@ export class ExpenseDetailsPage {
   }
 
   getAmountClass(expense: Expenses, memberId: string): string {
-    const isPaidByMember = expense.paidBy === memberId;
     const member = expense.expenseMember.find((m) => m.memberId === memberId);
-
-    if (isPaidByMember) {
-      return 'neutral';
+  
+    // Der aktuelle User ist der, der bezahlt hat
+    const currentUserPaid = expense.paidBy === this.uid;
+  
+    // Wenn ich selbst bezahlt habe
+    if (currentUserPaid) {
+      if (memberId === this.uid) {
+        return 'neutral'; // ich selbst → neutral
+      }
+  
+      if (member && member.amountToPay > 0) {
+        return 'positive'; // andere, die mir etwas schulden → grün
+      }
+  
+      return 'neutral'; // andere, die nichts zahlen müssen → grau
     }
-
-    if (member && member.amountToPay > 0) {
-      return 'negative';
+  
+    // Wenn jemand anderes bezahlt hat
+    if (memberId === this.uid) {
+      if (member && member.amountToPay > 0) {
+        return 'negative'; // ich schulde → rot
+      } else {
+        return 'neutral'; // ich schulde nichts → grau
+      }
     }
-
+  
+    // Alle anderen → grau
     return 'neutral';
   }
+  
 
   hasProducts(groupMemberId: string): boolean {
     if (!this.expense || this.expense.length === 0) {
