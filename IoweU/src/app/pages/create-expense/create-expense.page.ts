@@ -1,4 +1,4 @@
-import {Component, ElementRef, inject, ViewChild} from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -50,7 +50,7 @@ import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 import { Groups } from 'src/app/services/objects/Groups';
 import { HostListener } from '@angular/core';
-import {ImageService} from "../../services/image.service";
+import { ImageService } from '../../services/image.service';
 
 @Component({
   selector: 'app-create-expense',
@@ -155,7 +155,7 @@ export class CreateExpensePage {
     { name: 'Freizeit', icon: 'game-controller-outline' },
     { name: 'Wohnen', icon: 'home-outline' },
     { name: 'Rechnungen', icon: 'receipt-outline' },
-    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' }
+    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
 
   async ngOnInit() {
@@ -180,7 +180,7 @@ export class CreateExpensePage {
           if (this.currentGroup) {
             this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = this.currentGroup.groupId || '';
-            console.log("gruppeninfos:", this.currentGroup);
+            console.log('gruppeninfos:', this.currentGroup);
 
             if (
               this.currentGroup.members &&
@@ -306,7 +306,7 @@ export class CreateExpensePage {
 
   selectCategory(category: any, event: Event) {
     this.selectedCategory = category; // Setze die ausgewählte Kategorie
-    this.expense.category = this.selectedCategory.name
+    this.expense.category = this.selectedCategory.name;
     console.log(this.expense.category);
     this.dropdownOpen = false; // Schließe das Dropdown
     event.stopPropagation(); // Verhindere, dass das Klick-Event weitergeleitet wird
@@ -437,9 +437,9 @@ export class CreateExpensePage {
 
   private updateTotals() {
     // Berechnung des Gesamtbetrags
-    const total = this.calculateTotalFromAmountToPay();
+    const total = parseFloat(this.calculateTotalFromAmountToPay().toFixed(2));
 
-    this.expense.totalAmount = parseFloat(total.toFixed(2));
+    this.expense.totalAmount = total;
 
     // Wenn "alle" ausgewählt ist, Betrag gleichmäßig verteilen
     if (this.expense.splitBy === 'alle') {
@@ -454,9 +454,12 @@ export class CreateExpensePage {
     });
   }
 
-// Berechnet den Gesamtbetrag aus den amountToPay-Werten
+  // Berechnet den Gesamtbetrag aus den amountToPay-Werten
   private calculateTotalFromAmountToPay(): number {
-    return Object.values(this.amountToPay).reduce((sum, amount) => sum + (amount || 0), 0);
+    return Object.values(this.amountToPay).reduce(
+      (sum, amount) => sum + (amount || 0),
+      0
+    );
   }
 
   private updateTotalAmount() {
@@ -471,9 +474,12 @@ export class CreateExpensePage {
     }
   }
 
-// Überprüft, ob der Betrag nach Änderung angepasst werden muss
+  // Überprüft, ob der Betrag nach Änderung angepasst werden muss
   onAmountToPayChange() {
-    if (this.expense.splitType === 'anteile' && this.expense.splitBy === 'frei') {
+    if (
+      this.expense.splitType === 'anteile' &&
+      this.expense.splitBy === 'frei'
+    ) {
       this.updateTotals();
     }
   }
@@ -506,16 +512,16 @@ export class CreateExpensePage {
     }
   }
 
-// Rücksetzung der Produkt-Inputs und Berechnungen
+  // Rücksetzung der Produkt-Inputs und Berechnungen
   private resetProductInputs() {
-    Object.keys(this.showProductInputFields).forEach(uid => {
+    Object.keys(this.showProductInputFields).forEach((uid) => {
       this.showProductInputFields[uid] = false;
     });
     this.productInputs = {};
     this.products = [];
   }
 
-// Fall: Split-Typ 'anteile'
+  // Fall: Split-Typ 'anteile'
   private handleAnteileChange() {
     if (this.expense.splitBy === 'frei') {
       this.onAmountToPayChange();
@@ -526,25 +532,23 @@ export class CreateExpensePage {
 
       });*/
     } else if (this.expense.splitBy === 'alle') {
-
       this.chooseSplitType = true;
       this.expense.splitBy = 'alle';
       this.splitAmountEqually();
-
     }
   }
 
-// Fall: Split-Typ 'prozent'
+  // Fall: Split-Typ 'prozent'
   private handleProzentChange() {
     this.error = '';
     this.expense.splitBy = 'frei';
     this.chooseSplitType = false;
-    this.groupMembers.forEach(member => {
+    this.groupMembers.forEach((member) => {
       this.calculateSplitByPercentage(member.uid, 'percentage');
     });
   }
 
-// Fall: Split-Typ 'produkte'
+  // Fall: Split-Typ 'produkte'
   private handleProdukteChange() {
     this.expense.splitBy = 'frei';
     this.chooseSplitType = false;
@@ -553,23 +557,26 @@ export class CreateExpensePage {
   }
 
   private resetSplitValues() {
-    this.groupMembers.forEach(member => {
+    this.groupMembers.forEach((member) => {
       this.amountToPay[member.uid] = 0;
     });
     //this.expense.totalAmount = 0;
   }
 
-  calculateSplitByPercentage(memberUid: string, changedField: 'percentage' | 'amount') {
+  calculateSplitByPercentage(
+    memberUid: string,
+    changedField: 'percentage' | 'amount'
+  ) {
     const totalAmount = this.expense.totalAmount;
 
     if (changedField === 'percentage') {
       const percentage = this.splitValue[memberUid] || 0;
-      const amount = (totalAmount * percentage) / 100;
-      this.amountToPay[memberUid] = parseFloat(amount.toFixed(2));
+      const amount = parseFloat(((totalAmount * percentage) / 100).toFixed(2));
+      this.amountToPay[memberUid] = amount;
     } else if (changedField === 'amount') {
       const amount = this.amountToPay[memberUid] || 0;
-      const percentage = (amount / totalAmount) * 100;
-      this.splitValue[memberUid] = parseFloat(percentage.toFixed(2));
+      const percentage = parseFloat(((amount / totalAmount) * 100).toFixed(2));
+      this.splitValue[memberUid] = percentage;
     }
 
     this.validatePercentageSum();
@@ -577,16 +584,19 @@ export class CreateExpensePage {
 
   private validatePercentageSum() {
     let totalPercentage = 0;
-    this.groupMembers.forEach(member => {
+    this.groupMembers.forEach((member) => {
       totalPercentage += this.splitValue[member.uid] || 0;
     });
 
     const difference = parseFloat((100 - totalPercentage).toFixed(2));
 
     if (difference !== 0) {
-      this.error = difference > 0
-        ? `Es fehlen noch ${difference}% – du kannst den Rest auf die verbleibenden Mitglieder verteilen.`
-        : `Die Summe der Prozentwerte überschreitet 100 %. Sie sind ${Math.abs(difference)}% drüber.`;
+      this.error =
+        difference > 0
+          ? `Es fehlen noch ${difference}% – du kannst den Rest auf die verbleibenden Mitglieder verteilen.`
+          : `Die Summe der Prozentwerte überschreitet 100 %. Sie sind ${Math.abs(
+              difference
+            )}% drüber.`;
 
       this.isFormValid = false;
       this.canDistributeRest = difference > 0;
@@ -598,19 +608,33 @@ export class CreateExpensePage {
   }
 
   distributeRemainingPercentage() {
-    const remainingPercentage = 100 - this.groupMembers.reduce((sum, member) => sum + (this.splitValue[member.uid] || 0), 0);
+    const remainingPercentage =
+      100 -
+      this.groupMembers.reduce(
+        (sum, member) => sum + (this.splitValue[member.uid] || 0),
+        0
+      );
 
-    const eligibleMembers = this.groupMembers.filter(member => !this.splitValue[member.uid] || this.splitValue[member.uid] === 0);
+    const eligibleMembers = this.groupMembers.filter(
+      (member) =>
+        !this.splitValue[member.uid] || this.splitValue[member.uid] === 0
+    );
 
     if (eligibleMembers.length > 0) {
       const share = remainingPercentage / eligibleMembers.length;
       eligibleMembers.forEach((member, index) => {
         if (index === eligibleMembers.length - 1) {
-          this.splitValue[member.uid] = 100 - this.groupMembers.reduce((sum, m) => sum + (this.splitValue[m.uid] || 0), 0);
+          this.splitValue[member.uid] =
+            100 -
+            this.groupMembers.reduce(
+              (sum, m) => sum + (this.splitValue[m.uid] || 0),
+              0
+            );
         } else {
           this.splitValue[member.uid] = share;
         }
-        this.amountToPay[member.uid] = (this.expense.totalAmount * this.splitValue[member.uid]) / 100;
+        this.amountToPay[member.uid] =
+          (this.expense.totalAmount * this.splitValue[member.uid]) / 100;
       });
     }
 
@@ -622,7 +646,8 @@ export class CreateExpensePage {
 
     this.groupMembers.forEach((member) => {
       let memberAmountToPay = 0;
-      const products: Products[] = this.productInputs[member.uid]?.products || [];
+      const products: Products[] =
+        this.productInputs[member.uid]?.products || [];
       products.forEach((product) => {
         memberAmountToPay += product.price;
       });
@@ -646,8 +671,10 @@ export class CreateExpensePage {
   private updatePercentageValues() {
     this.groupMembers.forEach((member) => {
       const amount = this.amountToPay[member.uid] || 0;
-      const percentage = (amount / this.expense.totalAmount) * 100;
-      this.splitValue[member.uid] = parseFloat(percentage.toFixed(2));
+      const percentage = parseFloat(
+        ((amount / this.expense.totalAmount) * 100).toFixed(2)
+      );
+      this.splitValue[member.uid] = percentage;
     });
 
     this.validatePercentageSum();
@@ -658,17 +685,29 @@ export class CreateExpensePage {
     const numberOfMembers = this.groupMembers.length;
 
     if (numberOfMembers > 0 && totalAmount > 0) {
-      const amountPerMember = (Math.floor((totalAmount / numberOfMembers) * 100) / 100);
+      // Berechne den Betrag pro Mitglied und runde auf 2 Dezimalstellen
+      const amountPerMember = parseFloat(
+        (totalAmount / numberOfMembers).toFixed(2)
+      );
       let distributedTotal = amountPerMember * numberOfMembers;
-      let remainingAmount = totalAmount - distributedTotal;
+      let remainingAmount = parseFloat(
+        (totalAmount - distributedTotal).toFixed(2)
+      );
 
+      // Weise jedem Mitglied den abgerundeten Betrag zu
       this.groupMembers.forEach((member) => {
         this.amountToPay[member.uid] = amountPerMember;
       });
 
-      if (remainingAmount > 0) {
-        remainingAmount = parseFloat(remainingAmount.toFixed(2));
-        this.amountToPay[this.expense.paidBy] += remainingAmount; // Paid by member gets the remaining amount
+      // Verteile den Restbetrag (einen Cent pro Mitglied)
+      let memberIndex = 0;
+      while (remainingAmount > 0) {
+        const member = this.groupMembers[memberIndex];
+        this.amountToPay[member.uid] = parseFloat(
+          (this.amountToPay[member.uid] + 0.01).toFixed(2)
+        );
+        remainingAmount = parseFloat((remainingAmount - 0.01).toFixed(2));
+        memberIndex = (memberIndex + 1) % numberOfMembers; // Zyklisch durch die Mitglieder iterieren
       }
     }
   }
@@ -779,5 +818,4 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
-
 }

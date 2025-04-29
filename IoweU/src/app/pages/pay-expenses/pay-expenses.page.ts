@@ -45,10 +45,11 @@ addIcons({
   'ellipsis-horizontal-outline': ellipsisHorizontalOutline,
 });
 
+
 @Component({
-  selector: 'app-expense-details',
-  templateUrl: './expense-details.page.html',
-  styleUrls: ['./expense-details.page.scss'],
+  selector: 'app-pay-expenses',
+  templateUrl: './pay-expenses.page.html',
+  styleUrls: ['./pay-expenses.page.scss'],
   standalone: true,
   imports: [
     IonContent,
@@ -61,7 +62,7 @@ addIcons({
     IonBadge,
   ],
 })
-export class ExpenseDetailsPage {
+export class PayExpensesPage {
   private authService = inject(AuthService);
   private router = inject(Router);
   private activeRoute = inject(ActivatedRoute);
@@ -254,37 +255,19 @@ export class ExpenseDetailsPage {
   }
 
   getAmountClass(expense: Expenses, memberId: string): string {
+    const isPaidByMember = expense.paidBy === memberId;
     const member = expense.expenseMember.find((m) => m.memberId === memberId);
 
-    // Der aktuelle User ist der, der bezahlt hat
-    const currentUserPaid = expense.paidBy === this.uid;
-
-    // Wenn ich selbst bezahlt habe
-    if (currentUserPaid) {
-      if (memberId === this.uid) {
-        return 'neutral'; // ich selbst → neutral
-      }
-
-      if (member && member.amountToPay > 0) {
-        return 'positive'; // andere, die mir etwas schulden → grün
-      }
-
-      return 'neutral'; // andere, die nichts zahlen müssen → grau
+    if (isPaidByMember) {
+      return 'neutral';
     }
 
-    // Wenn jemand anderes bezahlt hat
-    if (memberId === this.uid) {
-      if (member && member.amountToPay > 0) {
-        return 'negative'; // ich schulde → rot
-      } else {
-        return 'neutral'; // ich schulde nichts → grau
-      }
+    if (member && member.amountToPay > 0) {
+      return 'negative';
     }
 
-    // Alle anderen → grau
     return 'neutral';
   }
-
 
   hasProducts(groupMemberId: string): boolean {
     if (!this.expense || this.expense.length === 0) {
@@ -346,45 +329,8 @@ export class ExpenseDetailsPage {
     return userEntry?.amountToPay ?? 0;
   }
 
-  async logout() {
-    try {
-      await this.authService.logout();
-      this.router.navigate(['login']);
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
   goBack() {
     this.navCtrl.back();
-  }
-  editExpense() {
-    if (this.expenseId) {
-      this.router.navigate(['/edit-expense', this.groupId, this.expenseId], {
-        queryParams: {
-          repeating: this.repeatingExpense, // true oder false übergeben
-        },
-      });
-    } else {
-      console.error('Expense ID not found');
-    }
-  }
-
-  payExpense() {
-    if (this.expenseId) {
-      this.router.navigate(['/pay-expenses', this.groupId, this.expenseId], {
-        queryParams: {
-          repeating: this.repeatingExpense, // true oder false übergeben
-        },
-      });
-    } else {
-      console.error('Expense ID not found');
-    }
-  }
-
-  requestExpense(){
-    // Hier die Logik für die Anfrage implementieren
-
   }
 
   getPaidByName(uid: string): string {
