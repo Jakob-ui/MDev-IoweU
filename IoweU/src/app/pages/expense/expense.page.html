@@ -38,7 +38,7 @@
 
     <!-- Such- und Filterfelder -->
     <div class="filter">
-      <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterExpenses()" debounce="500" placeholder="Suche Ausgabe"></ion-searchbar>
+      <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterExpenses()" debounce="500" placeholder="Suche Ausgabe" class="custom-search"></ion-searchbar>
 
       <div class="divider"></div>
       <div class="Kategorie" (click)="onCategoryDropdownClick($event)">

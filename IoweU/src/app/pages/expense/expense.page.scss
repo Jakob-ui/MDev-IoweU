@@ -24,11 +24,7 @@ h5{
 .button-container {
  padding-top: 10px;
 }
-@media (prefers-color-scheme: dark) {
-  .date {
-    color: var(--ion-color-light);
-  }
-}
+
 
 .profile-placeholder .username{
   color: var(--ion-color-light);
@@ -105,7 +101,47 @@ ion-item.dropDownFelder::part(native) {
   height: 45px !important;
   margin-top: 5px !important;
 }
+.custom-search{
+  background-color: #fff !important;
+}
 
 
+@media (prefers-color-scheme: dark) {
+  .date {
+    color: var(--ion-color-light);
+  }
+  .input-label {
+    color: #989797;
+  }
+  ion-item.dropDownFelder::part(native) {
+  
+    background-color: #121212 !important;
+    color: var(--ion-color-light) !important;
+  }
+  .custom-dropdown {
+    background-color: #121212;
+  }
+  #category-icon-label {
+    color: #000000;
+    font-size: 24px;
+  }
+  .paid-by .custom-dropdown { 
+    background-color: #121212; 
+  }
+  .paid-by ion-item.dropDownFelder::part(native) {
+    background-color: #121212 !important;
+  
+}
 
+.datepicker{
+  background-color: #000;
+}
+.custom-search{
+  color: #121212 !important;
+  
+}
+ion-item ion-icon {
+  color: #000; /* schwarz */
+}
+}
 
