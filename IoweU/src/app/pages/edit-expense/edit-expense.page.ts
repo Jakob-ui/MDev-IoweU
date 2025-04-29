@@ -1,4 +1,4 @@
-import {Component, HostListener, inject} from '@angular/core';
+import {Component, ElementRef, HostListener, inject, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -49,6 +49,7 @@ import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 import {Groups} from "../../services/objects/Groups";
+import {ImageService} from "../../services/image.service";
 
 @Component({
   selector: 'app-edit-expense',
@@ -84,6 +85,7 @@ export class EditExpensePage {
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
   private alertController = inject(AlertController);
+  private imageService = inject(ImageService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -92,6 +94,7 @@ export class EditExpensePage {
   user: string | null = '';
   displayName: string | null = null;
   groupId = this.route.snapshot.paramMap.get('groupId') || '';
+  expenseId = this.activeRoute.snapshot.paramMap.get('expenseId') || '';
 
   groupMembers: any[] = [];
   currentGroup: Groups | null = null;
@@ -140,6 +143,12 @@ export class EditExpensePage {
     splitType: 'anteile',
     expenseMember: [],
   };
+
+  originalExpense: Expenses = { ...this.expense };
+
+  invoice: string | ArrayBuffer | null = null;
+  uploadInvoice: any;
+  @ViewChild('fileInput') fileInput!: ElementRef;
 
   categories = [
     { name: 'Lebensmittel', icon: 'fast-food-outline' },
@@ -262,14 +271,21 @@ export class EditExpensePage {
     }
   }
 
-  onInvoiceUpload(event: any) {
+  selectImage() {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        this.expense.invoice = reader.result as string; // Speichere das Bild als Base64-String
+        this.invoice = reader.result;
+        if (typeof this.invoice === 'string') {
+          this.uploadInvoice = this.imageService.dataURLtoBlob(this.invoice);
+        }
       };
-      reader.readAsDataURL(file); // Lese die Datei als Base64
+      reader.readAsDataURL(file);
     }
   }
   selectCurrency(currency: string) {
@@ -704,54 +720,77 @@ export class EditExpensePage {
     this.showValidationError = false;
   }
 
-  async saveExpense() {
-    if (!this.validateExpense()) {
-      return; // Fehler werden nun in der UI angezeigt
+  async saveExpenseChanges() {
+    const hasChanges = this.hasExpenseChanges();
+
+    if (hasChanges) {
+      try {
+        this.loadingService.show();
+
+        // 📸 Falls ein Bild (invoice) ausgewählt wurde
+        if (this.uploadInvoice) {
+          const invoicePath = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+          const downloadURL = await this.imageService.uploadImage(
+            this.expense.expenseId,
+            this.uploadInvoice,
+            invoicePath
+          );
+          this.expense.invoice = downloadURL;
+        }
+
+        await this.expenseService.updateExpense(
+          this.expense,
+          this.expense.expenseMember,
+          this.groupId,
+          this.repeating
+        );
+
+        console.log('Ausgabe erfolgreich aktualisiert.');
+        this.navCtrl.back();
+      } catch (error) {
+        console.error('Fehler beim Aktualisieren der Ausgabe:', error);
+        alert('Beim Aktualisieren der Ausgabe ist ein Fehler aufgetreten.');
+      } finally {
+        this.loadingService.hide();
+      }
+    } else {
+      console.log('Keine Änderungen zum Speichern vorhanden.');
+    }
+  }
+
+
+  hasExpenseChanges(): boolean {
+    return !this.deepEqual(this.expense, this.originalExpense);
+  }
+
+  deepEqual(obj1: any, obj2: any): boolean {
+    if (obj1 === obj2) return true; // Wenn beide Referenzen gleich sind, sind sie gleich
+
+    // Wenn eines der Objekte null oder undefiniert ist, ist es nicht gleich
+    if (obj1 == null || obj2 == null) return false;
+
+    // Wenn beide Objekte vom selben Typ sind
+    if (typeof obj1 !== typeof obj2) return false;
+
+    // Wenn es sich um ein Objekt handelt, dann rekursiv vergleichen
+    if (typeof obj1 === 'object') {
+      const keys1 = Object.keys(obj1);
+      const keys2 = Object.keys(obj2);
+
+      // Wenn die Anzahl der Schlüssel unterschiedlich ist, sind die Objekte unterschiedlich
+      if (keys1.length !== keys2.length) return false;
+
+      // Rekursiv alle Schlüssel und Werte vergleichen
+      for (let key of keys1) {
+        if (!keys2.includes(key) || !this.deepEqual(obj1[key], obj2[key])) {
+          return false;
+        }
+      }
+      return true;
     }
 
-    console.log('this.expense.repeat', this.expense.repeat);
-
-    // Korrekte Logik: repeat !== 'nein' bedeutet WIEDERHOLEND
-    this.repeating = this.expense.repeat !== 'nein';
-
-    this.loadingService.show();
-
-    try {
-      // Expense-Member vorbereiten
-      this.expense.expenseMember = this.groupMembers.map((member) => {
-        const uid = member.uid;
-        const amount = this.amountToPay[uid] || 0;
-        const products = this.productInputs[uid]?.products || [];
-
-        return {
-          memberId: uid,
-          amountToPay: parseFloat(amount.toFixed(2)),
-          split: 1,
-          products: products.map((p) => ({
-            ...p,
-            price: Number(p.price),
-            quantity: Number(p.quantity),
-          })),
-        };
-      });
-
-      this.updateTotalAmount();
-      this.expense.totalAmount = Number(this.expense.totalAmount.toFixed(2));
-
-      await this.expenseService.updateExpense(
-        this.expense,
-        this.expense.expenseMember,
-        this.groupId,
-        this.repeating
-      );
-
-      this.navCtrl.back();
-    } catch (error) {
-      console.error('Fehler beim Speichern der Ausgabe:', error);
-      alert('Es ist ein Fehler aufgetreten. Bitte versuche es erneut.');
-    } finally {
-      this.loadingService.hide();
-    }
+    // Wenn es sich nicht um ein Objekt handelt, vergleiche die Werte direkt
+    return obj1 === obj2;
   }
 
   async deleteExpense() {

@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Firestore, collection, doc, setDoc } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, deleteDoc, getDoc } from '@angular/fire/firestore';
 import { ShoppingProducts } from '../services/objects/ShoppingProducts';
 import {getDocs} from "firebase/firestore";
 
@@ -55,4 +55,64 @@ export class ShoppinglistService {
     const snapshot = await getDocs(shoppingProductRef);
     return snapshot.docs.map(doc => doc.data() as ShoppingProducts);
   }
+
+  async getShoppingProductById(groupId: string, shoppingProductId: string): Promise<ShoppingProducts | null> {
+    try {
+      // Referenz zum Produkt-Dokument in der Firestore-Datenbank
+      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingProducts', shoppingProductId);
+
+      // Abrufen des Dokuments
+      const productDoc = await getDoc(productRef);
+
+      // Wenn das Dokument existiert, geben wir die Produktdetails zurück
+      if (productDoc.exists()) {
+        return productDoc.data() as ShoppingProducts;
+      } else {
+        console.warn('Kein Produkt mit dieser ID gefunden');
+        return null;
+      }
+    } catch (error) {
+      console.error('Fehler beim Abrufen des Produkts:', error);
+      return null;
+    }
+  }
+
+
+
+
+  // Löscht ein Produkt aus der Datenbank
+  async deleteShoppingProduct(groupId: string, shoppingProductId: string): Promise<void> {
+    try {
+      // Referenz zum Produkt in Firestore
+      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingProducts', shoppingProductId);
+
+      // Löscht das Produkt
+      await deleteDoc(productRef);
+
+      console.log('Produkt erfolgreich gelöscht:', shoppingProductId);
+    } catch (error) {
+      console.error('Fehler beim Löschen des Produkts:', error);
+      throw error;
+    }
+  }
+
+  async editShoppingProduct(
+    groupId: string,
+    shoppingProductId: string,
+    updatedData: Partial<ShoppingProducts>
+  ): Promise<void> {
+    try {
+      // Referenz zum Produkt in Firestore
+      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingProducts', shoppingProductId);
+
+      // Aktualisiert das Produkt mit den neuen Daten
+      await setDoc(productRef, updatedData, { merge: true });
+
+      console.log('Produkt erfolgreich aktualisiert:', shoppingProductId);
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Produkts:', error);
+      throw error;
+    }
+  }
+
 }
