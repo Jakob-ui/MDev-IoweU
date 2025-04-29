@@ -100,8 +100,10 @@ export class GroupOverviewPage implements OnInit {
               // Berechne myBalance für jedes Mitglied der Gruppe
               const myBalance = group.members.reduce((totalBalance, member) => {
                 // Berechnung der Bilanz für jedes Mitglied
-                if (member.uid === uid) { // Nur für das eingeloggte Mitglied
-                  const balance = member.sumExpenseAmount - member.sumExpenseMemberAmount;
+                if (member.uid === uid) {
+                  // Nur für das eingeloggte Mitglied
+                  const balance =
+                    member.sumExpenseAmount - member.sumExpenseMemberAmount;
                   return balance; // Setze die Bilanz auf den berechneten Wert
                 }
                 return totalBalance;
@@ -122,7 +124,6 @@ export class GroupOverviewPage implements OnInit {
       this.loadingService.hide();
     }
   }
-
 
   navigateToGroup(link: string) {
     this.router.navigate(['group/', link]);
@@ -159,7 +160,7 @@ export class GroupOverviewPage implements OnInit {
     clearTimeout(this.longPressTimeout);
   }
 
-// Für Desktop Drag & Drop
+  // Für Desktop Drag & Drop
   onDragStart(event: DragEvent, group: any) {
     this.draggedGroup = group;
   }
@@ -186,7 +187,7 @@ export class GroupOverviewPage implements OnInit {
     }
   }
 
-// Für Touch Drag & Drop
+  // Für Touch Drag & Drop
   onTouchStart(event: TouchEvent, group: any) {
     if (!this.isEditMode) return;
     this.draggedGroup = group;
