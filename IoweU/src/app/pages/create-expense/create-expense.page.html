@@ -52,19 +52,32 @@
           </div>
         </div>
 
-        <div class="invoice-upload" >
+        <div class="invoice-upload">
           <span class="input-label">Rechnung</span>
-          <ion-item class="input-item">
-            <label class="upload-label">
-              <ion-icon
-                [src]="expense.invoice ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/ios-add.svg'"
-                class="upload-icon"
-                
-              ></ion-icon>
+          
+          <div class="rechnung-dropdown" (click)="toggleInvoiceDropdown()">
+            <ion-item class="input-item">
+              <ion-icon *ngIf="!expense.invoice" name="add-outline" slot="start"></ion-icon>
+              <ion-icon *ngIf="expense.invoice" name="checkmark-outline" slot="start"></ion-icon>
+              
               <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
-            </label>
-          </ion-item>
+              <ion-button *ngIf="expense.invoice" color="danger" (click)="removeInvoice()">Löschen</ion-button>
+            </ion-item>
+          </div>
+          <div *ngIf="invoiceDropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item class="dropDownFelder" button (click)="openCamera()">
+                <ion-icon name="camera-outline" slot="start"></ion-icon>
+                <ion-label>Kamera öffnen</ion-label>
+              </ion-item>
+              <ion-item class="dropDownFelder" button (click)="fileInput.click()">
+                <ion-icon name="image-outline" slot="start"></ion-icon>
+                <ion-label>Bild hochladen</ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
+        
       </div>
     </div>
 
