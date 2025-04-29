@@ -12,6 +12,10 @@ import {
   homeOutline,
   receiptOutline,
   ellipsisHorizontalOutline,
+  addOutline,
+  checkmarkOutline,
+  cameraOutline,
+  imageOutline,
 } from 'ionicons/icons';
 addIcons({
   'fast-food-outline': fastFoodOutline,
@@ -22,6 +26,10 @@ addIcons({
   'home-outline': homeOutline,
   'receipt-outline': receiptOutline,
   'ellipsis-horizontal-outline': ellipsisHorizontalOutline,
+  'add-outline': addOutline,
+  'checkmark-outline': checkmarkOutline,
+  'camera-outline': cameraOutline,
+  'image-outline': imageOutline,
 });
 import {
   IonContent,
@@ -38,6 +46,7 @@ import {
   IonNote,
   IonText,
 } from '@ionic/angular/standalone';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 // Import interfaces
 import { Expenses } from 'src/app/services/objects/Expenses';
@@ -51,6 +60,7 @@ import { AuthService } from '../../services/auth.service';
 import { Groups } from 'src/app/services/objects/Groups';
 import { HostListener } from '@angular/core';
 import { ImageService } from '../../services/image.service';
+import { NgxImageCompressService } from 'ngx-image-compress';
 
 @Component({
   selector: 'app-create-expense',
@@ -86,6 +96,7 @@ export class CreateExpensePage {
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
   private imageService = inject(ImageService);
+  constructor(private imageCompress: NgxImageCompressService) {}
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -131,6 +142,8 @@ export class CreateExpensePage {
   invoice: string | ArrayBuffer | null = null;
   uploadInvoice: any;
   @ViewChild('fileInput') fileInput!: ElementRef;
+
+  invoiceDropdownOpen: boolean = false;
 
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
@@ -265,28 +278,58 @@ export class CreateExpensePage {
     }
   }
 
-
-  onFileSelected(event: any) {
+  async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      // Setze die Datei als Invoice
-      this.expense.invoice = file.name;  // Hier setzen wir den Dateinamen oder den Blob
-  
       const reader = new FileReader();
-      reader.onload = () => {
-        this.invoice = reader.result;
-        if (typeof this.invoice === 'string') {
-          this.uploadInvoice = this.imageService.dataURLtoBlob(this.invoice);
-        }
+      reader.onload = async () => {
+        const imageDataUrl = reader.result as string;
+
+        // Compress the image
+        const compressedImage = await this.imageCompress.compressFile(
+          imageDataUrl,
+          -1, // Orientation (auto-detect)
+          50, // Quality (0-100)
+          50  // Resize percentage
+        );
+
+        // Convert compressed image to Blob
+        this.uploadInvoice = this.imageService.dataURLtoBlob(compressedImage);
+        this.invoice = compressedImage;
+        this.expense.invoice = file.name; // Set the file name
       };
       reader.readAsDataURL(file);
     } else {
-      // Falls keine Datei ausgewählt wird, setze invoice auf undefined
       this.expense.invoice = undefined;
     }
   }
-  
-  
+
+  async openCamera() {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 50,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+      });
+
+      if (image && image.dataUrl) {
+        // Compress the image
+        const compressedImage = await this.imageCompress.compressFile(
+          image.dataUrl,
+          -1, // Orientation (auto-detect)
+          50, // Quality (0-100)
+          50  // Resize percentage
+        );
+
+        // Convert compressed image to Blob
+        this.uploadInvoice = this.imageService.dataURLtoBlob(compressedImage);
+        this.invoice = compressedImage;
+        this.expense.invoice = 'camera_image.jpg'; // Set a default name for the camera image
+      }
+    } catch (error) {
+      console.error('Error capturing image from camera:', error);
+    }
+  }
 
   selectCurrency(currency: string) {
     this.selectedCurrency = currency;
@@ -489,6 +532,8 @@ export class CreateExpensePage {
     if (this.expense.splitBy === 'frei') {
       this.resetSplitValues();
     } else if (this.expense.splitBy === 'alle') {
+      this.chooseSplitType = true;
+      this.expense.splitBy = 'alle';
       this.splitAmountEqually();
     }
   }
@@ -817,5 +862,13 @@ export class CreateExpensePage {
     } finally {
       this.loadingService.hide();
     }
+  }
+
+  removeInvoice() {
+    this.expense.invoice = undefined;
+  }
+
+  toggleInvoiceDropdown() {
+    this.invoiceDropdownOpen = !this.invoiceDropdownOpen;
   }
 }

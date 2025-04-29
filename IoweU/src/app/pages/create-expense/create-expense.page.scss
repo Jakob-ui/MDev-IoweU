@@ -294,13 +294,25 @@ ion-input::part(native) {
   margin-left: 0;
 }
 
+
+.invoice-upload ion-icon {
+  color: black;
+}
+.invoice-upload {
+  position: relative;
+}
+.rechnung-dropdown{
+ position: relative;
+
+}
+
 .custom-dropdown {
   position: absolute;
   z-index: 9999;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
   max-width: 400%;
   top: 100%;
-  left: 0;
+  left: -20px;
   margin-top: -20px;
   left: -50px;
   padding-top: 15%;
@@ -323,15 +335,8 @@ ion-item.dropDownFelder::part(native) {
   justify-content: center;
 }
 
-.invoice-upload {
-  .upload-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
 
 
-}
 .Währung {
   position: relative;
 
@@ -595,6 +600,10 @@ ion-input {
 .upload-icon{
   font-size: 26px;
 }
+.rechnung-dropdown{
+  
+}
+
 
 @media (prefers-color-scheme: dark) {
   .input-label {
@@ -619,9 +628,7 @@ ion-input {
     background-color: #121212 !important;
   
 }
-.upload-icon{
-  color: #000000;
-}
+
 .datepicker{
   background-color: #000;
 }
