@@ -504,10 +504,6 @@ export class GroupService {
 
   async getGroupByGroupId(groupId: string): Promise<Groups | null> {
     console.log('Suche Gruppe mit groupId:', groupId);
-    if (!groupId) {
-      console.error('groupId ist undefined. Abfrage abgebrochen.');
-      return null;
-    }
     try {
       const groupRef = collection(this.firestore, 'groups');
       const q = query(groupRef, where('groupId', '==', groupId));
@@ -531,12 +527,6 @@ export class GroupService {
     groupId: string,
     updateGroupCallback: (group: Groups[]) => void
   ): Promise<() => void> {
-    if (!groupId) {
-      console.error('groupId ist undefined. Abfrage abgebrochen.');
-      return () => {};
-    }
-
-    console.log('Suche Gruppe mit groupId:', groupId);
 
     try {
       const groupRef = collection(this.firestore, 'groups');

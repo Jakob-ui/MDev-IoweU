@@ -348,7 +348,6 @@ export class ExpenseService {
       total += expense.totalAmount || 0;
       count++;
     }
-    console.log('Balance wird berechnet:', { total, count });
     return { total, count };
   }
 
