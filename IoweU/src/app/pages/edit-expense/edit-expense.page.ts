@@ -40,12 +40,10 @@ import {
 // Import interfaces
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
-import { Members } from 'src/app/services/objects/Members';
 import { AlertController } from '@ionic/angular';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
-import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 import {Groups} from "../../services/objects/Groups";
@@ -135,7 +133,7 @@ export class EditExpensePage {
     totalAmount: 0,
     paidBy: '',
     date: new Date().toISOString().split('T')[0],
-    currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'], // Verfügbare Währungen
+    currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
     category: '',
     invoice: '',
     repeat: 'nein',
@@ -305,7 +303,8 @@ export class EditExpensePage {
   }
 
   selectCategory(category: any, event: Event) {
-    this.selectedCategory = category; // Setze die ausgewählte Kategorie
+    this.selectedCategory = category;
+    this.expense.category = this.selectedCategory.name;
     this.dropdownOpen = false; // Schließe das Dropdown
     event.stopPropagation(); // Verhindere, dass das Klick-Event weitergeleitet wird
   }
