@@ -87,7 +87,6 @@ export class ExpensePage implements OnInit, OnDestroy {
         this.displayName = this.authService.currentUser.username;
 
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-        console.log('Benutzer GroupId:', groupId);
 
         if (groupId) {
           const currentGroup = await this.groupService.getGroupById(groupId);
@@ -177,8 +176,6 @@ export class ExpensePage implements OnInit, OnDestroy {
               );
               this.sumExpenses = total;
               this.countExpenses = count;
-              console.log(this.sumExpenses);
-              console.log(this.countExpenses);
               /*this.expenseService.updateSums(
                 this.groupId || '',
                 this.sumExpenses,
