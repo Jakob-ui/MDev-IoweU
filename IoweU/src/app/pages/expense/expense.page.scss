@@ -140,8 +140,10 @@ ion-item.dropDownFelder::part(native) {
   color: #121212 !important;
   
 }
-ion-item ion-icon {
-  color: #000; /* schwarz */
-}
+#category-icon {
+  color: #000000;
+  font-size: 18px;
+
 }
 
+}
