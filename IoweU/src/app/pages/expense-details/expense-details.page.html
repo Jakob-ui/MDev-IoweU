@@ -78,6 +78,15 @@
       </div>
     </div>
 
+    <ion-button
+      *ngIf="getCategoryIcon(expenseCategory)"
+      class="edit-button"
+      shape="round"
+      fill="solid">
+      <ion-icon slot="icon-only" [name]="getCategoryIcon(expenseCategory)"></ion-icon>
+    </ion-button>
+
+
     <h2>{{ expense[0].description }}</h2>
     <ion-badge class="detailedprice">
       {{ expense[0].totalAmount | currency: 'EUR' }}
@@ -156,9 +165,24 @@
 
     <div class="space"></div>
     <div class="button-container">
-      <ion-button class="main-button" expand="block"
-        >Schulden begleichen</ion-button
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="payExpense()"
+        *ngIf="expense[0].paidBy !== uid!"
       >
+        Schulden begleichen
+      </ion-button>
+
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="requestExpense()"
+        *ngIf="expense[0].paidBy === uid!"
+      >
+        Schulden anfordern
+      </ion-button>
     </div>
+
   </div>
 </ion-content>
