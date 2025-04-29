@@ -92,6 +92,8 @@ export class ExpenseDetailsPage {
   expensePaidBy: string = '';
   expensePaidByUsername: string = '';
   expenseDate: string = '';
+  expenseCurrency: string = '';
+  expenseCategory: string = '';
   expenseMember: ExpenseMember[] = [];
   expenseMemberIds: string[] = [];
   expenseAmountToPay: number = 0;
@@ -162,7 +164,7 @@ export class ExpenseDetailsPage {
     this.loadingService.show();
     try {
       // Query-Parameter lesen, um festzustellen, ob es sich um eine wiederkehrende Ausgabe handelt
-      this.activeRoute.queryParams.subscribe(params => {
+      this.activeRoute.queryParams.subscribe((params) => {
         this.repeatingExpense = params['repeating'] === 'true';
       });
 
@@ -208,13 +210,19 @@ export class ExpenseDetailsPage {
             this.expenseTotalAmount = expenseData.totalAmount || 0;
             this.expensePaidBy = expenseData.paidBy || '';
             this.expenseDate = expenseData.date || '';
+            this.expenseCurrency = expenseData.currency[0] || '';
+            this.expenseCategory = expenseData.category || '';
             this.expenseMember = expenseData.expenseMember || [];
-            this.expenseMemberIds = this.expenseMember.map(m => m.memberId || '');
+            this.expenseMemberIds = this.expenseMember.map(
+              (m) => m.memberId || ''
+            );
             this.expenseMemberSplitType = expenseData.splitType || '';
             this.expenseMemberSplitBy = expenseData.splitBy || '';
             this.expenseMemberPaidBy = expenseData.paidBy || '';
 
-            const currentMember = this.expenseMember.find(m => m.memberId === this.uid);
+            const currentMember = this.expenseMember.find(
+              (m) => m.memberId === this.uid
+            );
             this.expenseAmountToPay = currentMember?.amountToPay || 0;
 
             this.expensePaidByUsername = this.getPaidByName(this.expensePaidBy);
@@ -225,7 +233,6 @@ export class ExpenseDetailsPage {
           }
         }
       );
-
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -249,15 +256,15 @@ export class ExpenseDetailsPage {
   getAmountClass(expense: Expenses, memberId: string): string {
     const isPaidByMember = expense.paidBy === memberId;
     const member = expense.expenseMember.find((m) => m.memberId === memberId);
-  
+
     if (isPaidByMember) {
       return 'neutral';
     }
-  
+
     if (member && member.amountToPay > 0) {
       return 'negative';
     }
-  
+
     return 'neutral';
   }
 
@@ -335,19 +342,15 @@ export class ExpenseDetailsPage {
   }
   editExpense() {
     if (this.expenseId) {
-      this.router.navigate(
-        ['/edit-expense', this.groupId, this.expenseId],
-        {
-          queryParams: {
-            repeating: this.repeatingExpense // true oder false übergeben
-          }
-        }
-      );
+      this.router.navigate(['/edit-expense', this.groupId, this.expenseId], {
+        queryParams: {
+          repeating: this.repeatingExpense, // true oder false übergeben
+        },
+      });
     } else {
       console.error('Expense ID not found');
     }
   }
-
 
   getPaidByName(uid: string): string {
     const memberIndex = this.memberUids.indexOf(uid);
@@ -355,7 +358,6 @@ export class ExpenseDetailsPage {
   }
 
   toggleInvoiceOverlay() {
-
     console.log('Overlay state:', this.overlayState);
 
     // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen

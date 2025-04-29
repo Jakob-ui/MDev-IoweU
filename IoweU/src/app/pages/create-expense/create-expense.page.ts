@@ -301,6 +301,8 @@ export class CreateExpensePage {
 
   selectCategory(category: any, event: Event) {
     this.selectedCategory = category; // Setze die ausgewählte Kategorie
+    this.expense.category = this.selectedCategory.name
+    console.log(this.expense.category);
     this.dropdownOpen = false; // Schließe das Dropdown
     event.stopPropagation(); // Verhindere, dass das Klick-Event weitergeleitet wird
   }
