@@ -14,6 +14,7 @@ import {
   getDoc,
   updateDoc,
   onSnapshot,
+  collectionGroup,
 } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { elementAt } from 'rxjs';
@@ -21,6 +22,7 @@ import { Categories } from './objects/Categories';
 import { Storage } from '@angular/fire/storage';
 import { UserService } from './user.service';
 import { ImageService } from './image.service';
+import { Expenses } from './objects/Expenses';
 
 @Injectable({
   providedIn: 'root',

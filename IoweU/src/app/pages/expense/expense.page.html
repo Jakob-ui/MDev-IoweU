@@ -36,11 +36,55 @@
       </div>
     </ion-card>
 
+    <!-- Such- und Filterfelder -->
+    <div class="filter">
+      <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterExpenses()" debounce="500" placeholder="Suche Ausgabe"></ion-searchbar>
+
+      <div class="divider"></div>
+      <div class="Kategorie" (click)="onCategoryDropdownClick($event)">
+        <ion-item class="input-item">
+          <ion-label>
+            <div class="selected-category">
+              <ion-icon
+                *ngIf="selectedCategories.length > 0"
+                [name]="getCategoryIcon(selectedCategories[0])"
+                class="category-icon"
+                id="category-icon-label"
+              ></ion-icon>
+              <ion-icon
+                *ngIf="selectedCategories.length === 0"
+                [src]="'assets/icon/ionicons/filter.svg'">
+              </ion-icon>
+            </div>
+          </ion-label>
+
+        </ion-item>
+
+        <div *ngIf="dropdownOpen" class="custom-dropdown">
+          <ion-list>
+            <ion-item
+              class="dropDownFelder"
+              button
+              *ngFor="let category of categories"
+              (click)="selectCategories(category, $event)"
+            >
+              <ion-icon
+                [name]="category.icon"
+                class="category-icon"
+              ></ion-icon>
+              <ion-label>{{ category.name }}</ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+      </div>
+    </div>
+
+
     <ion-list class="expense-list">
-      <ng-container *ngFor="let group of groupedExpenses">
-    <span class="date">
-      {{ group.date | date: 'dd.MM.yyyy' }}
-    </span>
+      <ng-container *ngFor="let group of visibleGroupedExpenses">
+        <span class="date">
+          {{ group.date | date: 'dd.MM.yyyy' }}
+        </span>
 
         <ion-item
           class="info-item"
@@ -69,6 +113,13 @@
         </ion-item>
       </ng-container>
     </ion-list>
+
+    <ion-infinite-scroll (ionInfinite)="loadMoreExpenses($event)">
+      <ion-infinite-scroll-content
+        loadingSpinner="bubbles"
+        loadingText="Weitere Ausgaben werden geladen...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
 
 
     <div class="button-container">

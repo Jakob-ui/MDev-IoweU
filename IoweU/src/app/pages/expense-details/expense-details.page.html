@@ -78,6 +78,15 @@
       </div>
     </div>
 
+    <ion-button
+      *ngIf="getCategoryIcon(expenseCategory)"
+      class="edit-button"
+      shape="round"
+      fill="solid">
+      <ion-icon slot="icon-only" [name]="getCategoryIcon(expenseCategory)"></ion-icon>
+    </ion-button>
+
+
     <h2>{{ expense[0].description }}</h2>
     <ion-badge class="detailedprice">
       {{ expense[0].totalAmount | currency: 'EUR' }}

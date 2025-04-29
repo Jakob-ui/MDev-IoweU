@@ -408,4 +408,10 @@ export class ExpenseDetailsPage {
 
     console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
+
+  getCategoryIcon(categoryName: string): string | undefined {
+    const category = this.categories.find(c => c.name === categoryName);
+    return category?.icon;
+  }
+
 }

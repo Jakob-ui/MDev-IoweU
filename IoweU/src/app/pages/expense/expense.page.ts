@@ -10,7 +10,7 @@ import {
   IonBadge,
   IonCard,
   IonButton,
-  IonIcon,
+  IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonSearchbar, IonSelect, IonSelectOption, IonLabel,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -19,6 +19,7 @@ import { GroupService } from '../../services/group.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Members } from 'src/app/services/objects/Members';
+import {FormsModule} from "@angular/forms";
 
 @Component({
   selector: 'app-expense',
@@ -37,6 +38,13 @@ import { Members } from 'src/app/services/objects/Members';
     RouterModule,
     IonButton,
     IonIcon,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent,
+    IonSearchbar,
+    IonSelect,
+    IonSelectOption,
+    FormsModule,
+    IonLabel,
   ],
 })
 export class ExpensePage implements OnInit, OnDestroy {
@@ -67,6 +75,27 @@ export class ExpensePage implements OnInit, OnDestroy {
   groupedExpenses: { date: string; expenses: Expenses[] }[] = [];
 
   updateExpensesCallback: (() => void) | null = null;
+
+  visibleGroupedExpenses: { date: string; expenses: Expenses[] }[] = [];
+  private pageSize = 10;
+  private currentIndex = 0;
+
+  searchTerm: string = '';
+  selectedCategories: string[] = [];
+  dropdownOpen: boolean = false;
+
+
+  categories = [
+    { name: 'Lebensmittel', icon: 'fast-food-outline' },
+    { name: 'Einkäufe', icon: 'cart-outline' },
+    { name: 'Restaurant/Bar', icon: 'wine-outline' },
+    { name: 'Transport', icon: 'car-outline' },
+    { name: 'Freizeit', icon: 'game-controller-outline' },
+    { name: 'Wohnen', icon: 'home-outline' },
+    { name: 'Rechnungen', icon: 'receipt-outline' },
+    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
+  ];
+
 
   async ngOnInit() {
     this.loadingService.show();
@@ -163,7 +192,7 @@ export class ExpensePage implements OnInit, OnDestroy {
               this.expenses = Array.isArray(expensestest) ? expensestest : [];
 
               // Neue Zeile für Gruppierung
-              this.groupExpensesByDate();
+              this.groupExpensesByDate(this.expenses);
 
               const { total, count } = this.expenseService.calculateBalance(
                 this.expenses
@@ -181,12 +210,19 @@ export class ExpensePage implements OnInit, OnDestroy {
               );*/
             }
           );
+          setTimeout(() => {
+            const infiniteScrollEl = document.querySelector('ion-infinite-scroll') as HTMLIonInfiniteScrollElement;
+            if (infiniteScrollEl) {
+              infiniteScrollEl.disabled = false;
+            }
+          }, 0);
       } else {
         console.error('Kein Benutzer eingeloggt.');
       }
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
+      document.addEventListener('click', this.closeDropdownOnClickOutside.bind(this));
       this.loadingService.hide();
     }
   }
@@ -196,7 +232,16 @@ export class ExpensePage implements OnInit, OnDestroy {
       this.updateExpensesCallback();
       console.log('Unsubscribed from expense updates');
     }
+    document.addEventListener('click', this.closeDropdownOnClickOutside.bind(this));
   }
+
+  closeDropdownOnClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.Kategorie')) {
+      this.dropdownOpen = false;
+    }
+  }
+
 
   async logout() {
     this.loadingService.show();
@@ -251,29 +296,54 @@ export class ExpensePage implements OnInit, OnDestroy {
     return 'neutral';
   }
 
-  groupExpensesByDate() {
-    const grouped: { [key: string]: Expenses[] } = {};
+  filterExpenses() {
+    let filteredExpenses = this.expenses;
 
-    for (const expense of this.expenses) {
-      const formattedDate = new Date(expense.date).toISOString().split('T')[0]; //YYYY-MM-DD
-      if (!grouped[formattedDate]) {
-        grouped[formattedDate] = [];
+    // Wenn "Alle" ausgewählt wurde, sollen alle Ausgaben angezeigt werden
+    if (this.selectedCategories && this.selectedCategories.length > 0) {
+      if (this.selectedCategories.includes("Alle")) {
+        // Wenn "Alle" ausgewählt ist, zeige alle Ausgaben ohne Filterung nach Kategorien
+        filteredExpenses = this.expenses;
+      } else {
+        // Andernfalls filtere nach den ausgewählten Kategorien
+        filteredExpenses = filteredExpenses.filter(expense =>
+          expense.category && this.selectedCategories.includes(expense.category)
+        );
       }
-      grouped[formattedDate].push(expense);
     }
 
-    // Sortieren nach Datum absteigend (neuestes Datum zuerst)
-    const sortedDates = Object.keys(grouped).sort((a, b) => {
-      return new Date(b).getTime() - new Date(a).getTime();
-    });
+    // Filter nach Suchbegriff
+    if (this.searchTerm) {
+      filteredExpenses = filteredExpenses.filter(expense =>
+        expense.description.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
+    }
 
-    // Sortiere innerhalb jeder Gruppe nach Uhrzeit absteigend
-    this.groupedExpenses = sortedDates.map((date) => ({
-      date,
-      expenses: grouped[date].sort((a, b) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      }),
-    }));
+    this.groupExpensesByDate(filteredExpenses);
+  }
+
+
+
+  groupExpensesByDate(expenses: Expenses[]) {
+    const grouped: { [key: string]: Expenses[] } = {};
+
+    for (const expense of expenses) {
+      const date = new Date(expense.date).toISOString().split('T')[0];
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(expense);
+    }
+
+    // In korrektes Format umwandeln und nach Datum sortieren (neueste zuerst)
+    this.groupedExpenses = Object.keys(grouped)
+      .map((date) => ({
+        date: date,
+        expenses: grouped[date],
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    this.visibleGroupedExpenses = this.groupedExpenses.slice(0, this.pageSize);
   }
 
   getFirstLetter(paidBy: string): string {
@@ -287,4 +357,48 @@ export class ExpensePage implements OnInit, OnDestroy {
   goBack() {
     this.router.navigate(['/group', this.groupId]);
   }
+
+  loadMoreExpenses(event: any) {
+    setTimeout(() => {
+      this.currentIndex += this.pageSize;
+      const nextItems = this.groupedExpenses.slice(0, this.currentIndex + this.pageSize);
+      this.visibleGroupedExpenses = nextItems;
+
+      event.target.complete();
+
+      // Wenn alles geladen ist, disable infinite scroll
+      if (this.visibleGroupedExpenses.length >= this.groupedExpenses.length) {
+        event.target.disabled = true;
+      }
+    }, 500);
+  }
+
+  onCategoryDropdownClick(event: Event) {
+    event.stopPropagation();
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+// Wählt eine Kategorie aus
+  selectCategories(category: { name: string; icon: string }, event: Event) {
+    event.stopPropagation();
+
+    // Toggle-Verhalten für einfache Auswahl
+    if (this.selectedCategories.includes(category.name)) {
+      this.selectedCategories = this.selectedCategories.filter(
+        (cat) => cat !== category.name
+      );
+    } else {
+      this.selectedCategories = [category.name]; // Single-Select – nur eine Kategorie gleichzeitig
+    }
+
+    this.dropdownOpen = false;
+    this.filterExpenses();
+  }
+
+// Gibt Icon für ausgewählte Kategorie zurück
+  getCategoryIcon(categoryName: string): string {
+    const found = this.categories.find((cat) => cat.name === categoryName);
+    return found?.icon || 'help-outline';
+  }
+
 }
