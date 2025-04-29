@@ -3,14 +3,13 @@ import { CommonModule } from '@angular/common';
 import {
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
   IonItem,
   IonList,
   IonBadge,
   IonCard,
   IonButton,
-  IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonSearchbar, IonSelect, IonSelectOption, IonLabel,
+  IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonSearchbar, IonLabel,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -41,8 +40,6 @@ import {FormsModule} from "@angular/forms";
     IonInfiniteScroll,
     IonInfiniteScrollContent,
     IonSearchbar,
-    IonSelect,
-    IonSelectOption,
     FormsModule,
     IonLabel,
   ],
@@ -109,7 +106,6 @@ export class ExpensePage implements OnInit, OnDestroy {
         this.displayName = this.authService.currentUser.username;
 
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-        console.log('Benutzer GroupId:', groupId);
 
         if (groupId) {
           const currentGroup = await this.groupService.getGroupById(groupId);
@@ -199,8 +195,6 @@ export class ExpensePage implements OnInit, OnDestroy {
               );
               this.sumExpenses = total;
               this.countExpenses = count;
-              console.log(this.sumExpenses);
-              console.log(this.countExpenses);
               /*this.expenseService.updateSums(
                 this.groupId || '',
                 this.sumExpenses,

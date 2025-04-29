@@ -27,7 +27,7 @@
     </div>
 
     <div *ngIf="showQRCode" class="qr-code-wrapper">
-      <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>
+      <qrcode [qrdata]="qrCodeValue  || 'default-value'" [width]="256" [errorCorrectionLevel]="'M'" [allowEmptyString]= 'true'></qrcode>
     </div>
 
 

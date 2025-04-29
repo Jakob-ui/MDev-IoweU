@@ -44,17 +44,19 @@ export class GroupOverviewPage implements OnInit {
 
   username: string | null = '';
   iosIcons: boolean = false;
-  groups: { name: string; myBalance: number; link: string }[] = [];
+  groups: { name: string; myBalance: number; link: string; position?: number }[] = [];
 
   draggedGroup: any = null;
   isEditMode = false;
   touchStartY: number | null = null;
   longPressTimeout: any = null;
+  autoScrollInterval: any = null;
 
   constructor() {}
 
   async ngOnInit() {
     this.loadingService.show();
+    
 
     try {
       await this.authService.waitForUser();
@@ -96,7 +98,7 @@ export class GroupOverviewPage implements OnInit {
         this.unsubscribeFromGroups = await this.groupService.getGroupsByUserId(
           uid,
           (groups) => {
-            this.groups = groups.map((group) => {
+            this.groups = groups.map((group, index) => {
               // Berechne myBalance für jedes Mitglied der Gruppe
               const myBalance = group.members.reduce((totalBalance, member) => {
                 // Berechnung der Bilanz für jedes Mitglied
@@ -113,6 +115,7 @@ export class GroupOverviewPage implements OnInit {
                 name: group.groupname,
                 myBalance: myBalance, // Berechnete Bilanz für das eingeloggte Mitglied
                 link: group.groupId,
+                position: index, // Position in der Liste
               };
             });
           }
@@ -148,6 +151,8 @@ export class GroupOverviewPage implements OnInit {
 
   stopEditMode() {
     this.isEditMode = false;
+    this.draggedGroup = null;
+    this.touchStartY = null;
   }
 
   onLongPressStart(group: any) {
@@ -162,18 +167,66 @@ export class GroupOverviewPage implements OnInit {
 
   // Für Desktop Drag & Drop
   onDragStart(event: DragEvent, group: any) {
+    if (!this.isEditMode) return;
     this.draggedGroup = group;
+
+    if (event instanceof MouseEvent) {
+      this.touchStartY = event.clientY;
+    }
+    event.dataTransfer?.setData("group", JSON.stringify(group));
+
   }
 
-  onDrop(event: DragEvent, targetGroup: any) {
-    event.preventDefault();
-    this.swapGroups(targetGroup);
+  onMouseMove(event: MouseEvent) {
+    if (!this.isEditMode || !this.draggedGroup) return;
+  
+    // Scrollen aktivieren
+    this.checkAutoScroll(event.clientY);
+  
+    // Hier könntest du die Logik fürs Verschieben der Gruppen aufrufen (swapping)
+    // Hier braucht es noch eine Logik für das Vertauschen, wie du es oben in `onTouchMove` gemacht hast
+    this.onDragMove(event.clientY);
+  }
+
+  onDragMove(touchY: number) {
+    if (!this.isEditMode || !this.draggedGroup) return;
+  
+    const draggedIndex = this.groups.indexOf(this.draggedGroup);
+  
+    // Findet das Ziel-Element und überprüft, ob die Position geändert werden soll
+    const elements = Array.from(document.querySelectorAll('.my-groups'));
+    let targetIndex = -1;
+  
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i] as HTMLElement;
+      const rect = el.getBoundingClientRect();
+      if (touchY > rect.top && touchY < rect.bottom) {
+        targetIndex = i;
+        break;
+      }
+    }
+  
+    if (targetIndex !== -1 && targetIndex !== draggedIndex) {
+      this.swapGroups(this.groups[targetIndex]);
+    }
+  }
+  
+  onDragEnd(event: MouseEvent) {
+    this.stopAutoScroll();
     this.draggedGroup = null;
   }
 
   allowDrop(event: DragEvent) {
     event.preventDefault();
   }
+
+  onDrop(event: DragEvent, targetGroup: any) {
+    event.preventDefault();
+    if (!this.draggedGroup) return;
+    this.swapGroups(targetGroup);
+    //this.draggedGroup = null;
+  }
+
 
   swapGroups(targetGroup: any) {
     const fromIndex = this.groups.indexOf(this.draggedGroup);
@@ -190,19 +243,97 @@ export class GroupOverviewPage implements OnInit {
   // Für Touch Drag & Drop
   onTouchStart(event: TouchEvent, group: any) {
     if (!this.isEditMode) return;
-    this.draggedGroup = group;
+
+    // Nur setzen, wenn noch kein Drag aktiv ist
+    if (!this.draggedGroup) {
+      this.draggedGroup = group;
+    }
+  
     this.touchStartY = event.touches[0].clientY;
   }
 
+  // Touch-Drag-Move Logik
   onTouchMove(event: TouchEvent, group: any) {
+    this.checkAutoScroll(event.touches[0].clientY);
     if (!this.isEditMode || !this.draggedGroup) return;
-
-    const currentY = event.touches[0].clientY;
-    const deltaY = currentY - (this.touchStartY ?? 0);
-
-    if (Math.abs(deltaY) > 40) {
-      this.swapGroups(group);
-      this.touchStartY = currentY;
+  
+    const touchY = event.touches[0].clientY;
+  
+    // Finde das Element, über dem du dich gerade befindest
+    const elements = Array.from(document.querySelectorAll('.my-groups'));
+    let targetIndex = -1;
+  
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i] as HTMLElement;
+      const rect = el.getBoundingClientRect();
+      if (touchY > rect.top && touchY < rect.bottom) {
+        targetIndex = i;
+        break;
+      }
+    }
+  
+    const draggedIndex = this.groups.indexOf(this.draggedGroup);
+  
+    if (targetIndex !== -1 && targetIndex !== draggedIndex) {
+      const moved = this.groups.splice(draggedIndex, 1)[0];
+      this.groups.splice(targetIndex, 0, moved);
+      this.updateGroupPositions();
     }
   }
+
+  onTouchEnd(event: TouchEvent) {
+    this.stopAutoScroll();
+    if (this.isEditMode && this.draggedGroup) {
+      // Hier könntest du eine Logik ergänzen, z. B. zum Speichern der Reihenfolge
+    }
+  }
+
+  isDraggedGroup(group: any): boolean {
+    return this.draggedGroup === group;
+  }
+  
+  updateGroupPositions() {
+    this.groups.forEach((group, index) => {
+      group.position = index;
+    });
+  }
+
+  getGroupOffset(index: number): number {
+    if (!this.isEditMode) return 0;
+    return index * 10; // Beispieloffset – du passt das gleich optisch an
+  }
+
+  checkAutoScroll(touchY: number) {
+    const edgeThreshold = 80; // Abstand vom oberen oder unteren Rand
+    const scrollSpeed = 10;   // Geschwindigkeit des Scrollens
+  
+    const container = document.querySelector('ion-content')?.shadowRoot?.querySelector('.inner-scroll') as HTMLElement;
+  
+    if (!container) return;
+  
+    const containerRect = container.getBoundingClientRect();
+  
+    if (touchY - containerRect.top < edgeThreshold) {
+      // Scroll nach oben
+      this.autoScrollInterval = setInterval(() => {
+        container.scrollBy(0, -scrollSpeed);
+      }, 20);
+    } else if (containerRect.bottom - touchY < edgeThreshold) {
+      // Scroll nach unten
+      this.autoScrollInterval = setInterval(() => {
+        container.scrollBy(0, scrollSpeed);
+      }, 20);
+    } else {
+      // Kein Scrollen nötig
+      this.stopAutoScroll();
+    }
+  }
+  
+  stopAutoScroll() {
+    if (this.autoScrollInterval) {
+      clearInterval(this.autoScrollInterval);
+      this.autoScrollInterval = null;
+    }
+  }
+
 }

@@ -137,8 +137,7 @@ export class GroupPage implements OnInit {
 
   ngOnDestroy() {
     if (this.updateGroupCallback) {
-      this.updateGroupCallback(); // Entfernt den Echtzeit-Listener
-      console.log('Echtzeit-Listener entfernt.');
+      this.updateGroupCallback();
     }
   }
 
@@ -178,8 +177,6 @@ export class GroupPage implements OnInit {
 
             // Überprüfe, ob Features in der DB vorhanden sind
             this.canAddFeatures = this.features.length === 0;
-
-            console.log('Echtzeit-Update der Gruppe:', group);
           } else {
             console.warn('Gruppe nicht gefunden!');
           }

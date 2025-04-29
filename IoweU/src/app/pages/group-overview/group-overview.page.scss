@@ -50,9 +50,23 @@ ion-card {
   margin-bottom: 20px;
 }
 
-.my-groups.edit-mode {
-  animation: wiggle 0.4s infinite;
-  cursor: grab;
+.my-groups {
+  transition: transform 200ms ease;
+  position: relative;
+  z-index: 1;
+  touch-action: pan-y;
+
+  &.edit-mode {
+    animation: wiggle 0.3s ease-in-out infinite;
+    cursor: grab;
+    transition: transform 0.15s ease-in-out;
+  }
+
+  &.dragging {
+    transform: scale(1.02);
+    z-index: 10;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
 }
 
 @keyframes wiggle {
