@@ -861,10 +861,6 @@ body.color-blind {
 .member-username {
   color: #2f2f2f;
 }
-.alert-button-inner.sc-ion-alert-md {
-  color: var(--ion-color-dark) !important;
- 
-}
 
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
@@ -943,14 +939,26 @@ body.color-blind {
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
+
   .info-button{
     color: #000;
   } 
+
   ion-icon.qr-code-icon,
   ion-icon.edit-button,
   ion-icon.logout-button,
   ion-icon.back-button {
     color: #000 !important;
+  }
+
+  .button-container{
+    background-color: #121212 !important;
+  }
+  .backdrop-wrapper{
+    background-color: #121212 !important;
+  }
+  ion-toolbar {
+    background-color: #121212 !important;
   }
   ion-list {
     background-color: #121212 !important;
@@ -966,5 +974,3 @@ body.color-blind {
    
   }
 }
-
-
