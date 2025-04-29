@@ -37,10 +37,10 @@
     </ion-card>
 
     <ion-list class="expense-list">
-      <ng-container *ngFor="let group of groupedExpenses">
-    <span class="date">
-      {{ group.date | date: 'dd.MM.yyyy' }}
-    </span>
+      <ng-container *ngFor="let group of visibleGroupedExpenses">
+        <span class="date">
+          {{ group.date | date: 'dd.MM.yyyy' }}
+        </span>
 
         <ion-item
           class="info-item"
@@ -69,6 +69,13 @@
         </ion-item>
       </ng-container>
     </ion-list>
+
+    <ion-infinite-scroll (ionInfinite)="loadMoreExpenses($event)">
+      <ion-infinite-scroll-content
+        loadingSpinner="bubbles"
+        loadingText="Weitere Ausgaben werden geladen...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
 
 
     <div class="button-container">

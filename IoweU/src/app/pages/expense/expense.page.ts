@@ -10,7 +10,7 @@ import {
   IonBadge,
   IonCard,
   IonButton,
-  IonIcon,
+  IonIcon, IonInfiniteScroll, IonInfiniteScrollContent,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -37,6 +37,8 @@ import { Members } from 'src/app/services/objects/Members';
     RouterModule,
     IonButton,
     IonIcon,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent,
   ],
 })
 export class ExpensePage implements OnInit, OnDestroy {
@@ -67,6 +69,11 @@ export class ExpensePage implements OnInit, OnDestroy {
   groupedExpenses: { date: string; expenses: Expenses[] }[] = [];
 
   updateExpensesCallback: (() => void) | null = null;
+
+  visibleGroupedExpenses: { date: string; expenses: Expenses[] }[] = [];
+  private pageSize = 10;
+  private currentIndex = 0;
+
 
   async ngOnInit() {
     this.loadingService.show();
@@ -181,6 +188,12 @@ export class ExpensePage implements OnInit, OnDestroy {
               );*/
             }
           );
+          setTimeout(() => {
+            const infiniteScrollEl = document.querySelector('ion-infinite-scroll') as HTMLIonInfiniteScrollElement;
+            if (infiniteScrollEl) {
+              infiniteScrollEl.disabled = false;
+            }
+          }, 0);
       } else {
         console.error('Kein Benutzer eingeloggt.');
       }
@@ -255,26 +268,26 @@ export class ExpensePage implements OnInit, OnDestroy {
     const grouped: { [key: string]: Expenses[] } = {};
 
     for (const expense of this.expenses) {
-      const formattedDate = new Date(expense.date).toISOString().split('T')[0]; //YYYY-MM-DD
-      if (!grouped[formattedDate]) {
-        grouped[formattedDate] = [];
+      const date = new Date(expense.date).toISOString().split('T')[0];
+      if (!grouped[date]) {
+        grouped[date] = [];
       }
-      grouped[formattedDate].push(expense);
+      grouped[date].push(expense);
     }
 
-    // Sortieren nach Datum absteigend (neuestes Datum zuerst)
-    const sortedDates = Object.keys(grouped).sort((a, b) => {
-      return new Date(b).getTime() - new Date(a).getTime();
-    });
+    // In korrektes Format umwandeln und nach Datum sortieren (neueste zuerst)
+    this.groupedExpenses = Object.keys(grouped)
+      .map((date) => ({
+        date: date,
+        expenses: grouped[date],
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    // Sortiere innerhalb jeder Gruppe nach Uhrzeit absteigend
-    this.groupedExpenses = sortedDates.map((date) => ({
-      date,
-      expenses: grouped[date].sort((a, b) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      }),
-    }));
+    // Nur den Anfang anzeigen
+    this.currentIndex = 0;
+    this.visibleGroupedExpenses = this.groupedExpenses.slice(0, this.pageSize);
   }
+
 
   getFirstLetter(paidBy: string): string {
     const member = this.groupMembers.find((m) => m.uid === paidBy);
@@ -287,4 +300,21 @@ export class ExpensePage implements OnInit, OnDestroy {
   goBack() {
     this.router.navigate(['/group', this.groupId]);
   }
+
+  loadMoreExpenses(event: any) {
+    setTimeout(() => {
+      this.currentIndex += this.pageSize;
+      const nextItems = this.groupedExpenses.slice(0, this.currentIndex + this.pageSize);
+      this.visibleGroupedExpenses = nextItems;
+
+      event.target.complete();
+
+      // Wenn alles geladen ist, disable infinite scroll
+      if (this.visibleGroupedExpenses.length >= this.groupedExpenses.length) {
+        event.target.disabled = true;
+      }
+    }, 500);
+  }
+
+
 }
