@@ -62,6 +62,8 @@ export class ExpenseService {
         expenseId,
         description: expenseData.description,
         totalAmount: expenseData.totalAmount,
+        totalAmountInForeignCurrency: expenseData.totalAmountInForeignCurrency || 0,
+        exchangeRate: expenseData.exchangeRate || 0,
         paidBy: expenseData.paidBy,
         date: expenseData.date
           ? new Date(expenseData.date).toISOString()
@@ -72,7 +74,7 @@ export class ExpenseService {
         repeat: expenseData.repeat,
         splitType: expenseData.splitType,
         splitBy: expenseData.splitBy,
-        expenseMember: expenseMembersData, // → wird 1:1 übernommen, inkl. paidBy & products
+        expenseMember: expenseMembersData,
       };
 
       // In Firestore speichern

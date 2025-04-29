@@ -141,6 +141,7 @@ export class CreateExpensePage {
   selectedCurrency: string = 'EUR';
   exchangeRate: number = 1;
   foreignAmount: number = 0;
+  foreignAmountToPay: { [memberId: string]: number } = {};
 
   showAddProductButton: { [key: string]: boolean } = {};
   showProductInputFields: { [key: string]: boolean } = {};
@@ -714,6 +715,7 @@ export class CreateExpensePage {
     if (this.expense.splitType === 'prozent') {
       this.updatePercentageValues();
     }
+
   }
 
   private updatePercentageValues() {
@@ -836,7 +838,19 @@ export class CreateExpensePage {
         };
       });
 
+      // Berechnung des Gesamtbetrags (in Fremdwährung, falls vorhanden)
       this.updateTotalAmount();
+
+      // Wenn eine Fremdwährung gewählt wurde, berechne totalAmountInForeignCurrency
+      if (this.selectedCurrency !== 'EUR') {
+        this.expense.totalAmountInForeignCurrency = +(this.expense.totalAmount / this.exchangeRate).toFixed(2); // Betrag in Fremdwährung
+        this.expense.exchangeRate = this.exchangeRate; // Speichere den Wechselkurs
+      } else {
+        this.expense.totalAmountInForeignCurrency = 0; // Kein Fremdwährungsbetrag, wenn EUR gewählt wurde
+        this.expense.exchangeRate = 1; // EUR hat keinen Wechselkurs
+      }
+
+      // totalAmount muss immer den Betrag in EUR enthalten
       this.expense.totalAmount = Number(this.expense.totalAmount.toFixed(2));
 
       // Wenn Rechnung ausgewählt wurde → hochladen und URL setzen
@@ -903,6 +917,25 @@ export class CreateExpensePage {
     if (this.selectedCurrency !== 'EUR') {
       this.expense.totalAmount = +(this.foreignAmount * this.exchangeRate).toFixed(2); // totalAmount bleibt immer EUR
     }
+    if (this.expense.splitBy === 'frei'){
+      if (this.selectedCurrency !== 'EUR' && this.exchangeRate > 0) {
+        this.foreignAmount = this.expense.totalAmount / this.exchangeRate;
+      }
+    }
   }
+
+  onForeignAmountInput(memberId: string) {
+    const foreignAmount = this.foreignAmountToPay[memberId] || 0;
+
+    // Umrechnen in EUR und in amountToPay speichern
+    if (this.exchangeRate > 0) {
+      const euroValue = +(foreignAmount * this.exchangeRate).toFixed(2);
+      this.amountToPay[memberId] = euroValue;
+    } else {
+      this.amountToPay[memberId] = 0;
+    }
+    this.onAmountToPayChange();
+  }
+
 
 }
