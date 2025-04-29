@@ -5,6 +5,8 @@ export interface Expenses {
   expenseId: string;
   description: string;
   totalAmount: number;
+  totalAmountInForeignCurrency?: number;
+  exchangeRate?: number;
   paidBy: string;
   date: string;
   currency: string[];

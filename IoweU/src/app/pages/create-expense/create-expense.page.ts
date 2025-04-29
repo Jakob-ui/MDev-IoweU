@@ -2,6 +2,7 @@ import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { addIcons } from 'ionicons';
 import {
   fastFoodOutline,
@@ -83,6 +84,7 @@ import { NgxImageCompressService } from 'ngx-image-compress';
     IonBadge,
     IonNote,
     IonText,
+    HttpClientModule,
   ],
 })
 export class CreateExpensePage {
@@ -96,6 +98,7 @@ export class CreateExpensePage {
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
   private imageService = inject(ImageService);
+  private http = inject(HttpClient);
   constructor(private imageCompress: NgxImageCompressService) {}
 
   groupname: string = '';
@@ -134,7 +137,10 @@ export class CreateExpensePage {
 
   paidByDropdownOpen: boolean = false;
   selectedMember: any = null;
-  selectedCurrency: string = 'EUR'; // Standardwährung
+
+  selectedCurrency: string = 'EUR';
+  exchangeRate: number = 1;
+  foreignAmount: number = 0;
 
   showAddProductButton: { [key: string]: boolean } = {};
   showProductInputFields: { [key: string]: boolean } = {};
@@ -149,6 +155,8 @@ export class CreateExpensePage {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
     description: '',
     totalAmount: 0,
+    totalAmountInForeignCurrency: 0,
+    exchangeRate: 0,
     paidBy: '',
     date: new Date().toISOString().split('T')[0],
     currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'], // Verfügbare Währungen
@@ -331,11 +339,6 @@ export class CreateExpensePage {
     }
   }
 
-  selectCurrency(currency: string) {
-    this.selectedCurrency = currency;
-    this.expense.currency = [currency];
-    this.dropdownOpen = false;
-  }
   togglePaidByDropdown(event: Event) {
     this.paidByDropdownOpen = !this.paidByDropdownOpen; // Öffnen/Schließen des Dropdowns
     event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
@@ -871,4 +874,35 @@ export class CreateExpensePage {
   toggleInvoiceDropdown() {
     this.invoiceDropdownOpen = !this.invoiceDropdownOpen;
   }
+
+  selectCurrency(newCurrency: string) {
+    this.selectedCurrency = newCurrency;
+    this.foreignAmount = 0;
+    this.expense.totalAmount = 0;
+
+    if (newCurrency === 'EUR') {
+      this.exchangeRate = 1;
+      return;
+    }
+
+    const url = `https://api.frankfurter.app/latest?from=${newCurrency}&to=EUR`;
+    this.http.get<any>(url).subscribe({
+      next: (data) => {
+        this.exchangeRate = data.rates['EUR'];
+        console.log(`Wechselkurs geladen: 1 ${newCurrency} = ${this.exchangeRate} EUR`);
+      },
+      error: (err) => {
+        console.error('Fehler beim Laden des Wechselkurses:', err);
+        this.exchangeRate = 1;
+      },
+    });
+  }
+
+// Bei Fremdwährungsbetrag-Eingabe
+  onForeignAmountChange() {
+    if (this.selectedCurrency !== 'EUR') {
+      this.expense.totalAmount = +(this.foreignAmount * this.exchangeRate).toFixed(2); // totalAmount bleibt immer EUR
+    }
+  }
+
 }
