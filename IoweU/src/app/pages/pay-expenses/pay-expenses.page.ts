@@ -45,10 +45,11 @@ addIcons({
   'ellipsis-horizontal-outline': ellipsisHorizontalOutline,
 });
 
+
 @Component({
-  selector: 'app-expense-details',
-  templateUrl: './expense-details.page.html',
-  styleUrls: ['./expense-details.page.scss'],
+  selector: 'app-pay-expenses',
+  templateUrl: './pay-expenses.page.html',
+  styleUrls: ['./pay-expenses.page.scss'],
   standalone: true,
   imports: [
     IonContent,
@@ -61,7 +62,7 @@ addIcons({
     IonBadge,
   ],
 })
-export class ExpenseDetailsPage {
+export class PayExpensesPage {
   private authService = inject(AuthService);
   private router = inject(Router);
   private activeRoute = inject(ActivatedRoute);
@@ -328,40 +329,8 @@ export class ExpenseDetailsPage {
     return userEntry?.amountToPay ?? 0;
   }
 
-  async logout() {
-    try {
-      await this.authService.logout();
-      this.router.navigate(['login']);
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
   goBack() {
     this.navCtrl.back();
-  }
-  editExpense() {
-    if (this.expenseId) {
-      this.router.navigate(['/edit-expense', this.groupId, this.expenseId], {
-        queryParams: {
-          repeating: this.repeatingExpense, // true oder false übergeben
-        },
-      });
-    } else {
-      console.error('Expense ID not found');
-    }
-  }
-
-  payExpense() {
-    if (this.expenseId) {
-      this.router.navigate(['/pay-expenses', this.groupId, this.expenseId], {
-        queryParams: {
-          repeating: this.repeatingExpense, // true oder false übergeben
-        },
-      });
-    } else {
-      console.error('Expense ID not found');
-    }
   }
 
   getPaidByName(uid: string): string {

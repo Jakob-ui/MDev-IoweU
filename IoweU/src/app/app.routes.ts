@@ -147,7 +147,13 @@ export const routes: Routes = [
     ),
     canActivate: [AuthGuard],
   },
-
+  {
+    path: 'pay-expenses/:groupId/:expenseId',
+    loadComponent: () => import('./pages/pay-expenses/pay-expenses.page').then(
+      (m) => m.PayExpensesPage
+    ),
+    canActivate: [AuthGuard],
+  },
   {
     path: 'not-found',
     loadComponent: () =>
@@ -158,6 +164,8 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'not-found',
   },
+
+
 
 
 
