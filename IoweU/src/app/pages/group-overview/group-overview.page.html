@@ -35,8 +35,10 @@
     <ion-list class="group-list" *ngIf="groups.length > 0">
       <ion-card
         class="my-groups"
-        *ngFor="let group of groups"
+        *ngFor="let group of groups; index as i"
+        [style.transform]="'translateY(' + getGroupOffset(i) + 'px)'"
         [class.edit-mode]="isEditMode"
+        [class.dragging]="isDraggedGroup(group)"
         [draggable]="isEditMode"
         (click)="!isEditMode && navigateToGroup(group.link)"
         (mousedown)="onLongPressStart(group)"
