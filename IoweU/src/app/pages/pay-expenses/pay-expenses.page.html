@@ -14,12 +14,6 @@
         (click)="toggleInvoiceOverlay()"
         [src]="iosIcons ? 'assets/icon/ionicons/ios-paper.svg' : 'assets/icon/ionicons/md-paper.svg'"
       ></ion-icon>
-
-      <ion-icon
-        class="edit-button"
-        (click)="toggleInvoiceOverlay()"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-paper.svg' : 'assets/icon/ionicons/md-paper.svg'"
-      ></ion-icon>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -56,7 +50,7 @@
 
   <div class="page-container" *ngIf="expense">
     <div class="titel">
-      <h4>Du möchtest die Ausgabe</h4>
+      <h4>Du möchtest deinen Anteil an der Ausgabe</h4>
       <h2>{{ expense[0].description }}</h2>
       <h4>begleichen!</h4>
     </div>
@@ -128,6 +122,11 @@
             </li>
           </ul>
         </div>
+      <ion-button
+        class="main-button"
+        expand="block">
+        Beleg hinzufügen
+      </ion-button>
 
     </ng-container>
 
@@ -136,7 +135,7 @@
       <ion-button
         class="main-button"
         expand="block">
-        Schulden beglichen
+        Schulden wurden beglichen
       </ion-button>
     </div>
   </div>

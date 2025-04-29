@@ -159,9 +159,21 @@
       <ion-button
         class="main-button"
         expand="block"
-        (click)="payExpense()">
+        (click)="payExpense()"
+        *ngIf="expense[0].paidBy !== uid!"
+      >
         Schulden begleichen
       </ion-button>
+
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="requestExpense()"
+        *ngIf="expense[0].paidBy === uid!"
+      >
+        Schulden anfordern
+      </ion-button>
     </div>
+
   </div>
 </ion-content>
