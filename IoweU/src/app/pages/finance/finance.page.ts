@@ -75,89 +75,95 @@ export class FinancePage implements OnInit {
     this.loadingService.show();
 
     try {
-      const currentUser = this.authService.currentUser;
+      await this.authService.waitForUser();
 
-      if (!currentUser || !currentUser.uid || !currentUser.username) {
-        console.error('Kein Benutzer eingeloggt oder unvollständige Benutzerdaten.');
-        return;
-      }
+      if (this.authService.currentUser) {
+        const currentUser = this.authService.currentUser;
+        console.log(currentUser);
 
-      this.uid = currentUser.uid;
-      this.user = currentUser.username;
-      this.displayName = currentUser.username;
-      console.log('Benutzerdaten:', currentUser);
-
-      const rawGroupId = this.activeRoute.snapshot.paramMap.get('groupId');
-
-      if (!rawGroupId) {
-        console.error('Kein GroupId für den Benutzer gefunden');
-        this.groupname = 'Unbekannte Gruppe';
-        return;
-      }
-
-      const groupId: string = rawGroupId; // jetzt garantiert kein null
-
-      const currentGroup = await this.groupService.getGroupById(groupId);
-
-      if (!currentGroup) {
-        console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
-        this.groupname = 'Unbekannte Gruppe';
-        return;
-      }
-
-      this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-      this.groupId = currentGroup.groupId || '';
-
-      if (!currentGroup.members || currentGroup.members.length === 0) {
-        console.error('Keine Mitglieder in der Gruppe gefunden');
-        return;
-      }
-
-      // Gruppenmitglieder laden (außer aktueller User)
-      this.groupMembers = await Promise.all(
-        currentGroup.members
-          .filter((member: any) => member.uid !== this.uid)
-          .map(async (member: any) => {
-            // Memberdaten sammeln
-            this.memberUsernames.push(member.username || '');
-            this.memberIds.push(member.memberId || '');
-            this.memberColors.push(member.color || '');
-            this.memberRoles.push(member.role || '');
-            this.memberUids.push(member.uid || '');
-
-            // Nur berechnen, wenn beide UIDs vorhanden sind
-            let saldo = 0;
-
-            if (member.uid && this.uid) {
-              const amount = await this.expenseService.getBalanceBetweenUsers(
-                groupId,
-                member.uid,
-                this.uid
-              );
-
-              const saldo = amount; // Positiv bedeutet: Ich bekomme Geld
-              console.log(`Saldo zwischen ${this.user} und ${member.username}: ${saldo}`);
-
-              if (saldo > 0) {
-                this.myIncome += saldo;
-              } else {
-                this.myExpenses += Math.abs(saldo);
+        if (!currentUser || !currentUser.uid || !currentUser.username) {
+          console.error('Kein Benutzer eingeloggt oder unvollständige Benutzerdaten.');
+          return;
+        }
+  
+        this.uid = currentUser.uid;
+        this.user = currentUser.username;
+        this.displayName = currentUser.username;
+        console.log('Benutzerdaten:', currentUser);
+  
+        const rawGroupId = this.activeRoute.snapshot.paramMap.get('groupId');
+  
+        if (!rawGroupId) {
+          console.error('Kein GroupId für den Benutzer gefunden');
+          this.groupname = 'Unbekannte Gruppe';
+          return;
+        }
+  
+        const groupId: string = rawGroupId; // jetzt garantiert kein null
+  
+        const currentGroup = await this.groupService.getGroupById(groupId);
+  
+        if (!currentGroup) {
+          console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
+          this.groupname = 'Unbekannte Gruppe';
+          return;
+        }
+  
+        this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+        this.groupId = currentGroup.groupId || '';
+  
+        if (!currentGroup.members || currentGroup.members.length === 0) {
+          console.error('Keine Mitglieder in der Gruppe gefunden');
+          return;
+        }
+  
+        // Gruppenmitglieder laden (außer aktueller User)
+        this.groupMembers = await Promise.all(
+          currentGroup.members
+            .filter((member: any) => member.uid !== this.uid)
+            .map(async (member: any) => {
+              // Memberdaten sammeln
+              this.memberUsernames.push(member.username || '');
+              this.memberIds.push(member.memberId || '');
+              this.memberColors.push(member.color || '');
+              this.memberRoles.push(member.role || '');
+              this.memberUids.push(member.uid || '');
+  
+              // Nur berechnen, wenn beide UIDs vorhanden sind
+              let saldo = 0;
+  
+              if (member.uid && this.uid) {
+                const amount = await this.expenseService.getBalanceBetweenUsers(
+                  groupId,
+                  member.uid,
+                  this.uid
+                );
+  
+                const saldo = amount; // Positiv bedeutet: Ich bekomme Geld
+                console.log(`Saldo zwischen ${this.user} und ${member.username}: ${saldo}`);
+  
+                if (saldo > 0) {
+                  this.myIncome += saldo;
+                } else {
+                  this.myExpenses += Math.abs(saldo);
+                }
+  
+                return {
+                  ...member,
+                  amount: saldo,
+                };
               }
+            })
+        );
+  
+        console.log('Mitglieder geladen:', this.groupMembers);
+        console.log('Mein Saldo:', this.myBalance);
+        console.log('Meine Ausgaben:', this.myExpenses);
+        console.log('Mein Einkommen:', this.myIncome);
+  
+        this.iosIcons = this.platform.is('ios');
+      }
 
-              return {
-                ...member,
-                amount: saldo,
-              };
-            }
-          })
-      );
-
-      console.log('Mitglieder geladen:', this.groupMembers);
-      console.log('Mein Saldo:', this.myBalance);
-      console.log('Meine Ausgaben:', this.myExpenses);
-      console.log('Mein Einkommen:', this.myIncome);
-
-      this.iosIcons = this.platform.is('ios');
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {

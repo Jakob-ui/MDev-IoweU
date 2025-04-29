@@ -108,8 +108,8 @@ export class DetailedBalancePage implements OnInit {
               // ✅ Neue Balance-Funktion: ergibt Saldo aus Sicht des eingeloggten Users
               const saldo = await this.expenseService.getBalanceBetweenUsers(
                 validGroupId,
-                validSelectedMember,
-                this.uid!
+                this.uid!,
+                validSelectedMember
               );
 
               console.log(

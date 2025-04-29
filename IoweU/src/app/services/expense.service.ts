@@ -98,7 +98,7 @@ export class ExpenseService {
 
         const groupRef = await getDoc(doc(this.firestore, 'groups', groupId));
         const groupData = groupRef.data() as Groups;
-        await this.initializeBalancesIfNotExist(groupId, groupData.members);
+        await this.initializeLackingBalances(groupId, groupData.members);
         await this.updateBalancesOnNewExpense(groupId, expense);
 
         return expense;
@@ -534,43 +534,62 @@ export class ExpenseService {
     console.log('Zahlung erfolgreich gelöscht.');
   }
 
-  async initializeBalancesIfNotExist(
+  async initializeLackingBalances(
     groupId: string,
     members: Members[]
   ): Promise<void> {
-    const balancesRef = collection(
-      this.firestore,
-      'groups',
-      groupId,
-      'balances'
-    );
-    const snapshot = await getDocs(balancesRef);
-
-    if (snapshot.empty) {
+    const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+  
+    try {
+      const existingBalancesSnapshot = await getDocs(balancesRef);
+      const existingBalances = new Set<string>();
+  
+      // Collect existing balance pairs to avoid overwriting
+      existingBalancesSnapshot.forEach((doc) => {
+        const data = doc.data() as Balances;
+        const pairKey = this.getBalancePairKey(data.userAId, data.userBId);
+        existingBalances.add(pairKey);
+      });
+  
       const batch = writeBatch(this.firestore);
-
-      for (const from of members) {
-        for (const to of members) {
-          if (from.uid !== to.uid) {
+  
+      // Create missing balance documents for the new user
+      for (let i = 0; i < members.length; i++) {
+        for (let j = i + 1; j < members.length; j++) {
+          const memberA = members[i];
+          const memberB = members[j];
+  
+          const pairKey = this.getBalancePairKey(memberA.uid, memberB.uid);
+  
+          // Only create a new balance document if it doesn't already exist
+          if (!existingBalances.has(pairKey)) {
             const balance: Balances = {
               groupId,
-              fromMemberId: from.uid,
-              sumFrom: 0,
-              toMemberId: to.uid,
-              sumTo: 0,
-              amount: 0,
+              userAId: memberA.uid,
+              userBId: memberB.uid,
+              userACredit: 0,
+              userBCredit: 0,
               lastUpdated: new Date().toISOString(),
               relatedExpenseId: [],
             };
-            const docRef = doc(balancesRef); // generiert neue ID
+  
+            const docRef = doc(balancesRef); // Generate a new document ID
             batch.set(docRef, balance);
           }
         }
       }
-
+  
+      // Commit the batch if there are new balances to create
       await batch.commit();
-      console.log('Balances initialisiert');
+      console.log('Missing balances initialized for new members.');
+    } catch (error) {
+      console.error('Error initializing balances:', error);
     }
+  }
+  
+  private getBalancePairKey(memberAId: string, memberBId: string): string {
+    // Generate a consistent key for a pair of members, regardless of order
+    return [memberAId, memberBId].sort().join('_');
   }
 
   async updateBalancesOnNewExpense(
@@ -578,108 +597,49 @@ export class ExpenseService {
     expense: Expenses
   ): Promise<void> {
     try {
-      const balancesRef = collection(
-        this.firestore,
-        'groups',
-        groupId,
-        'balances'
-      );
-
+      const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+  
       for (const member of expense.expenseMember) {
         if (member.memberId !== expense.paidBy) {
-          const creditor = expense.paidBy;
-          const debtor = member.memberId;
+          const creditor = expense.paidBy; // The user who paid
+          const debtor = member.memberId; // The user who owes
           const amount = member.amountToPay;
-
-          // A) borrower → payer
-          const q1 = query(
+  
+          // Query for the balance document between the creditor and debtor
+          const q = query(
             balancesRef,
-            where('fromMemberId', '==', debtor),
-            where('toMemberId', '==', creditor)
+            where('userAId', 'in', [creditor, debtor]),
+            where('userBId', 'in', [creditor, debtor])
           );
-          const snapshot1 = await getDocs(q1);
-
-          if (!snapshot1.empty) {
-            const docRef = snapshot1.docs[0].ref;
-            const data = snapshot1.docs[0].data() as Balances;
-
-            await updateDoc(docRef, {
-              amount: Number((data.amount + amount).toFixed(2)),
-              sumTo: Number((data.sumTo + amount).toFixed(2)),
-              lastUpdated: new Date().toISOString(),
-              relatedExpenseId: Array.from(
-                new Set([...data.relatedExpenseId, expense.expenseId])
-              ),
-            });
-          } else {
-            //payer -> borrower
-            const q2 = query(
-              balancesRef,
-              where('fromMemberId', '==', creditor),
-              where('toMemberId', '==', debtor)
-            );
-            const snapshot1 = await getDocs(q2);
-
-            if (!snapshot1.empty) {
-              const docRef = snapshot1.docs[0].ref;
-              const data = snapshot1.docs[0].data() as Balances;
-
+          const snapshot = await getDocs(q);
+  
+          if (!snapshot.empty) {
+            const docRef = snapshot.docs[0].ref;
+            const data = snapshot.docs[0].data() as Balances;
+  
+            // Determine the direction of the balance and update accordingly
+            if (data.userAId === creditor && data.userBId === debtor) {
               await updateDoc(docRef, {
-                amount: Number((data.amount + amount).toFixed(2)),
-                sumFrom: Number((data.sumFrom + amount).toFixed(2)),
+                userACredit: Number((data.userACredit + amount).toFixed(2)),
+                lastUpdated: new Date().toISOString(),
+                relatedExpenseId: Array.from(
+                  new Set([...data.relatedExpenseId, expense.expenseId])
+                ),
+              });
+            } else if (data.userAId === debtor && data.userBId === creditor) {
+              await updateDoc(docRef, {
+                userBCredit: Number((data.userBCredit + amount).toFixed(2)),
                 lastUpdated: new Date().toISOString(),
                 relatedExpenseId: Array.from(
                   new Set([...data.relatedExpenseId, expense.expenseId])
                 ),
               });
             }
-          }
-          // else {
-          //   // Neue Balance anlegen
-          //   await addDoc(balancesRef, {
-          //     fromMemberId: debtor,
-          //     sumFrom: 0,
-          //     toMemberId: creditor,
-          //     sumTo: amount,
-          //     amount: Number(amount.toFixed(2)),
-          //     lastUpdated: new Date().toISOString(),
-          //     relatedExpenseId: [expense.expenseId],
-          //   }
-          // );
-          // }
-
-          // B) payer → borrower (negativer Betrag)
-          // const q2 = query(
-          //   balancesRef,
-          //   where('fromMemberId', '==', payer),
-          //   where('toMemberId', '==', borrower)
-          // );
-          // const snapshot2 = await getDocs(q2);
-
-          // if (!snapshot2.empty) {
-          //   const docRef = snapshot2.docs[0].ref;
-          //   const data = snapshot2.docs[0].data() as Balances;
-
-          //   await updateDoc(docRef, {
-          //     amount: Number((data.amount - amount).toFixed(2)),
-          //     lastUpdated: new Date().toISOString(),
-          //     relatedExpenseId: Array.from(
-          //       new Set([...data.relatedExpenseId, expense.expenseId])
-          //     ),
-          //   });
-          // } else {
-          //   await addDoc(balancesRef, {
-          //     fromMemberId: payer,
-          //     toMemberId: borrower,
-          //     amount: Number((-amount).toFixed(2)),
-          //     lastUpdated: new Date().toISOString(),
-          //     relatedExpenseId: [expense.expenseId],
-          //   });
-          // }
+          } 
         }
       }
     } catch (error) {
-      console.error('Fehler beim Aktualisieren der Balances: ', error);
+      console.error('Error updating balances on new expense:', error);
     }
   }
 
@@ -705,8 +665,8 @@ export class ExpenseService {
 
   async getBalanceBetweenUsers(
     groupId: string,
-    fromMemberId: string,
-    toMemberId: string
+    userAId: string,
+    userBId: string
   ): Promise<number> {
     const balancesRef = collection(
       this.firestore,
@@ -716,8 +676,8 @@ export class ExpenseService {
     );
     const q = query(
       balancesRef,
-      where('fromMemberId', '==', fromMemberId),
-      where('toMemberId', '==', toMemberId)
+      where('userAId', '==', userAId),
+      where('userBId', '==', userBId)
     );
 
     const snapshot = await getDocs(q);
@@ -725,7 +685,7 @@ export class ExpenseService {
 
     snapshot.forEach((doc) => {
       const data = doc.data() as Balances;
-      amount += data.amount;
+      amount += data.userACredit - data.userBCredit; // Berechnung der Differenz
     });
 
     return amount;
