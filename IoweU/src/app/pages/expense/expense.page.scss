@@ -102,8 +102,9 @@ ion-item.dropDownFelder::part(native) {
   margin-top: 5px !important;
 }
 .custom-search{
-  background-color: #fff !important;
+  background-color: #ffffff !important;
 }
+
 #category-icon {
  
   font-size: 18px;
@@ -129,25 +130,19 @@ ion-item.dropDownFelder::part(native) {
     color: #000000;
     font-size: 24px;
   }
-  .paid-by .custom-dropdown { 
-    background-color: #121212; 
+  
+  ion-searchbar::part(input) {
+    background-color: #ffffff !important;
+    color: #000000 !important;
   }
-  .paid-by ion-item.dropDownFelder::part(native) {
-    background-color: #121212 !important;
-  
-}
 
-.datepicker{
-  background-color: #000;
-}
-.custom-search{
-  color: #121212 !important;
-  
-}
 #category-icon {
   color: #000000;
   font-size: 18px;
 
 }
-
+.custom-search{
+color: #000;;
+}
+  
 }
