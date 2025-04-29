@@ -3,14 +3,13 @@ import { CommonModule } from '@angular/common';
 import {
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
   IonItem,
   IonList,
   IonBadge,
   IonCard,
   IonButton,
-  IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonSearchbar, IonSelect, IonSelectOption, IonLabel,
+  IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonSearchbar, IonLabel,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -41,8 +40,6 @@ import {FormsModule} from "@angular/forms";
     IonInfiniteScroll,
     IonInfiniteScrollContent,
     IonSearchbar,
-    IonSelect,
-    IonSelectOption,
     FormsModule,
     IonLabel,
   ],
