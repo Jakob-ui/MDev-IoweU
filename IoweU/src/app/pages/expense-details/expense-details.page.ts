@@ -243,36 +243,19 @@ export class ExpenseDetailsPage {
     return memberEntry?.amountToPay ?? 0;
   }
 
-  getAmountClass(expense: Expenses): string {
-    const amount = this.getUserAmount(expense);
-    const isPaidByCurrentUser = expense.paidBy === this.uid;
-    const member = expense.expenseMember.find((m) => m.memberId === this.uid);
-
-    //console.log('Aktueller Benutzer:', this.uid);
-    //console.log('Mitglieder der Ausgabe:', expense.expenseMember);
-    //console.log('Member-Daten für aktuellen Benutzer:', member);
-    //console.log('Betrag zu zahlen:', member?.amountToPay);
-
-    // Wenn der Benutzer für andere bezahlt hat
-    if (isPaidByCurrentUser) {
-      // Wenn der Benutzer nichts mehr zu zahlen hat oder sogar für andere bezahlt
-      if (member && member.amountToPay > 0) {
-        /*console.log(
-          'Der Benutzer hat für andere bezahlt, aber keinen Betrag mehr zu zahlen'
-        );*/
-        return 'positive'; // Der Benutzer hat für andere bezahlt, aber keinen eigenen Betrag mehr
-      }
+  getAmountClass(expense: Expenses, memberId: string): string {
+    const isPaidByMember = expense.paidBy === memberId;
+    const member = expense.expenseMember.find((m) => m.memberId === memberId);
+  
+    if (isPaidByMember) {
+      return 'neutral';
     }
-
-    // Wenn der Benutzer einen positiven Betrag zu zahlen hat
+  
     if (member && member.amountToPay > 0) {
-      //console.log('Der Benutzer hat einen positiven Betrag zu zahlen');
-      return 'negative'; // 👈 rot, weil der Benutzer einen Betrag zu zahlen hat
+      return 'negative';
     }
-
-    // Wenn der Betrag für den aktuellen Benutzer nicht relevant oder neutral ist
-    //console.log('Der Betrag ist für den Benutzer nicht relevant oder neutral');
-    return 'neutral'; // fallback (grau)
+  
+    return 'neutral';
   }
 
   hasProducts(groupMemberId: string): boolean {

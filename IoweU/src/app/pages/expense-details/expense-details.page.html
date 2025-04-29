@@ -90,7 +90,7 @@
               </ion-icon>
             </div>
           </div>
-          <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0])">
+          <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0], groupMember.uid)">
             {{ getAmountToPayForMember(expense[0], groupMember.uid) | currency:
             'EUR' }}
           </ion-badge>
