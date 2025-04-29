@@ -18,6 +18,9 @@ import {
 import { Router } from '@angular/router';
 import { elementAt } from 'rxjs';
 import { Categories } from './objects/Categories';
+import { Storage } from '@angular/fire/storage';
+import { UserService } from './user.service';
+import { ImageService } from './image.service';
 
 @Injectable({
   providedIn: 'root',
@@ -25,6 +28,8 @@ import { Categories } from './objects/Categories';
 export class GroupService {
   public router = inject(Router);
   public firestore: Firestore = inject(Firestore);
+  private userService = inject(UserService);
+  private imageService = inject(ImageService);
 
   currentGroup: Groups | null = null;
 
@@ -41,7 +46,7 @@ export class GroupService {
     name: string,
     founder: Users,
     template: string,
-    categories: Categories
+    groupImage: any
   ): Promise<void> {
     try {
       const newGroup: Groups = {
@@ -76,7 +81,12 @@ export class GroupService {
       if (template === 'Standard') {
         newGroup.features.push('Finanzübersicht');
       } else if (template === 'Projekt') {
-        newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Anlagegüter');
+        newGroup.features.push(
+          'Finanzübersicht',
+          'Ausgaben',
+          'Einkaufsliste',
+          'Anlagegüter'
+        );
       } else if (template === 'Reise') {
         newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Einkaufsliste');
       } else {
@@ -88,17 +98,18 @@ export class GroupService {
         newGroup
       );
 
-      const categoriesRef = collection(
-        this.firestore,
-        `groups/${newGroup.groupId}/categories`
-      );
-
-      const defaultCategories = categories;
-      for (const category of [defaultCategories]) {
-        await setDoc(doc(categoriesRef), category);
+      //Bild hochladen
+      if (groupImage) {
+        const imageUrl = await this.imageService.uploadImage(
+          newGroup.groupId,
+          groupImage,
+          `groups/${newGroup.groupId}/groupImage`
+        );
+        await updateDoc(doc(this.firestore, 'groups', newGroup.groupId), {
+          groupimage: imageUrl,
+        });
+        console.log('Group image URL updated:', imageUrl);
       }
-
-      console.log('Standardkategorien erfolgreich hinzugefügt.');
 
       // Benutzer aktualisieren, um die groupId hinzuzufügen
       const usersRef = collection(this.firestore, 'users');
@@ -129,23 +140,31 @@ export class GroupService {
     uid: string,
     groupId: string,
     name: string,
-    template: string,
-    photo: string
+    features: string[],
+    photo: File | null
   ): Promise<void> {
     const group = await this.getGroupById(groupId);
     if (group && uid === group.founder) {
       try {
         const groupRef = doc(this.firestore, 'groups', groupId);
-        await updateDoc(
-          groupRef,
-          'name',
-          name,
-          'template',
-          template,
-          'groupImage',
-          photo
-        );
-        console.log('Groups updated successfully!');
+
+        let photoUrl = group.groupimage;
+        if (photo) {
+          photoUrl = await this.imageService.uploadImage(
+            groupId,
+            photo,
+            `groups/${groupId}/groupImage`
+          );
+        }
+
+        // Aktualisiere die Gruppe in der Datenbank
+        await updateDoc(groupRef, {
+          groupname: name,
+          features: features, // Aktualisiere das features-Feld
+          groupimage: photoUrl,
+        });
+
+        console.log('Group updated successfully!');
       } catch (error) {
         console.error('Error updating group: ', error);
       }
@@ -160,6 +179,7 @@ export class GroupService {
       const groupRef = doc(this.firestore, 'groups', groupId); // Holen der Gruppenreferenz
       if (uid) {
         await deleteDoc(groupRef); // Löschen der Gruppe
+        await this.removeUserFromGroup(groupId);
         console.log('Gruppe erfolgreich gelöscht!');
       } else {
         throw new Error('Fehler: UID nicht gefunden');
@@ -168,6 +188,41 @@ export class GroupService {
       console.error('Fehler beim Löschen der Gruppe:', error);
     }
   }
+
+  async removeUserFromGroup(groupId: string): Promise<void> {
+    try {
+      const usersRef = collection(this.firestore, 'users');
+
+      const usersQuery = query(
+        usersRef,
+        where('groupId', 'array-contains', groupId)
+      );
+      const userSnapshot = await getDocs(usersQuery);
+
+      if (!userSnapshot.empty) {
+        // Iteriere über alle Benutzer, die die groupId haben
+        for (const userDoc of userSnapshot.docs) {
+          const userData = userDoc.data();
+          const updatedGroupIds = (userData['groupId'] || ['']).filter(
+            (id: string) => id !== groupId
+          );
+
+          const userRef = doc(this.firestore, 'users', userDoc.id);
+          await updateDoc(userRef, { groupId: updatedGroupIds });
+          console.log(
+            `groupId "${groupId}" aus Benutzer "${userDoc.id}" entfernt.`
+          );
+        }
+      } else {
+        console.log(
+          `Keine Benutzer gefunden, die die groupId "${groupId}" haben.`
+        );
+      }
+    } catch (error) {
+      console.error('Fehler beim Entfernen der groupId aus Benutzern:', error);
+    }
+  }
+
   async joinGroup(joinee: Users, accessCode: string): Promise<void> {
     try {
       const groupToJoin = await this.getGroupByAccessCode(accessCode);
@@ -228,6 +283,50 @@ export class GroupService {
       this.router.navigate(['/group', groupToJoin.groupId]);
     } catch (error) {
       throw new Error('Error joining group: ' + error);
+    }
+  }
+
+  // Features hinzufügen
+  async addFeaturesToGroup(
+    uid: string,
+    groupId: string,
+    newFeatures: string[]
+  ): Promise<void> {
+    try {
+      // Hole die Gruppe aus der DB
+      const group = await this.getGroupById(groupId);
+      if (!group) {
+        console.error(`Gruppe mit ID ${groupId} wurde nicht gefunden.`);
+        return;
+      }
+
+      // Überprüfe, ob der Nutzer der Gründer der Gruppe ist
+      if (group.founder !== uid) {
+        console.warn('Nur der Gründer kann Features hinzufügen.');
+        return;
+      }
+
+      // Hole die bestehenden Features der Gruppe
+      const existingFeatures = group.features || [];
+      const featuresToAdd = newFeatures.filter(
+        (f) => !existingFeatures.includes(f)
+      );
+
+      if (featuresToAdd.length === 0) {
+        console.log('Keine neuen Features zum Hinzufügen.');
+        return;
+      }
+
+      // Füge neue Features hinzu
+      const updatedFeatures = [...existingFeatures, ...featuresToAdd];
+
+      // Aktualisiere die Gruppe in der DB
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      await updateDoc(groupRef, { features: updatedFeatures });
+
+      console.log('Features erfolgreich hinzugefügt:', featuresToAdd);
+    } catch (error) {
+      console.error('Fehler beim Hinzufügen der Features:', error);
     }
   }
 
@@ -293,6 +392,21 @@ export class GroupService {
 
       // Farben für Mitglieder anwenden
       this.applyMemberColors(group);
+
+      // Bild-URL validieren oder abrufen
+      if (group.groupimage) {
+        try {
+          // Optional: Überprüfen, ob die Bild-URL gültig ist
+          const response = await fetch(group.groupimage);
+          if (!response.ok) {
+            console.warn('Ungültige Bild-URL:', group.groupimage);
+            group.groupimage = ''; // Setze die Bild-URL auf null, falls ungültig
+          }
+        } catch (error) {
+          console.error('Fehler beim Überprüfen der Bild-URL:', error);
+          group.groupimage = ''; // Setze die Bild-URL auf null, falls ein Fehler auftritt
+        }
+      }
 
       return group;
     } catch (e) {
@@ -383,6 +497,70 @@ export class GroupService {
     } catch (e) {
       throw new Error('Error fetching Groups by access code! ' + e);
       return null;
+    }
+  }
+
+  async getGroupByGroupId(groupId: string): Promise<Groups | null> {
+    console.log('Suche Gruppe mit groupId:', groupId);
+    if (!groupId) {
+      console.error('groupId ist undefined. Abfrage abgebrochen.');
+      return null;
+    }
+    try {
+      const groupRef = collection(this.firestore, 'groups');
+      const q = query(groupRef, where('groupId', '==', groupId));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const group = querySnapshot.docs[0].data() as Groups;
+        console.log('Gruppe gefunden:', group);
+        return group;
+      } else {
+        console.warn('Keine Gruppe mit dieser groupId gefunden.');
+        return null;
+      }
+    } catch (error) {
+      console.error('Fehler beim Abrufen der Gruppe:', error);
+      throw error;
+    }
+  }
+
+  async getGroupAboByGroupId(
+    groupId: string,
+    updateGroupCallback: (group: Groups[]) => void
+  ): Promise<() => void> {
+    if (!groupId) {
+      console.error('groupId ist undefined. Abfrage abgebrochen.');
+      return () => {};
+    }
+
+    console.log('Suche Gruppe mit groupId:', groupId);
+
+    try {
+      const groupRef = collection(this.firestore, 'groups');
+      const q = query(groupRef, where('groupId', '==', groupId));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+          // Mappe die Dokumente auf ein Array von Gruppen
+          const group = snapshot.docs.map((doc) => ({
+            groupId: doc.id,
+            ...doc.data(),
+          })) as Groups[];
+
+          // Callback mit den aktualisierten Daten
+          updateGroupCallback(group);
+        } else {
+          console.warn('Keine Gruppe mit dieser groupId gefunden.');
+          updateGroupCallback([]);
+        }
+      });
+
+      // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
+      return unsubscribe;
+    } catch (error) {
+      console.error('Fehler beim Abrufen der Gruppe:', error);
+      throw error;
     }
   }
 

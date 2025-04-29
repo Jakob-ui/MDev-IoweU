@@ -27,7 +27,8 @@ import { ChangeDetectorRef } from '@angular/core';
   templateUrl: './account-settings.page.html',
   styleUrls: ['./account-settings.page.scss'],
   standalone: true,
-  imports: [IonToggle, 
+  imports: [
+    IonToggle,
     IonAlert,
     IonIcon,
     IonButton,
@@ -85,9 +86,14 @@ export class AccountSettingsPage implements OnInit {
     this.applyColorBlindMode(this.colorBlindMode); // Wende den Modus an
 
     this.iosIcons = this.platform.is('ios');
-    this.newname = this.name;
 
-    this.authService.waitForUser;
+    // Versuche, Daten aus dem lokalen Speicher zu laden
+    this.name = localStorage.getItem('username') || '';
+    this.newname = this.name;
+    this.email = localStorage.getItem('email') || '';
+    this.color = localStorage.getItem('usercolor') || '#ffffff';
+
+    // Lade Benutzerdaten aus dem Backend
     this.loadUserData().finally(() => {
       this.loadingService.hide();
     });
@@ -141,7 +147,7 @@ export class AccountSettingsPage implements OnInit {
   }
   cancel() {
     this.userEditing = false;
-    this.newname = sessionStorage.getItem('username') || '';
+    this.newname = localStorage.getItem('username') || '';
   }
   confirm() {
     this.userEditing = false;
@@ -152,7 +158,7 @@ export class AccountSettingsPage implements OnInit {
   }
 
   proofTime(): boolean {
-    const lastedited = sessionStorage.getItem('lastedited');
+    const lastedited = localStorage.getItem('lastedited');
     if (!lastedited) {
       return true;
     }
@@ -185,9 +191,9 @@ export class AccountSettingsPage implements OnInit {
         lastedited: new Date().toISOString(),
       });
 
-      sessionStorage.setItem('username', this.newname);
-      sessionStorage.setItem('usercolor', this.color);
-      sessionStorage.setItem('lastedited', new Date().toISOString());
+      localStorage.setItem('username', this.newname);
+      localStorage.setItem('usercolor', this.color);
+      localStorage.setItem('lastedited', new Date().toISOString());
 
       console.log('Änderungen erfolgreich gespeichert.');
 
@@ -212,7 +218,7 @@ export class AccountSettingsPage implements OnInit {
       role: 'confirm',
       handler: async (data: { email: string; password: string }) => {
         try {
-          await this.authService.login(data.email, data.password, false);
+          await this.authService.login(data.email, data.password);
           // Nach erfolgreichem Login das Bestätigungs-Alert anzeigen
           const confirmDelete = await this.alertController.create({
             header: 'Konto endgültig löschen',
@@ -269,7 +275,7 @@ export class AccountSettingsPage implements OnInit {
       name: 'email',
       placeholder: 'E-Mail',
       type: 'email',
-      value: sessionStorage.getItem('email') || '',
+      value: localStorage.getItem('email') || '',
     },
     {
       name: 'password',
@@ -301,7 +307,7 @@ export class AccountSettingsPage implements OnInit {
 
   async deleteLogin(email: string, password: string) {
     try {
-      await this.authService.login(email, password, false);
+      await this.authService.login(email, password);
       this.isLoginVerified = true;
 
       console.log('Login erfolgreich. Zweiter Alert wird geöffnet...');
@@ -349,7 +355,7 @@ export class AccountSettingsPage implements OnInit {
 
   async verifyLogin() {
     try {
-      await this.authService.login(this.emailInput, this.passwordInput, false);
+      await this.authService.login(this.emailInput, this.passwordInput);
       this.isLoginVerified = true;
       console.log('Login erfolgreich. Jetzt kann das Konto gelöscht werden.');
     } catch (e) {
@@ -372,7 +378,7 @@ export class AccountSettingsPage implements OnInit {
     localStorage.setItem('colorBlindMode', this.colorBlindMode.toString());
     this.applyColorBlindMode(this.colorBlindMode);
   }
-  
+
   applyColorBlindMode(enabled: boolean) {
     if (enabled) {
       document.body.classList.add('color-blind');
@@ -380,5 +386,4 @@ export class AccountSettingsPage implements OnInit {
       document.body.classList.remove('color-blind');
     }
   }
-
 }

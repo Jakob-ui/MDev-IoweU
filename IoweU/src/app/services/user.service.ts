@@ -8,6 +8,7 @@ import {
   query,
   where,
 } from '@angular/fire/firestore';
+import { getDownloadURL, ref, Storage, uploadBytes } from '@angular/fire/storage';
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +16,7 @@ import {
 export class UserService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+  private storage = inject(Storage);
   constructor() {}
 
   async getUserData(): Promise<Users> {

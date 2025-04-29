@@ -4,14 +4,15 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
 } from '@angular/fire/auth';
-import { Firestore, updateDoc } from '@angular/fire/firestore';
 import {
+  Firestore,
+  updateDoc,
   collection,
   query,
   where,
   getDocs,
   deleteDoc,
-} from 'firebase/firestore';
+} from '@angular/fire/firestore';
 import { Users } from './objects/Users';
 
 @Injectable({

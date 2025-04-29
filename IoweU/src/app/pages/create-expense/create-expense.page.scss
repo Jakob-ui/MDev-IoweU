@@ -28,6 +28,7 @@
 .input-item {
   flex: 1;
   width: 100%;
+  
 }
 
 .Beschreibung {
@@ -178,6 +179,8 @@
   margin-right: 5%;
 }
 
+
+
 ion-input,
 ion-select {
   width: 100%;
@@ -195,7 +198,7 @@ ion-select {
   right: auto;
   display: flex;
   align-items: center;
-  padding: 20px 10px;
+  padding: 14px 10px;
   background: rgba(255, 255, 255, 0.6); /* White with 80% opacity */
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -319,6 +322,7 @@ ion-item.dropDownFelder::part(native) {
   align-items: center;
   justify-content: center;
 }
+
 .invoice-upload {
   .upload-label {
     display: flex;
@@ -398,6 +402,7 @@ ion-item.dropDownFelder::part(native) {
     align-items: center;
     font-size: 16px;
     color: var(--ion-color-dark);
+    max-height: 28px;
   }
 
   .member-info {
@@ -593,8 +598,9 @@ ion-input {
 .split-percentage + .validation-content {
   margin-top: 0;
 }
-
-
+.upload-icon{
+  font-size: 26px;
+}
 
 @media (prefers-color-scheme: dark) {
   .input-label {
@@ -602,21 +608,26 @@ ion-input {
   }
   ion-item.dropDownFelder::part(native) {
   
-    background-color: #1e1e1e !important;
+    background-color: #121212 !important;
     color: var(--ion-color-light) !important;
   }
   .custom-dropdown {
-    background-color: #1e1e1e;
+    background-color: #121212;
   }
   #category-icon-label {
     color: #000000;
+    font-size: 24px;
   }
   .paid-by .custom-dropdown { 
-    background-color: #1e1e1e; 
+    background-color: #121212; 
   }
   .paid-by ion-item.dropDownFelder::part(native) {
-    background-color: #1e1e1e !important;
+    background-color: #121212 !important;
   
 }
-
+.upload-icon{
+  color: #000000;
+}
+.datepicker{
+  background-color: #000;
 }

@@ -10,6 +10,9 @@ import {
   IonCardTitle,
   IonCardSubtitle,
   IonIcon,
+  IonItem,
+  IonSelect,
+  IonSelectOption,
 } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -37,6 +40,9 @@ import { Members } from 'src/app/services/objects/Members';
     IonIcon,
     QRCodeComponent,
     FormsModule,
+    IonItem,
+    IonSelect,
+    IonSelectOption,
   ],
 })
 export class GroupPage implements OnInit {
@@ -51,6 +57,7 @@ export class GroupPage implements OnInit {
   iosIcons: boolean = false;
 
   user: string | null = '';
+  isFounder: boolean = false;
   currentGroup: Groups | null = null;
   balance: number = -20;
   totalCost: number = 120.5;
@@ -79,8 +86,19 @@ export class GroupPage implements OnInit {
 
   myBalance: number = 0;
 
+  availableFeatures: string[] = [
+    'Einkaufsliste',
+    'Anlagegüter',
+    'Finanzübersicht',
+    'Ausgaben',
+  ];
+  canAddFeatures: boolean = true;
+
+  updateGroupCallback: (() => void) | null = null;
+
   async ngOnInit() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+    this.loadingService.show();
+    await this.loadGroupData(this.groupId);
 
     try {
       // Warte, bis der Benutzer vollständig geladen ist
@@ -117,44 +135,62 @@ export class GroupPage implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    if (this.updateGroupCallback) {
+      this.updateGroupCallback(); // Entfernt den Echtzeit-Listener
+      console.log('Echtzeit-Listener entfernt.');
+    }
+  }
+
   // Funktion zum Laden der Gruppendaten
   async loadGroupData(id: string): Promise<void> {
     try {
-      const group = await this.groupService.getGroupById(id);
-      if (group) {
-        this.group = group;
-        this.groupService.setGroup(group);
-      } else {
-        console.warn('Gruppe nicht gefunden!');
-      }
+      // Setze den Echtzeit-Listener
+      this.updateGroupCallback = await this.groupService.getGroupAboByGroupId(
+        id,
+        (updatedGroups) => {
+          if (updatedGroups.length > 0) {
+            const group = updatedGroups[0]; // Es sollte nur eine Gruppe mit dieser ID geben
+            this.group = group;
+            this.groupService.setGroup(group);
 
-      if (group) {
-        this.groupname = group.groupname;
-        this.groupId = group.groupId;
-        this.features = group.features;
-        this.groupImage = group.groupimage;
-        this.members = group.members;
-        this.accessCode = group.accessCode;
-        this.sumTotalExpenses = group.sumTotalExpenses;
-        this.countTotalExpenses = group.countTotalExpenses;
+            // Aktualisiere die lokalen Variablen
+            this.groupname = group.groupname;
+            this.groupId = group.groupId;
+            this.features = group.features || [];
+            this.groupImage = group.groupimage;
+            this.members = group.members;
+            this.accessCode = group.accessCode;
+            this.sumTotalExpenses = group.sumTotalExpenses;
+            this.countTotalExpenses = group.countTotalExpenses;
 
-        if (group.sumTotalExpensesMembers) {
-          this.sumTotalExpensesMembers = group.sumTotalExpensesMembers;
+            if (group.sumTotalExpensesMembers) {
+              this.sumTotalExpensesMembers = group.sumTotalExpensesMembers;
+            }
+            if (group.countTotalExpensesMembers) {
+              this.countTotalExpensesMembers = group.countTotalExpensesMembers;
+            }
+            this.calculateBalance();
+
+            // Überprüfen, ob der eingeloggte Benutzer der Gründer der Gruppe ist
+            const currentUserId = this.authService.currentUser?.uid;
+            this.isFounder = currentUserId === group.founder;
+
+            // Überprüfe, ob Features in der DB vorhanden sind
+            this.canAddFeatures = this.features.length === 0;
+
+            console.log('Echtzeit-Update der Gruppe:', group);
+          } else {
+            console.warn('Gruppe nicht gefunden!');
+          }
         }
-        if (group.countTotalExpensesMembers) {
-          this.countTotalExpensesMembers = group.countTotalExpensesMembers;
-        }
-        this.calculateBalance();
-      } else {
-        console.warn('Gruppe nicht gefunden!');
-      }
+      );
     } catch (e) {
       console.error('Fehler beim Abrufen der Gruppen-Daten: ', e);
     } finally {
       this.loadingService.hide();
     }
   }
-
 
   private calculateBalance() {
     if (!this.members || this.members.length === 0) {
@@ -163,7 +199,7 @@ export class GroupPage implements OnInit {
     }
 
     // Finde das eingeloggte Mitglied
-    const member = this.members.find(m => m.username === this.user);
+    const member = this.members.find((m) => m.username === this.user);
 
     if (!member) {
       this.myBalance = 0;
@@ -172,12 +208,11 @@ export class GroupPage implements OnInit {
 
     // Berechnung der Bilanz (Guthaben - Ausgaben)
     const paidByUser = member.sumExpenseAmount; // Guthaben (Beträge, die ich bezahlt habe)
-    const paidByMember = member.sumExpenseMemberAmount;  // Ausgaben (Schulden, die ich bezahlt bekommen habe)
+    const paidByMember = member.sumExpenseMemberAmount; // Ausgaben (Schulden, die ich bezahlt bekommen habe)
 
     this.myBalance = paidByUser - paidByMember; // Speichere den berechneten Wert
     console.log('Berechnete Bilanz:', this.myBalance);
   }
-
 
   // Logout-Funktion
   async logout() {
@@ -194,7 +229,6 @@ export class GroupPage implements OnInit {
     this.router.navigate(['group-overview']);
   }
 
-
   // Funktion zur Generierung der Feature-Links mit groupId
   getFeatureLink(feature: string): string {
     switch (feature) {
@@ -203,7 +237,7 @@ export class GroupPage implements OnInit {
       case 'Ausgaben':
         return `/expense/${this.groupId}`;
       case 'Einkaufsliste':
-        return `/shopping-list/${this.groupId}`; // Beispiel-Link für Shopping-List
+        return `/shoppinglist/${this.groupId}`; // Beispiel-Link für Shopping-List
       case 'Anlagegüter':
         return `/assets/${this.groupId}`; // Beispiel-Link für Assets
       default:
@@ -249,4 +283,39 @@ export class GroupPage implements OnInit {
     console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 
+  // Funktion zum Hinzufügen von Features, nur für den Gründer sichtbar
+  async onFeaturesSelected(selectedFeatures: string[]) {
+    if (
+      !selectedFeatures?.length ||
+      !this.groupId ||
+      !this.authService.currentUser
+    ) {
+      console.warn('Keine gültigen Features ausgewählt.');
+      return;
+    }
+
+    // Neue Features herausfiltern (nur die, die noch nicht enthalten sind)
+    const newFeatures = selectedFeatures.filter(
+      (f) => !this.features.includes(f)
+    );
+
+    if (newFeatures.length === 0) {
+      console.warn('Alle ausgewählten Features sind bereits vorhanden.');
+      return;
+    }
+
+    try {
+      await this.groupService.addFeaturesToGroup(
+        this.authService.currentUser.uid,
+        this.groupId,
+        newFeatures
+      );
+
+      // Features lokal zur Anzeige hinzufügen
+      this.features.push(...newFeatures);
+      console.log('Features erfolgreich hinzugefügt:', newFeatures);
+    } catch (error) {
+      console.error('Fehler beim Hinzufügen der Features:', error);
+    }
+  }
 }

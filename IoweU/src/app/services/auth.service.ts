@@ -3,7 +3,6 @@ import { Firestore, setDoc, doc, getDoc } from '@angular/fire/firestore';
 import {
   Auth,
   browserLocalPersistence,
-  browserSessionPersistence,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -16,10 +15,6 @@ import { GroupService } from './group.service';
   providedIn: 'root',
 })
 export class AuthService {
-  getFirestoreInstance(): import('@firebase/firestore').Firestore {
-    throw new Error('Method not implemented.');
-  }
-
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private groupService = inject(GroupService);
@@ -158,13 +153,9 @@ export class AuthService {
     }
   }
 
-  login(email: string, password: string, rememberMe: boolean): Promise<void> {
-    const persistence = rememberMe
-      ? browserLocalPersistence
-      : browserSessionPersistence;
-
+  login(email: string, password: string): Promise<void> {
     return this.auth
-      .setPersistence(persistence)
+      .setPersistence(browserLocalPersistence)
       .then(() => {
         return signInWithEmailAndPassword(
           this.auth,
@@ -204,7 +195,7 @@ export class AuthService {
     });
   }
 
-  //-------------Workaround---------------------muss besser gelöst werden!!!!!!
+  //-------------Workaround---------------------
   async waitForUser(): Promise<void> {
     const maxRetries = 50; // Maximale Anzahl von Versuchen
     const delay = 100; // Wartezeit

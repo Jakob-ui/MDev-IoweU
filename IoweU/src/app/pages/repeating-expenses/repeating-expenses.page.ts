@@ -163,6 +163,7 @@ export class RepeatingExpensesPage implements OnInit {
         this.updateExpensesCallback =
           await this.expenseService.getExpenseByGroup(
             this.groupId || '',
+            true,
             (expensestest) => {
               console.log('Updated expenses:', expensestest);
               this.expenses = Array.isArray(expensestest) ? expensestest : [];
@@ -171,13 +172,13 @@ export class RepeatingExpensesPage implements OnInit {
               );
               this.sumExpenses = total;
               this.countExpenses = count;
-              this.expenseService.updateSums(
+              /*this.expenseService.updateSums(
                 this.groupId || '',
                 this.sumExpenses,
                 this.countExpenses,
                 'sumTotalExpenses',
                 'countTotalExpenses'
-              );
+              );*/
             }
           );
       } else {
@@ -195,15 +196,20 @@ export class RepeatingExpensesPage implements OnInit {
     );
   }
 
-  goToExpenseDetails(expenseId: string) {
+  goToExpenseDetails(expenseId: string, isRepeating: boolean = true) {
     this.loadingService.show();
     try {
-      // Hier wird der expenseId der aktuellen Ausgabe übergeben
-      this.router.navigate(['expense-details', this.groupId, expenseId]);
+      this.router.navigate(
+        ['expense-details', this.groupId, expenseId],
+        {
+          queryParams: { repeating: isRepeating }
+        }
+      );
     } finally {
       this.loadingService.hide();
     }
   }
+
 
   goToCreateExpense() {
     this.loadingService.show();

@@ -1,0 +1,383 @@
+<ion-header [translucent]="true" class="header">
+  <div class="backdrop-wrapper">
+    <ion-toolbar>
+      <div class="left-container" slot="start">
+        <ion-icon
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+          class="back-button"
+          (click)="goBack()"
+        ></ion-icon>
+      </div>
+
+      <div class="right-container" slot="end">
+        <div class="user-info" [routerLink]="'/account-settings'">
+          <div class="profile-placeholder"></div>
+          <span class="member-name">{{ user }}</span>
+        </div>
+        <ion-icon
+          [src]="'assets/icon/ionicons/information-outline.svg'"
+          class="info-button"
+          (click)="toggleInfoOverlay()"
+        ></ion-icon>
+      </div>
+    </ion-toolbar>
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div
+    class="info-overlay"
+    [ngClass]="{
+      'hidden': overlayState === 'hidden',
+      'normal': overlayState === 'normal',
+      'start': overlayState === 'start',
+      'slideUp': overlayState === 'normal',
+      'slideDown': overlayState === 'hidden'
+    }"
+    (click)="toggleInfoOverlay()">
+    <div class="info-wrapper" (click)="$event.stopPropagation()">
+      <h5>Info – Einkaufsliste</h5>
+      <p>
+        Auf dieser Seite findest du die <strong>gemeinsame Einkaufsliste</strong> deiner Gruppe. Sie zeigt alle Produkte, die noch eingekauft werden sollen.
+      </p>
+      <p>
+        Die Produkte sind nach dem <strong>Fälligkeitsdatum</strong> gruppiert – so behältst du den Überblick, welche Dinge bald benötigt werden.
+        Mit einem Tippen auf einen Eintrag kannst du <strong>weitere Details</strong> sehen oder Änderungen vornehmen.
+      </p>
+      <p>
+        Über die <strong>Checkbox</strong> am rechten Rand kannst du Produkte als „eingekauft“ markieren – so sehen alle in der Gruppe, was schon erledigt ist.
+      </p>
+      <p>
+        Tippe auf das <strong>Plus-Symbol</strong>, um neue Produkte zur Liste hinzuzufügen.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Details-Overlay für Detailansicht -->
+  <div class="info-overlay" id="details-overlay"
+       [ngClass]="{
+       'hidden': detailsOverlayState === 'hidden',
+       'normal': detailsOverlayState === 'normal',
+       'start': detailsOverlayState === 'start',
+       'slideUp': detailsOverlayState === 'normal',
+       'slideDown': detailsOverlayState === 'hidden'
+     }"
+       (click)="toggleDetailsOverlay(selectedProduct?.shoppingProductId || '')">
+    <div class="info-wrapper" (click)="$event.stopPropagation()">
+      <h5>Produkt Details bearbeiten</h5>
+      <form (ngSubmit)="saveProductDetails()">
+        <div class="top-container">
+          <div class="input-container">
+            <span class="input-label">Produktname</span>
+            <ion-item>
+              <ion-input type="text" [(ngModel)]="selectedProduct.productname" name="productname"></ion-input>
+            </ion-item>
+          </div>
+        </div>
+
+        <div>
+          <div class="middle-container">
+            <div class="input-container">
+              <span class="input-label">Menge</span>
+              <ion-item>
+                <ion-input type="number" [(ngModel)]="selectedProduct.quantity" name="quantity"></ion-input>
+              </ion-item>
+            </div>
+
+            <div class="input-container">
+              <span class="input-label">Einheit</span>
+              <ion-item>
+                <ion-input type="text" [(ngModel)]="selectedProduct.unit" name="unit"></ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <div class="bottom-container">
+            <div class="input-container">
+              <span class="input-label">Fälligkeitsdatum</span>
+              <ion-item>
+                <ion-input
+                  [(ngModel)]="selectedProduct.date"
+                  [readonly]="true"
+                  [placeholder]="selectedProduct.date ? (selectedProduct.date | date: 'dd.MM.yyyy') : 'Wähle ein Datum'"
+                  (click)="openDatePicker()" name="date">
+                </ion-input>
+              </ion-item>
+            </div>
+
+            <div class="input-container">
+              <span class="input-label">Für</span>
+              <ion-item class="input-item" (click)="toggleForMemberDropdown($event)">
+                <ion-label>
+                  <div class="selected-forMember">
+                    <div class="member-info"
+                         [ngStyle]="{
+                        'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
+                        'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+                      }">
+                      <div class="profile-placeholder"
+                           [ngStyle]="{
+                          'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
+                          'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+                        }"></div>
+                      <span class="member-name">{{ selectedMember?.username }}</span>
+                    </div>
+                  </div>
+                </ion-label>
+              </ion-item>
+
+              <!-- Dropdown für Mitglieder -->
+              <div *ngIf="forMemberDropdownOpen" class="custom-dropdown">
+                <ion-list>
+                  <ion-item class="dropDownFelder" button *ngFor="let groupMember of groupMembers" (click)="selectMember(groupMember, $event)">
+                    <div class="member-info"
+                         [ngStyle]="{
+                        'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
+                        'border-color': 'var(--member-color-' + groupMember.uid + ')'
+                      }">
+                      <div class="profile-placeholder"
+                           [ngStyle]="{
+                          'background-color': 'var(--member-color-' + groupMember.uid + ')',
+                          'border-color': 'var(--member-color-' + groupMember.uid + ')'
+                        }"></div>
+                      <span class="member-name">{{ groupMember.username }}</span>
+                    </div>
+                  </ion-item>
+                </ion-list>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Speichern Button -->
+        <ion-button expand="full" type="submit" class="main-button" (click)="saveProductDetails()">Speichern</ion-button>
+      </form>
+    </div>
+  </div>
+
+
+  <div class="page-container">
+    <h4>{{ groupname }}</h4>
+    <h1>Einkaufsliste</h1>
+
+    <ion-card class="shopping-card">
+      <div class="card-content-shopping">
+        <h2>{{ shoppingproducts.length }} {{ shoppingproducts.length === 1 ? 'Produkt' : 'Produkte' }}</h2>
+
+        <p [ngClass]="{'past-date': isPast(earliestDueDateLabel)}">
+          früheste Fälligkeit: {{ earliestDueDateLabel }}
+        </p>
+
+      </div>
+    </ion-card>
+
+    <div class="menu">
+      <div class="menu-text active">
+        <span>Einkaufsliste</span>
+      </div>
+      <div class="divider"></div>
+      <div class="menu-text" [routerLink]="['/shoppingcart', groupId]">
+        <span>Warenkorb</span>
+      </div>
+    </div>
+
+    <div class="add-product-overlay" [ngClass]="{ 'open': addProductOpen }" (click)="handleOverlayClick()">
+      <div class="add-product-wrapper" (click)="$event.stopPropagation()">
+
+        <!-- Produktname (immer sichtbar) -->
+        <div class="top-container">
+          <div class="input-container">
+            <span class="input-label">Produktname</span>
+            <ion-item>
+              <ion-input type="text" [(ngModel)]="newProduct.productname"></ion-input>
+              <ion-icon
+                class="edit-button"
+                (click)="saveNewProduct()"
+                [src]="'assets/icon/ionicons/ios-add.svg'"
+              ></ion-icon>
+            </ion-item>
+          </div>
+        </div>
+
+        <!-- Button zum Anzeigen der Details -->
+        <div class="show-details-button">
+          <span fill="outline" expand="block" (click)="showDetails = !showDetails">
+            {{ showDetails ? 'Details ausblenden' : 'Details bearbeiten' }}
+          </span>
+        </div>
+
+        <!-- Alle weiteren Eingaben (sichtbar nur wenn showDetails true) -->
+        <div *ngIf="showDetails">
+          <div class="middle-container">
+            <div class="input-container">
+              <span class="input-label">Menge</span>
+              <ion-item>
+                <ion-input type="number"
+                           [(ngModel)]="newProduct.quantity"
+                            [placeholder]="newProduct.quantity ? newProduct.quantity : '1'">
+                </ion-input>
+              </ion-item>
+            </div>
+
+            <div class="input-container">
+              <span class="input-label">Einheit</span>
+              <ion-item>
+                <ion-input type="text"
+                           [(ngModel)]="newProduct.unit"
+                            [placeholder]="newProduct.unit ? newProduct.unit : 'Stück'">
+                </ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <div class="bottom-container">
+            <div class="input-container">
+              <span class="input-label">Fälligkeitsdatum</span>
+              <ion-item>
+                <ion-input
+                  [(ngModel)]="newProduct.dueDate"
+                  [readonly]="true"
+                  [placeholder]="newProduct.dueDate ? (newProduct.dueDate | date: 'dd.MM.yyyy') : 'Wähle ein Datum'"
+                  (click)="openDatePicker()"
+                ></ion-input>
+              </ion-item>
+            </div>
+
+            <div class="input-container">
+              <span class="input-label">für</span>
+              <ion-item class="input-item" (click)="toggleForMemberDropdown($event)">
+                <ion-label>
+                  <div class="selected-forMember">
+                    <div
+                      class="member-info"
+                      [ngStyle]="{
+                    'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
+                    'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+                  }"
+                    >
+                      <div
+                        class="profile-placeholder"
+                        [ngStyle]="{
+                      'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
+                      'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+                    }"
+                      ></div>
+                      <span class="member-name">{{ selectedMember?.username }}</span>
+                    </div>
+                  </div>
+                </ion-label>
+              </ion-item>
+
+              <div *ngIf="forMemberDropdownOpen" class="custom-dropdown">
+                <ion-list>
+                  <ion-item
+                    class="dropDownFelder"
+                    button
+                    *ngFor="let groupMember of groupMembers"
+                    (click)="selectMember(groupMember, $event)"
+                  >
+                    <div
+                      class="member-info"
+                      [ngStyle]="{
+                    'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
+                    'border-color': 'var(--member-color-' + groupMember.uid + ')'
+                  }"
+                    >
+                      <div
+                        class="profile-placeholder"
+                        [ngStyle]="{
+                      'background-color': 'var(--member-color-' + groupMember.uid + ')',
+                      'border-color': 'var(--member-color-' + groupMember.uid + ')'
+                    }"
+                      ></div>
+                      <span class="member-name">{{ groupMember.username }}</span>
+                    </div>
+                  </ion-item>
+                </ion-list>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <ion-list class="shopping-list">
+      <ng-container *ngFor="let group of groupedProducts">
+
+        <span
+          class="date"
+          [ngClass]="{'past-date': isPast(group.date)}">
+          {{ group.date }}
+        </span>
+
+        <ion-item-sliding *ngFor="let shoppingproduct of group.shoppingproducts">
+          <ion-item
+            class="info-item"
+            (click)="toggleDetailsOverlay(shoppingproduct.shoppingProductId)"
+          >
+            <div
+              class="profile-placeholder"
+              [ngStyle]="{
+            'background-color': 'var(--member-color-' + shoppingproduct.memberId + ')',
+            'border-color': 'var(--member-color-' + shoppingproduct.memberId + ')'
+          }"
+            >
+              <span class="username">{{ getFirstLetter(shoppingproduct.memberId) }}</span>
+            </div>
+            <div class="shoppingproduct-item">
+              <span class="first-container">{{ shoppingproduct.quantity }} {{ shoppingproduct.unit }}</span>
+              <div class="divider"></div>
+              <h5 class="shoppingproduct-name">{{ shoppingproduct.productname }}</h5>
+              <span class="forMember">für {{ getUsernameById(shoppingproduct.forMemberId) }}</span>
+            </div>
+            <div class="checkboxToShoppingcart">
+              <ion-checkbox
+                slot="end"
+                [checked]="shoppingproduct.status === 'done'"
+                (ionChange)="toggleChecked(shoppingproduct)"
+              ></ion-checkbox>
+            </div>
+          </ion-item>
+
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="deleteProduct(shoppingproduct.shoppingProductId)">
+              Löschen
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ng-container>
+    </ion-list>
+
+
+
+
+
+    <div class="button-container">
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="toggleAddProductOverlay()"
+      >
+        Neues Produkt hinzufügen +
+      </ion-button>
+    </div>
+  </div>
+
+
+  <ion-datetime
+    class="datepicker"
+    presentation="date"
+    [formatOptions]="{
+      month: 'short',
+      year: 'numeric',
+      day: '2-digit'
+    }"
+    *ngIf="isDatePickerOpen"
+    [(ngModel)]="newProduct.dueDate"
+    (ionChange)="onDateChange($event)"
+    (ionCancel)="closeDatePicker()"
+  >
+  </ion-datetime>
+</ion-content>

@@ -105,13 +105,11 @@ export class DetailedBalancePage implements OnInit {
               console.log('Selected Member:', this.selectedMember);
               console.log('Current User UID:', this.uid);
 
-              this.allExpenses = [];
-
               // ✅ Neue Balance-Funktion: ergibt Saldo aus Sicht des eingeloggten Users
               const saldo = await this.expenseService.getBalanceBetweenUsers(
                 validGroupId,
-                this.uid!,
-                validSelectedMember
+                validSelectedMember,
+                this.uid!
               );
 
               console.log(
@@ -129,6 +127,11 @@ export class DetailedBalancePage implements OnInit {
               };
 
               console.log('Balance Details:', this.balanceDetails);
+
+              this.allExpenses = await this.expenseService.getExpensesByBalanceEntries(validGroupId, this.balanceDetails);
+              console.log('All Expenses:', this.allExpenses);
+
+              
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }

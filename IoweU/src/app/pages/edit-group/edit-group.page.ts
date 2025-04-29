@@ -23,6 +23,7 @@ import { CommonModule } from '@angular/common';
 import { AlertController } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth.service';
 import { QRCodeComponent } from 'angularx-qrcode';
+import { ImageService } from 'src/app/services/image.service';
 
 
 @Component({
@@ -46,11 +47,20 @@ import { QRCodeComponent } from 'angularx-qrcode';
 export class EditGroupPage implements OnInit {
   groupname: string = '';
   members: Members[] = [];
+  features: string[] = [];
+  availableFeatures: string[] = [
+    'Einkaufsliste',
+    'Anlagegüter',
+    'Finanzübersicht',
+    'Ausgaben',
+  ];
+  newFeatures: string[] = [];
   accessCode: string = '';
   selectedTemplate: string[] = [];
   founder: string = '';
   groupImage: string | ArrayBuffer | null = null;
   groupLink: string = '';
+  uploadImage: any;
   groupId: string = ''; // groupId sollte als String deklariert werden
   userUid: string = ''; // UID des aktuellen Benutzers
   showQRCode: boolean = false; // Variable zum Steuern der QR-Code-Anzeige
@@ -61,6 +71,7 @@ export class EditGroupPage implements OnInit {
   private route = inject(ActivatedRoute);
   private alertController = inject(AlertController);
   private authService = inject(AuthService);
+  private imageService = inject(ImageService);
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
@@ -88,9 +99,11 @@ export class EditGroupPage implements OnInit {
       const group = await this.groupService.getGroupById(groupId);
       if (group) {
         this.groupname = group.groupname;
+        this.features = group.features || [];
         this.members = group.members || [];
         this.accessCode = group.accessCode || '';
         this.selectedTemplate = group.features || [];
+        this.newFeatures = group.features || [];
         this.groupImage = group.groupimage || null;
         this.founder = group.founder || ''; // Gründer der Gruppe
       } else {
@@ -100,6 +113,32 @@ export class EditGroupPage implements OnInit {
       console.error('Fehler beim Laden der Gruppendaten:', error);
     } finally {
       this.loadingService.hide();
+    }
+  }
+
+  isFeatureInDB(feature: string): boolean {
+    // Überprüft, ob das Feature in den gespeicherten Features der DB enthalten ist
+    return this.features.includes(feature);
+  }
+
+  toggleFeatureVisibility(feature: string) {
+    // Wenn das Feature bereits in der DB gespeichert ist, entfernen wir es
+    if (this.isFeatureInDB(feature)) {
+      this.removeFeatures(feature); // Feature entfernen
+    } else {
+      // Wenn es noch nicht gespeichert ist, fügen wir es hinzu
+      this.addFeatures(feature); // Feature hinzufügen
+    }
+  }
+
+  addFeatures(selectedFeature: string) {
+    this.newFeatures.push(selectedFeature);
+  }
+
+  removeFeatures(selectedFeature: string) {
+    const index = this.newFeatures.indexOf(selectedFeature);
+    if (index > - 1) {
+      this.newFeatures.splice(index, 1);
     }
   }
 
@@ -117,6 +156,9 @@ export class EditGroupPage implements OnInit {
       const reader = new FileReader();
       reader.onload = () => {
         this.groupImage = reader.result;
+        if (typeof this.groupImage === 'string') {
+          this.uploadImage = this.imageService.dataURLtoBlob(this.groupImage);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -144,7 +186,8 @@ export class EditGroupPage implements OnInit {
       // Benutzer ist nicht der Gründer, zeige eine Warnung an
       const alert = await this.alertController.create({
         header: 'Aktion nicht erlaubt',
-        message: 'Sie sind nicht der Gründer dieser Gruppe und können sie daher nicht löschen.',
+        message:
+          'Sie sind nicht der Gründer dieser Gruppe und können sie daher nicht löschen.',
         cssClass: 'custom-alert', // Eigene CSS-Klasse zuweisen
         buttons: [
           {
@@ -154,11 +197,11 @@ export class EditGroupPage implements OnInit {
           },
         ],
       });
-  
+
       await alert.present();
       return;
     }
-  
+
     // Benutzer ist der Gründer, zeige das Lösch-Popup an
     const alert = await this.alertController.create({
       header: 'Gruppe endgültig löschen!',
@@ -183,17 +226,17 @@ export class EditGroupPage implements OnInit {
         },
       ],
     });
-  
+
     await alert.present();
   }
 
-  saveeditedGroup() {
-    console.log(
-      'Gruppe gespeichert:',
+  async saveeditedGroup() {
+    await this.groupService.updateGroup(
+      this.userUid,
+      this.groupId,
       this.groupname,
-      this.members,
-      this.selectedTemplate,
-      this.groupImage
+      this.newFeatures,
+      this.uploadImage
     );
     this.router.navigate([`/group`, this.groupId]);
   }

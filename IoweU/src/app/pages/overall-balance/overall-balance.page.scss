@@ -1,0 +1,62 @@
+.page-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 16px; // Optional für Abstand zum Rand
+  box-sizing: border-box;
+}
+
+.my-groups {
+  width: 80%; // Stellt sicher, dass die Karte die volle Breite hat
+  max-width: 100%; // Verhindert, dass sie aus dem Container ragt
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.card-content {
+  width: 100%;
+  text-align: center;
+}
+
+ion-card {
+  width: 100%; // Stellt sicher, dass alle Karten gleichmäßig verteilt sind
+  max-width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.group-list {
+  margin-bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.pagename {
+  margin-left: 10px;
+}
+
+.page-container .profile-placeholder {
+  height: 80px;
+  width: 80px;
+  margin-bottom: 20px;
+}
+
+.balance-item h2{
+  padding: 0 10px !important;
+}
+
+.input-label{
+  margin-bottom: 5px;
+}
+
+
+
