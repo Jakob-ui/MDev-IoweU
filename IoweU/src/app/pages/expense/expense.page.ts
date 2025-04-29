@@ -10,7 +10,7 @@ import {
   IonBadge,
   IonCard,
   IonButton,
-  IonIcon, IonInfiniteScroll, IonInfiniteScrollContent,
+  IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonSearchbar, IonSelect, IonSelectOption, IonLabel,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -19,6 +19,7 @@ import { GroupService } from '../../services/group.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Members } from 'src/app/services/objects/Members';
+import {FormsModule} from "@angular/forms";
 
 @Component({
   selector: 'app-expense',
@@ -39,6 +40,11 @@ import { Members } from 'src/app/services/objects/Members';
     IonIcon,
     IonInfiniteScroll,
     IonInfiniteScrollContent,
+    IonSearchbar,
+    IonSelect,
+    IonSelectOption,
+    FormsModule,
+    IonLabel,
   ],
 })
 export class ExpensePage implements OnInit, OnDestroy {
@@ -73,6 +79,22 @@ export class ExpensePage implements OnInit, OnDestroy {
   visibleGroupedExpenses: { date: string; expenses: Expenses[] }[] = [];
   private pageSize = 10;
   private currentIndex = 0;
+
+  searchTerm: string = '';
+  selectedCategories: string[] = [];
+  dropdownOpen: boolean = false;
+
+
+  categories = [
+    { name: 'Lebensmittel', icon: 'fast-food-outline' },
+    { name: 'Einkäufe', icon: 'cart-outline' },
+    { name: 'Restaurant/Bar', icon: 'wine-outline' },
+    { name: 'Transport', icon: 'car-outline' },
+    { name: 'Freizeit', icon: 'game-controller-outline' },
+    { name: 'Wohnen', icon: 'home-outline' },
+    { name: 'Rechnungen', icon: 'receipt-outline' },
+    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
+  ];
 
 
   async ngOnInit() {
@@ -170,7 +192,7 @@ export class ExpensePage implements OnInit, OnDestroy {
               this.expenses = Array.isArray(expensestest) ? expensestest : [];
 
               // Neue Zeile für Gruppierung
-              this.groupExpensesByDate();
+              this.groupExpensesByDate(this.expenses);
 
               const { total, count } = this.expenseService.calculateBalance(
                 this.expenses
@@ -200,6 +222,7 @@ export class ExpensePage implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
+      document.addEventListener('click', this.closeDropdownOnClickOutside.bind(this));
       this.loadingService.hide();
     }
   }
@@ -209,7 +232,16 @@ export class ExpensePage implements OnInit, OnDestroy {
       this.updateExpensesCallback();
       console.log('Unsubscribed from expense updates');
     }
+    document.addEventListener('click', this.closeDropdownOnClickOutside.bind(this));
   }
+
+  closeDropdownOnClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.Kategorie')) {
+      this.dropdownOpen = false;
+    }
+  }
+
 
   async logout() {
     this.loadingService.show();
@@ -264,10 +296,38 @@ export class ExpensePage implements OnInit, OnDestroy {
     return 'neutral';
   }
 
-  groupExpensesByDate() {
+  filterExpenses() {
+    let filteredExpenses = this.expenses;
+
+    // Wenn "Alle" ausgewählt wurde, sollen alle Ausgaben angezeigt werden
+    if (this.selectedCategories && this.selectedCategories.length > 0) {
+      if (this.selectedCategories.includes("Alle")) {
+        // Wenn "Alle" ausgewählt ist, zeige alle Ausgaben ohne Filterung nach Kategorien
+        filteredExpenses = this.expenses;
+      } else {
+        // Andernfalls filtere nach den ausgewählten Kategorien
+        filteredExpenses = filteredExpenses.filter(expense =>
+          expense.category && this.selectedCategories.includes(expense.category)
+        );
+      }
+    }
+
+    // Filter nach Suchbegriff
+    if (this.searchTerm) {
+      filteredExpenses = filteredExpenses.filter(expense =>
+        expense.description.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
+    }
+
+    this.groupExpensesByDate(filteredExpenses);
+  }
+
+
+
+  groupExpensesByDate(expenses: Expenses[]) {
     const grouped: { [key: string]: Expenses[] } = {};
 
-    for (const expense of this.expenses) {
+    for (const expense of expenses) {
       const date = new Date(expense.date).toISOString().split('T')[0];
       if (!grouped[date]) {
         grouped[date] = [];
@@ -283,11 +343,8 @@ export class ExpensePage implements OnInit, OnDestroy {
       }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    // Nur den Anfang anzeigen
-    this.currentIndex = 0;
     this.visibleGroupedExpenses = this.groupedExpenses.slice(0, this.pageSize);
   }
-
 
   getFirstLetter(paidBy: string): string {
     const member = this.groupMembers.find((m) => m.uid === paidBy);
@@ -316,5 +373,32 @@ export class ExpensePage implements OnInit, OnDestroy {
     }, 500);
   }
 
+  onCategoryDropdownClick(event: Event) {
+    event.stopPropagation();
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+// Wählt eine Kategorie aus
+  selectCategories(category: { name: string; icon: string }, event: Event) {
+    event.stopPropagation();
+
+    // Toggle-Verhalten für einfache Auswahl
+    if (this.selectedCategories.includes(category.name)) {
+      this.selectedCategories = this.selectedCategories.filter(
+        (cat) => cat !== category.name
+      );
+    } else {
+      this.selectedCategories = [category.name]; // Single-Select – nur eine Kategorie gleichzeitig
+    }
+
+    this.dropdownOpen = false;
+    this.filterExpenses();
+  }
+
+// Gibt Icon für ausgewählte Kategorie zurück
+  getCategoryIcon(categoryName: string): string {
+    const found = this.categories.find((cat) => cat.name === categoryName);
+    return found?.icon || 'help-outline';
+  }
 
 }

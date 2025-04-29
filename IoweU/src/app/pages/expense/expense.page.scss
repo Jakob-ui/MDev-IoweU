@@ -35,3 +35,77 @@ h5{
   font-size: 12px;
   font-weight: 300;
 }
+
+.filter{
+  display: flex;
+  flex-direction: row;
+  width: 80%;
+  background-color: white;
+  border: var(--ion-color-secondary) solid 3px;
+  border-radius: 50px;
+  align-items: center;
+}
+
+ion-searchbar {
+  --box-shadow: none;
+  display: flex;
+  border-radius: 50px;
+  --background-color: white;
+  flex: 8;
+}
+
+ion-searchbar::part(native) {
+  background-color: var(--ion-color-secondary);
+  border-radius: 50px;
+  text-align: left;
+}
+
+.Kategorie {
+  flex: 2;
+  align-items: center;
+  display: flex;
+}
+
+.Kategorie ion-item{
+  margin-bottom: 0 !important;
+}
+
+.custom-dropdown {
+  position: absolute;
+  z-index: 9999;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  max-width: 400%;
+  left: 50%;
+  margin-top: -20px;
+  border-radius: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background-color: #ffffff;
+}
+
+ion-item.dropDownFelder::part(native) {
+  --background: #ffffff;
+  background-color: #ffffff !important;
+
+}
+
+.selected-category ion-item::part(native) {
+  width: 50px !important;
+  margin-right: 10px !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+}
+
+.custom-dropdown ion-label {
+  margin-left: 15px;
+}
+
+.filter .divider{
+  background-color: var(--ion-color-secondary) !important;
+  height: 45px !important;
+  margin-top: 5px !important;
+}
+
+
+
+
