@@ -265,13 +265,13 @@ export class CreateExpensePage {
     }
   }
 
-  selectImage() {
-    this.fileInput.nativeElement.click();
-  }
 
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
+      // Setze die Datei als Invoice
+      this.expense.invoice = file.name;  // Hier setzen wir den Dateinamen oder den Blob
+  
       const reader = new FileReader();
       reader.onload = () => {
         this.invoice = reader.result;
@@ -280,8 +280,13 @@ export class CreateExpensePage {
         }
       };
       reader.readAsDataURL(file);
+    } else {
+      // Falls keine Datei ausgewählt wird, setze invoice auf undefined
+      this.expense.invoice = undefined;
     }
   }
+  
+  
 
   selectCurrency(currency: string) {
     this.selectedCurrency = currency;
