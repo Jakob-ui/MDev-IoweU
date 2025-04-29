@@ -5,11 +5,7 @@ import {
   IonHeader,
   IonToolbar,
   IonContent,
-  IonButton,
-  IonCard,
-  IonCardSubtitle,
-  IonCardTitle,
-  IonList, IonItem,
+  IonItem,
 } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -31,12 +27,7 @@ import { Groups } from "../../services/objects/Groups";
     IonHeader,
     IonToolbar,
     IonContent,
-    IonButton,
     RouterModule,
-    IonCard,
-    IonCardSubtitle,
-    IonCardTitle,
-    IonList,
     IonItem,
   ],
 })

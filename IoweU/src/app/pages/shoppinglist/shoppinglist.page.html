@@ -63,7 +63,7 @@
        'slideUp': detailsOverlayState === 'normal',
        'slideDown': detailsOverlayState === 'hidden'
      }"
-       (click)="toggleDetailsOverlay(selectedProduct?.shoppingProductId || '')">
+       (click)="toggleDetailsOverlay(selectedProduct.shoppingProductId || '')">
     <div class="info-wrapper" (click)="$event.stopPropagation()">
       <h5>Produkt Details bearbeiten</h5>
       <form (ngSubmit)="saveProductDetails()">
