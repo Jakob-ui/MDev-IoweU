@@ -43,6 +43,7 @@
     "firebase-functions": "^6.3.2",
     "html5-qrcode": "^2.3.8",
     "ionicons": "^7.4.0",
+    "ngx-image-compress": "^18.1.5",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

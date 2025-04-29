@@ -6,10 +6,9 @@ import {
   Change,
   FirestoreEvent,
   DocumentSnapshot,
-  onDocumentCreated,
 } from "firebase-functions/v2/firestore";
-import { onRequest } from "firebase-functions/https";
-import { getFirestore } from "firebase-admin/firestore";
+import {onRequest} from "firebase-functions/https";
+import {getFirestore} from "firebase-admin/firestore";
 
 interface RepeatingExpenses {
   expenseId: string;
@@ -58,25 +57,24 @@ export const handlerepeatingExpenses = onSchedule(
     const expensesRef = firestore.collectionGroup("repeatingExpenses");
 
     try {
-      // Query all repeating expenses with a valid repeat field
-      const snapshot = await expensesRef
-        .where("repeat", "in", ["täglich", "wöchentlich", "monatlich"])
-        .get();
+      const snapshot = await expensesRef.get();
 
-      for (const doc of snapshot.docs) {
-        const expense = doc.data() as RepeatingExpenses;
-        const groupId = doc.ref.parent.parent?.id;
+      for (const snapshotDoc of snapshot.docs) {
+        const expense = snapshotDoc.data();
+        const groupId = snapshotDoc.ref.parent.parent?.id;
 
         if (!groupId) {
-          logger.error(`Group ID not found for repeating expense: ${doc.id}`);
+          logger.error(
+            `Group ID not found for repeating expense: ${snapshotDoc.id}`
+          );
           continue;
         }
 
         // Parse the lastPay date
-        const lastPayDate = expense.lastPay ?
-          new Date(expense.lastPay) :
-          new Date(expense.date);
-        const repeatInterval = expense.repeat;
+        const lastPayDate = expense["lastPay"] ?
+          new Date(expense["lastPay"]) :
+          new Date(expense["date"]);
+        const repeatInterval = expense["repeat"];
 
         // Calculate the next expense date
         const nextExpenseDate = new Date(lastPayDate);
@@ -88,39 +86,42 @@ export const handlerepeatingExpenses = onSchedule(
           nextExpenseDate.setMonth(nextExpenseDate.getMonth() + 1);
         }
 
-        logger.info(`Processing repeating expense: ${doc.id}`);
         logger.info(`Next expense date: ${nextExpenseDate.toISOString()}`);
 
         // Check if the next expense date is due
         if (nextExpenseDate <= now) {
+          // Generate a new expenseId
+          const expenseId = firestore
+            .collection(`groups/${groupId}/expenses`)
+            .doc().id;
+
+          // Create the new expense object
           const newExpense = {
             ...expense,
-            date: nextExpenseDate.toISOString(),
             lastPay: now.toISOString(),
-            expenseId: firestore.collection("dummy").doc().id,
+            expenseId: expenseId,
           };
 
-          // Remove unnecessary fields for the new expense
-          const {repeat, lastPay, ...cleanedExpense} = newExpense;
+          // Remove unnecessary fields
+          const {lastPay, ...cleanedExpense}=newExpense as RepeatingExpenses;
+          cleanedExpense.date = now.toISOString();
 
-          // Save the new expense in the "expenses" collection
+          // Save the new expense in the Firestore database
           await firestore
-            .collection("groups")
-            .doc(groupId)
-            .collection("expenses")
-            .doc(cleanedExpense.expenseId)
+            .collection(`groups/${groupId}/expenses`)
+            .doc(expenseId)
             .set(cleanedExpense);
 
-          // Update the lastPay field in the repeating expense
-          await doc.ref.update({
+          // Update the `lastPay` field in the original repeatingExpense
+          await snapshotDoc.ref.update({
             lastPay: now.toISOString(),
           });
 
-          logger.info(`Repeating expense created: ${cleanedExpense.expenseId}`);
+          logger.info(`Repeating expense created: ${expenseId}`);
         }
       }
-    } catch (error) {
-      logger.error("Error handling repeating expenses:", error);
+    } catch (e) {
+      logger.error("Error handling repeating expenses:", e);
     }
   }
 );
@@ -181,15 +182,46 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
 );
 
 
-// Take the text parameter passed to this HTTP endpoint and insert it into
-// Firestore under the path /messages/:documentId/original
-exports.addmessage = onRequest(async (req, res) => {
-  // Grab the text parameter.
-  const original = req.query.text;
-  // Push the new message into Firestore using the Firebase Admin SDK.
-  const writeResult = await getFirestore()
-      .collection("messages")
-      .add({original: original});
-  // Send back a message that we've successfully written the message
-  res.json({result: `Message with ID: ${writeResult.id} added.`});
-});
+export const recalculateGroupBalances = onSchedule(
+  {
+    schedule: "every day 00:01",
+    timeZone: "Europe/Berlin",
+    region: "europe-west1",
+  },
+  async () => {
+    const groupsRef = firestore.collection("groups");
+
+    try {
+      const groupsSnapshot = await groupsRef.get();
+
+      for (const groupDoc of groupsSnapshot.docs) {
+        const groupId = groupDoc.id;
+        const expensesRef = firestore.collection(`groups/${groupId}/expenses`);
+        const expensesSnapshot = await expensesRef.get();
+
+        let total = 0;
+        let count = 0;
+
+        // Summiere alle Expenses der Gruppe
+        for (const expenseDoc of expensesSnapshot.docs) {
+          const expense = expenseDoc.data();
+          total += expense.totalAmount || 0;
+          count++;
+        }
+
+        // Aktualisiere die Summen in der Gruppe
+        await groupDoc.ref.update({
+          sumTotalExpenses: total,
+          countTotalExpenses: count,
+        });
+
+        logger.info(
+          `Balances für Gruppe ${groupId} neu berechnet: 
+          Total = ${total}, Count = ${count}`
+        );
+      }
+    } catch (error) {
+      logger.error("Fehler beim Neuberechnen der Gruppensummen:", error);
+    }
+  }
+);

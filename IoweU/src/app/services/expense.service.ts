@@ -86,13 +86,13 @@ export class ExpenseService {
         );
         await setDoc(expenseRef, expense);
 
-      //Felder in der Collection "Members" aktualisieren:
+        //Felder in der Collection "Members" aktualisieren:
 
-      //Für jedes Mitglied in der Gruppe wird abgefragt:
-      //1. Wenn das Mitglied die Ausgabe bezahlt hat, wird sumExpenseAmount um totalAmount - amountToPay erhöht und countExpenseAmount um 1 erhöht.
-      //2. sumAmountReceived & countAmountReceived bleiben gleich (werden erst dann aktualisiert wenn dem Mitglied ein anderes Mitglied eine Schuld begleicht) => von der for-Schleife weggelassen
-      //3. Wenn das Mitglied an der Ausgabe beteiligt war aber sie nicht bezahlt hat, wird sumExpenseMemberAmount um amountToPay erhöht und countExpenseMemberAmount um 1 erhöht.
-      //4. sumAmountPaid & countAmountPaid bleiben gleich (werden erst dann aktualisiert wenn das Mitglied einem anderen Mitglied eine Schuld begleicht) => von der for-Schleife weggelassen
+        //Für jedes Mitglied in der Gruppe wird abgefragt:
+        //1. Wenn das Mitglied die Ausgabe bezahlt hat, wird sumExpenseAmount um totalAmount - amountToPay erhöht und countExpenseAmount um 1 erhöht.
+        //2. sumAmountReceived & countAmountReceived bleiben gleich (werden erst dann aktualisiert wenn dem Mitglied ein anderes Mitglied eine Schuld begleicht) => von der for-Schleife weggelassen
+        //3. Wenn das Mitglied an der Ausgabe beteiligt war aber sie nicht bezahlt hat, wird sumExpenseMemberAmount um amountToPay erhöht und countExpenseMemberAmount um 1 erhöht.
+        //4. sumAmountPaid & countAmountPaid bleiben gleich (werden erst dann aktualisiert wenn das Mitglied einem anderen Mitglied eine Schuld begleicht) => von der for-Schleife weggelassen
 
         await this.updateMemberSumsOnNewExpense(groupId, expense);
 
@@ -103,7 +103,7 @@ export class ExpenseService {
 
         return expense;
       } else {
-        const repeatingExpense : RepeatingExpenses = {
+        const repeatingExpense: RepeatingExpenses = {
           ...expense,
           lastPay: expenseData.date
             ? new Date(expenseData.date).toISOString()
@@ -141,14 +141,22 @@ export class ExpenseService {
         !updatedExpenseData.splitType ||
         !updatedExpenseData.splitBy
       ) {
-        throw new Error('Ein oder mehrere Pflichtfelder fehlen bei updatedExpenseData');
+        throw new Error(
+          'Ein oder mehrere Pflichtfelder fehlen bei updatedExpenseData'
+        );
       }
 
       const expenseId = updatedExpenseData.expenseId;
 
       // Referenz zur alten Ausgabe holen (unabhängig ob normal oder wiederholend)
       const expenseCollection = repeating ? 'repeatingExpenses' : 'expenses';
-      const expenseRef = doc(this.firestore, 'groups', groupId, expenseCollection, expenseId);
+      const expenseRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        expenseCollection,
+        expenseId
+      );
       const expenseSnapshot = await getDoc(expenseRef);
 
       if (!expenseSnapshot.exists()) {
@@ -167,7 +175,8 @@ export class ExpenseService {
           if (oldMember.memberId === member.uid) {
             if (oldMember.memberId === oldExpense.paidBy) {
               member.sumExpenseAmount -= oldExpense.totalAmount;
-              member.sumExpenseMemberAmount -= oldExpense.totalAmount - oldMember.amountToPay;
+              member.sumExpenseMemberAmount -=
+                oldExpense.totalAmount - oldMember.amountToPay;
             } else {
               member.sumExpenseAmount += oldMember.amountToPay;
             }
@@ -183,7 +192,8 @@ export class ExpenseService {
           if (newMember.memberId === member.uid) {
             if (newMember.memberId === updatedExpenseData.paidBy) {
               member.sumExpenseAmount += updatedExpenseData.totalAmount;
-              member.sumExpenseMemberAmount += updatedExpenseData.totalAmount - newMember.amountToPay;
+              member.sumExpenseMemberAmount +=
+                updatedExpenseData.totalAmount - newMember.amountToPay;
             } else {
               member.sumExpenseAmount -= newMember.amountToPay;
             }
@@ -227,7 +237,6 @@ export class ExpenseService {
       console.error('Fehler beim Aktualisieren der Ausgabe: ', error);
     }
   }
-
 
   async deleteExpense(
     groupId: string,
@@ -339,7 +348,6 @@ export class ExpenseService {
       total += expense.totalAmount || 0;
       count++;
     }
-    console.log('Balance wird berechnet:', { total, count });
     return { total, count };
   }
 
@@ -603,8 +611,7 @@ export class ExpenseService {
                 new Set([...data.relatedExpenseId, expense.expenseId])
               ),
             });
-          } else
-          {
+          } else {
             //payer -> borrower
             const q2 = query(
               balancesRef,
@@ -612,11 +619,11 @@ export class ExpenseService {
               where('toMemberId', '==', debtor)
             );
             const snapshot1 = await getDocs(q2);
-  
+
             if (!snapshot1.empty) {
               const docRef = snapshot1.docs[0].ref;
               const data = snapshot1.docs[0].data() as Balances;
-  
+
               await updateDoc(docRef, {
                 amount: Number((data.amount + amount).toFixed(2)),
                 sumFrom: Number((data.sumFrom + amount).toFixed(2)),
@@ -626,7 +633,6 @@ export class ExpenseService {
                 ),
               });
             }
-
           }
           // else {
           //   // Neue Balance anlegen

@@ -43,7 +43,7 @@
     (click)="toggleQRCodeOverlay()">
     <div class="qr-code-wrapper" (click)="$event.stopPropagation()">
       <h5>Scannen um Gruppe beizutreten.</h5>
-      <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>
+      <qrcode [qrdata]="qrCodeValue  || 'default-value'" [width]="256" [errorCorrectionLevel]="'M'" [allowEmptyString]= 'true'></qrcode>
       <h5>Code zum Beitreten:</h5>
       <h5 class="access-code">{{ accessCode }}</h5>
     </div>
