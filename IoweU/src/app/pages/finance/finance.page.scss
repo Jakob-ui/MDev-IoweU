@@ -73,6 +73,13 @@ h1{
   color: #2c2c2c;
 }
 
+@media (prefers-color-scheme: dark) {
+  .info-wrapper {
+  background: var(--ion-color-dark);
+  color: #e0e2e5;
+}
+}
+
 .info-wrapper h5 {
   font-size: 20px;
   font-weight: 600;
