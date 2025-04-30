@@ -61,9 +61,9 @@
               <ion-icon *ngIf="expense.invoice" name="checkmark-outline" slot="start"></ion-icon>
 
               <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
-             
+
             </ion-item>
-           
+
           </div>
           <ion-button *ngIf="expense.invoice" color="danger" (click)="removeInvoice()">Löschen</ion-button>
           <div *ngIf="invoiceDropdownOpen" class="custom-dropdown">
@@ -77,7 +77,7 @@
                 <ion-label>Bild hochladen</ion-label>
               </ion-item>
             </ion-list>
-            
+
           </div>
         </div>
 
@@ -96,7 +96,7 @@
               <ion-input
                 type="number"
                 placeholder="0,00"
-                [(ngModel)]="foreignAmount"
+                [(ngModel)]="expense.totalAmountInForeignCurrency"
                 (ionInput)="onForeignAmountChange()"
                 *ngIf="selectedCurrency !== 'EUR'"
                 step="0.01"
@@ -111,22 +111,7 @@
                 step="0.01"
               ></ion-input>
 
-              <span class="percent-symbol">{{ selectedCurrency === 'EUR' ? '€' : selectedCurrency }}</span>
-            </div>
-          </ion-item>
-        </div>
-
-        <!-- Umgerechneter Betrag in EUR -->
-        <div class="betrag" *ngIf="selectedCurrency !== 'EUR'">
-          <span class="input-label">Umgerechnet in EUR</span>
-          <ion-item class="input-item">
-            <div class="input-wrapper">
-              <ion-input
-                type="number"
-                [value]="expense.totalAmount | number: '1.2-2'"
-                readonly
-              ></ion-input>
-              <span class="percent-symbol">€</span>
+              <span class="percent-symbol">{{ selectedCurrency === 'EUR' ? 'EUR' : selectedCurrency }}</span>
             </div>
           </ion-item>
         </div>
@@ -145,12 +130,37 @@
               </ion-select-option>
             </ion-select>
           </ion-item>
+        </div>
 
-          <!-- Wechselkurs-Anzeige -->
-          <ion-item *ngIf="selectedCurrency !== 'EUR'" class="exchange-rate-info">
-            <ion-note slot="end">
-              1 {{ selectedCurrency }} = {{ 1 / exchangeRate | number: '1.4-4' }} EUR
-            </ion-note>
+      </div>
+
+      <div class="exchange">
+        <!-- Umgerechneter Betrag in EUR -->
+        <div class="betrag" *ngIf="selectedCurrency !== 'EUR'">
+          <span class="input-label">Umgerechnet in EUR</span>
+          <ion-item class="input-item">
+            <div class="input-wrapper">
+              <ion-input
+                type="number"
+                [value]="expense.totalAmount | number: '1.2-2'"
+                readonly
+              ></ion-input>
+              <span class="percent-symbol">EUR</span>
+            </div>
+          </ion-item>
+        </div>
+
+        <!-- Wechselkurs-Anzeige -->
+        <div *ngIf="selectedCurrency !== 'EUR'" class="exchange-rate-info">
+          <span class="input-label">Wechselkurs</span>
+          <ion-item>
+            <div class="input-wrapper">
+              <ion-input
+                type="text"
+                [value]="'1 ' + selectedCurrency + ' = ' + (1 / exchangeRate | number: '1.4-4') + ' EUR'"
+                readonly
+              ></ion-input>
+            </div>
           </ion-item>
         </div>
 
@@ -359,7 +369,7 @@
                   (ionInput)="calculateSplitByPercentage(groupMember.uid, 'amount')"
                   step="0.01"
                 ></ion-input>
-                <span class="percent-symbol">€</span>
+                <span class="percent-symbol">EUR</span>
               </div>
               <div
                 class="input-wrapper"
@@ -386,7 +396,7 @@
                   (ionInput)="onAmountToPayChange()"
                   step="0.01"
                 ></ion-input>
-                <span class="percent-symbol">€</span>
+                <span class="percent-symbol">{{ selectedCurrency }}</span>
               </div>
             </div>
           </div>

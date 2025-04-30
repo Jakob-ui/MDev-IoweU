@@ -28,7 +28,7 @@
 .input-item {
   flex: 1;
   width: 100%;
-  
+
 }
 
 .Beschreibung {
@@ -392,7 +392,7 @@ ion-item.dropDownFelder::part(native) {
     background-color: #ffffff;
   }
   ion-item.dropDownFelder::part(native) {
-  
+
     background-color: #ffffff !important;
     color: var(--ion-color-light) !important;
   }
@@ -622,14 +622,21 @@ width: 60px;
 
 }
 
-  
+.exchange{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+}
+
+
 
 @media (prefers-color-scheme: dark) {
   .input-label {
     color: #989797;
   }
   ion-item.dropDownFelder::part(native) {
-  
+
     background-color: #121212 !important;
     color: var(--ion-color-light) !important;
   }
@@ -640,12 +647,12 @@ width: 60px;
     color: #000000;
     font-size: 24px;
   }
-  .paid-by .custom-dropdown { 
-    background-color: #121212; 
+  .paid-by .custom-dropdown {
+    background-color: #121212;
   }
   .paid-by ion-item.dropDownFelder::part(native) {
     background-color: #121212 !important;
-  
+
 }
 
 .datepicker{
