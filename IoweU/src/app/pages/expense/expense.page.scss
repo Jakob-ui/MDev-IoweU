@@ -59,6 +59,8 @@ ion-searchbar::part(native) {
 .Kategorie {
   flex: 2;
   align-items: center;
+  justify-content: right;
+  margin-right: 15px;
   display: flex;
 }
 
@@ -105,14 +107,14 @@ ion-item.dropDownFelder::part(native) {
   background-color: #ffffff !important;
 }
 
-#category-icon {
+.category-icon {
   font-size: 23px;
   padding: 5px;
 }
 ion-searchbar {
   --background: #ffffff !important;
 }
-ion-item::part(native) {
+.filter ion-item::part(native) {
   background-color: white !important;
 }
 
@@ -127,7 +129,7 @@ ion-item::part(native) {
     color: #989797;
   }
   ion-item.dropDownFelder::part(native) {
-  
+
     background-color: #121212 !important;
     color: var(--ion-color-light) !important;
   }
@@ -138,10 +140,10 @@ ion-item::part(native) {
     color: #000000;
     font-size: 30px;
   }
-  
-  
 
-#category-icon {
+
+
+.category-icon {
   color: #000000;
 
 }
