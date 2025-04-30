@@ -48,6 +48,7 @@ import {
   IonText,
 } from '@ionic/angular/standalone';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 // Import interfaces
 import { Expenses } from 'src/app/services/objects/Expenses';
@@ -315,28 +316,21 @@ export class CreateExpensePage {
 
   async openCamera() {
     try {
-      const image = await Camera.getPhoto({
-        quality: 50,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera,
-      });
+      if (Capacitor.isNativePlatform()) {
+        const image = await Camera.getPhoto({
+          quality: 50,
+          resultType: CameraResultType.DataUrl,
+          source: CameraSource.Camera,
+        });
 
-      if (image && image.dataUrl) {
-        // Compress the image
-        const compressedImage = await this.imageCompress.compressFile(
-          image.dataUrl,
-          -1, // Orientation (auto-detect)
-          50, // Quality (0-100)
-          50  // Resize percentage
-        );
-
-        // Convert compressed image to Blob
-        this.uploadInvoice = this.imageService.dataURLtoBlob(compressedImage);
-        this.invoice = compressedImage;
-        this.expense.invoice = 'camera_image.jpg'; // Set a default name for the camera image
+        if (image && image.dataUrl) {
+          this.expense.invoice = image.dataUrl; // Save the captured image
+        }
+      } else {
+        console.warn('Camera is only available on native platforms.');
       }
     } catch (error) {
-      console.error('Error capturing image from camera:', error);
+      console.error('Error opening camera:', error);
     }
   }
 
