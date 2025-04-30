@@ -597,13 +597,32 @@ ion-input {
 .split-percentage + .validation-content {
   margin-top: 0;
 }
-.upload-icon{
-  font-size: 26px;
+.rechnung-dropdown ion-icon {
+  flex-shrink: 0;
+  font-size: 24px;
+  min-width: 24px;
 }
-.rechnung-dropdown{
-  
+.rechnung-dropdown  {
+width: 60px;
+
+}
+.invoice-upload{
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    top: 100%;
+    left: -80px;
+    ion-icon{
+      margin-left: 10px;
+      margin-right: 5px;
+    }
+  }
+
 }
 
+  
 
 @media (prefers-color-scheme: dark) {
   .input-label {
@@ -631,5 +650,13 @@ ion-input {
 
 .datepicker{
   background-color: #000;
+}
+
+.invoice-upload{
+  .custom-dropdown {
+    ion-icon{
+      color: #ffffff;
+    }
+  }
 }
 }
