@@ -61,9 +61,11 @@
               <ion-icon *ngIf="expense.invoice" name="checkmark-outline" slot="start"></ion-icon>
 
               <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
-              <ion-button *ngIf="expense.invoice" color="danger" (click)="removeInvoice()">Löschen</ion-button>
+             
             </ion-item>
+           
           </div>
+          <ion-button *ngIf="expense.invoice" color="danger" (click)="removeInvoice()">Löschen</ion-button>
           <div *ngIf="invoiceDropdownOpen" class="custom-dropdown">
             <ion-list>
               <ion-item class="dropDownFelder" button (click)="openCamera()">
@@ -75,6 +77,7 @@
                 <ion-label>Bild hochladen</ion-label>
               </ion-item>
             </ion-list>
+            
           </div>
         </div>
 
