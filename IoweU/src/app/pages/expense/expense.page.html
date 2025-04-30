@@ -42,14 +42,12 @@
 
       <div class="divider"></div>
       <div class="Kategorie" (click)="onCategoryDropdownClick($event)">
-        <ion-item class="input-item">
-          <ion-label>
             <div class="selected-category">
               <ion-icon
                 *ngIf="selectedCategories.length > 0"
                 [name]="getCategoryIcon(selectedCategories[0])"
                 class="category-icon"
-                id="category-icon-label"
+                id="category-icon"
               ></ion-icon>
               <ion-icon
               id="category-icon"
@@ -58,9 +56,6 @@
                 
               </ion-icon>
             </div>
-          </ion-label>
-
-        </ion-item>
 
         <div *ngIf="dropdownOpen" class="custom-dropdown">
           <ion-list>

@@ -106,10 +106,18 @@ ion-item.dropDownFelder::part(native) {
 }
 
 #category-icon {
- 
-  font-size: 18px;
-
+  font-size: 23px;
+  padding: 5px;
 }
+ion-searchbar {
+  --background: #ffffff !important;
+}
+ion-item::part(native) {
+  background-color: white !important;
+}
+
+
+
 
 @media (prefers-color-scheme: dark) {
   .date {
@@ -128,21 +136,18 @@ ion-item.dropDownFelder::part(native) {
   }
   #category-icon-label {
     color: #000000;
-    font-size: 24px;
+    font-size: 30px;
   }
   
-  ion-searchbar::part(input) {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-  }
+  
 
 #category-icon {
   color: #000000;
-  font-size: 18px;
 
 }
 .custom-search{
-color: #000;;
+color: #000;
+background-color: #ffffff !important;
 }
-  
+
 }
