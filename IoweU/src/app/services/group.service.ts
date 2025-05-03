@@ -225,6 +225,41 @@ export class GroupService {
     }
   }
 
+  async removeUserFromGroupByUid(groupId: string, userId: string): Promise<void> {
+    try {
+      // 1. Entferne groupId aus dem user-Dokument
+      const userRef = doc(this.firestore, 'users', userId);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const updatedGroupIds = (userData['groupId'] || []).filter((id: string) => id !== groupId);
+        await updateDoc(userRef, { groupId: updatedGroupIds });
+        console.log(`User ${userId} aus groupId-Liste entfernt.`);
+      }
+
+      // 2. Entferne den User aus der members-Liste im Gruppen-Dokument
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      const groupSnap = await getDoc(groupRef);
+
+      if (groupSnap.exists()) {
+        const groupData = groupSnap.data();
+        const members = groupData['members'] || [];
+
+        // Entferne das Member-Objekt mit passender uid
+        const updatedMembers = members.filter((member: any) => member.uid !== userId);
+
+        await updateDoc(groupRef, { members: updatedMembers });
+        console.log(`Mitglied ${userId} aus Gruppe ${groupId} entfernt.`);
+      }
+
+    } catch (error) {
+      console.error('Fehler beim Entfernen des Benutzers aus der Gruppe:', error);
+    }
+  }
+
+
+
   async joinGroup(joinee: Users, accessCode: string): Promise<void> {
     try {
       const groupToJoin = await this.getGroupByAccessCode(accessCode);
@@ -560,4 +595,36 @@ export class GroupService {
     this.currentGroup = null;
     console.log('Gruppendaten wurden zurückgesetzt.');
   }
+
+
+  async setNewFounder(groupId: string, oldFounderUid: string, newFounderUid: string): Promise<void> {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+    const groupSnapshot = await getDoc(groupRef);
+
+    if (!groupSnapshot.exists()) {
+      throw new Error('Gruppe nicht gefunden.');
+    }
+
+    const groupData = groupSnapshot.data() as Groups;
+    const members = groupData.members || [];
+
+    const updatedMembers = members.map((member) => {
+      if (member.uid === oldFounderUid) {
+        return { ...member, role: 'member' as 'member' };
+      }
+      if (member.uid === newFounderUid) {
+        return { ...member, role: 'founder' as 'founder' };
+      }
+      return { ...member, role: member.role as 'member' | 'founder' }; // falls role evtl. noch string war
+    });
+
+    const updatedGroupData: Partial<Groups> = {
+      founder: newFounderUid,
+      members: updatedMembers,
+    };
+
+    await setDoc(groupRef, updatedGroupData, { merge: true });
+  }
+
+
 }

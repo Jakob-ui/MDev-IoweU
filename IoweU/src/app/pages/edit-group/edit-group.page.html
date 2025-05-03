@@ -60,7 +60,13 @@
             </div>
             <span class="member-name">{{ member.username }}</span>
           </div>
-          <ion-button fill="clear" color="danger" (click)="removeMember(member)">X</ion-button>
+          <ion-button
+            *ngIf="userUid === founder || userUid === member.uid"
+            fill="clear"
+            color="danger"
+            (click)="userUid === founder && userUid !== member.uid ? removeMemberFromGroup(member) : leaveGroup()">
+            X
+          </ion-button>
         </ion-item>
       </ion-list>
     </div>
