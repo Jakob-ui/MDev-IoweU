@@ -40,20 +40,19 @@
     <div class="filter">
       <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterExpenses()" debounce="500" placeholder="Suche Ausgabe" class="custom-search"></ion-searchbar>
 
-      <div class="divider"></div>
-      <div class="Kategorie" (click)="onCategoryDropdownClick($event)">
+      <div class="divider" slot="end"></div>
+      <div class="Kategorie" (click)="onCategoryDropdownClick($event)" slot="end">
             <div class="selected-category">
               <ion-icon
                 *ngIf="selectedCategories.length > 0"
                 [name]="getCategoryIcon(selectedCategories[0])"
                 class="category-icon"
-                id="category-icon"
               ></ion-icon>
               <ion-icon
-              id="category-icon"
+                class="category-icon"
                 *ngIf="selectedCategories.length === 0"
                 [src]="'assets/icon/ionicons/filter.svg'">
-                
+
               </ion-icon>
             </div>
 

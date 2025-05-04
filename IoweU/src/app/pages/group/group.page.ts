@@ -59,7 +59,7 @@ export class GroupPage implements OnInit {
   user: string | null = '';
   isFounder: boolean = false;
   currentGroup: Groups | null = null;
-  balance: number = -20;
+  balance: number = 0;
   totalCost: number = 120.5;
   displayName: string | null = null;
 

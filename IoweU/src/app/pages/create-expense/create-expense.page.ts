@@ -141,7 +141,6 @@ export class CreateExpensePage {
 
   selectedCurrency: string = 'EUR';
   exchangeRate: number = 1;
-  foreignAmount: number = 0;
   foreignAmountToPay: { [memberId: string]: number } = {};
 
   showAddProductButton: { [key: string]: boolean } = {};
@@ -162,10 +161,10 @@ export class CreateExpensePage {
     paidBy: '',
     date: new Date().toISOString().split('T')[0],
     currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'], // Verfügbare Währungen
-    category: '',
+    category: 'Sonstiges',
     invoice: '',
     repeat: 'nein',
-    splitBy: 'frei',
+    splitBy: 'alle',
     splitType: 'anteile',
     expenseMember: [],
   };
@@ -884,20 +883,53 @@ export class CreateExpensePage {
   }
 
   selectCurrency(newCurrency: string) {
-    this.selectedCurrency = newCurrency;
-    this.foreignAmount = 0;
-    this.expense.totalAmount = 0;
+    const oldCurrency = this.selectedCurrency;
+    const wasEuro = oldCurrency === 'EUR';
+    const willBeEuro = newCurrency === 'EUR';
 
-    if (newCurrency === 'EUR') {
+    // Zwischenspeichern für Umrechnung
+    const previousExchangeRate = this.exchangeRate || 1;
+
+    this.selectedCurrency = newCurrency;
+
+    if (willBeEuro) {
       this.exchangeRate = 1;
+
+      // Gesamtbetrag konvertieren
+      this.expense.totalAmount = +((this.expense.totalAmountInForeignCurrency ?? 0) * previousExchangeRate).toFixed(2);
+      this.expense.totalAmountInForeignCurrency = 0;
+
+      // Einzelbeträge aktualisieren
+      Object.keys(this.foreignAmountToPay).forEach(memberId => {
+        const foreignAmount = this.foreignAmountToPay[memberId] || 0;
+        this.amountToPay[memberId] = +(foreignAmount * previousExchangeRate).toFixed(2);
+      });
+
+      this.onAmountToPayChange();
       return;
     }
 
+    // Wenn zu Fremdwährung gewechselt wird, hole aktuellen Kurs
     const url = `https://api.frankfurter.app/latest?from=${newCurrency}&to=EUR`;
     this.http.get<any>(url).subscribe({
       next: (data) => {
         this.exchangeRate = data.rates['EUR'];
         console.log(`Wechselkurs geladen: 1 ${newCurrency} = ${this.exchangeRate} EUR`);
+
+        // Konvertiere bestehende EUR-Beträge in Fremdwährung
+        if (wasEuro) {
+          this.expense.totalAmountInForeignCurrency = +((this.expense.totalAmount ?? 0) / this.exchangeRate).toFixed(2);
+
+          Object.keys(this.amountToPay).forEach(memberId => {
+            const euroAmount = this.amountToPay[memberId] || 0;
+            this.foreignAmountToPay[memberId] = +(euroAmount / this.exchangeRate).toFixed(2);
+          });
+
+          this.onForeignAmountChange();
+        }
+        if (this.expense.splitBy === 'alle') {
+          this.splitAmountEqually();
+        }
       },
       error: (err) => {
         console.error('Fehler beim Laden des Wechselkurses:', err);
@@ -906,17 +938,24 @@ export class CreateExpensePage {
     });
   }
 
+
+
 // Bei Fremdwährungsbetrag-Eingabe
   onForeignAmountChange() {
     if (this.selectedCurrency !== 'EUR') {
-      this.expense.totalAmount = +(this.foreignAmount * this.exchangeRate).toFixed(2); // totalAmount bleibt immer EUR
+      // Berechne EUR aus dem Fremdwährungs-Gesamtbetrag
+      this.expense.totalAmount = +(((this.expense.totalAmountInForeignCurrency ?? 0) * this.exchangeRate).toFixed(2));
     }
-    if (this.expense.splitBy === 'frei'){
-      if (this.selectedCurrency !== 'EUR' && this.exchangeRate > 0) {
-        this.foreignAmount = this.expense.totalAmount / this.exchangeRate;
-      }
+
+    // Wenn frei geteilt wird, berechne den Gesamtbetrag in Fremdwährung aus den Einzelwerten
+    if (this.expense.splitBy === 'frei' && this.selectedCurrency !== 'EUR') {
+      const totalForeign = Object.values(this.foreignAmountToPay ?? {}).reduce((sum, val) => sum + (val || 0), 0);
+      this.expense.totalAmountInForeignCurrency = +totalForeign.toFixed(2);
     }
+
+    this.onAmountToPayChange();
   }
+
 
   onForeignAmountInput(memberId: string) {
     const foreignAmount = this.foreignAmountToPay[memberId] || 0;
@@ -929,6 +968,7 @@ export class CreateExpensePage {
       this.amountToPay[memberId] = 0;
     }
     this.onAmountToPayChange();
+    this.onForeignAmountChange();
   }
 
 

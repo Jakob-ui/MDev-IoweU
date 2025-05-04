@@ -773,4 +773,33 @@ export class ExpenseService {
 
     return expenses;
   }
+
+  async checkMemberBalance(groupId: string, userId: string): Promise<boolean> {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+    const groupSnapshot = await getDoc(groupRef);
+
+    if (!groupSnapshot.exists()) {
+      console.error(`Gruppe mit ID ${groupId} nicht gefunden.`);
+      return false;
+    }
+
+    const groupData = groupSnapshot.data();
+    // Zugriff auf 'members' mit Indexsignatur
+    const member = groupData['members'].find((m: any) => m.uid === userId);
+
+    if (!member) {
+      console.error(`Mitglied mit der UID ${userId} nicht gefunden.`);
+      return false;
+    }
+
+    // Berechnung der Bilanz
+    const paidByUser = member.sumExpenseAmount || 0; // Guthaben (Beträge, die der User bezahlt hat)
+    const paidByMember = member.sumExpenseMemberAmount || 0; // Ausgaben (Beträge, die der User vom Mitglied bekommen hat)
+
+    const myBalance = paidByUser - paidByMember; // Berechnung der Bilanz
+
+    // Gibt zurück, ob die Bilanz ungleich null ist
+    return myBalance !== 0;
+  }
+
 }
