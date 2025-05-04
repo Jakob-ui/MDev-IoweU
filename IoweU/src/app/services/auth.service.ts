@@ -19,6 +19,7 @@ export class AuthService {
   private firestore = inject(Firestore);
   private groupService = inject(GroupService);
   currentUser: Users | null = null;
+  colorBlindMode: boolean = false;
 
   constructor() {
     this.auth.onAuthStateChanged((user) => {
@@ -33,8 +34,13 @@ export class AuthService {
         };
         const groupRef = doc(this.firestore, 'users', user.uid);
         getDoc(groupRef).then((docsnap) => {
+          this.colorBlindMode =
+            localStorage.getItem('colorBlindMode') === 'true';
+          this.applyColorBlindMode(this.colorBlindMode);
           this.firestore;
           if (docsnap.exists()) {
+
+
             this.currentUser = {
               uid: user.uid,
               username: docsnap.data()['username'],
@@ -193,6 +199,14 @@ export class AuthService {
     return sendPasswordResetEmail(this.auth, email.trim(), {
       url: 'http://localhost:8100/login',
     });
+  }
+
+  applyColorBlindMode(enabled: boolean) {
+    if (enabled) {
+      document.body.classList.add('color-blind');
+    } else {
+      document.body.classList.remove('color-blind');
+    }
   }
 
   //-------------Workaround---------------------
