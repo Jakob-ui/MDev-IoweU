@@ -135,8 +135,8 @@ export class FinancePage implements OnInit {
               if (member.uid && this.uid) {
                 const amount = await this.expenseService.getBalanceBetweenUsers(
                   groupId,
-                  member.uid,
-                  this.uid
+                  this.uid,
+                  member.uid
                 );
   
                 const saldo = amount; // Positiv bedeutet: Ich bekomme Geld
