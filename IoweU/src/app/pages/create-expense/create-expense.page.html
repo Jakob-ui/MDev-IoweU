@@ -341,12 +341,21 @@
             >
             </ion-icon>
           </div>
-          <div class="right-container">
+          <div
+            class="right-container"
+            [ngStyle]="{
+              width:
+                expense.splitType === 'prozent' && selectedCurrency !== 'EUR'
+                  ? '70%'
+                  : '50%'
+            }"
+          >
             <div class="input-field" *ngIf="expense.splitType === 'prozent'">
               <!-- Prozentfeld -->
-              <div class="input-wrapper">
+              <div class="input-wrapper auto-width" id="input-wrapper-percent">
                 <ion-input
                   type="number"
+                  class="percent-input"
                   placeholder="0"
                   [(ngModel)]="splitValue[groupMember.uid]"
                   (ionInput)="calculateSplitByPercentage(groupMember.uid, 'percentage')"
@@ -356,50 +365,92 @@
             </div>
 
             <div class="input-field">
-              <!-- Betragsfeld -->
+              <!-- Prozent-Split: EUR-Feld -->
               <div
                 class="input-wrapper"
-                *ngIf="expense.splitType === 'prozent'">
+                *ngIf="expense.splitType === 'prozent' && selectedCurrency === 'EUR'"
+              >
                 <ion-input
                   type="number"
                   placeholder="0,00"
                   [(ngModel)]="amountToPay[groupMember.uid]"
-                  *ngIf="expense.splitType === 'prozent'"
                   [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
                   (ionInput)="calculateSplitByPercentage(groupMember.uid, 'amount')"
                   step="0.01"
                 ></ion-input>
                 <span class="percent-symbol">EUR</span>
               </div>
+
+              <!-- Prozent-Split: Fremdwährungs-Felder -->
               <div
                 class="input-wrapper"
-                *ngIf="expense.splitType === 'anteile' || expense.splitType === 'produkte'">
-
+                *ngIf="expense.splitType === 'prozent' && selectedCurrency !== 'EUR'"
+              >
                 <ion-input
-                  *ngIf="selectedCurrency !== 'EUR'"
+                  type="number"
+                  [value]="amountToPay[groupMember.uid]"
+                  readonly
+                ></ion-input>
+                <span class="percent-symbol">EUR</span>
+              </div>
+              <div
+                class="input-wrapper"
+                *ngIf="expense.splitType === 'prozent' && selectedCurrency !== 'EUR'"
+              >
+                <ion-input
                   type="number"
                   placeholder="0,00"
                   [(ngModel)]="foreignAmountToPay[groupMember.uid]"
                   (ionInput)="onForeignAmountInput(groupMember.uid)"
                   step="0.01"
                 ></ion-input>
-                <span *ngIf="selectedCurrency !== 'EUR'" class="percent-symbol">{{ selectedCurrency }}</span>
+                <span class="percent-symbol">{{ selectedCurrency }}</span>
+              </div>
 
+              <!-- Anteil/Produkte -->
+              <div
+                class="input-wrapper"
+                *ngIf="(expense.splitType === 'anteile' || expense.splitType === 'produkte') && selectedCurrency === 'EUR'"
+              >
                 <ion-input
                   type="number"
                   placeholder="0,00"
-                  [readonly]="selectedCurrency !== 'EUR'"
-                  [disabled]="selectedCurrency !== 'EUR'"
-                  *ngIf="expense.splitType === 'anteile' || expense.splitType === 'produkte'"
                   [(ngModel)]="amountToPay[groupMember.uid]"
                   [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
                   (ionInput)="onAmountToPayChange()"
+                  step="0.01"
+                ></ion-input>
+                <span class="percent-symbol">EUR</span>
+              </div>
+
+              <!-- Anteil/Produkte mit Fremdwährung -->
+              <div
+                class="input-wrapper"
+                *ngIf="(expense.splitType === 'anteile' || expense.splitType === 'produkte') && selectedCurrency !== 'EUR'"
+              >
+                <ion-input
+                  type="number"
+                  [value]="amountToPay[groupMember.uid]"
+                  readonly
+                ></ion-input>
+                <span class="percent-symbol">EUR</span>
+              </div>
+              <div
+                class="input-wrapper"
+                *ngIf="(expense.splitType === 'anteile' || expense.splitType === 'produkte') && selectedCurrency !== 'EUR'"
+              >
+                <ion-input
+                  type="number"
+                  placeholder="0,00"
+                  [(ngModel)]="foreignAmountToPay[groupMember.uid]"
+                  (ionInput)="onForeignAmountInput(groupMember.uid)"
                   step="0.01"
                 ></ion-input>
                 <span class="percent-symbol">{{ selectedCurrency }}</span>
               </div>
             </div>
           </div>
+
         </div>
 
         <div
