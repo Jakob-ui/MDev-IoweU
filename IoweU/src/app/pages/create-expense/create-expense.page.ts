@@ -480,6 +480,11 @@ export class CreateExpensePage {
     const total = parseFloat(this.calculateTotalFromAmountToPay().toFixed(2));
     this.expense.totalAmount = total;
 
+    // Fremdwährungswert berechnen, falls nötig
+    if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
+      this.expense.totalAmountInForeignCurrency = +(total / this.exchangeRate).toFixed(2);
+    }
+
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
@@ -489,10 +494,16 @@ export class CreateExpensePage {
       const amount = this.amountToPay[uid] || 0;
       const products = this.productInputs[uid]?.products || [];
 
-      const expMem = this.expense.expenseMember.find(e => uid === uid);
+      const expMem = this.expense.expenseMember.find(e => e.memberId === uid);
+
       if (expMem) {
         expMem.amountToPay = amount;
         expMem.products = products;
+      }
+
+      // Fremdwährungswerte mitführen
+      if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
+        this.foreignAmountToPay[uid] = +(amount / this.exchangeRate).toFixed(2);
       }
     });
 
@@ -500,6 +511,8 @@ export class CreateExpensePage {
       this.updatePercentageValues();
     }
   }
+
+
 
   private calculateTotalFromAmountToPay(): number {
     return Object.values(this.amountToPay).reduce((sum, a) => sum + (a || 0), 0);
@@ -561,12 +574,20 @@ export class CreateExpensePage {
     }
   }
 
-
   private handleProzentChange() {
     this.error = '';
     this.chooseSplitType = false;
-    this.groupMembers.forEach(m => this.calculateSplitByPercentage(m.uid, 'percentage'));
+
+    this.groupMembers.forEach(m => {
+      this.calculateSplitByPercentage(m.uid, 'percentage');
+
+      if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
+        const amt = this.amountToPay[m.uid] || 0;
+        this.foreignAmountToPay[m.uid] = +(amt / this.exchangeRate).toFixed(2);
+      }
+    });
   }
+
 
   private handleProdukteChange() {
     this.chooseSplitType = false;
@@ -577,16 +598,42 @@ export class CreateExpensePage {
   calculateSplitByPercentage(memberUid: string, changedField: 'percentage' | 'amount') {
     const total = this.expense.totalAmount;
 
+    // Wenn der Prozentsatz geändert wird
     if (changedField === 'percentage') {
       const pct = this.splitValue[memberUid] || 0;
+
+      // Berechne den Betrag in EUR
       this.amountToPay[memberUid] = parseFloat(((total * pct) / 100).toFixed(2));
+
+      // Umrechnung in Fremdwährung, falls eine andere Währung als EUR ausgewählt wurde
+      if (this.selectedCurrency !== 'EUR' && this.exchangeRate > 0) {
+        this.foreignAmountToPay[memberUid] = +(this.amountToPay[memberUid] / this.exchangeRate).toFixed(2);
+      } else {
+        // Wenn EUR, setze Fremdwährungsbetrag auf 0
+        this.foreignAmountToPay[memberUid] = 0;
+      }
+
     } else {
+      // Wenn der Betrag geändert wird
       const amt = this.amountToPay[memberUid] || 0;
+
+      // Berechne den Prozentsatz basierend auf dem Betrag
       this.splitValue[memberUid] = parseFloat(((amt / total) * 100).toFixed(2));
+
+      // Umrechnung in Fremdwährung, falls eine andere Währung als EUR ausgewählt wurde
+      if (this.selectedCurrency !== 'EUR' && this.exchangeRate > 0) {
+        this.foreignAmountToPay[memberUid] = +(amt / this.exchangeRate).toFixed(2);
+      } else {
+        // Wenn EUR, setze Fremdwährungsbetrag auf 0
+        this.foreignAmountToPay[memberUid] = 0;
+      }
     }
+
+    this.updateTotals();
 
     this.validatePercentageSum();
   }
+
 
   private validatePercentageSum() {
     const totalPct = this.groupMembers.reduce((sum, m) => sum + (this.splitValue[m.uid] || 0), 0);
@@ -607,23 +654,35 @@ export class CreateExpensePage {
 
   distributeRemainingPercentage() {
     const currentTotal = this.groupMembers.reduce((sum, m) => sum + (this.splitValue[m.uid] || 0), 0);
-    const rest = 100 - currentTotal;
+    let remaining = 100 - currentTotal;
 
-    const emptyMembers = this.groupMembers.filter(m => !this.splitValue[m.uid] || this.splitValue[m.uid] === 0);
-    const share = rest / emptyMembers.length;
+    const emptyMembers = this.groupMembers.filter(m => !this.splitValue[m.uid]);
+
+    if (emptyMembers.length === 0 || remaining <= 0) {
+      return;
+    }
+
+    const share = +(remaining / emptyMembers.length).toFixed(2);
 
     emptyMembers.forEach((m, idx) => {
       if (idx === emptyMembers.length - 1) {
-        this.splitValue[m.uid] = 100 - this.groupMembers.reduce((s, mm) => s + (this.splitValue[mm.uid] || 0), 0);
+        const allocatedSoFar = this.groupMembers.reduce((sum, mm) =>
+          sum + (mm.uid === m.uid ? 0 : (this.splitValue[mm.uid] || 0)), 0);
+        this.splitValue[m.uid] = 100 - allocatedSoFar;
       } else {
         this.splitValue[m.uid] = share;
       }
 
-      this.amountToPay[m.uid] = +(this.expense.totalAmount * this.splitValue[m.uid] / 100).toFixed(2);
+      // Berechnung des Anteils, optional mit Fremdwährung
+      const baseAmount = this.expense.totalAmount * this.splitValue[m.uid] / 100;
+      const exchangeRate = this.expense.exchangeRate || 1; // Standard = 1 (keine Umrechnung)
+
+      this.amountToPay[m.uid] = +(baseAmount * exchangeRate).toFixed(2);
     });
 
     this.updateTotals();
   }
+
 
   updateAmountToPayForProducts() {
     let total = 0;
@@ -640,8 +699,13 @@ export class CreateExpensePage {
   }
 
   onTotalAmountChange() {
-    if (this.expense.splitBy === 'alle') this.splitAmountEqually();
-    if (this.expense.splitType === 'prozent') this.updatePercentageValues();
+    if (this.expense.splitType === 'prozent') {
+      // Berechne nur die Beträge, wenn sich der Gesamtbetrag ändert, aber die Prozentsätze bleiben gleich
+      this.updateAmountToPayFromTotal();
+    }
+    if (this.expense.splitBy === 'alle') {
+      this.splitAmountEqually();
+    }
   }
 
   private updatePercentageValues() {
@@ -652,6 +716,20 @@ export class CreateExpensePage {
     });
     this.validatePercentageSum();
   }
+
+  private updateAmountToPayFromTotal() {
+    const total = this.expense.totalAmount;
+    this.groupMembers.forEach(member => {
+      const pct = this.splitValue[member.uid] || 0;
+      this.amountToPay[member.uid] = parseFloat(((total * pct) / 100).toFixed(2));
+
+      if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
+        this.foreignAmountToPay[member.uid] = +(this.amountToPay[member.uid] / this.exchangeRate).toFixed(2);
+      }
+    });
+    this.updateTotals();
+  }
+
 
   splitAmountEqually() {
     const isEuro = this.selectedCurrency === 'EUR';
@@ -751,7 +829,7 @@ export class CreateExpensePage {
       ).toFixed(2);
 
       if (this.expense.splitBy === 'alle') this.splitAmountEqually();
-      if (this.expense.splitType === 'prozent') this.updatePercentageValues();
+      if (this.expense.splitType === 'prozent') this.updateAmountToPayFromTotal();
     }
   }
 
@@ -769,7 +847,6 @@ export class CreateExpensePage {
     this.onAmountToPayChange();
     this.onForeignAmountChange();
   }
-
 
 
 
