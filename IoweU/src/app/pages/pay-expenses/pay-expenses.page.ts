@@ -19,7 +19,7 @@ import {
   IonIcon,
   IonBadge,
   IonHeader,
-  IonToolbar, IonInput, IonItem } from '@ionic/angular/standalone';
+  IonToolbar} from '@ionic/angular/standalone';
 
 // Import interfaces
 import { Expenses } from 'src/app/services/objects/Expenses';
@@ -51,7 +51,7 @@ addIcons({
   templateUrl: './pay-expenses.page.html',
   styleUrls: ['./pay-expenses.page.scss'],
   standalone: true,
-  imports: [IonItem, IonInput, 
+  imports: [
     IonContent,
     IonButton,
     IonIcon,
@@ -364,7 +364,7 @@ export class PayExpensesPage {
       from: this.uid || '',
       to: this.expensePaidBy || '',
       amount: amount,
-      reason: this.reason,
+      reason: this.expense[0].description,
       date: new Date().toISOString(),
     };
     this.transactionService.makeTransactionById(this.groupId, this.expenseId, trans);
