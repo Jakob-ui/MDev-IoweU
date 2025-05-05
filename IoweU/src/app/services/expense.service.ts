@@ -62,7 +62,11 @@ export class ExpenseService {
         expenseId,
         description: expenseData.description,
         totalAmount: expenseData.totalAmount,
+        totalAmountInForeignCurrency:
+          expenseData.totalAmountInForeignCurrency || 0,
+        exchangeRate: expenseData.exchangeRate || 0,
         paidBy: expenseData.paidBy,
+        paid: 'nein',
         date: expenseData.date
           ? new Date(expenseData.date).toISOString()
           : new Date().toISOString(),
@@ -72,7 +76,7 @@ export class ExpenseService {
         repeat: expenseData.repeat,
         splitType: expenseData.splitType,
         splitBy: expenseData.splitBy,
-        expenseMember: expenseMembersData, // → wird 1:1 übernommen, inkl. paidBy & products
+        expenseMember: expenseMembersData,
       };
 
       // In Firestore speichern
@@ -108,6 +112,7 @@ export class ExpenseService {
           lastPay: expenseData.date
             ? new Date(expenseData.date).toISOString()
             : new Date().toISOString(),
+          paid: 'nein',
         };
         const expenseRef = doc(
           this.firestore,
@@ -731,4 +736,33 @@ export class ExpenseService {
 
     return expenses;
   }
+
+  async checkMemberBalance(groupId: string, userId: string): Promise<boolean> {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+    const groupSnapshot = await getDoc(groupRef);
+
+    if (!groupSnapshot.exists()) {
+      console.error(`Gruppe mit ID ${groupId} nicht gefunden.`);
+      return false;
+    }
+
+    const groupData = groupSnapshot.data();
+    // Zugriff auf 'members' mit Indexsignatur
+    const member = groupData['members'].find((m: any) => m.uid === userId);
+
+    if (!member) {
+      console.error(`Mitglied mit der UID ${userId} nicht gefunden.`);
+      return false;
+    }
+
+    // Berechnung der Bilanz
+    const paidByUser = member.sumExpenseAmount || 0; // Guthaben (Beträge, die der User bezahlt hat)
+    const paidByMember = member.sumExpenseMemberAmount || 0; // Ausgaben (Beträge, die der User vom Mitglied bekommen hat)
+
+    const myBalance = paidByUser - paidByMember; // Berechnung der Bilanz
+
+    // Gibt zurück, ob die Bilanz ungleich null ist
+    return myBalance !== 0;
+  }
+
 }

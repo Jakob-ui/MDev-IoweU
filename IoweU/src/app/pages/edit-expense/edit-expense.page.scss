@@ -593,7 +593,7 @@ ion-input {
     color: #989797;
   }
   ion-item.dropDownFelder::part(native) {
-
+  
     background-color: #121212 !important;
     color: var(--ion-color-light) !important;
   }
@@ -604,15 +604,23 @@ ion-input {
     color: #000000;
     font-size: 24px;
   }
-  .paid-by .custom-dropdown {
-    background-color: #121212;
+  .paid-by .custom-dropdown { 
+    background-color: #121212; 
   }
   .paid-by ion-item.dropDownFelder::part(native) {
     background-color: #121212 !important;
+  
+}
 
-  }
-  .upload-icon{
-    color: #000000;
-  }
+.datepicker{
+  background-color: #000;
+}
 
+.invoice-upload{
+  .custom-dropdown {
+    ion-icon{
+      color: #ffffff;
+    }
+  }
+}
 }

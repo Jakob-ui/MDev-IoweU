@@ -78,25 +78,43 @@ export class AccountSettingsPage implements OnInit {
 
   constructor(private cdRef: ChangeDetectorRef) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadingService.show();
 
-    // Lade den gespeicherten Zustand des Farbmodus-Toggles
     this.colorBlindMode = localStorage.getItem('colorBlindMode') === 'true';
-    this.applyColorBlindMode(this.colorBlindMode); // Wende den Modus an
+    this.applyColorBlindMode(this.colorBlindMode);
 
-    this.iosIcons = this.platform.is('ios');
+    try {
+      await this.authService.waitForUser();
 
-    // Versuche, Daten aus dem lokalen Speicher zu laden
-    this.name = localStorage.getItem('username') || '';
-    this.newname = this.name;
-    this.email = localStorage.getItem('email') || '';
-    this.color = localStorage.getItem('usercolor') || '#ffffff';
+      if (this.authService.currentUser) {
+        this.name = this.authService.currentUser.username;
+        this.newname = this.name;
+        this.email = this.authService.currentUser.email;
+        this.color = this.authService.currentUser.color || '#ffffff';
+        this.iosIcons = this.platform.is('ios');
 
-    // Lade Benutzerdaten aus dem Backend
-    this.loadUserData().finally(() => {
+        // Setze die Farbe im Theme
+        if (this.color) {
+          document.documentElement.style.setProperty(
+            '--user-color',
+            this.color
+          );
+        }
+        console.log('Aktueller Benutzer:', {
+          username: this.authService.currentUser.username,
+          email: this.authService.currentUser.email,
+          color: this.authService.currentUser.color,
+          lastedited: this.authService.currentUser.lastedited,
+        });
+      } else {
+        console.error('User ist nicht eingeloggt.');
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden des Benutzers:', error);
+    } finally {
       this.loadingService.hide();
-    });
+    }
   }
 
   ngAfterViewInit() {
@@ -147,7 +165,7 @@ export class AccountSettingsPage implements OnInit {
   }
   cancel() {
     this.userEditing = false;
-    this.newname = localStorage.getItem('username') || '';
+    this.newname = this.authService.currentUser?.username || '';
   }
   confirm() {
     this.userEditing = false;
@@ -190,10 +208,6 @@ export class AccountSettingsPage implements OnInit {
         color: this.color,
         lastedited: new Date().toISOString(),
       });
-
-      localStorage.setItem('username', this.newname);
-      localStorage.setItem('usercolor', this.color);
-      localStorage.setItem('lastedited', new Date().toISOString());
 
       console.log('Änderungen erfolgreich gespeichert.');
 
@@ -275,7 +289,7 @@ export class AccountSettingsPage implements OnInit {
       name: 'email',
       placeholder: 'E-Mail',
       type: 'email',
-      value: localStorage.getItem('email') || '',
+      value: this.authService.currentUser?.email || '',
     },
     {
       name: 'password',

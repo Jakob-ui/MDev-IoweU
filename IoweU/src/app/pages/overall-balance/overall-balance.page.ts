@@ -12,10 +12,10 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
 import { LoadingService } from 'src/app/services/loading.service';
-import { ExpenseService } from "../../services/expense.service";
-import { Members } from "../../services/objects/Members";
-import { Expenses } from "../../services/objects/Expenses";
-import { Groups } from "../../services/objects/Groups";
+import { ExpenseService } from '../../services/expense.service';
+import { Members } from '../../services/objects/Members';
+import { Expenses } from '../../services/objects/Expenses';
+import { Groups } from '../../services/objects/Groups';
 
 @Component({
   selector: 'app-overall-balance',
@@ -70,7 +70,7 @@ export class OverallBalancePage implements OnInit {
         const userColor = this.authService.currentUser.color;
         document.documentElement.style.setProperty('--user-color', userColor);
 
-        await this.loadMyGroups();  // Gruppen laden und warten, bis alles geladen ist
+        await this.loadMyGroups(); // Gruppen laden und warten, bis alles geladen ist
       } else {
         console.error('Fehler: Kein Benutzer eingeloggt.');
       }
@@ -96,28 +96,42 @@ export class OverallBalancePage implements OnInit {
             // Setze myExpenseSum auf 0, bevor wir die Berechnungen durchführen
             this.myExpenseSum = 0;
 
-            const groupPromises = groups.map(group =>
-              new Promise<void>((resolve) => {
-                this.expenseService.getExpenseByGroup(group.groupId, false, (expenses) => {
-                  console.log(`Ausgaben für Gruppe ${group.groupname}:`, expenses);
+            const groupPromises = groups.map(
+              (group) =>
+                new Promise<void>((resolve) => {
+                  this.expenseService.getExpenseByGroup(
+                    group.groupId,
+                    false,
+                    (expenses) => {
+                      console.log(
+                        `Ausgaben für Gruppe ${group.groupname}:`,
+                        expenses
+                      );
 
-                  // Berechne die Summe der Ausgaben für diese Gruppe
-                  const sumForGroup = this.calculateExpenseSum(expenses, uid);
+                      // Berechne die Summe der Ausgaben für diese Gruppe
+                      const sumForGroup: number = this.calculateExpenseSum(
+                        expenses,
+                        uid
+                      );
 
-                  // Speichere den Gruppennamen und die Summe in einem neuen Array
-                  this.groupExpenses.push({
-                    groupName: group.groupname,
-                    sum: sumForGroup
-                  });
+                      // Speichere den Gruppennamen und die Summe in einem neuen Array
+                      this.groupExpenses.push({
+                        groupName: group.groupname,
+                        sum: sumForGroup,
+                      });
 
-                  console.log(`Summe für Gruppe "${group.groupname}":`, sumForGroup);
+                      console.log(
+                        `Summe für Gruppe "${group.groupname}":`,
+                        sumForGroup
+                      );
 
-                  // Addiere die Gruppensumme zu myExpenseSum
-                  this.myExpenseSum += sumForGroup;
+                      // Addiere die Gruppensumme zu myExpenseSum
+                      this.myExpenseSum += parseFloat((Math.round(sumForGroup)).toFixed(2));
 
-                  resolve();
-                });
-              })
+                      resolve();
+                    }
+                  );
+                })
             );
 
             await Promise.all(groupPromises);
@@ -132,31 +146,30 @@ export class OverallBalancePage implements OnInit {
     }
   }
 
-
   calculateExpenseSum(expenses: Expenses[], uid: string): number {
     let sum = 0;
 
-    expenses.forEach(expense => {
+    expenses.forEach((expense) => {
       sum += expense.expenseMember.reduce((acc, member) => {
-        return acc + (member.memberId === uid ? (member.amountToPay || 0) : 0);
+        return acc + (member.memberId === uid ? member.amountToPay || 0 : 0);
       }, 0);
     });
 
     return sum;
   }
 
-
   createPieChart() {
     console.log('Erstelle PieChart...', this.groupExpenses);
 
-    const containerWidth = Math.min((window.innerWidth - 20), 500);
+    const containerWidth = Math.min(window.innerWidth - 20, 500);
     const width = containerWidth;
     const height = containerWidth;
-    const radius = containerWidth / 2 * 0.6; // 70% der halben Breite = großer Kreis
+    const radius = (containerWidth / 2) * 0.6; // 70% der halben Breite = großer Kreis
 
     d3.select('.balance-chart').html('');
 
-    const svg = d3.select('.balance-chart')
+    const svg = d3
+      .select('.balance-chart')
       .append('svg')
       .attr('width', width)
       .attr('height', height)
@@ -166,55 +179,63 @@ export class OverallBalancePage implements OnInit {
     const color = d3.scaleOrdinal(d3.schemeSet3);
 
     if (this.groupExpenses.length === 0) {
-      console.log("Keine Daten für das PieChart verfügbar.");
+      console.log('Keine Daten für das PieChart verfügbar.');
       return;
     }
 
-    const pie = d3.pie<{ groupName: string; sum: number }>()
-      .value(d => d.sum)
+    const pie = d3
+      .pie<{ groupName: string; sum: number }>()
+      .value((d) => d.sum)
       .sort(null);
 
     const data_ready = pie(this.groupExpenses);
 
-    const arc = d3.arc<d3.PieArcDatum<{ groupName: string; sum: number }>>()
+    const arc = d3
+      .arc<d3.PieArcDatum<{ groupName: string; sum: number }>>()
       .innerRadius(0)
       .outerRadius(radius);
 
-    const outerArc = d3.arc<d3.PieArcDatum<{ groupName: string; sum: number }>>()
+    const outerArc = d3
+      .arc<d3.PieArcDatum<{ groupName: string; sum: number }>>()
       .innerRadius(radius * 1.05) // nur 5% größer als der Kreis
       .outerRadius(radius * 1.05);
 
     // Pie-Segmente
-    svg.selectAll('slices')
+    svg
+      .selectAll('slices')
       .data(data_ready)
       .enter()
       .append('path')
       .attr('d', arc)
-      .attr('fill', (d, i) => color(i.toString()))  // Ausgangsfarbe setzen
+      .attr('fill', (d, i) => color(i.toString())) // Ausgangsfarbe setzen
       .attr('stroke', '#fff')
       .style('stroke-width', '2px')
-      .each(function(event, d) {
+      .each(function (event, d) {
         // Speichern der Ausgangsfarbe im Element
-        d3.select(this).attr('data-original-color', d3.select(this).attr('fill'));
+        d3.select(this).attr(
+          'data-original-color',
+          d3.select(this).attr('fill')
+        );
       })
-      .on('mouseover', function(event, d) {
+      .on('mouseover', function (event, d) {
         const currentColor = d3.select(this).attr('data-original-color'); // Hole die gespeicherte Ausgangsfarbe
-        const darkerColor = d3.rgb(currentColor).darker(0.2).toString();  // Umwandlung in einen String
+        const darkerColor = d3.rgb(currentColor).darker(0.2).toString(); // Umwandlung in einen String
         d3.select(this)
           .transition()
-          .duration(200)  // Dauer der Übergangsanimation
-          .attr('fill', darkerColor);  // Dunklere Farbe setzen
+          .duration(200) // Dauer der Übergangsanimation
+          .attr('fill', darkerColor); // Dunklere Farbe setzen
       })
-      .on('mouseout', function(event, d) {
+      .on('mouseout', function (event, d) {
         const originalColor = d3.select(this).attr('data-original-color'); // Hole die gespeicherte Ausgangsfarbe
         d3.select(this)
           .transition()
-          .duration(200)  // Dauer der Übergangsanimation
-          .attr('fill', originalColor);  // Rücksetzen der ursprünglichen Farbe
+          .duration(200) // Dauer der Übergangsanimation
+          .attr('fill', originalColor); // Rücksetzen der ursprünglichen Farbe
       });
 
     // Leader Lines
-    svg.selectAll('allPolylines')
+    svg
+      .selectAll('allPolylines')
       .data(data_ready)
       .enter()
       .append('polyline')
@@ -234,32 +255,32 @@ export class OverallBalancePage implements OnInit {
 
         // Berechne den Endpunkt (verbleibt bei posB und posC)
         posC[0] = radius * 1.05 * (midAngle < Math.PI ? 1 : -1); // nur leicht raus
-        return [posA, posB, posC].map(p => p.join(',')).join(' ');
+        return [posA, posB, posC].map((p) => p.join(',')).join(' ');
       });
 
-
-    svg.selectAll('allLabels')
+    svg
+      .selectAll('allLabels')
       .data(data_ready)
       .enter()
       .append('text')
       .attr('transform', (d) => {
         const pos = outerArc.centroid(d);
         const midAngle = d.startAngle + (d.endAngle - d.startAngle) / 2;
-        pos[0] = radius * 1.10 * (midAngle < Math.PI ? 1 : -1);
+        pos[0] = radius * 1.1 * (midAngle < Math.PI ? 1 : -1);
         return `translate(${pos})`;
       })
       .style('text-anchor', (d) => {
         const midAngle = d.startAngle + (d.endAngle - d.startAngle) / 2;
-        return (midAngle < Math.PI) ? 'start' : 'end';
+        return midAngle < Math.PI ? 'start' : 'end';
       })
       .style('font-size', '12px')
       .style('font-weight', 'bold')
       .style('fill', 'black')
       .style('alignment-baseline', 'middle')
-      .each(function(d) {
+      .each(function (d) {
         const text = d3.select(this);
         const label = d.data.groupName;
-        const myGroupSum = d.data.sum;  // Füge den Wert von myGroupSum hinzu
+        const myGroupSum = d.data.sum; // Füge den Wert von myGroupSum hinzu
 
         const words = label.split(' ');
         const lineHeight = 1.2;
@@ -273,7 +294,8 @@ export class OverallBalancePage implements OnInit {
           tempText.remove();
 
           if (textWidth && textWidth > maxWidth) {
-            text.append('tspan')
+            text
+              .append('tspan')
               .text(line)
               .attr('x', 0)
               .attr('dy', `${dy === 0 ? 0 : lineHeight}em`);
@@ -285,7 +307,8 @@ export class OverallBalancePage implements OnInit {
         });
 
         if (line) {
-          text.append('tspan')
+          text
+            .append('tspan')
             .text(line)
             .attr('x', 0)
             .attr('dy', `${dy === 0 ? 0 : lineHeight}em`);
@@ -294,32 +317,33 @@ export class OverallBalancePage implements OnInit {
         // Füge myGroupSum als Wert unter dem Gruppennamen hinzu
         if (myGroupSum) {
           // Berechne die Position des Rechtecks basierend auf der Textposition
-          const rectWidth = 40;  // Breite des Rechtecks
+          const rectWidth = 40; // Breite des Rechtecks
           const rectHeight = 15; // Höhe des Rechtecks
-          const rectX = -20;     // Horizontale Position (relative Position zur Mitte)
+          const rectX = -20; // Horizontale Position (relative Position zur Mitte)
           const rectY = dy * 12; // Vertikale Position, abhängig von der Textzeilenhöhe
 
           // Füge das Rechteck hinter den Text hinzu
-          text.append('rect')
+          text
+            .append('rect')
             .attr('x', rectX)
             .attr('y', rectY)
             .attr('width', rectWidth)
             .attr('height', rectHeight)
-            .attr('rx', 5)  // Abgerundete Ecken
-            .attr('ry', 5)  // Abgerundete Ecken
+            .attr('rx', 5) // Abgerundete Ecken
+            .attr('ry', 5) // Abgerundete Ecken
             .style('fill', '#808080'); // Grauer Hintergrund
 
           // Der Text, der den Wert anzeigt
-          text.append('tspan')
+          text
+            .append('tspan')
             .text(`${myGroupSum}€`)
             .attr('x', 0)
-            .attr('dy', `${dy * 12 + 1.2}em`)  // Position des Texts unterhalb des Rechtecks
+            .attr('dy', `${dy * 12 + 1.2}em`) // Position des Texts unterhalb des Rechtecks
             .style('font-size', '10px')
             .style('fill', 'black');
         }
       });
 
     console.log('PieChart erfolgreich erstellt.');
-
   }
 }

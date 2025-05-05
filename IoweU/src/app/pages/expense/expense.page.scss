@@ -59,6 +59,8 @@ ion-searchbar::part(native) {
 .Kategorie {
   flex: 2;
   align-items: center;
+  justify-content: right;
+  margin-right: 15px;
   display: flex;
 }
 
@@ -105,11 +107,19 @@ ion-item.dropDownFelder::part(native) {
   background-color: #ffffff !important;
 }
 
-#category-icon {
- 
-  font-size: 18px;
-
+.category-icon {
+  font-size: 23px;
+  padding: 5px;
 }
+ion-searchbar {
+  --background: #ffffff !important;
+}
+.filter ion-item::part(native) {
+  background-color: white !important;
+}
+
+
+
 
 @media (prefers-color-scheme: dark) {
   .date {
@@ -119,7 +129,7 @@ ion-item.dropDownFelder::part(native) {
     color: #989797;
   }
   ion-item.dropDownFelder::part(native) {
-  
+
     background-color: #121212 !important;
     color: var(--ion-color-light) !important;
   }
@@ -128,21 +138,18 @@ ion-item.dropDownFelder::part(native) {
   }
   #category-icon-label {
     color: #000000;
-    font-size: 24px;
-  }
-  
-  ion-searchbar::part(input) {
-    background-color: #ffffff !important;
-    color: #000000 !important;
+    font-size: 30px;
   }
 
-#category-icon {
+
+
+.category-icon {
   color: #000000;
-  font-size: 18px;
 
 }
 .custom-search{
-color: #000;;
+color: #000;
+background-color: #ffffff !important;
 }
-  
+
 }

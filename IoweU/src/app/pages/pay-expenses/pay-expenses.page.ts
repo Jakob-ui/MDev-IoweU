@@ -19,19 +19,19 @@ import {
   IonIcon,
   IonBadge,
   IonHeader,
-  IonToolbar,
-} from '@ionic/angular/standalone';
+  IonToolbar} from '@ionic/angular/standalone';
 
 // Import interfaces
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
-import { Members } from 'src/app/services/objects/Members';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
+import { TransactionService } from 'src/app/services/transaction.service';
+import { Transactions } from 'src/app/services/objects/Transactions';
 
 
 addIcons({
@@ -71,6 +71,7 @@ export class PayExpensesPage {
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
+  private transactionService = inject(TransactionService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -104,6 +105,7 @@ export class PayExpensesPage {
   expenseMemberPaidBy: string = '';
   expenseMemberPaidByName: string = '';
   expenseMemberPaidByUid: string = '';
+  reason: string = '';
 
   repeatingExpense: boolean = false;
 
@@ -139,6 +141,7 @@ export class PayExpensesPage {
       repeat: '', // Wiederholung, falls benötigt
       splitType: 'prozent', // Kann 'prozent', 'anteile' oder 'produkte' sein
       splitBy: 'alle', // Kann 'alle' oder 'frei' sein
+      paid: 'nein',
       expenseMember: [
         {
           memberId: '', // Leerer String für den Member
@@ -164,6 +167,7 @@ export class PayExpensesPage {
   async ngOnInit() {
     this.loadingService.show();
     try {
+      await this.authService.waitForUser();
       // Query-Parameter lesen, um festzustellen, ob es sich um eine wiederkehrende Ausgabe handelt
       this.activeRoute.queryParams.subscribe((params) => {
         this.repeatingExpense = params['repeating'] === 'true';
@@ -353,5 +357,22 @@ export class PayExpensesPage {
     }
 
     console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
+  }
+
+  pay() {
+    const amount = this.getAmountToPayForMember(this.expense[0], this.uid!);
+    const trans: Transactions = {
+      from: this.uid || '',
+      to: this.expensePaidBy || '',
+      amount: amount,
+      reason: this.expense[0].description,
+      date: new Date().toISOString(),
+    };
+    this.transactionService.makeTransactionById(
+      this.groupId,
+      this.expenseId,
+      trans
+    );
+    this.router.navigate(['expense', this.groupId]);
   }
 }

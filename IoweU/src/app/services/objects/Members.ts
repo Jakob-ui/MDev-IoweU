@@ -15,6 +15,6 @@ export interface Members {
   countAmountReceived: number; // Anzahl der erhaltenen Beträge
   sumExpenseMemberAmount: number; // Summe meiner Ausgaben, die von anderen Mitgliedern bezahlt wurden
   countExpenseMemberAmount: number; // Anzahl der Ausgaben, die von anderen Mitgliedern bezahlt wurden
-  sumAmountPaid: number; // Summe meiner Schulen, die ich bezahlt habe
-  countAmountPaid: number; // Anzahl meiner Schulen, die ich bezahlt habe
+  sumAmountPaid: number; // Summe meiner Schulden, die ich bezahlt habe
+  countAmountPaid: number; // Anzahl meiner Schulden, die ich bezahlt habe
 }

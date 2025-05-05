@@ -28,7 +28,7 @@
 .input-item {
   flex: 1;
   width: 100%;
-  
+
 }
 
 .Beschreibung {
@@ -270,7 +270,7 @@ ion-input::part(native) {
 .input-field {
   width: fit-content;
   display: flex;
-  gap: 10px;
+  //gap: 10px;
   justify-content: flex-end;
   background-color: var(--ion-color-light);
   border-radius: 50px;
@@ -280,7 +280,17 @@ ion-input::part(native) {
   display: flex;
   align-items: center;
   justify-content: end;
-  width: 60%;
+  transition: width 0.3s ease;
+}
+
+.right-container ion-input {
+  text-align: right;
+  margin-right: 40px;
+}
+
+.right-container .percent-input {
+  text-align: right !important;
+  margin-right: 30px !important;
 }
 
 .Kategorie {
@@ -392,7 +402,7 @@ ion-item.dropDownFelder::part(native) {
     background-color: #ffffff;
   }
   ion-item.dropDownFelder::part(native) {
-  
+
     background-color: #ffffff !important;
     color: var(--ion-color-light) !important;
   }
@@ -477,6 +487,15 @@ ion-item.dropDownFelder::part(native) {
   width: 100%;
 }
 
+.input-wrapper.auto-width {
+  width: auto;
+  min-width: 80px; /* optional, falls sehr kleine Eingaben */
+}
+
+#input-wrapper-percent ion-input {
+  width: 50px;
+}
+
 ion-input {
   flex: 1;
   padding-right: 20px;
@@ -488,10 +507,12 @@ ion-input {
 
 .percent-symbol {
   position: absolute;
-  right: 20px;
-  font-size: 16px;
+  right: 10px;
+  font-size: 12px;
   color: #666;
 }
+
+
 .overlay-backdrop {
   position: fixed;
   top: 0;
@@ -597,12 +618,38 @@ ion-input {
 .split-percentage + .validation-content {
   margin-top: 0;
 }
-.upload-icon{
-  font-size: 26px;
+.rechnung-dropdown ion-icon {
+  flex-shrink: 0;
+  font-size: 24px;
+  min-width: 24px;
 }
-.rechnung-dropdown{
-  
+.rechnung-dropdown  {
+width: 60px;
+
 }
+.invoice-upload{
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    top: 100%;
+    left: -80px;
+    ion-icon{
+      margin-left: 10px;
+      margin-right: 5px;
+    }
+  }
+
+}
+
+.exchange{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+}
+
 
 
 @media (prefers-color-scheme: dark) {
@@ -610,7 +657,7 @@ ion-input {
     color: #989797;
   }
   ion-item.dropDownFelder::part(native) {
-  
+
     background-color: #121212 !important;
     color: var(--ion-color-light) !important;
   }
@@ -621,15 +668,23 @@ ion-input {
     color: #000000;
     font-size: 24px;
   }
-  .paid-by .custom-dropdown { 
-    background-color: #121212; 
+  .paid-by .custom-dropdown {
+    background-color: #121212;
   }
   .paid-by ion-item.dropDownFelder::part(native) {
     background-color: #121212 !important;
-  
+
 }
 
 .datepicker{
   background-color: #000;
+}
+
+.invoice-upload{
+  .custom-dropdown {
+    ion-icon{
+      color: #ffffff;
+    }
+  }
 }
 }
