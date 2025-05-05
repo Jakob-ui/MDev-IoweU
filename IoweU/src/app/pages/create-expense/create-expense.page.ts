@@ -828,10 +828,18 @@ export class CreateExpensePage {
         this.expense.totalAmountInForeignCurrency * this.exchangeRate
       ).toFixed(2);
 
+      // Update the relevant totals after currency change
       if (this.expense.splitBy === 'alle') this.splitAmountEqually();
       if (this.expense.splitType === 'prozent') this.updateAmountToPayFromTotal();
+
+      // Update foreignAmountToPay for each member if needed
+      this.groupMembers.forEach(member => {
+        const amountInEuro = this.amountToPay[member.uid] || 0;
+        this.foreignAmountToPay[member.uid] = +(amountInEuro / this.exchangeRate).toFixed(2);
+      });
     }
   }
+
 
 
   onForeignAmountInput(memberId: string) {
@@ -841,12 +849,19 @@ export class CreateExpensePage {
     if (this.exchangeRate > 0) {
       const euroValue = +(foreignAmount * this.exchangeRate).toFixed(2);
       this.amountToPay[memberId] = euroValue;
+
+      // Update the EUR values and foreign amounts for all members
+      this.updateTotals();
     } else {
       this.amountToPay[memberId] = 0;
+      this.foreignAmountToPay[memberId] = 0;
     }
+
+    // Ensure the foreign amounts are updated for the entire group
     this.onAmountToPayChange();
     this.onForeignAmountChange();
   }
+
 
 
 
