@@ -721,15 +721,14 @@ export class CreateExpensePage {
     const total = this.expense.totalAmount;
     this.groupMembers.forEach(member => {
       const pct = this.splitValue[member.uid] || 0;
-      this.amountToPay[member.uid] = parseFloat(((total * pct) / 100).toFixed(2));
+      this.amountToPay[member.uid] = (total * pct) / 100;
 
       if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
-        this.foreignAmountToPay[member.uid] = +(this.amountToPay[member.uid] / this.exchangeRate).toFixed(2);
+        this.foreignAmountToPay[member.uid] = this.amountToPay[member.uid] / this.exchangeRate;
       }
     });
-    this.updateTotals();
+    this.updateTotals(); // Optional: Kann auch warten bis gerundet wurde
   }
-
 
   splitAmountEqually() {
     const isEuro = this.selectedCurrency === 'EUR';
@@ -739,32 +738,32 @@ export class CreateExpensePage {
         this.expense.totalAmountInForeignCurrency !== undefined &&
         this.exchangeRate !== undefined
       )
-        ? +(
-          this.expense.totalAmountInForeignCurrency * this.exchangeRate
-        ).toFixed(2)
+        ? this.expense.totalAmountInForeignCurrency * this.exchangeRate
         : 0;
 
     const count = this.groupMembers.length;
 
     if (count > 0 && total > 0) {
-      const base = +(total / count).toFixed(2);
-      let rest = +(total - base * count).toFixed(2);
+      const base = total / count;
+      let rest = total - base * count;
 
+      // Unrund speichern
       this.groupMembers.forEach(m => {
         this.amountToPay[m.uid] = base;
         if (!isEuro && this.exchangeRate !== undefined) {
-          this.foreignAmountToPay[m.uid] = +(base / this.exchangeRate).toFixed(2);
+          this.foreignAmountToPay[m.uid] = base / this.exchangeRate;
         }
       });
 
+      // Rest korrekt verteilen (aber noch ungerundet zwischenspeichern)
       let idx = 0;
       while (rest > 0.009) {
         const uid = this.groupMembers[idx].uid;
-        this.amountToPay[uid] = +(this.amountToPay[uid] + 0.01).toFixed(2);
+        this.amountToPay[uid] += 0.01;
         if (!isEuro && this.exchangeRate !== undefined) {
-          this.foreignAmountToPay[uid] = +(this.amountToPay[uid] / this.exchangeRate).toFixed(2);
+          this.foreignAmountToPay[uid] = this.amountToPay[uid] / this.exchangeRate;
         }
-        rest = +(rest - 0.01).toFixed(2);
+        rest -= 0.01;
         idx = (idx + 1) % count;
       }
 
@@ -772,6 +771,19 @@ export class CreateExpensePage {
     }
   }
 
+  roundAmount(uid: string) {
+    if (this.amountToPay[uid] != null) {
+      // Rundet den Wert und speichert ihn
+      this.amountToPay[uid] = parseFloat(this.amountToPay[uid].toFixed(2));
+
+      // Fremdwährung ggf. auch aktualisieren
+      if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
+        this.foreignAmountToPay[uid] = parseFloat((this.amountToPay[uid] / this.exchangeRate).toFixed(2));
+      }
+
+      this.updateTotals(); // Jetzt mit gerundeten Werten
+    }
+  }
 
 
 //-----------------------------------FREMDWÄHRUNG-------------------------------------------------------

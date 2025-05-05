@@ -374,6 +374,7 @@
                   type="number"
                   placeholder="0,00"
                   [(ngModel)]="amountToPay[groupMember.uid]"
+                  (blur)="roundAmount(groupMember.uid)"
                   [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
                   (ionInput)="calculateSplitByPercentage(groupMember.uid, 'amount')"
                   step="0.01"
@@ -389,6 +390,7 @@
                 <ion-input
                   type="number"
                   [value]="amountToPay[groupMember.uid]"
+                  (blur)="roundAmount(groupMember.uid)"
                   readonly
                 ></ion-input>
                 <span class="percent-symbol">EUR</span>
@@ -401,6 +403,7 @@
                   type="number"
                   placeholder="0,00"
                   [(ngModel)]="foreignAmountToPay[groupMember.uid]"
+                  (blur)="roundAmount(groupMember.uid)"
                   (ionInput)="onForeignAmountInput(groupMember.uid)"
                   step="0.01"
                 ></ion-input>
@@ -416,6 +419,7 @@
                   type="number"
                   placeholder="0,00"
                   [(ngModel)]="amountToPay[groupMember.uid]"
+                  (blur)="roundAmount(groupMember.uid)"
                   [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
                   (ionInput)="onAmountToPayChange()"
                   step="0.01"
@@ -431,6 +435,7 @@
                 <ion-input
                   type="number"
                   [value]="amountToPay[groupMember.uid]"
+                  (blur)="roundAmount(groupMember.uid)"
                   readonly
                 ></ion-input>
                 <span class="percent-symbol">EUR</span>
@@ -443,6 +448,7 @@
                   type="number"
                   placeholder="0,00"
                   [(ngModel)]="foreignAmountToPay[groupMember.uid]"
+                  (blur)="roundAmount(groupMember.uid)"
                   (ionInput)="onForeignAmountInput(groupMember.uid)"
                   step="0.01"
                 ></ion-input>
