@@ -165,6 +165,7 @@ export class CreateExpensePage {
     invoice: '',
     repeat: 'nein',
     splitBy: 'alle',
+    paid: 'nein',
     splitType: 'anteile',
     expenseMember: [],
   };

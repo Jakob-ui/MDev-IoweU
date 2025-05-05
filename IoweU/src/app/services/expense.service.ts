@@ -62,9 +62,11 @@ export class ExpenseService {
         expenseId,
         description: expenseData.description,
         totalAmount: expenseData.totalAmount,
-        totalAmountInForeignCurrency: expenseData.totalAmountInForeignCurrency || 0,
+        totalAmountInForeignCurrency:
+          expenseData.totalAmountInForeignCurrency || 0,
         exchangeRate: expenseData.exchangeRate || 0,
         paidBy: expenseData.paidBy,
+        paid: 'nein',
         date: expenseData.date
           ? new Date(expenseData.date).toISOString()
           : new Date().toISOString(),
@@ -110,6 +112,7 @@ export class ExpenseService {
           lastPay: expenseData.date
             ? new Date(expenseData.date).toISOString()
             : new Date().toISOString(),
+          paid: 'nein',
         };
         const expenseRef = doc(
           this.firestore,

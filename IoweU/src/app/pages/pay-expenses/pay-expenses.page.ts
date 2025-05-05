@@ -141,6 +141,7 @@ export class PayExpensesPage {
       repeat: '', // Wiederholung, falls benötigt
       splitType: 'prozent', // Kann 'prozent', 'anteile' oder 'produkte' sein
       splitBy: 'alle', // Kann 'alle' oder 'frei' sein
+      paid: 'nein',
       expenseMember: [
         {
           memberId: '', // Leerer String für den Member
@@ -367,7 +368,11 @@ export class PayExpensesPage {
       reason: this.expense[0].description,
       date: new Date().toISOString(),
     };
-    this.transactionService.makeTransactionById(this.groupId, this.expenseId, trans);
+    this.transactionService.makeTransactionById(
+      this.groupId,
+      this.expenseId,
+      trans
+    );
     this.router.navigate(['expense', this.groupId]);
   }
 }
