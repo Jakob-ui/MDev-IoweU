@@ -163,6 +163,8 @@ export class ExpenseDetailsPage {
   async ngOnInit() {
     this.loadingService.show();
     try {
+      await this.authService.waitForUser();
+
       // Query-Parameter lesen, um festzustellen, ob es sich um eine wiederkehrende Ausgabe handelt
       this.activeRoute.queryParams.subscribe((params) => {
         this.repeatingExpense = params['repeating'] === 'true';

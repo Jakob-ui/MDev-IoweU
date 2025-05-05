@@ -72,9 +72,9 @@ export class FinancePage implements OnInit {
   constructor() {}
 
   async ngOnInit() {
-    this.loadingService.show();
-
     try {
+      await this.authService.waitForUser();
+
       const currentUser = this.authService.currentUser;
 
       if (!currentUser || !currentUser.uid || !currentUser.username) {

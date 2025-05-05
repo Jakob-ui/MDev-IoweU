@@ -65,8 +65,6 @@ export class TransactionsPage implements OnInit {
   constructor() {}
 
   async ngOnInit() {
-    this.loadingService.show();
-
     try {
       await this.authService.waitForUser();
 
