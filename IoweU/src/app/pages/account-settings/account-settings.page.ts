@@ -89,15 +89,10 @@ export class AccountSettingsPage implements OnInit {
       await this.authService.waitForUser();
   
       if (this.authService.currentUser) {
-        this.displayName = this.authService.currentUser.username;
         this.name = this.authService.currentUser.username;
         this.newname = this.name;
         this.email = this.authService.currentUser.email;
         this.color = this.authService.currentUser.color || '#ffffff';
-        this.originalName = this.name;
-        this.originalColor = this.color;
-        this.lastedited = this.name;
-  
         this.iosIcons = this.platform.is('ios');
   
         // Setze die Farbe im Theme
