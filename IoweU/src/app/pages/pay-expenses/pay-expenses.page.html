@@ -127,14 +127,19 @@
         expand="block">
         Beleg hinzufügen
       </ion-button>
-
+      <ion-item class="input-item">
+      <ion-input 
+      [(ngModel)]="reason"
+      placeholder="Hier einen Grund o.ä. angeben">
+      </ion-input></ion-item>
     </ng-container>
 
     <div class="space"></div>
     <div class="button-container">
       <ion-button
         class="main-button"
-        expand="block">
+        expand="block"
+        (click)="pay()">
         Schulden wurden beglichen
       </ion-button>
     </div>
