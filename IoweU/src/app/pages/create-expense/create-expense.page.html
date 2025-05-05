@@ -420,6 +420,7 @@
                   placeholder="0,00"
                   [(ngModel)]="amountToPay[groupMember.uid]"
                   (blur)="roundAmount(groupMember.uid)"
+                  [disabled]="expense.splitBy === 'alle'"
                   [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
                   (ionInput)="onAmountToPayChange()"
                   step="0.01"
@@ -436,6 +437,7 @@
                   type="number"
                   [value]="amountToPay[groupMember.uid]"
                   (blur)="roundAmount(groupMember.uid)"
+                  [disabled]="expense.splitBy === 'alle'"
                   readonly
                 ></ion-input>
                 <span class="percent-symbol">EUR</span>
@@ -449,6 +451,7 @@
                   placeholder="0,00"
                   [(ngModel)]="foreignAmountToPay[groupMember.uid]"
                   (blur)="roundAmount(groupMember.uid)"
+                  [disabled]="expense.splitBy === 'alle'"
                   (ionInput)="onForeignAmountInput(groupMember.uid)"
                   step="0.01"
                 ></ion-input>

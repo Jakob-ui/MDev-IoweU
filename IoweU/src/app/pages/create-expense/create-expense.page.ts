@@ -513,8 +513,6 @@ export class CreateExpensePage {
     }
   }
 
-
-
   private calculateTotalFromAmountToPay(): number {
     return Object.values(this.amountToPay).reduce((sum, a) => sum + (a || 0), 0);
   }
@@ -767,8 +765,6 @@ export class CreateExpensePage {
         rest -= 0.01;
         idx = (idx + 1) % count;
       }
-
-      this.updateTotals();
     }
   }
 
