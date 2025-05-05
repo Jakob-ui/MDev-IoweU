@@ -78,25 +78,46 @@ export class AccountSettingsPage implements OnInit {
 
   constructor(private cdRef: ChangeDetectorRef) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadingService.show();
 
     // Lade den gespeicherten Zustand des Farbmodus-Toggles
     this.colorBlindMode = localStorage.getItem('colorBlindMode') === 'true';
     this.applyColorBlindMode(this.colorBlindMode); // Wende den Modus an
 
-    this.iosIcons = this.platform.is('ios');
-
-    // Versuche, Daten aus dem lokalen Speicher zu laden
-    this.name = localStorage.getItem('username') || '';
-    this.newname = this.name;
-    this.email = localStorage.getItem('email') || '';
-    this.color = localStorage.getItem('usercolor') || '#ffffff';
-
-    // Lade Benutzerdaten aus dem Backend
-    this.loadUserData().finally(() => {
+    try {
+      await this.authService.waitForUser();
+  
+      if (this.authService.currentUser) {
+        this.displayName = this.authService.currentUser.username;
+        this.name = this.authService.currentUser.username;
+        this.newname = this.name;
+        this.email = this.authService.currentUser.email;
+        this.color = this.authService.currentUser.color || '#ffffff';
+        this.originalName = this.name;
+        this.originalColor = this.color;
+        this.lastedited = this.name;
+  
+        this.iosIcons = this.platform.is('ios');
+  
+        // Setze die Farbe im Theme
+        if (this.color) {
+          document.documentElement.style.setProperty('--user-color', this.color);
+        }
+        console.log('Aktueller Benutzer:', {
+          username: this.authService.currentUser.username,
+          email: this.authService.currentUser.email,
+          color: this.authService.currentUser.color,
+          lastedited: this.authService.currentUser.lastedited,
+        });
+      } else {
+        console.error('User ist nicht eingeloggt.');
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden des Benutzers:', error);
+    } finally {
       this.loadingService.hide();
-    });
+    }
   }
 
   ngAfterViewInit() {
