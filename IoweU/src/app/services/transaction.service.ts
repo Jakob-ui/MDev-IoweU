@@ -66,21 +66,22 @@ export class TransactionService {
       const q = query(transactionCollection, where('from', '==', username));
       const snapshot = await getDocs(q);
 
-      const unsubscribe = onSnapshot(transactionCollection, (snapshot) => {
-        const transactions: Transactions[] = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            from: data['from'],
-            to: data['to'],
-            amount: data['amount'],
-            reason: data['reason'],
-            date: data['date'],
-          } as Transactions;
-        });
-        updateTransactionsCallback(transactions);
-        console.log('username', username);
-        console.log('transactions', transactions);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const transactions: Transactions[] = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          from: data['from'],
+          to: data['to'],
+          amount: data['amount'],
+          reason: data['reason'],
+          date: data['date'],
+        } as Transactions;
       });
+
+      // Callback aufrufen, um die Transaktionen zu aktualisieren
+      updateTransactionsCallback(transactions);
+      console.log('Echtzeit-Transaktionen:', transactions);
+    });
       
       return unsubscribe;
     } catch (error) {
