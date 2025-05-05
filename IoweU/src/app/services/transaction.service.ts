@@ -1,6 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import { Transactions } from './objects/Transactions';
-import { collection, doc, Firestore, getDocs, query, setDoc, where } from '@angular/fire/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  documentId,
+  Firestore,
+  getDocs,
+  onSnapshot,
+  query,
+  setDoc,
+  where,
+} from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -42,8 +53,9 @@ export class TransactionService {
 
   async getTransactionsByName(
     username: string,
-    groupId: string
-  ): Promise<Transactions[]> {
+    groupId: string,
+    updateTransactionsCallback: (expenses: Transactions[]) => void
+  ): Promise<() => void> {
     try {
       const transactionCollection = collection(
         this.firestore,
@@ -54,22 +66,42 @@ export class TransactionService {
       const q = query(transactionCollection, where('from', '==', username));
       const snapshot = await getDocs(q);
 
-      const transactions: Transactions[] = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          from: data['from'],
-          to: data['to'],
-          amount: data['amount'],
-          reason: data['reason'],
-          date: data['date'],
-        } as Transactions;
+      const unsubscribe = onSnapshot(transactionCollection, (snapshot) => {
+        const transactions: Transactions[] = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            from: data['from'],
+            to: data['to'],
+            amount: data['amount'],
+            reason: data['reason'],
+            date: data['date'],
+          } as Transactions;
+        });
+        updateTransactionsCallback(transactions);
+        console.log('username', username);
+        console.log('transactions', transactions);
       });
-      console.log('username', username);
-      console.log('transactions', transactions);
-      return transactions;
+      
+      return unsubscribe;
     } catch (error) {
       console.error('Fehler beim Abrufen der Transaktionen:', error);
       throw new Error('Fehler beim Abrufen der Transaktionen');
+    }
+  }
+
+  async deleteTransactionsById(groupId: string, transactionId: string) {
+    try {
+      const transactionCollection = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'transactions',
+        transactionId
+      );
+      await deleteDoc(transactionCollection);
+    } catch {
+      throw new Error(`Couldnt delete Transaction with Id: ${transactionId}`);
+      return null;
     }
   }
 }

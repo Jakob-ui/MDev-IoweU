@@ -60,6 +60,7 @@ export class TransactionsPage implements OnInit {
   groupMembers: Members[] = []; // Mitglieder, die in der Gruppe sind
   transactions: Transactions[] = []; // Liste der Transaktionen
   currentGroup: Groups | null = null;
+  updateTransactionsCallback: (() => void) | null = null;
 
   constructor() {}
 
@@ -68,7 +69,7 @@ export class TransactionsPage implements OnInit {
 
     try {
       await this.authService.waitForUser();
-      
+
       if (this.authService.currentUser) {
         this.user = this.authService.currentUser.username;
         this.uid = this.authService.currentUser.uid;
@@ -79,10 +80,15 @@ export class TransactionsPage implements OnInit {
         if (groupId) {
           this.currentGroup = await this.groupService.currentGroup;
           console.log('diese jetzige gruppe', this.currentGroup);
-          this.transactions = await this.transactionService.getTransactionsByName(
-            this.uid,
-            groupId
-          );
+          this.updateTransactionsCallback =
+            await this.transactionService.getTransactionsByName(
+              this.uid,
+              groupId,
+              (updatedTransactions) => {
+                this.transactions = updatedTransactions;
+                console.log('Aktualisierte Transaktionen:', this.transactions);
+              }
+            );
           if (this.currentGroup === null) {
             this.currentGroup = await this.groupService.getGroupById(groupId);
             console.log('leere Gruppe, hole gruppe aus der db');
@@ -117,6 +123,13 @@ export class TransactionsPage implements OnInit {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
       this.loadingService.hide();
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.updateTransactionsCallback) {
+      this.updateTransactionsCallback();
+      console.log('Unsubscribed from expense updates');
     }
   }
 
