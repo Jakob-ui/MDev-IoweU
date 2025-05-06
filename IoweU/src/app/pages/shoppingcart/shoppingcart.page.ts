@@ -4,11 +4,9 @@ import { FormsModule } from '@angular/forms';
 import {
   IonButton,
   IonCard,
-  IonCheckbox,
   IonContent,
-  IonDatetime,
-  IonHeader, IonIcon, IonInput, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList,
-  IonTitle,
+  IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList,
+
   IonToolbar
 } from '@ionic/angular/standalone';
 import {AuthService} from "../../services/auth.service";
@@ -24,7 +22,7 @@ import {ShoppingProducts} from "../../services/objects/ShoppingProducts";
   templateUrl: './shoppingcart.page.html',
   styleUrls: ['./shoppingcart.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCheckbox, IonDatetime, IonIcon, IonInput, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList, RouterLink]
+  imports: [IonContent, IonHeader,  IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonIcon, IonInput, IonItem,  IonLabel, IonList, RouterLink]
 })
 export class ShoppingcartPage implements OnInit {
   private authService = inject(AuthService);
