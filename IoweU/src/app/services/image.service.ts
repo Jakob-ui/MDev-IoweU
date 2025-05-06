@@ -7,6 +7,7 @@ import {
   Storage,
   uploadBytes,
 } from '@angular/fire/storage';
+import { NgxImageCompressService } from 'ngx-image-compress';
 
 @Injectable({
   providedIn: 'root',
@@ -14,18 +15,42 @@ import {
 export class ImageService {
   private firestore = inject(Firestore);
   private storage = inject(Storage);
+  private imageCompress = inject(NgxImageCompressService);
 
   async uploadImage(
     id: string,
     imageBlob: Blob,
-    path: string
+    path: string,
+    compress: boolean = true
   ): Promise<string> {
     try {
+      let finalBlob = imageBlob;
+
+      // Compress the image if the compress flag is true
+      if (compress) {
+        const reader = new FileReader();
+        const imageDataUrl = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(imageBlob);
+        });
+
+        const compressedImage = await this.imageCompress.compressFile(
+          imageDataUrl,
+          -1, // Orientation (auto-detect)
+          50, // Quality (0-100)
+          50  // Resize percentage
+        );
+
+        finalBlob = this.dataURLtoBlob(compressedImage);
+        console.log('Image compressed successfully');
+      }
+
       const storageRef = ref(this.storage, path);
-      const uploadResult = await uploadBytes(storageRef, imageBlob);
+      const uploadResult = await uploadBytes(storageRef, finalBlob);
       console.log('Image uploaded successfully:', uploadResult);
 
-      // Hole die Download-URL des hochgeladenen Bildes
+      // Get the download URL of the uploaded image
       const downloadURL = await getDownloadURL(storageRef);
       console.log('Download URL:', downloadURL);
       return downloadURL;

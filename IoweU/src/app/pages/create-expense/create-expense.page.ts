@@ -62,7 +62,6 @@ import { AuthService } from '../../services/auth.service';
 import { Groups } from 'src/app/services/objects/Groups';
 import { HostListener } from '@angular/core';
 import { ImageService } from '../../services/image.service';
-import { NgxImageCompressService } from 'ngx-image-compress';
 
 @Component({
   selector: 'app-create-expense',
@@ -100,7 +99,7 @@ export class CreateExpensePage {
   private expenseService = inject(ExpenseService);
   private imageService = inject(ImageService);
   private http = inject(HttpClient);
-  constructor(private imageCompress: NgxImageCompressService) {}
+  constructor() {}
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -291,25 +290,24 @@ export class CreateExpensePage {
   async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
+      console.log('Original file size:', (file.size / 1024).toFixed(2), 'KB'); // Log original size
+
       const reader = new FileReader();
       reader.onload = async () => {
         const imageDataUrl = reader.result as string;
+        const imageBlob = this.imageService.dataURLtoBlob(imageDataUrl);
 
-        // Compress the image
-        const compressedImage = await this.imageCompress.compressFile(
-          imageDataUrl,
-          -1, // Orientation (auto-detect)
-          50, // Quality (0-100)
-          50  // Resize percentage
+        // Use the updated uploadImage method with compression
+        const path = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+        const downloadURL = await this.imageService.uploadImage(
+          'expense-invoice',
+          imageBlob,
+          path
         );
 
-        // Convert compressed image to Blob
-        this.uploadInvoice = this.imageService.dataURLtoBlob(compressedImage);
-        this.invoice = compressedImage;
-        this.expense.invoice = file.name; // Set the file name
-
-        console.log('Original file size:', file.size);
-        console.log('Compressed file size:', this.uploadInvoice.size);
+        this.invoice = downloadURL;
+        this.expense.invoice = downloadURL;
+        console.log('Invoice uploaded and available at:', this.invoice);
       };
       reader.readAsDataURL(file);
     } else {

@@ -149,15 +149,26 @@ export class EditGroupPage implements OnInit {
     this.fileInput.nativeElement.click();
   }
 
-  onFileSelected(event: any) {
+  async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
+      console.log('Original file size:', (file.size / 1024).toFixed(2), 'KB'); // Log original size
+
       const reader = new FileReader();
-      reader.onload = () => {
-        this.groupImage = reader.result;
-        if (typeof this.groupImage === 'string') {
-          this.uploadImage = this.imageService.dataURLtoBlob(this.groupImage);
-        }
+      reader.onload = async () => {
+        const imageDataUrl = reader.result as string;
+        const imageBlob = this.imageService.dataURLtoBlob(imageDataUrl);
+
+        // Use the updated uploadImage method with compression
+        const path = `groups/${this.groupId}/group-image.jpg`;
+        const downloadURL = await this.imageService.uploadImage(
+          'group-image',
+          imageBlob,
+          path
+        );
+
+        this.groupImage = downloadURL;
+        console.log('Group image uploaded and available at:', this.groupImage);
       };
       reader.readAsDataURL(file);
     }
