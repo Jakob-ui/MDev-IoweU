@@ -159,7 +159,7 @@
 
   <div class="page-container">
     <h4>{{ groupname }}</h4>
-    <h1>Einkaufsliste</h1>
+    <h1>Warenkorb</h1>
 
     <ion-card class="shopping-card">
       <div class="card-content-shopping">
@@ -173,11 +173,11 @@
     </ion-card>
 
     <div class="menu">
-      <div class="menu-text active">
+      <div class="menu-text" [routerLink]="['/shoppinglist', groupId]">
         <span>Einkaufsliste</span>
       </div>
       <div class="divider"></div>
-      <div class="menu-text" [routerLink]="['/shoppingcart', groupId]">
+      <div class="menu-text active">
         <span>Warenkorb</span>
       </div>
     </div>
@@ -215,7 +215,7 @@
               <ion-item>
                 <ion-input type="number"
                            [(ngModel)]="newProduct.quantity"
-                            [placeholder]="newProduct.quantity ? newProduct.quantity : '1'">
+                           [placeholder]="newProduct.quantity ? newProduct.quantity : '1'">
                 </ion-input>
               </ion-item>
             </div>
@@ -225,7 +225,7 @@
               <ion-item>
                 <ion-input type="text"
                            [(ngModel)]="newProduct.unit"
-                            [placeholder]="newProduct.unit ? newProduct.unit : 'Stück'">
+                           [placeholder]="newProduct.unit ? newProduct.unit : 'Stück'">
                 </ion-input>
               </ion-item>
             </div>
@@ -335,7 +335,8 @@
             <div class="checkboxToShoppingcart">
               <ion-checkbox
                 slot="end"
-                (click)="moveProductToCart(shoppingproduct.shoppingProductId)"
+                [checked]="shoppingproduct.status === 'done'"
+                (ionChange)="toggleChecked(shoppingproduct)"
               ></ion-checkbox>
             </div>
           </ion-item>
@@ -345,12 +346,6 @@
               Löschen
             </ion-item-option>
           </ion-item-options>
-          <ion-item-options side="start">
-            <ion-item-option color="success" (click)="moveProductToCart(shoppingproduct.shoppingProductId)">
-              In Warenkorb
-            </ion-item-option>
-          </ion-item-options>
-
         </ion-item-sliding>
       </ng-container>
     </ion-list>

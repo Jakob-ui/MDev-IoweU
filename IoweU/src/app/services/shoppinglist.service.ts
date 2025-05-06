@@ -1,25 +1,41 @@
 import { inject, Injectable } from '@angular/core';
-import { Firestore, collection, doc, setDoc, deleteDoc, getDoc } from '@angular/fire/firestore';
+import {Firestore, collection, doc, setDoc, deleteDoc, getDoc, getDocs, where, query} from '@angular/fire/firestore';
 import { ShoppingProducts } from '../services/objects/ShoppingProducts';
-import {getDocs} from "firebase/firestore";
+import { ShoppingCarts } from './objects/ShoppingCarts';
+import { Shoppinglists } from './objects/Shoppinglists';
 
 @Injectable({
   providedIn: 'root',
 })
+
 export class ShoppinglistService {
   private firestore = inject(Firestore);
 
-  // Speichert ein neues Produkt in der Datenbank
   async addShoppingProduct(
     groupId: string,
-    shoppinglistId: string,
     productData: ShoppingProducts
   ): Promise<void> {
     try {
-      // Neue ID erzeugen für das Produkt
-      const shoppingProductId = doc(
-        collection(this.firestore, 'groups', groupId, 'shoppingProducts')
-      ).id;
+      // Zuerst die Shoppinglist der Gruppe holen oder erstellen, falls nicht vorhanden
+      let shoppingList = await this.getShoppingListByGroupId(groupId);
+
+      if (!shoppingList) {
+        // Keine Einkaufsliste vorhanden - erstelle eine neue
+        const shoppinglistId = doc(collection(this.firestore, 'groups', groupId, 'shoppingLists')).id;
+        shoppingList = {
+          shoppinglistId,
+          groupId,
+          shoppinglistName: 'Einkaufsliste', // Standardname der Einkaufsliste
+          shoppingProducts: [],
+        };
+
+        // Neue Einkaufsliste in der Firestore-Datenbank speichern
+        await setDoc(doc(this.firestore, 'groups', groupId, 'shoppingLists', shoppinglistId), shoppingList);
+        console.log('Neue Einkaufsliste erstellt:', shoppinglistId);
+      }
+
+      // Neue ID für das Produkt erzeugen
+      const shoppingProductId = doc(collection(this.firestore, 'groups', groupId, 'shoppingLists', shoppingList.shoppinglistId, 'shoppingProducts')).id;
 
       // Neues Produktobjekt mit generierter ID
       const shoppingProduct: ShoppingProducts = {
@@ -33,86 +49,226 @@ export class ShoppinglistService {
         status: productData.status,
       };
 
-      // In Firestore speichern
-      const productRef = doc(
-        this.firestore,
-        'groups',
-        groupId,
-        'shoppingProducts',
-        shoppingProductId
-      );
+      // Produkt in der entsprechenden Subcollection der Einkaufsliste speichern
+      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingLists', shoppingList.shoppinglistId, 'shoppingProducts', shoppingProductId);
       await setDoc(productRef, shoppingProduct);
 
-      console.log('Produkt erfolgreich gespeichert:', shoppingProductId);
+      // Shoppinglist mit dem neuen Produkt aktualisieren
+      const updatedShoppingList = {
+        ...shoppingList,
+        shoppingProducts: [...shoppingList.shoppingProducts, shoppingProduct],
+      };
+      const shoppingListRef = doc(this.firestore, 'groups', groupId, 'shoppingLists', shoppingList.shoppinglistId);
+      await setDoc(shoppingListRef, updatedShoppingList);
+
+      console.log('Produkt erfolgreich gespeichert und zur Einkaufsliste hinzugefügt:', shoppingProductId);
     } catch (error) {
       console.error('Fehler beim Speichern des Produkts:', error);
       throw error;
     }
   }
 
-  async getShoppingProducts(groupId: string): Promise<ShoppingProducts[]> {
-    const shoppingProductRef = collection(this.firestore, 'groups', groupId, 'shoppingProducts');
-    const snapshot = await getDocs(shoppingProductRef);
-    return snapshot.docs.map(doc => doc.data() as ShoppingProducts);
-  }
-
-  async getShoppingProductById(groupId: string, shoppingProductId: string): Promise<ShoppingProducts | null> {
+  async getShoppingListIdByGroupId(groupId: string): Promise<string | null> {
     try {
-      // Referenz zum Produkt-Dokument in der Firestore-Datenbank
-      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingProducts', shoppingProductId);
+      const shoppingListsRef = collection(this.firestore, 'groups', groupId, 'shoppingLists');
+      const snapshot = await getDocs(shoppingListsRef);
 
-      // Abrufen des Dokuments
-      const productDoc = await getDoc(productRef);
-
-      // Wenn das Dokument existiert, geben wir die Produktdetails zurück
-      if (productDoc.exists()) {
-        return productDoc.data() as ShoppingProducts;
+      if (!snapshot.empty) {
+        const shoppingListDoc = snapshot.docs[0]; // Hole die erste Liste (es sollte nur eine geben)
+        return shoppingListDoc.id; // Gib die ID der ersten ShoppingList zurück
       } else {
-        console.warn('Kein Produkt mit dieser ID gefunden');
+        console.warn('Keine Einkaufsliste gefunden.');
         return null;
       }
     } catch (error) {
-      console.error('Fehler beim Abrufen des Produkts:', error);
+      console.error('Fehler beim Abrufen der shoppingListId:', error);
+      return null;
+    }
+  }
+
+  async getShoppingCartIdByGroupId(groupId: string): Promise<string | null> {
+    try {
+      const shoppingCartRef = collection(this.firestore, 'groups', groupId, 'shoppingCart');
+      const snapshot = await getDocs(shoppingCartRef);
+
+      if (!snapshot.empty) {
+        const shoppingCartDoc = snapshot.docs[0]; // Hole die erste ShoppingCart (es sollte nur eine geben)
+        return shoppingCartDoc.id; // Gib die ID der ersten ShoppingCart zurück
+      } else {
+        console.warn('Kein Warenkorb gefunden.');
+        return null;
+      }
+    } catch (error) {
+      console.error('Fehler beim Abrufen der shoppingCartId:', error);
       return null;
     }
   }
 
 
 
+// Holt die Einkaufsliste einer Gruppe aus der Datenbank
+  async getShoppingListByGroupId(groupId: string): Promise<Shoppinglists | null> {
+    const shoppingListRef = collection(this.firestore, 'groups', groupId, 'shoppingLists');
+    const snapshot = await getDocs(shoppingListRef);
+    if (!snapshot.empty) {
+      const shoppingListDoc = snapshot.docs[0]; // Nimm das erste (es sollte nur eine geben)
+      return shoppingListDoc.data() as Shoppinglists;
+    } else {
+      return null; // Keine Einkaufsliste vorhanden
+    }
+  }
 
-  // Löscht ein Produkt aus der Datenbank
-  async deleteShoppingProduct(groupId: string, shoppingProductId: string): Promise<void> {
+  async getShoppingProducts(groupId: string, shoppingListId: string): Promise<ShoppingProducts[]> {
     try {
-      // Referenz zum Produkt in Firestore
-      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingProducts', shoppingProductId);
+      // Korrigierter Pfad zur Sammlung 'shoppingProducts' in der Firestore-Datenbank
+      const productsRef = collection(this.firestore, 'groups', groupId, 'shoppingLists', shoppingListId, 'shoppingProducts');
+      const productSnapshot = await getDocs(productsRef);
 
-      // Löscht das Produkt
+      // Alle Produkte als Array von ShoppingProducts zurückgeben
+      const products: ShoppingProducts[] = productSnapshot.docs.map(doc => doc.data() as ShoppingProducts);
+      return products;
+    } catch (error) {
+      console.error('Fehler beim Abrufen der Produkte:', error);
+      throw error;
+    }
+  }
+
+  async getShoppingCartProducts(groupId: string, shoppingcartId: string): Promise<ShoppingProducts[]> {
+    try {
+      const productsRef = collection(this.firestore, 'groups', groupId, 'shoppingCart', shoppingcartId, 'shoppingProducts');
+      const productSnapshot = await getDocs(productsRef);
+
+      const products: ShoppingProducts[] = productSnapshot.docs.map(doc => doc.data() as ShoppingProducts);
+      return products;
+    } catch (error) {
+      console.error('Fehler beim Abrufen der Produkte aus dem Warenkorb:', error);
+      throw error;
+    }
+  }
+
+
+  async getShoppingCartByGroupId(groupId: string): Promise<ShoppingCarts | null> {
+    const cartRef = collection(this.firestore, 'groups', groupId, 'shoppingCart');
+    const cartSnapshot = await getDocs(cartRef);
+
+    if (!cartSnapshot.empty) {
+      const cartData = cartSnapshot.docs.map(doc => doc.data()) as ShoppingCarts[];
+      return cartData.length > 0 ? cartData[0] : null; // Nur das erste Element, wenn es mehrere gibt
+    } else {
+      return null; // Wenn keine Daten im Warenkorb sind
+    }
+  }
+
+
+  async moveProductToShoppingCart(groupId: string, shoppingListId: string, shoppingProductId: string): Promise<void> {
+    try {
+      // Produkt aus der Einkaufsliste holen
+      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingLists', shoppingListId, 'shoppingProducts', shoppingProductId);
+      const productSnapshot = await getDoc(productRef);
+
+      if (!productSnapshot.exists()) {
+        throw new Error('Produkt nicht gefunden');
+      }
+
+      const productData = productSnapshot.data() as ShoppingProducts;
+
+      // Status auf "im Warenkorb" setzen
+      const updatedProduct: ShoppingProducts = {
+        ...productData,
+        status: 'im Warenkorb',
+      };
+
+      // Hole oder erstelle den shoppingCart-Eintrag
+      let shoppingCart = await this.getShoppingCartByGroupId(groupId);
+      let shoppingcartId: string;
+
+      if (!shoppingCart) {
+        shoppingcartId = doc(collection(this.firestore, 'groups', groupId, 'shoppingCart')).id;
+
+        shoppingCart = {
+          shoppingcartId,
+          groupId,
+          shoppingProducts: [], // wird nicht mehr direkt genutzt, da Produkte als Subcollection gespeichert werden
+        };
+
+        // Neuen Einkaufswagen-Eintrag erstellen
+        await setDoc(doc(this.firestore, 'groups', groupId, 'shoppingCart', shoppingcartId), shoppingCart);
+        console.log('Neuer Warenkorb erstellt:', shoppingcartId);
+      } else {
+        shoppingcartId = shoppingCart.shoppingcartId;
+      }
+
+      // Neues Produkt-Dokument in die shoppingCart Subcollection schreiben
+      const newProductRef = doc(collection(this.firestore, 'groups', groupId, 'shoppingCart', shoppingcartId, 'shoppingProducts'));
+      await setDoc(newProductRef, {
+        ...updatedProduct,
+        shoppingProductId: newProductRef.id, // optional: ID auch im Objekt speichern
+      });
+
+      // Produkt aus der ursprünglichen Liste entfernen
       await deleteDoc(productRef);
 
-      console.log('Produkt erfolgreich gelöscht:', shoppingProductId);
+      console.log('Produkt erfolgreich in den Warenkorb verschoben');
     } catch (error) {
-      console.error('Fehler beim Löschen des Produkts:', error);
+      console.error('Fehler beim Verschieben des Produkts:', error);
+      throw error;
+    }
+  }
+
+
+
+  async getShoppingProductById(groupId: string, shoppingListId: string, shoppingProductId: string): Promise<ShoppingProducts | null> {
+    try {
+      // Das Produkt mit der angegebenen ID aus der Subcollection der Einkaufsliste abrufen
+      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingLists', shoppingListId, 'shoppingProducts', shoppingProductId);
+      const productSnapshot = await getDoc(productRef);
+
+      if (productSnapshot.exists()) {
+        return productSnapshot.data() as ShoppingProducts;
+      } else {
+        return null; // Produkt nicht gefunden
+      }
+    } catch (error) {
+      console.error('Fehler beim Abrufen des Produkts:', error);
       throw error;
     }
   }
 
   async editShoppingProduct(
     groupId: string,
+    shoppingListId: string,
     shoppingProductId: string,
-    updatedData: Partial<ShoppingProducts>
+    updatedProductData: ShoppingProducts
   ): Promise<void> {
     try {
-      // Referenz zum Produkt in Firestore
-      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingProducts', shoppingProductId);
+      // Das Produkt in der Subcollection `shoppingProducts` der Einkaufsliste abrufen
+      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingLists', shoppingListId, 'shoppingProducts', shoppingProductId);
 
-      // Aktualisiert das Produkt mit den neuen Daten
-      await setDoc(productRef, updatedData, { merge: true });
+      // Produkt aktualisieren
+      await setDoc(productRef, updatedProductData, { merge: true });
 
-      console.log('Produkt erfolgreich aktualisiert:', shoppingProductId);
+      console.log('Produkt erfolgreich aktualisiert');
     } catch (error) {
       console.error('Fehler beim Aktualisieren des Produkts:', error);
       throw error;
     }
   }
+
+  async deleteShoppingProduct(groupId: string, shoppingListId: string, shoppingProductId: string): Promise<void> {
+    try {
+      // Das Produkt aus der Subcollection der Einkaufsliste löschen
+      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingLists', shoppingListId, 'shoppingProducts', shoppingProductId);
+
+      await deleteDoc(productRef);
+
+      console.log('Produkt erfolgreich gelöscht');
+    } catch (error) {
+      console.error('Fehler beim Löschen des Produkts:', error);
+      throw error;
+    }
+  }
+
+
+
 
 }
