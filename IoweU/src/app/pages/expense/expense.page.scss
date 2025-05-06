@@ -36,6 +36,7 @@ h5{
   display: flex;
   flex-direction: row;
   width: 80%;
+  max-width: 790px;
   background-color: white;
   border: var(--ion-color-secondary) solid 3px;
   border-radius: 50px;
@@ -117,9 +118,6 @@ ion-searchbar {
 .filter ion-item::part(native) {
   background-color: white !important;
 }
-
-
-
 
 @media (prefers-color-scheme: dark) {
   .date {
