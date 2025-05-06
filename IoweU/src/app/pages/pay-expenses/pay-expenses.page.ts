@@ -367,6 +367,7 @@ export class PayExpensesPage {
       amount: amount,
       reason: this.expense[0].description,
       date: new Date().toISOString(),
+      relatedExpenses: [this.expenseId],
     };
     this.transactionService.makeTransactionById(
       this.groupId,

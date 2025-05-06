@@ -256,7 +256,7 @@ ion-card-subtitle h6 {
 .expense-card,
 .shopping-card {
   width: 60%;
-  max-width: 800px;
+  max-width: 600px;
   margin: auto;
   padding: 20px;
   text-align: center;
@@ -950,6 +950,8 @@ body.color-blind {
   ion-icon.back-button {
     color: #000 !important;
   }
+
+  
 
   .button-container{
     background-color: #121212 !important;
