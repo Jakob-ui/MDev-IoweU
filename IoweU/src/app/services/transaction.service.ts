@@ -37,6 +37,7 @@ export class TransactionService {
         amount: transaction.amount,
         reason: transaction.reason,
         date: transaction.date,
+        relatedExpenses: [expenseId],
       };
       const expenseRef = doc(
         this.firestore,
@@ -49,6 +50,9 @@ export class TransactionService {
 
       //Mitglieder Felder aktualisieren
       await this.updateMemberAmounts(groupId, transaction, 1);
+
+      //Expense Status updaten
+      await this.updateExpenseState(expenseId, true);
       return transactionData;
     } catch {
       return null;
@@ -79,6 +83,7 @@ export class TransactionService {
             amount: data['amount'],
             reason: data['reason'],
             date: data['date'],
+            relatedExpenses: data['relatedExpenses'],
           } as Transactions;
         });
 
@@ -93,7 +98,12 @@ export class TransactionService {
     }
   }
 
-  async deleteTransactionsById(groupId: string, transaction: Transactions, transactionId: string) {
+  async deleteTransactionsById(
+    groupId: string,
+    expenseId : string,
+    transaction: Transactions,
+    transactionId: string
+  ) {
     try {
       const transactionCollection = doc(
         this.firestore,
@@ -104,6 +114,8 @@ export class TransactionService {
       );
       await deleteDoc(transactionCollection);
       await this.updateMemberAmounts(groupId, transaction, -1);
+      //Expense Status updaten
+      await this.updateExpenseState(expenseId, false);
     } catch {
       throw new Error(`Couldnt delete Transaction with Id: ${transactionId}`);
       return null;
@@ -158,6 +170,21 @@ export class TransactionService {
       }
     } else {
       console.error('Gruppe nicht gefunden.');
+    }
+  }
+
+  async updateExpenseState(expenseId: string, state: boolean) {
+    try {
+      const stateis = state ? 'ja' : 'nein';
+      const expenseRef = doc(this.firestore, 'expenses', expenseId);
+
+      await setDoc(expenseRef, { paid: stateis }, { merge: true });
+
+      console.log(`Expense ${expenseId} updated with paid: ${stateis}`);
+    } catch (error) {
+      throw new Error(
+        `Fehler beim Aktualisieren des Feldes "paid": ${expenseId}`
+      );
     }
   }
 }
