@@ -6,5 +6,5 @@ export interface Shoppinglists {
   shoppinglistId: string;
   groupId: string;
   shoppinglistName: string | "Einkaufsliste";
-  shoppingProductsId: string[];
+  shoppingProducts: ShoppingProducts[];
 }

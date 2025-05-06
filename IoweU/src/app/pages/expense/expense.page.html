@@ -62,6 +62,7 @@
               class="dropDownFelder"
               button
               *ngFor="let category of categories"
+              [ngClass]="{ 'selected': selectedCategories.includes(category.name) }"
               (click)="selectCategories(category, $event)"
             >
               <ion-icon

@@ -22,6 +22,7 @@ import { LoadingService } from '../../services/loading.service';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { FormsModule } from '@angular/forms';
 import { Members } from 'src/app/services/objects/Members';
+import {ShoppinglistService} from "../../services/shoppinglist.service";
 
 @Component({
   selector: 'app-group',
@@ -53,6 +54,7 @@ export class GroupPage implements OnInit {
   private route = inject(ActivatedRoute);
   private groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
+  private shoppinglistService = inject(ShoppinglistService);
 
   iosIcons: boolean = false;
 
@@ -80,7 +82,8 @@ export class GroupPage implements OnInit {
 
   currentMonth: string = 'März 2025';
 
-  shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
+  shoppingListId: string | null = '';
+  shoppingList: string[] = [];
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
   group: Groups | null = null;
 
@@ -226,6 +229,8 @@ export class GroupPage implements OnInit {
     this.router.navigate(['group-overview']);
   }
 
+
+
   // Funktion zur Generierung der Feature-Links mit groupId
   getFeatureLink(feature: string): string {
     switch (feature) {
@@ -234,9 +239,9 @@ export class GroupPage implements OnInit {
       case 'Ausgaben':
         return `/expense/${this.groupId}`;
       case 'Einkaufsliste':
-        return `/shoppinglist/${this.groupId}`; // Beispiel-Link für Shopping-List
+        return `/shoppinglist/${this.groupId}`;
       case 'Anlagegüter':
-        return `/assets/${this.groupId}`; // Beispiel-Link für Assets
+        return `/assets/${this.groupId}`;
       default:
         return '/'; // Rückfalloption für unbekannte Features
     }
