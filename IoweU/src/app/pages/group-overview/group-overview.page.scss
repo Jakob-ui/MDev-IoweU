@@ -6,7 +6,7 @@
 }
 
 .my-groups {
-  width: 80%; // Stellt sicher, dass die Karte die volle Breite hat
+  width: 100%; // Stellt sicher, dass die Karte die volle Breite hat
   max-width: 100%; // Verhindert, dass sie aus dem Container ragt
   border-radius: 16px;
   overflow: hidden;
@@ -24,21 +24,41 @@
   text-align: center;
 }
 
-ion-card {
-  width: 100%; // Stellt sicher, dass alle Karten gleichmäßig verteilt sind
-  max-width: 100%;
-  border-radius: 16px;
-  overflow: hidden;
+.group-list {
+  max-height: calc(100% - 120px); /* Platz für die Buttons */
+  overflow-y: auto; /* Scrollbar aktivieren, falls nötig */
+  padding-bottom: 80px; /* Platz für die fixierte button-container */
 }
 
-.group-list {
-  margin-bottom: 80px;
+::ng-deep ion-reorder-group {
+  width: 100% !important;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch; // zentriert die Cards
+
+}
+
+::ng-deep ion-reorder {
+  width: 100% !important;
+  display: flex;
   justify-content: center;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+::ng-deep ion-list,
+::ng-deep ion-reorder-group {
+  margin: 0 auto !important;
   width: 100%;
 }
+
+::ng-deep ion-reorder > ion-card {
+  width: 87% !important;
+  max-width: 800px;
+  height: 120px;
+  margin: 0 auto 20px auto; // oben: 0, rechts/links: auto, unten: 20px}
+}
+
 
 .pagename {
   margin-left: 10px;
@@ -50,25 +70,6 @@ ion-card {
   margin-bottom: 20px;
 }
 
-.my-groups {
-  transition: transform 200ms ease;
-  position: relative;
-  z-index: 1;
-  touch-action: pan-y;
-
-  &.edit-mode {
-    animation: wiggle 0.3s ease-in-out infinite;
-    cursor: grab;
-    transition: transform 0.15s ease-in-out;
-  }
-
-  &.dragging {
-    transform: scale(1.02);
-    z-index: 10;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  }
-}
-
 @keyframes wiggle {
   0% { transform: rotate(0.7deg); }
   25% { transform: rotate(-0.7deg); }
@@ -77,9 +78,11 @@ ion-card {
   100% { transform: rotate(0.7deg); }
 }
 
-@media (prefers-color-scheme: dark) {
-  
-
+.wiggle {
+  animation: wiggle 0.3s infinite;
 }
 
+@media (prefers-color-scheme: dark) {
+
+}
 
