@@ -9,7 +9,7 @@ import {
   IonCard,
   IonButton,
   IonIcon,
-  IonCheckbox, IonInput, IonDatetime, IonLabel, IonItemOptions, IonItemOption, IonItemSliding
+  IonCheckbox, IonInput, IonDatetime, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonAlert
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -22,6 +22,7 @@ import { ShoppingProducts } from "../../services/objects/ShoppingProducts";
 import { ShoppinglistService } from "../../services/shoppinglist.service";
 import {FormsModule} from "@angular/forms";
 import { formatDate } from '@angular/common';
+import {AlertController, ToastController} from "@ionic/angular";
 
 @Component({
   selector: 'app-shoppinglist',
@@ -47,6 +48,7 @@ import { formatDate } from '@angular/common';
     IonItemOptions,
     IonItemOption,
     IonItemSliding,
+    IonAlert,
   ],
 })
 export class ShoppinglistPage implements OnInit {
@@ -57,6 +59,8 @@ export class ShoppinglistPage implements OnInit {
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private shoppinglistService = inject(ShoppinglistService);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
 
   uid: string | null = '';
   user: string | null = '';
@@ -82,6 +86,9 @@ export class ShoppinglistPage implements OnInit {
   earliestDueDate: Date = new Date(2025, 2, 20);
   earliestDueDateLabel: string = '';
 
+  showDeleteConfirm: boolean = false;
+  productToDelete: any;
+  touchStartX: number = 0;
 
   addProductOpen = false;
 
@@ -346,26 +353,41 @@ export class ShoppinglistPage implements OnInit {
       alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
-    // Rufe das Produkt aus der Datenquelle anhand der groupId und shoppingProductId ab
-    const selectedShoppingProduct = await this.getShoppingProductById(this.groupId, shoppingProductId);
 
-    if (selectedShoppingProduct) {
-      // Setze das abgerufene Produkt in selectedProduct
-      this.selectedProduct = { ...selectedShoppingProduct }; // Kopie des Produkts, um das Original nicht zu verändern
-    } else {
-      console.error('Produkt konnte nicht geladen werden');
+    if (!this.shoppingListId) {
+      console.error('ShoppingList ID ist null oder undefined');
+      alert('Die ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
+      return;
     }
 
-    // Wechsel des Overlay-Zustands
-    if (this.detailsOverlayState === 'start') {
-      this.detailsOverlayState = 'normal'; // Overlay wird sichtbar und Animation startet
-    } else if (this.detailsOverlayState === 'normal') {
-      this.detailsOverlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
-    } else if (this.detailsOverlayState === 'hidden') {
-      this.detailsOverlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
-    }
+    try {
+      // Rufe das Produkt anhand von groupId, shoppingListId und shoppingProductId ab
+      const selectedShoppingProduct = await this.shoppinglistService.getShoppingProductById(
+        this.groupId,
+        this.shoppingListId,
+        shoppingProductId
+      );
 
-    console.log('Details Overlay state:', this.detailsOverlayState); // Debugging-Ausgabe
+      if (selectedShoppingProduct) {
+        this.selectedProduct = {...selectedShoppingProduct}; // Kopie setzen
+      } else {
+        console.error('Produkt konnte nicht geladen werden');
+        return;
+      }
+
+      // Wechsel des Overlay-Zustands
+      if (this.detailsOverlayState === 'start') {
+        this.detailsOverlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+      } else if (this.detailsOverlayState === 'normal') {
+        this.detailsOverlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
+      } else if (this.detailsOverlayState === 'hidden') {
+        this.detailsOverlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
+      }
+
+      console.log('Details Overlay state:', this.detailsOverlayState); // Debugging-Ausgabe
+    } catch (error) {
+      console.error('Fehler beim Laden des Produkts:', error);
+    }
   }
 
 
@@ -545,4 +567,66 @@ export class ShoppinglistPage implements OnInit {
       console.error('Fehler beim Verschieben:', error);
     }
   }
+
+
+
+  onTouchStart(event: TouchEvent) {
+    this.touchStartX = event.changedTouches[0].screenX;
+  }
+
+  onTouchEnd(event: TouchEvent, shoppingProduct: any) {
+    const touchEndX = event.changedTouches[0].screenX;
+    const deltaX = touchEndX - this.touchStartX;
+    const swipeThreshold = 50; // etwas niedriger als vorher für bessere Erkennung
+
+    if (deltaX > swipeThreshold) {
+      this.moveProductToCart(shoppingProduct.shoppingProductId);
+      this.presentToast('Produkt wurde in den Warenkorb verschoben!');
+    } else if (deltaX < -swipeThreshold) {
+      this.productToDelete = shoppingProduct;
+      this.showDeleteAlert();
+    }
+  }
+
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
+
+
+  async showDeleteAlert() {
+    const alert = await this.alertController.create({
+      header: 'Bestätigen',
+      message: 'Möchten Sie dieses Produkt wirklich löschen?',
+      buttons: [
+        {
+          text: 'Abbrechen',
+          role: 'cancel',
+          handler: () => {
+            this.showDeleteConfirm = false;
+            this.productToDelete = null;
+          }
+        },
+        {
+          text: 'Löschen',
+          handler: () => {
+            if (this.productToDelete) {
+              this.deleteProduct(this.productToDelete.shoppingProductId);
+              this.showDeleteConfirm = false;
+              this.productToDelete = null;
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
 }
