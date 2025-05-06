@@ -329,7 +329,23 @@ ion-input::part(native) {
   padding-bottom: 15%;
   border-radius: 10px;
   background-color: #ffffff;
+
+ /* Scrollbar aktivieren */
+ max-height: 300px; /* Passe die maximale Höhe an deine Anforderungen an */
+ overflow-y: auto; /* Scrollbar aktivieren, wenn der Inhalt zu groß ist */
 }
+
+/* Optional: Scrollbar-Styling für Webkit-Browser */
+.custom-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-dropdown::-webkit-scrollbar-thumb {
+  background-color: var(--ion-color-secondary);
+  border-radius: 4px;
+}
+
+
 ion-item.dropDownFelder::part(native) {
   --background: #ffffff;
   background-color: #ffffff !important;
@@ -357,6 +373,7 @@ ion-item.dropDownFelder::part(native) {
     max-width: 400px;
     top: 100%;
     left: -10px;
+    
   }
 
   .selected-currency {
