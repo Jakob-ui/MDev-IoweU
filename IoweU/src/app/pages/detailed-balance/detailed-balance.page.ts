@@ -79,6 +79,7 @@ export class DetailedBalancePage implements OnInit {
     this.loadingService.show();
 
     try {
+      await this.authService.waitForUser();
       if (this.authService.currentUser) {
         this.username = this.authService.currentUser.username;
         this.uid = this.authService.currentUser.uid;
@@ -123,7 +124,7 @@ export class DetailedBalancePage implements OnInit {
               this.balanceDetails = {
                 from: this.username,
                 to: this.selectedMember?.username,
-                balance: saldo,
+                balance: saldo
               };
 
               console.log('Balance Details:', this.balanceDetails);
