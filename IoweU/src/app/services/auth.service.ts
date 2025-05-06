@@ -10,6 +10,7 @@ import {
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
@@ -18,6 +19,7 @@ export class AuthService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private groupService = inject(GroupService);
+  private router = inject(Router);
   currentUser: Users | null = null;
   colorBlindMode: boolean = false;
 
@@ -39,8 +41,6 @@ export class AuthService {
           this.applyColorBlindMode(this.colorBlindMode);
           this.firestore;
           if (docsnap.exists()) {
-
-
             this.currentUser = {
               uid: user.uid,
               username: docsnap.data()['username'],
@@ -186,8 +186,19 @@ export class AuthService {
       document.documentElement.style.removeProperty('--user-color');
       document.documentElement.style.removeProperty('--user-color-background');
 
-      // Weitere globale Daten zurücksetzen
+      // Lösche Gruppendaten und lokale Daten
       this.groupService.clearGroupData();
+      localStorage.removeItem('colorBlindMode');
+      sessionStorage.clear(); // Lösche alle Daten aus dem Session Storage
+      console.log('Lokale und globale Daten wurden gelöscht.');
+
+      // Setze den Zustand des GroupService zurück
+      this.groupService.currentGroup = null;
+
+      // Optional: Seite neu laden, um sicherzustellen, dass alles zurückgesetzt wird
+      this.router.navigate(['/login']).then(() => {
+        window.location.reload();
+      });
     });
   }
 
