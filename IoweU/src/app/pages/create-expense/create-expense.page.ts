@@ -17,12 +17,6 @@ import {
   checkmarkOutline,
   cameraOutline,
   imageOutline,
-  logoEuro,
-  logoUsd,
-  cashOutline,
-  logoYen,
-  cash,
-  
 } from 'ionicons/icons';
 addIcons({
   'fast-food-outline': fastFoodOutline,
@@ -37,11 +31,6 @@ addIcons({
   'checkmark-outline': checkmarkOutline,
   'camera-outline': cameraOutline,
   'image-outline': imageOutline,
-  'logo-euro': logoEuro,
-  'logo-usd': logoUsd,
-  'logo-gbp': cashOutline,
-  'logo-yen': logoYen,
-  'logo-australian-dollar': cashOutline,
 });
 import {
   IonContent,
@@ -162,10 +151,6 @@ export class CreateExpensePage {
 
   invoiceDropdownOpen: boolean = false;
 
-  currencyDropdownOpen: boolean = false;
-
-  foreignAmount: number = 0;
-
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
     description: '',
@@ -194,16 +179,6 @@ export class CreateExpensePage {
     { name: 'Rechnungen', icon: 'receipt-outline' },
     { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
-
-  currencies = [
-    { name: 'EUR', symbol: '€' },
-    { name: 'USD', symbol: '$' },
-    { name: 'GBP', symbol: '£' },
-    { name: 'JPY', symbol: '¥' },
-    { name: 'AUD', symbol: '$' },
-  ];
-
-  selectedCurrencyIcon: string = 'logo-euro';
 
   async ngOnInit() {
     this.loadingService.show();
@@ -810,16 +785,46 @@ export class CreateExpensePage {
 
 //-----------------------------------FREMDWÄHRUNG-------------------------------------------------------
 
-  toggleCurrencyDropdown(event: Event) {
-    this.currencyDropdownOpen = !this.currencyDropdownOpen;
-    event.stopPropagation(); // Prevent event propagation
-  }
+  selectCurrency(newCurrency: string) {
+    const oldCurrency = this.selectedCurrency;
+    const wasEuro = oldCurrency === 'EUR';
+    const willBeEuro = newCurrency === 'EUR';
+    const previousRate = this.exchangeRate || 1;
 
-  selectCurrency(currency: { name: string; symbol: string }) {
-    this.selectedCurrency = currency.name;
-    this.selectedCurrencyIcon = currency.symbol;
-    this.currencyDropdownOpen = false;
-    this.updateTotals(); // Update totals based on the selected currency
+    this.selectedCurrency = newCurrency;
+
+    if (willBeEuro) {
+      this.exchangeRate = 1;
+      this.expense.totalAmount = +((this.expense.totalAmountInForeignCurrency ?? 0) * previousRate).toFixed(2);
+      this.expense.totalAmountInForeignCurrency = 0;
+
+      Object.keys(this.foreignAmountToPay).forEach(uid => {
+        this.amountToPay[uid] = +((this.foreignAmountToPay[uid] || 0) * previousRate).toFixed(2);
+      });
+
+      this.updateTotals();
+      return;
+    }
+
+    const url = `https://api.frankfurter.app/latest?from=${newCurrency}&to=EUR`;
+    this.http.get<any>(url).subscribe({
+      next: (data) => {
+        this.exchangeRate = data.rates['EUR'];
+
+        if (wasEuro) {
+          this.expense.totalAmountInForeignCurrency = +(this.expense.totalAmount / this.exchangeRate).toFixed(2);
+          Object.keys(this.amountToPay).forEach(uid => {
+            this.foreignAmountToPay[uid] = +(this.amountToPay[uid] / this.exchangeRate).toFixed(2);
+          });
+        }
+
+        this.updateTotals();
+      },
+      error: (err) => {
+        console.error('Fehler beim Abrufen des Wechselkurses:', err);
+        this.error = 'Wechselkurs konnte nicht geladen werden.';
+      }
+    });
   }
 
   onForeignAmountChange() {
