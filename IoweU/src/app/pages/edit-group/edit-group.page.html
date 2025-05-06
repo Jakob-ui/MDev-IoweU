@@ -4,13 +4,19 @@
 
     <h3>Gruppe bearbeiten</h3>
 
-    <div class="image-upload" (click)="selectImage()">
-      <ng-container *ngIf="groupImage; else placeholder">
-        <img [src]="groupImage" alt="Gruppenbild" class="group-image" />
-      </ng-container>
-      <ng-template #placeholder>
-        <div class="upload-placeholder">+</div>
-      </ng-template>
+    <div class="image-wrapper" (click)="selectImage()">
+      <div class="image-upload">
+        <ng-container *ngIf="groupImage; else placeholder">
+          <img [src]="groupImage" alt="Gruppenbild" class="group-image" />
+        </ng-container>
+        <ng-template #placeholder>
+          <div class="upload-placeholder">+</div>
+        </ng-template>
+      </div>
+      <ion-icon
+        class="edit-icon"
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-create.svg' : 'assets/icon/ionicons/md-create.svg'">
+      </ion-icon>
     </div>
     <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
 

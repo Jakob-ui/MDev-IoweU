@@ -34,6 +34,7 @@ export class GroupService {
   private imageService = inject(ImageService);
 
   currentGroup: Groups | null = null;
+  groupCount: number = 0;
 
   setGroup(group: Groups): void {
     this.currentGroup = group;
@@ -225,7 +226,10 @@ export class GroupService {
     }
   }
 
-  async removeUserFromGroupByUid(groupId: string, userId: string): Promise<boolean> {
+  async removeUserFromGroupByUid(
+    groupId: string,
+    userId: string
+  ): Promise<boolean> {
     try {
       // 1. Fetch the group document
       const groupRef = doc(this.firestore, 'groups', groupId);
@@ -281,8 +285,6 @@ export class GroupService {
     }
     return false; // Ensure a boolean is always returned
   }
-
-
 
   async joinGroup(joinee: Users, accessCode: string): Promise<void> {
     try {
@@ -419,6 +421,7 @@ export class GroupService {
             ...doc.data(),
           })) as Groups[];
           updateGroupsCallback(groups); // Aktualisiere die Gruppenliste
+          this.groupCount = groups.length;
         } else {
           console.log('No groups found for this user.');
           updateGroupsCallback([]); // Leere Gruppenliste zurückgeben
@@ -428,6 +431,15 @@ export class GroupService {
 
     // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
     return unsub;
+  }
+
+  async updateGroupOrder(groupId: string, newPosition: number): Promise<void> {
+    try {
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      await updateDoc(groupRef, { position: newPosition });
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren der Gruppenposition:', error);
+    }
   }
 
   //Bestimmte Gruppe finden:
@@ -586,7 +598,6 @@ export class GroupService {
     groupId: string,
     updateGroupCallback: (group: Groups[]) => void
   ): Promise<() => void> {
-
     try {
       const groupRef = collection(this.firestore, 'groups');
       const q = query(groupRef, where('groupId', '==', groupId));
@@ -620,8 +631,11 @@ export class GroupService {
     console.log('Gruppendaten wurden zurückgesetzt.');
   }
 
-
-  async setNewFounder(groupId: string, oldFounderUid: string, newFounderUid: string): Promise<void> {
+  async setNewFounder(
+    groupId: string,
+    oldFounderUid: string,
+    newFounderUid: string
+  ): Promise<void> {
     const groupRef = doc(this.firestore, 'groups', groupId);
     const groupSnapshot = await getDoc(groupRef);
 
@@ -649,6 +663,4 @@ export class GroupService {
 
     await setDoc(groupRef, updatedGroupData, { merge: true });
   }
-
-
 }
