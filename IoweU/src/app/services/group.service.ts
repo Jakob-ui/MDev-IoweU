@@ -229,7 +229,7 @@ export class GroupService {
   async removeUserFromGroupByUid(
     groupId: string,
     userId: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     try {
       // 1. Fetch the group document
       const groupRef = doc(this.firestore, 'groups', groupId);
