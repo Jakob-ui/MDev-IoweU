@@ -34,6 +34,7 @@ export class GroupService {
   private imageService = inject(ImageService);
 
   currentGroup: Groups | null = null;
+  groupCount: number = 0;
 
   setGroup(group: Groups): void {
     this.currentGroup = group;
@@ -225,7 +226,10 @@ export class GroupService {
     }
   }
 
-  async removeUserFromGroupByUid(groupId: string, userId: string): Promise<void> {
+  async removeUserFromGroupByUid(
+    groupId: string,
+    userId: string
+  ): Promise<void> {
     try {
       // 1. Entferne groupId aus dem user-Dokument
       const userRef = doc(this.firestore, 'users', userId);
@@ -233,7 +237,9 @@ export class GroupService {
 
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        const updatedGroupIds = (userData['groupId'] || []).filter((id: string) => id !== groupId);
+        const updatedGroupIds = (userData['groupId'] || []).filter(
+          (id: string) => id !== groupId
+        );
         await updateDoc(userRef, { groupId: updatedGroupIds });
         console.log(`User ${userId} aus groupId-Liste entfernt.`);
       }
@@ -247,18 +253,20 @@ export class GroupService {
         const members = groupData['members'] || [];
 
         // Entferne das Member-Objekt mit passender uid
-        const updatedMembers = members.filter((member: any) => member.uid !== userId);
+        const updatedMembers = members.filter(
+          (member: any) => member.uid !== userId
+        );
 
         await updateDoc(groupRef, { members: updatedMembers });
         console.log(`Mitglied ${userId} aus Gruppe ${groupId} entfernt.`);
       }
-
     } catch (error) {
-      console.error('Fehler beim Entfernen des Benutzers aus der Gruppe:', error);
+      console.error(
+        'Fehler beim Entfernen des Benutzers aus der Gruppe:',
+        error
+      );
     }
   }
-
-
 
   async joinGroup(joinee: Users, accessCode: string): Promise<void> {
     try {
@@ -395,6 +403,7 @@ export class GroupService {
             ...doc.data(),
           })) as Groups[];
           updateGroupsCallback(groups); // Aktualisiere die Gruppenliste
+          this.groupCount = groups.length;
         } else {
           console.log('No groups found for this user.');
           updateGroupsCallback([]); // Leere Gruppenliste zurückgeben
@@ -404,6 +413,15 @@ export class GroupService {
 
     // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
     return unsub;
+  }
+
+  async updateGroupOrder(groupId: string, newPosition: number): Promise<void> {
+    try {
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      await updateDoc(groupRef, { position: newPosition });
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren der Gruppenposition:', error);
+    }
   }
 
   //Bestimmte Gruppe finden:
@@ -562,7 +580,6 @@ export class GroupService {
     groupId: string,
     updateGroupCallback: (group: Groups[]) => void
   ): Promise<() => void> {
-
     try {
       const groupRef = collection(this.firestore, 'groups');
       const q = query(groupRef, where('groupId', '==', groupId));
@@ -596,8 +613,11 @@ export class GroupService {
     console.log('Gruppendaten wurden zurückgesetzt.');
   }
 
-
-  async setNewFounder(groupId: string, oldFounderUid: string, newFounderUid: string): Promise<void> {
+  async setNewFounder(
+    groupId: string,
+    oldFounderUid: string,
+    newFounderUid: string
+  ): Promise<void> {
     const groupRef = doc(this.firestore, 'groups', groupId);
     const groupSnapshot = await getDoc(groupRef);
 
@@ -625,6 +645,4 @@ export class GroupService {
 
     await setDoc(groupRef, updatedGroupData, { merge: true });
   }
-
-
 }
