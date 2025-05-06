@@ -7,5 +7,6 @@ export interface Transactions {
   amount: number;
   reason: string;
   date: string;
+  relatedExpenses: string[];
 }
 

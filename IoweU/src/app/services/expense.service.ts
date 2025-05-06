@@ -273,7 +273,7 @@ export class ExpenseService {
   async getExpenseByGroup(
     groupId: string,
     repeating: boolean,
-    updateExpensesCallback: (expenses: Expenses[]) => void
+    updateExpensesCallback: (expenses: Expenses[]) => void,
   ): Promise<() => void> {
     // Referenz auf die Subcollection "expenses" der Gruppe
     let expensesRef;
