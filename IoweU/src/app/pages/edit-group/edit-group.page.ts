@@ -77,6 +77,7 @@ export class EditGroupPage implements OnInit {
   private expenseService = inject(ExpenseService);
 
   @ViewChild('fileInput') fileInput!: ElementRef;
+iosIcons: any;
 
   constructor(private router: Router) {}
 
