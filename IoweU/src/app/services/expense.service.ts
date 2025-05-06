@@ -679,13 +679,33 @@ export class ExpenseService {
       groupId,
       'balances'
     );
-    const q = query(
+    const q1 = query(
       balancesRef,
       where('userAId', '==', userAId),
       where('userBId', '==', userBId)
     );
 
-    const snapshot = await getDocs(q);
+    let snapshot = await getDocs(q1);
+    if(snapshot.empty)
+    {
+      const q2 = query(
+        balancesRef,
+        where('userAId', '==', userBId),
+        where('userBId', '==', userAId)
+      );
+      snapshot = await getDocs(q2);
+      if(snapshot.empty)
+      {
+        return 0; // Keine Bilanz gefunden
+      }
+      let amount = 0;
+
+      snapshot.forEach((doc) => {
+        const data = doc.data() as Balances;
+        amount += data.userBCredit - data.userACredit; // Berechnung der Differenz
+      });
+      return amount;
+    }
     let amount = 0;
 
     snapshot.forEach((doc) => {
