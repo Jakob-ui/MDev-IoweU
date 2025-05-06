@@ -181,4 +181,19 @@
   ion-toolbar {
     background: transparent !important;
   }
+
+  .invoice-wrapper h5, span, p {
+    background: #ffffff !important; /* Weißer Hintergrund für die Box */
+    color: var(--ion-color-dark) !important; /* Dunkle Schriftfarbe */
+  }
+
+  .payed-by-lbl {
+    margin-bottom: 5px;
+    background-color: #121212 !important;
+    color: white !important;
+  }
+ 
+  .member-name {
+    background: none !important; 
+  }
 }
