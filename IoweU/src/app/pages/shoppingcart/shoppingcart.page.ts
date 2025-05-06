@@ -1,55 +1,32 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
-  IonHeader,
-  IonToolbar,
-  IonContent,
-  IonItem,
-  IonList,
-  IonCard,
   IonButton,
-  IonIcon,
-  IonCheckbox, IonInput, IonDatetime, IonLabel, IonItemOptions, IonItemOption, IonItemSliding
+  IonCard,
+  IonCheckbox,
+  IonContent,
+  IonDatetime,
+  IonHeader, IonIcon, IonInput, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList,
+  IonTitle,
+  IonToolbar
 } from '@ionic/angular/standalone';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { LoadingService } from '../../services/loading.service';
-import { GroupService } from '../../services/group.service';
-import { Members } from 'src/app/services/objects/Members';
-import { Shoppinglists } from "../../services/objects/Shoppinglists";
-import { ShoppingCarts } from "../../services/objects/ShoppingCarts";
-import { ShoppingProducts } from "../../services/objects/ShoppingProducts";
-import { ShoppinglistService } from "../../services/shoppinglist.service";
-import {FormsModule} from "@angular/forms";
-import { formatDate } from '@angular/common';
+import {AuthService} from "../../services/auth.service";
+import {ActivatedRoute, Router, RouterLink} from "@angular/router";
+import {LoadingService} from "../../services/loading.service";
+import {GroupService} from "../../services/group.service";
+import {ShoppinglistService} from "../../services/shoppinglist.service";
+import {Members} from "../../services/objects/Members";
+import {ShoppingProducts} from "../../services/objects/ShoppingProducts";
 
 @Component({
-  selector: 'app-shoppinglist',
-  templateUrl: './shoppinglist.page.html',
-  styleUrls: ['./shoppinglist.page.scss'],
+  selector: 'app-shoppingcart',
+  templateUrl: './shoppingcart.page.html',
+  styleUrls: ['./shoppingcart.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonContent,
-    IonItem,
-    IonList,
-    IonCard,
-    IonIcon,
-    RouterModule,
-    IonButton,
-    IonCheckbox,
-    IonInput,
-    FormsModule,
-    IonDatetime,
-    IonLabel,
-    IonItemOptions,
-    IonItemOption,
-    IonItemSliding,
-  ],
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonCheckbox, IonDatetime, IonIcon, IonInput, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList, RouterLink]
 })
-export class ShoppinglistPage implements OnInit {
+export class ShoppingcartPage implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -72,7 +49,7 @@ export class ShoppinglistPage implements OnInit {
 
   showDetails: boolean = false;
 
-  shoppingListId: string | null = '';
+  shoppingCartId: string | null = '';
   shoppingproducts: ShoppingProducts[] = [];
   groupedProducts: { date: string; shoppingproducts: ShoppingProducts[] }[] = [];
 
@@ -124,8 +101,8 @@ export class ShoppinglistPage implements OnInit {
 
       // Die groupId aus der URL erhalten
       this.groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-      this.shoppingListId = await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId!);
-      console.log('shoppingListId:', this.shoppingListId);
+      this.shoppingCartId = await this.shoppinglistService.getShoppingCartIdByGroupId(this.groupId!);
+      console.log('shoppingListId:', this.shoppingCartId);
 
       if (!this.groupId) {
         console.error('Keine groupId in Route gefunden.');
@@ -151,7 +128,7 @@ export class ShoppinglistPage implements OnInit {
         { uid: this.uid, username: this.displayName || 'Unbekannt' };
 
       // Holen der Produkte für diese Gruppe
-      await this.loadShoppingProducts();
+      await this.loadShoppingCartProducts();
 
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
@@ -161,24 +138,23 @@ export class ShoppinglistPage implements OnInit {
   }
 
 // Methode zum Laden der Produkte aus der Firebase-Datenbank
-  async loadShoppingProducts() {
+  async loadShoppingCartProducts() {
     try {
-
-      if(!this.groupId) {
+      if (!this.groupId) {
         console.error('groupId ist null oder undefined');
         return;
       }
 
-      if (!this.shoppingListId) {
-        console.error('shoppingListId ist null oder undefined');
+      if (!this.shoppingCartId) {
+        console.error('shoppingCartId ist null oder undefined');
         return;
       }
 
-      const allProducts = await this.shoppinglistService.getShoppingProducts(this.groupId, this.shoppingListId);
-      this.shoppingproducts = allProducts.filter(p => p.status === 'open');
+      const allProducts = await this.shoppinglistService.getShoppingCartProducts(this.groupId, this.shoppingCartId);
+      this.shoppingproducts = allProducts.filter(p => p.status === 'im Warenkorb');
       this.groupProductsByDate();
     } catch (error) {
-      console.error('Fehler beim Laden der Produkte:', error);
+      console.error('Fehler beim Laden der Produkte aus dem Warenkorb:', error);
     }
   }
 
@@ -372,7 +348,7 @@ export class ShoppinglistPage implements OnInit {
   // Methode zum Speichern der Produktdetails
   async saveProductDetails() {
     // Überprüfen, ob die groupId und shoppingListId vorhanden sind
-    if (!this.groupId || !this.shoppingListId) {
+    if (!this.groupId || !this.shoppingCartId) {
       console.error('Group ID oder ShoppingList ID ist null oder undefined');
       alert('Die Gruppen- oder ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
       return;
@@ -384,7 +360,7 @@ export class ShoppinglistPage implements OnInit {
         // Aufruf der Service-Methode zum Bearbeiten des Produkts
         await this.shoppinglistService.editShoppingProduct(
           this.groupId,
-          this.shoppingListId,
+          this.shoppingCartId,
           this.selectedProduct.shoppingProductId,
           this.selectedProduct // Die Änderungen werden hier gespeichert
         );
@@ -499,50 +475,23 @@ export class ShoppinglistPage implements OnInit {
 
   async deleteProduct(shoppingProductId: string) {
     try {
-      if (!this.shoppingListId) {
+      if (!this.shoppingCartId) {
         throw new Error('ShoppingListId ist nicht definiert!');
       }
 
       // Lösche das Produkt aus der Subcollection `shoppingProducts` der Einkaufsliste
       await this.shoppinglistService.deleteShoppingProduct(
         this.groupId!,
-        this.shoppingListId,  // Hier wird sicher die shoppingListId übergeben
+        this.shoppingCartId,  // Hier wird sicher die shoppingListId übergeben
         shoppingProductId
       );
       console.log('Produkt gelöscht:', shoppingProductId);
 
       // Nach dem Löschen die Liste der Produkte neu laden
-      await this.loadShoppingProducts();
+      await this.loadShoppingCartProducts();
     } catch (error) {
       console.error('Fehler beim Löschen des Produkts:', error);
     }
   }
 
-  async moveProductToCart(shoppingProductId: string) {
-    const groupId = this.groupId;
-    if (!groupId) {
-      console.error('groupId fehlt');
-      return;
-    }
-
-    try {
-      // Hole die Einkaufslistendaten für die Gruppe
-      const shoppingList = await this.shoppinglistService.getShoppingListByGroupId(groupId);
-      if (!shoppingList) {
-        console.error('Keine Einkaufsliste für diese Gruppe gefunden');
-        return;
-      }
-
-      const shoppingListId = shoppingList.shoppinglistId;
-
-      // Produkt ins Warenkorb verschieben
-      await this.shoppinglistService.moveProductToShoppingCart(groupId, shoppingListId, shoppingProductId);
-      console.log('Produkt verschoben!');
-
-      // Liste der Produkte nach dem Verschieben neu laden
-      this.loadShoppingProducts();
-    } catch (error) {
-      console.error('Fehler beim Verschieben:', error);
-    }
-  }
 }

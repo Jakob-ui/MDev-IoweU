@@ -157,6 +157,14 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'shoppingcart/:groupId',
+    loadComponent: () =>
+      import('./pages/shoppingcart/shoppingcart.page').then(
+        (m) => m.ShoppingcartPage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'not-found',
     loadComponent: () =>
       import('./pages/not-found/not-found.page').then((m) => m.NotFoundPage),
@@ -166,4 +174,6 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'not-found',
   },
+
+
 ];

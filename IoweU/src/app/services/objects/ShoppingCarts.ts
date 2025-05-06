@@ -6,5 +6,5 @@ import { Shoppinglists} from "./Shoppinglists";
 export interface ShoppingCarts {
   shoppingcartId: string;
   groupId: string;
-  shoppingProductsId: string[];
+  shoppingProducts: ShoppingProducts[];
 }
