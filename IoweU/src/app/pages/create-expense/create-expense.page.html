@@ -119,17 +119,28 @@
         <!-- Währungsauswahl -->
         <div class="Währung">
           <span class="input-label">Währung</span>
-          <ion-item class="input-item">
-            <ion-select
-              [(ngModel)]="selectedCurrency"
-              (ionChange)="selectCurrency($event.detail.value)"
-              interface="popover"
-            >
-              <ion-select-option *ngFor="let currency of expense.currency" [value]="currency">
-                {{ currency }}
-              </ion-select-option>
-            </ion-select>
+          <ion-item class="input-item" (click)="toggleCurrencyDropdown()">
+            <ion-label>
+              <div class="selected-currency">
+                {{ selectedCurrency }}
+              </div>
+            </ion-label>
           </ion-item>
+        
+          <div *ngIf="currencyDropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                class="dropDownFelder"
+                button
+                *ngFor="let currency of currenciesWithSymbols"
+                (click)="selectCurrency(currency.code)"
+              >
+                <ion-label>
+                  {{ currency.symbol }}</ion-label> <ion-label> {{ currency.code }}
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
 
       </div>

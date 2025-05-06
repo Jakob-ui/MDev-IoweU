@@ -135,6 +135,8 @@ export class CreateExpensePage {
   dropdownOpen: boolean = false;
   selectedCategory: any = null;
 
+  currencyDropdownOpen: boolean = false; 
+
   paidByDropdownOpen: boolean = false;
   selectedMember: any = null;
 
@@ -178,6 +180,14 @@ export class CreateExpensePage {
     { name: 'Wohnen', icon: 'home-outline' },
     { name: 'Rechnungen', icon: 'receipt-outline' },
     { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
+  ];
+
+  currenciesWithSymbols = [
+    { code: 'EUR', symbol: '€' },
+    { code: 'USD', symbol: '$' },
+    { code: 'GBP', symbol: '£' },
+    { code: 'JPY', symbol: '¥' },
+    { code: 'AUD', symbol: 'A$' },
   ];
 
   async ngOnInit() {
@@ -333,6 +343,7 @@ export class CreateExpensePage {
       console.error('Error opening camera:', error);
     }
   }
+
 
   togglePaidByDropdown(event: Event) {
     this.paidByDropdownOpen = !this.paidByDropdownOpen; // Öffnen/Schließen des Dropdowns
@@ -784,6 +795,16 @@ export class CreateExpensePage {
 
 
 //-----------------------------------FREMDWÄHRUNG-------------------------------------------------------
+toggleCurrencyDropdown() {
+  this.currencyDropdownOpen = !this.currencyDropdownOpen;
+}
+
+getCurrencySymbol(): string {
+  const currency = this.currenciesWithSymbols.find(
+    (c) => c.code === this.selectedCurrency
+  );
+  return currency ? currency.symbol : this.selectedCurrency;
+}
 
   selectCurrency(newCurrency: string) {
     const oldCurrency = this.selectedCurrency;

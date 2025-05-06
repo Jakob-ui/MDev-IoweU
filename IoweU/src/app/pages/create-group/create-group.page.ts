@@ -7,7 +7,8 @@ import {
   IonLabel,
   IonInput,
   IonSelect,
-  IonSelectOption, IonNote,
+  IonSelectOption,
+  IonNote,
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -100,7 +101,7 @@ export class CreateGroupPage {
         this.groupname,
         founder,
         this.selectedTemplate,
-        this.uploadImage,
+        this.uploadImage
       );
       console.log('Groups successfully created!');
       console.log('Group successfully created!');
@@ -118,7 +119,6 @@ export class CreateGroupPage {
   async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      
       const reader = new FileReader();
       reader.onload = async () => {
         const imageDataUrl = reader.result as string;
