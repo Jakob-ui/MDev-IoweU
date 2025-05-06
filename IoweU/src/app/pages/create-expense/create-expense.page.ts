@@ -290,8 +290,7 @@ export class CreateExpensePage {
   async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      console.log('Original file size:', (file.size / 1024).toFixed(2), 'KB'); // Log original size
-
+      
       const reader = new FileReader();
       reader.onload = async () => {
         const imageDataUrl = reader.result as string;

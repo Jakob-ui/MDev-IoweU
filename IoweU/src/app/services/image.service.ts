@@ -28,6 +28,9 @@ export class ImageService {
 
       // Compress the image if the compress flag is true
       if (compress) {
+        const originalSize = (imageBlob.size / 1024).toFixed(2); // Original size in KB
+        console.log('Original image size:', originalSize, 'KB');
+
         const reader = new FileReader();
         const imageDataUrl = await new Promise<string>((resolve, reject) => {
           reader.onload = () => resolve(reader.result as string);
@@ -43,6 +46,8 @@ export class ImageService {
         );
 
         finalBlob = this.dataURLtoBlob(compressedImage);
+        const compressedSize = (finalBlob.size / 1024).toFixed(2); // Compressed size in KB
+        console.log('Compressed image size:', compressedSize, 'KB');
         console.log('Image compressed successfully');
       }
 
