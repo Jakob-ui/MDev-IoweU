@@ -795,7 +795,8 @@ export class CreateExpensePage {
 
 
 //-----------------------------------FREMDWÄHRUNG-------------------------------------------------------
-toggleCurrencyDropdown() {
+toggleCurrencyDropdown(event: Event): void {
+  event.stopPropagation();
   this.currencyDropdownOpen = !this.currencyDropdownOpen;
 }
 
@@ -1017,9 +1018,15 @@ getCurrencySymbol(): string {
   removeInvoice() {
     this.expense.invoice = undefined;
   }
-
-  toggleInvoiceDropdown() {
+  toggleInvoiceDropdown(event: Event): void {
+    event.stopPropagation();
     this.invoiceDropdownOpen = !this.invoiceDropdownOpen;
+  }
+
+  /** Schließt das Rechnungs-Dropdown, wird auf ion-content (click) ausgelöst */
+  closeInvoiceDropdowns(): void {
+    this.invoiceDropdownOpen = false;
+    this.currencyDropdownOpen = false;
   }
 
 
