@@ -256,11 +256,7 @@ strong {
 }
 
 
-@media (prefers-color-scheme: dark) {
-  .date {
-    color: var(--ion-color-light);
-  }
-}
+
 
 .profile-placeholder .username{
   color: var(--ion-color-light);
@@ -278,3 +274,11 @@ form .top-container{
   margin-bottom: 20px;
 }
 
+@media (prefers-color-scheme: dark) {
+  .date {
+    color: var(--ion-color-light);
+  }
+  .add-product-wrapper{
+    background-color: transparent;
+  }
+}

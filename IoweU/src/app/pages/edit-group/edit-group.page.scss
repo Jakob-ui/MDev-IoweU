@@ -165,4 +165,8 @@ delete-button{
 }
 
 
-
+@media (prefers-color-scheme: dark) {
+  .feature-name{
+    color: #000;
+  }
+}

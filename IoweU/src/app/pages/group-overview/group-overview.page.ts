@@ -58,7 +58,6 @@ export class GroupOverviewPage implements OnInit {
 
   async ngOnInit() {
     this.loadingService.show();
-
     try {
       await this.authService.waitForUser();
 
