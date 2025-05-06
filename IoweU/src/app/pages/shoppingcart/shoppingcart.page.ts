@@ -322,59 +322,40 @@ export class ShoppingcartPage implements OnInit {
       alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
-    // Rufe das Produkt aus der Datenquelle anhand der groupId und shoppingProductId ab
-    const selectedShoppingProduct = await this.getShoppingProductById(this.groupId, shoppingProductId);
 
-    if (selectedShoppingProduct) {
-      // Setze das abgerufene Produkt in selectedProduct
-      this.selectedProduct = { ...selectedShoppingProduct }; // Kopie des Produkts, um das Original nicht zu verändern
-    } else {
-      console.error('Produkt konnte nicht geladen werden');
-    }
-
-    // Wechsel des Overlay-Zustands
-    if (this.detailsOverlayState === 'start') {
-      this.detailsOverlayState = 'normal'; // Overlay wird sichtbar und Animation startet
-    } else if (this.detailsOverlayState === 'normal') {
-      this.detailsOverlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
-    } else if (this.detailsOverlayState === 'hidden') {
-      this.detailsOverlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
-    }
-
-    console.log('Details Overlay state:', this.detailsOverlayState); // Debugging-Ausgabe
-  }
-
-
-  // Methode zum Speichern der Produktdetails
-  async saveProductDetails() {
-    // Überprüfen, ob die groupId und shoppingListId vorhanden sind
-    if (!this.groupId || !this.shoppingCartId) {
-      console.error('Group ID oder ShoppingList ID ist null oder undefined');
-      alert('Die Gruppen- oder ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
+    if (!this.shoppingCartId) {
+      console.error('ShoppingList ID ist null oder undefined');
+      alert('Die ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
     try {
-      // Überprüfen, ob das ausgewählte Produkt vorhanden ist
-      if (this.selectedProduct) {
-        // Aufruf der Service-Methode zum Bearbeiten des Produkts
-        await this.shoppinglistService.editShoppingProduct(
-          this.groupId,
-          this.shoppingCartId,
-          this.selectedProduct.shoppingProductId,
-          this.selectedProduct // Die Änderungen werden hier gespeichert
-        );
-        console.log('Produktdetails gespeichert:', this.selectedProduct);
+      // Rufe das Produkt anhand von groupId, shoppingListId und shoppingProductId ab
+      const selectedShoppingProduct = await this.shoppinglistService.getShoppingCartProductById(
+        this.groupId,
+        this.shoppingCartId,
+        shoppingProductId
+      );
 
-        // Overlay nach dem Speichern schließen
-        this.toggleDetailsOverlay(this.selectedProduct.shoppingProductId);
+      if (selectedShoppingProduct) {
+        this.selectedProduct = {...selectedShoppingProduct}; // Kopie setzen
       } else {
-        console.error('Kein Produkt zum Speichern ausgewählt.');
-        alert('Kein Produkt zum Speichern ausgewählt.');
+        console.error('Produkt konnte nicht geladen werden');
+        return;
       }
+
+      // Wechsel des Overlay-Zustands
+      if (this.detailsOverlayState === 'start') {
+        this.detailsOverlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+      } else if (this.detailsOverlayState === 'normal') {
+        this.detailsOverlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
+      } else if (this.detailsOverlayState === 'hidden') {
+        this.detailsOverlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
+      }
+
+      console.log('Details Overlay state:', this.detailsOverlayState); // Debugging-Ausgabe
     } catch (error) {
-      console.error('Fehler beim Speichern der Produktdetails:', error);
-      alert('Es gab einen Fehler beim Speichern der Produktdetails. Bitte versuche es erneut.');
+      console.error('Fehler beim Laden des Produkts:', error);
     }
   }
 

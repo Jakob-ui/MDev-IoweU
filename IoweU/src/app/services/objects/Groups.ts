@@ -3,6 +3,7 @@ import { Members } from './Members';
 
 export interface Groups {
   groupId: string;
+  position?: number;
   groupname: string;
   foundationdate: string;
   founder: string;

@@ -215,24 +215,93 @@ export class ShoppinglistService {
     }
   }
 
-
-
-  async getShoppingProductById(groupId: string, shoppingListId: string, shoppingProductId: string): Promise<ShoppingProducts | null> {
+  async getShoppingProductById(
+    groupId: string,
+    shoppingListId: string,
+    shoppingProductId: string
+  ): Promise<ShoppingProducts | null> {
     try {
-      // Das Produkt mit der angegebenen ID aus der Subcollection der Einkaufsliste abrufen
-      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingLists', shoppingListId, 'shoppingProducts', shoppingProductId);
+      const productRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'shoppingLists',
+        shoppingListId,
+        'shoppingProducts',
+        shoppingProductId
+      );
       const productSnapshot = await getDoc(productRef);
 
       if (productSnapshot.exists()) {
-        return productSnapshot.data() as ShoppingProducts;
+        const product = productSnapshot.data() as ShoppingProducts;
+
+        // Debug-Ausgabe für alle Felder
+        console.log('ShoppingProduct geladen:', {
+          shoppingProductId: product.shoppingProductId,
+          memberId: product.memberId,
+          forMemberId: product.forMemberId,
+          productname: product.productname,
+          quantity: product.quantity,
+          unit: product.unit,
+          date: product.date,
+          status: product.status,
+        });
+
+        return product;
       } else {
-        return null; // Produkt nicht gefunden
+        console.warn('Produkt nicht gefunden.');
+        return null;
       }
     } catch (error) {
       console.error('Fehler beim Abrufen des Produkts:', error);
       throw error;
     }
   }
+
+  async getShoppingCartProductById(
+    groupId: string,
+    shoppingCartId: string,
+    shoppingProductId: string
+  ): Promise<ShoppingProducts | null> {
+    try {
+      const productRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'shoppingCart',
+        shoppingCartId,
+        'shoppingProducts',
+        shoppingProductId
+      );
+      const productSnapshot = await getDoc(productRef);
+
+      if (productSnapshot.exists()) {
+        const product = productSnapshot.data() as ShoppingProducts;
+
+        // Debug-Ausgabe für alle Felder
+        console.log('ShoppingProduct geladen:', {
+          shoppingProductId: product.shoppingProductId,
+          memberId: product.memberId,
+          forMemberId: product.forMemberId,
+          productname: product.productname,
+          quantity: product.quantity,
+          unit: product.unit,
+          date: product.date,
+          status: product.status,
+        });
+
+        return product;
+      } else {
+        console.warn('Produkt nicht gefunden.');
+        return null;
+      }
+    } catch (error) {
+      console.error('Fehler beim Abrufen des Produkts:', error);
+      throw error;
+    }
+  }
+
+
 
   async editShoppingProduct(
     groupId: string,

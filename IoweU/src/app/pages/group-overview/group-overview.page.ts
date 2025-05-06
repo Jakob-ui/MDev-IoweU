@@ -8,7 +8,7 @@ import {
   IonCard,
   IonCardSubtitle,
   IonCardTitle,
-  IonList, IonItem, IonReorderGroup, IonReorder, IonLabel, 
+  IonList, IonReorderGroup, IonReorder, 
   ItemReorderEventDetail} from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -21,7 +21,9 @@ import { LoadingService } from 'src/app/services/loading.service';
   templateUrl: './group-overview.page.html',
   styleUrls: ['./group-overview.page.scss'],
   standalone: true,
-  imports: [IonLabel, IonReorder, IonReorderGroup, IonItem, 
+  imports: [
+    IonReorder,
+    IonReorderGroup,
     CommonModule,
     IonHeader,
     IonToolbar,
@@ -46,7 +48,12 @@ export class GroupOverviewPage implements OnInit {
 
   username: string | null = '';
   iosIcons: boolean = false;
-  groups: { name: string; myBalance: number; link: string; position?: number }[] = [];
+  groups: {
+    name: string;
+    myBalance: number;
+    link: string;
+    position?: number;
+  }[] = [];
 
   draggedGroup: any = null;
   isEditMode = false;
@@ -64,7 +71,9 @@ export class GroupOverviewPage implements OnInit {
       if (this.authService.currentUser) {
         this.username = this.authService.currentUser.username;
         this.iosIcons = this.platform.is('ios');
-        console.log('Group overview loaded: ' + this.authService.currentUser.username);
+        console.log(
+          'Group overview loaded: ' + this.authService.currentUser.username
+        );
 
         const userColor = this.authService.currentUser.color;
         document.documentElement.style.setProperty('--user-color', userColor);
@@ -97,26 +106,32 @@ export class GroupOverviewPage implements OnInit {
         this.unsubscribeFromGroups = await this.groupService.getGroupsByUserId(
           uid,
           (groups) => {
-            this.groups = groups.map((group, index) => {
-              // Berechne myBalance für jedes Mitglied der Gruppe
-              const myBalance = group.members.reduce((totalBalance, member) => {
-                // Berechnung der Bilanz für jedes Mitglied
-                if (member.uid === uid) {
-                  // Nur für das eingeloggte Mitglied
-                  const balance =
-                    member.sumExpenseAmount - member.sumExpenseMemberAmount;
-                  return balance; // Setze die Bilanz auf den berechneten Wert
-                }
-                return totalBalance;
-              }, 0);
+            this.groups = groups
+              .map((group, index) => {
+                const myBalance = group.members.reduce(
+                  (totalBalance, member) => {
+                    if (member.uid === uid) {
+                      const balance =
+                        member.sumExpenseAmount - member.sumExpenseMemberAmount;
+                      return balance;
+                    }
+                    return totalBalance;
+                  },
+                  0
+                );
 
-              return {
-                name: group.groupname,
-                myBalance: myBalance, // Berechnete Bilanz für das eingeloggte Mitglied
-                link: group.groupId,
-                position: index, // Position in der Liste
-              };
-            });
+                return {
+                  name: group.groupname,
+                  myBalance: myBalance,
+                  link: group.groupId,
+                  position: group.position ?? undefined, 
+                };
+              })
+              .sort((a, b) => {
+                const posA = a.position !== undefined && a.position !== null ? a.position : Infinity;
+                const posB = b.position !== undefined && b.position !== null ? b.position : Infinity;
+                return posA - posB;
+              });
           }
         );
       }
@@ -159,6 +174,7 @@ export class GroupOverviewPage implements OnInit {
 
   stopEditMode() {
     this.isEditMode = false;
+    this.saveGroupOrderToDatabase();
   }
 
   handleReorder(event: CustomEvent<ItemReorderEventDetail>) {
@@ -167,6 +183,22 @@ export class GroupOverviewPage implements OnInit {
     const movedItem = this.groups.splice(from, 1)[0];
     this.groups.splice(to, 0, movedItem);
 
+    this.groups.forEach((group, index) => {
+      group.position = index;
+    });
     event.detail.complete();
+  }
+
+  async saveGroupOrderToDatabase() {
+    try {
+      for (const group of this.groups) {
+        if (group.link) {
+          await this.groupService.updateGroupOrder(group.link, group.position!);
+        }
+      }
+      console.log('Reihenfolge erfolgreich in der Datenbank gespeichert.');
+    } catch (error) {
+      console.error('Fehler beim Speichern der Reihenfolge:', error);
+    }
   }
 }

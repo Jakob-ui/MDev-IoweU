@@ -305,59 +305,33 @@
 
     <ion-list class="shopping-list">
       <ng-container *ngFor="let group of groupedProducts">
+    <span class="date" [ngClass]="{'past-date': isPast(group.date)}">
+      {{ group.date }}
+    </span>
 
-        <span
-          class="date"
-          [ngClass]="{'past-date': isPast(group.date)}">
-          {{ group.date }}
-        </span>
+        <ion-item
+          class="shoppingplist-item"
+          *ngFor="let shoppingproduct of group.shoppingproducts"
+          (touchstart)="onTouchStart($event)"
+          (touchend)="onTouchEnd($event, shoppingproduct)">
 
-        <ion-item-sliding *ngFor="let shoppingproduct of group.shoppingproducts">
-          <ion-item
-            class="info-item"
-            (click)="toggleDetailsOverlay(shoppingproduct.shoppingProductId)"
-          >
-            <div
-              class="profile-placeholder"
-              [ngStyle]="{
-            'background-color': 'var(--member-color-' + shoppingproduct.memberId + ')',
-            'border-color': 'var(--member-color-' + shoppingproduct.memberId + ')'
-          }"
-            >
-              <span class="username">{{ getFirstLetter(shoppingproduct.memberId) }}</span>
-            </div>
-            <div class="shoppingproduct-item">
-              <span class="first-container">{{ shoppingproduct.quantity }} {{ shoppingproduct.unit }}</span>
-              <div class="divider"></div>
-              <h5 class="shoppingproduct-name">{{ shoppingproduct.productname }}</h5>
-              <span class="forMember">für {{ getUsernameById(shoppingproduct.forMemberId) }}</span>
-            </div>
-            <div class="checkboxToShoppingcart">
-              <ion-checkbox
-                slot="end"
-                (click)="moveProductToCart(shoppingproduct.shoppingProductId)"
-              ></ion-checkbox>
-            </div>
-          </ion-item>
+        <div class="profile-placeholder"
+               [ngStyle]="{
+             'background-color': 'var(--member-color-' + shoppingproduct.memberId + ')',
+             'border-color': 'var(--member-color-' + shoppingproduct.memberId + ')'
+           }">
+            <span class="username">{{ getFirstLetter(shoppingproduct.memberId) }}</span>
+          </div>
 
-          <ion-item-options side="end">
-            <ion-item-option color="danger" (click)="deleteProduct(shoppingproduct.shoppingProductId)">
-              Löschen
-            </ion-item-option>
-          </ion-item-options>
-          <ion-item-options side="start">
-            <ion-item-option color="success" (click)="moveProductToCart(shoppingproduct.shoppingProductId)">
-              In Warenkorb
-            </ion-item-option>
-          </ion-item-options>
-
-        </ion-item-sliding>
+          <div class="shoppingproduct-item" (click)="toggleDetailsOverlay(shoppingproduct.shoppingProductId)">
+            <span class="first-container">{{ shoppingproduct.quantity }} {{ shoppingproduct.unit }}</span>
+            <div class="divider"></div>
+            <h5 class="shoppingproduct-name">{{ shoppingproduct.productname }}</h5>
+            <span class="forMember">für {{ getUsernameById(shoppingproduct.forMemberId) }}</span>
+          </div>
+        </ion-item>
       </ng-container>
     </ion-list>
-
-
-
-
 
     <div class="button-container">
       <ion-button

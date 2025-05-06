@@ -264,10 +264,24 @@ strong {
   font-weight: 300;
 }
 
-ion-item-sliding{
+.shoppingplist-item{
   display: flex !important;
   justify-content: center !important;
+  width: 80%;
+  margin-bottom: 10px;
+  margin-top: 5px;
 }
+
+.custom-toast {
+  --background: var(--ion-color-dark);
+  --color: var(--ion-color-light);
+  --border-radius: 50px;
+  --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-size: 16px;
+  text-align: center;
+  padding: 10px;
+}
+
 
 
 form .top-container{
