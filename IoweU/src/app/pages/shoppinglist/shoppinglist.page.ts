@@ -9,7 +9,7 @@ import {
   IonCard,
   IonButton,
   IonIcon,
-  IonCheckbox, IonInput, IonDatetime, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonAlert
+   IonInput, IonDatetime, IonLabel
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -40,15 +40,10 @@ import {AlertController, ToastController} from "@ionic/angular";
     IonIcon,
     RouterModule,
     IonButton,
-    IonCheckbox,
     IonInput,
     FormsModule,
     IonDatetime,
     IonLabel,
-    IonItemOptions,
-    IonItemOption,
-    IonItemSliding,
-    IonAlert,
   ],
 })
 export class ShoppinglistPage implements OnInit {

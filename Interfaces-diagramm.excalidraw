@@ -1,7 +1,7 @@
 {
   "type": "excalidraw",
   "version": 2,
-  "source": "https://excalidraw-jetbrains-plugin",
+  "source": "https://marketplace.visualstudio.com/items?itemName=pomdtr.excalidraw-editor",
   "elements": [
     {
       "id": "_aGb4tYudJQ9gb2weZlYe",
@@ -1198,7 +1198,7 @@
       "type": "text",
       "x": 1580.9957507170275,
       "y": 215.19863020291615,
-      "width": 240.47837829589844,
+      "width": 272.88983154296875,
       "height": 74.89302911551059,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -1215,11 +1215,11 @@
       "index": "b1L",
       "roundness": null,
       "seed": 1862895626,
-      "version": 2610,
-      "versionNonce": 1141806504,
+      "version": 2611,
+      "versionNonce": 1017140373,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1744118584918,
+      "updated": 1746546149309,
       "link": null,
       "locked": false,
       "text": "shoppinglistId: string\ngroupId: string\nshoppingProductId: string[]",
@@ -1357,7 +1357,7 @@
       "type": "text",
       "x": 1933.6628308804175,
       "y": 213.33715136809025,
-      "width": 240.47837829589844,
+      "width": 272.88983154296875,
       "height": 74.89302911551059,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -1374,11 +1374,11 @@
       "index": "b1Z",
       "roundness": null,
       "seed": 1971297034,
-      "version": 2654,
-      "versionNonce": 131287976,
+      "version": 2655,
+      "versionNonce": 556458517,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1744118584918,
+      "updated": 1746546151767,
       "link": null,
       "locked": false,
       "text": "ShoppingCartId: string\ngroupId: string\nshoppingProductId: string[]",
@@ -11480,7 +11480,9 @@
     }
   ],
   "appState": {
-    "gridSize": null,
+    "gridSize": 20,
+    "gridStep": 5,
+    "gridModeEnabled": false,
     "viewBackgroundColor": "#ffffff"
   },
   "files": {}

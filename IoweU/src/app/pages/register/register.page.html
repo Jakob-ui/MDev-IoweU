@@ -1,6 +1,6 @@
 <ion-content [fullscreen]="true">
   <div *ngIf="loading" class="loading-overlay">
-    <ion-spinner name="crescent"></ion-spinner>
+    <img class="loading-gif" [src]="videoSource" alt="Loading animation" />
     <p>Loading ...</p>
   </div>
   <div id="container" class="container">
