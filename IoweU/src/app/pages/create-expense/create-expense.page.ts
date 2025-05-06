@@ -307,6 +307,9 @@ export class CreateExpensePage {
         this.uploadInvoice = this.imageService.dataURLtoBlob(compressedImage);
         this.invoice = compressedImage;
         this.expense.invoice = file.name; // Set the file name
+
+        console.log('Original file size:', file.size);
+        console.log('Compressed file size:', this.uploadInvoice.size);
       };
       reader.readAsDataURL(file);
     } else {

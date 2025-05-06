@@ -20,6 +20,8 @@ import { LoadingService } from 'src/app/services/loading.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { Categories } from 'src/app/services/objects/Categories';
 import { ImageService } from 'src/app/services/image.service';
+import { NgxImageCompressService } from 'ngx-image-compress';
+
 @Component({
   selector: 'app-create-group',
   templateUrl: './create-group.page.html',
@@ -71,6 +73,8 @@ export class CreateGroupPage {
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
+  constructor(private imageCompress: NgxImageCompressService) {}
+
   async saveGroup() {
     if (!this.groupname || !this.selectedTemplate) {
       console.error('Group name and template are required!');
@@ -112,15 +116,27 @@ export class CreateGroupPage {
     this.fileInput.nativeElement.click();
   }
 
-  onFileSelected(event: any) {
+  async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
+      console.log('Original file size:', (file.size / 1024).toFixed(2), 'KB'); // Log original size
+
       const reader = new FileReader();
-      reader.onload = () => {
-        this.groupImage = reader.result;
-        if (typeof this.groupImage === 'string') {
-          this.uploadImage = this.imageService.dataURLtoBlob(this.groupImage);
-        }
+      reader.onload = async () => {
+        const imageDataUrl = reader.result as string;
+
+        // Compress the image
+        const compressedImage = await this.imageCompress.compressFile(
+          imageDataUrl,
+          -1, // Orientation (auto-detect)
+          50, // Quality (0-100)
+          50  // Resize percentage
+        );
+
+        // Convert compressed image to Blob
+        this.uploadImage = this.imageService.dataURLtoBlob(compressedImage);
+        this.groupImage = compressedImage;
+        console.log('Compressed file size:', (this.uploadImage.size / 1024).toFixed(2), 'KB'); // Log compressed size
       };
       reader.readAsDataURL(file);
     }
