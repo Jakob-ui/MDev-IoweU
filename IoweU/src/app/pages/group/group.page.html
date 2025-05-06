@@ -14,7 +14,7 @@
           <div class="profile-placeholder"></div>
           <span class="member-name">{{ user }}</span>
         </div>
-        <ion-icon 
+        <ion-icon
           [src]="'assets/icon/ionicons/qr-code-outline.svg'"
           class="qr-code-icon"
           (click)="toggleQRCodeOverlay()">
@@ -95,7 +95,7 @@
 
             <!-- Einkaufsliste -->
             <div *ngSwitchCase="'Einkaufsliste'">
-              <p>{{ shoppingList.length }} Produkte auf der Liste.</p>
+              <p>{{ shoppingProducts.length }} Produkte auf der Liste.</p>
             </div>
 
             <!-- Anlagegüter -->

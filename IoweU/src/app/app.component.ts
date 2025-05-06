@@ -20,14 +20,21 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Setze die Videoquelle basierend auf dem Modus
+    // Setze die GIF-Quelle basierend auf dem Modus
     this.videoSource = this.isDarkMode()
-      ? 'assets/videos/loadingDarkMode.mp4'
-      : 'assets/videos/loadingLightMode.mp4';
+      ? 'assets/videos/loadingDarkMode.gif'
+      : 'assets/videos/loadingLightMode.gif';
 
     // Abonniere den Zustand des Lade-Overlays
     this.LoadingService.loading$.subscribe((isLoading) => {
       this.loading = isLoading;
+    });
+
+    // Überwache Änderungen des Farbschemas
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+      this.videoSource = event.matches
+        ? 'assets/gifs/loadingDarkMode.gif'
+        : 'assets/gifs/loadingLightMode.gif';
     });
   }
 }

@@ -853,11 +853,13 @@ body.color-blind {
   z-index: 1000;
 }
 
-.loading-video {
-  width: 200px; /* Passe die Größe des Videos an */
+
+.loading-gif {
+  width: 200px; /* Passe die Größe des GIFs an */
   height: auto;
   border-radius: 10px; /* Optional: Abgerundete Ecken */
 }
+
 .member-username {
   color: #2f2f2f;
 }

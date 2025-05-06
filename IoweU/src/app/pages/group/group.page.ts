@@ -23,6 +23,7 @@ import { QRCodeComponent } from 'angularx-qrcode';
 import { FormsModule } from '@angular/forms';
 import { Members } from 'src/app/services/objects/Members';
 import {ShoppinglistService} from "../../services/shoppinglist.service";
+import {ShoppingProducts} from "../../services/objects/ShoppingProducts";
 
 @Component({
   selector: 'app-group',
@@ -83,6 +84,7 @@ export class GroupPage implements OnInit {
   currentMonth: string = 'März 2025';
 
   shoppingListId: string | null = '';
+  shoppingProducts: ShoppingProducts[] = [];
   shoppingList: string[] = [];
   assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
   group: Groups | null = null;
@@ -121,10 +123,12 @@ export class GroupPage implements OnInit {
         const groupId = this.route.snapshot.paramMap.get('groupId');
         if (groupId) {
           this.groupId = groupId;
+
           console.log('Bilanz:', this.myBalance);
 
           // Lade die Gruppendaten
           await this.loadGroupData(this.groupId);
+          await this.getShoppingProducts();
         } else {
           console.error('Keine Gruppen-ID in den Routenparametern gefunden.');
         }
@@ -320,4 +324,16 @@ export class GroupPage implements OnInit {
       console.error('Fehler beim Hinzufügen der Features:', error);
     }
   }
+
+  async getShoppingProducts() {
+    this.shoppingListId = await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId!);
+
+    if (!this.shoppingListId) {
+      console.error('ShoppingListId ist null!');
+      return;
+    }
+
+    this.shoppingProducts = await this.shoppinglistService.getShoppingProducts(this.groupId!, this.shoppingListId);
+  }
+
 }
