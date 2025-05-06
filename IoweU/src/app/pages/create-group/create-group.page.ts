@@ -123,18 +123,8 @@ export class CreateGroupPage {
       const reader = new FileReader();
       reader.onload = async () => {
         const imageDataUrl = reader.result as string;
-        const imageBlob = this.imageService.dataURLtoBlob(imageDataUrl);
-
-        // Use the updated uploadImage method with compression
-        const path = `groups/${Date.now()}-group-image.jpg`;
-        const downloadURL = await this.imageService.uploadImage(
-          'group-image',
-          imageBlob,
-          path
-        );
-
-        this.groupImage = downloadURL;
-        console.log('Image uploaded and available at:', this.groupImage);
+        this.uploadImage = this.imageService.dataURLtoBlob(imageDataUrl);
+        this.groupImage = imageDataUrl;
       };
       reader.readAsDataURL(file);
     }
