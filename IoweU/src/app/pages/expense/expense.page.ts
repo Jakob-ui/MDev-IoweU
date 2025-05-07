@@ -9,7 +9,11 @@ import {
   IonBadge,
   IonCard,
   IonButton,
-  IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonSearchbar, IonLabel,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonSearchbar,
+  IonLabel,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -18,7 +22,7 @@ import { GroupService } from '../../services/group.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Members } from 'src/app/services/objects/Members';
-import {FormsModule} from "@angular/forms";
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-expense',
@@ -71,16 +75,16 @@ export class ExpensePage implements OnInit, OnDestroy {
   expenses: Expenses[] = [];
   groupedExpenses: { date: string; expenses: Expenses[] }[] = [];
 
-  updateExpensesCallback: (() => void) | null = null;
-
   visibleGroupedExpenses: { date: string; expenses: Expenses[] }[] = [];
   private pageSize = 10;
-  private currentIndex = 0;
+  lastVisibleDoc: any | null = null;
+  isLoadingMore: boolean = false;
+  hasMoreExpenses: boolean = true;
+  unsubscribeExpenses: (() => void) | null = null;
 
   searchTerm: string = '';
   selectedCategories: string[] = [];
   dropdownOpen: boolean = false;
-
 
   categories = [
     { name: 'Lebensmittel', icon: 'fast-food-outline' },
@@ -92,7 +96,6 @@ export class ExpensePage implements OnInit, OnDestroy {
     { name: 'Rechnungen', icon: 'receipt-outline' },
     { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
-
 
   async ngOnInit() {
     this.loadingService.show();
@@ -123,36 +126,7 @@ export class ExpensePage implements OnInit, OnDestroy {
               );
               this.groupMembers = [];
             }
-
-            // Lade die Ausgaben
-            if (
-              currentGroup.hasOwnProperty('expenses') &&
-              Array.isArray(currentGroup.expenseId)
-            ) {
-              console.log('Expenses gefunden:', currentGroup.expenseId);
-              this.expenses = currentGroup.expenseId.map(
-                (expenseId: string) => ({
-                  expenseId: expenseId,
-                  paid: 'nein',
-                  description: '',
-                  totalAmount: 0,
-                  paidBy: '',
-                  date: new Date().toISOString().split('T')[0],
-                  currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
-                  category: '',
-                  invoice: '',
-                  repeat: '',
-                  splitBy: 'alle',
-                  splitType: 'prozent',
-                  expenseMember: [],
-                })
-              );
-            } else {
-              console.warn(
-                'Keine Ausgaben gefunden oder expenses ist kein Array'
-              );
-              this.expenses = [];
-            }
+            await this.loadInitialExpenses();
 
             // Initialisiere expenseMember
             this.expenses.forEach((expense) => {
@@ -172,6 +146,7 @@ export class ExpensePage implements OnInit, OnDestroy {
 
             this.sumExpenses = total;
             this.countExpenses = count;*/
+            this.sumExpenses = currentGroup.sumTotalExpenses || 0;
           } else {
             console.error(
               'Gruppe mit der ID ' + this.groupId + ' nicht gefunden'
@@ -180,54 +155,30 @@ export class ExpensePage implements OnInit, OnDestroy {
           }
         }
 
-        // Echtzeit-Listener für Ausgaben
-        this.updateExpensesCallback =
-          await this.expenseService.getExpenseByGroup(
-            this.groupId || '',
-            false,
-            (expensestest) => {
-              this.expenses = Array.isArray(expensestest) ? expensestest : [];
-
-              // Neue Zeile für Gruppierung
-              this.groupExpensesByDate(this.expenses);
-
-              const { total, count } = this.expenseService.calculateBalance(
-                this.expenses
-              );
-              this.sumExpenses = total;
-              this.countExpenses = count;
-              /*this.expenseService.updateSums(
-                this.groupId || '',
-                this.sumExpenses,
-                this.countExpenses,
-                'sumTotalExpenses',
-                'countTotalExpenses'
-              );*/
-            }
-          );
-          setTimeout(() => {
-            const infiniteScrollEl = document.querySelector('ion-infinite-scroll') as HTMLIonInfiniteScrollElement;
-            if (infiniteScrollEl) {
-              infiniteScrollEl.disabled = false;
-            }
-          }, 0);
+        await this.loadInitialExpenses();
       } else {
         console.error('Kein Benutzer eingeloggt.');
       }
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
-      document.addEventListener('click', this.closeDropdownOnClickOutside.bind(this));
+      document.addEventListener(
+        'click',
+        this.closeDropdownOnClickOutside.bind(this)
+      );
       this.loadingService.hide();
     }
   }
 
   ngOnDestroy() {
-    if (this.updateExpensesCallback) {
-      this.updateExpensesCallback();
+    if (this.unsubscribeExpenses) {
+      this.unsubscribeExpenses();
       console.log('Unsubscribed from expense updates');
     }
-    document.addEventListener('click', this.closeDropdownOnClickOutside.bind(this));
+    document.addEventListener(
+      'click',
+      this.closeDropdownOnClickOutside.bind(this)
+    );
   }
 
   closeDropdownOnClickOutside(event: MouseEvent) {
@@ -236,7 +187,6 @@ export class ExpensePage implements OnInit, OnDestroy {
       this.dropdownOpen = false;
     }
   }
-
 
   async logout() {
     this.loadingService.show();
@@ -296,28 +246,30 @@ export class ExpensePage implements OnInit, OnDestroy {
 
     // Wenn "Alle" ausgewählt wurde, sollen alle Ausgaben angezeigt werden
     if (this.selectedCategories && this.selectedCategories.length > 0) {
-      if (this.selectedCategories.includes("Alle")) {
+      if (this.selectedCategories.includes('Alle')) {
         // Wenn "Alle" ausgewählt ist, zeige alle Ausgaben ohne Filterung nach Kategorien
         filteredExpenses = this.expenses;
       } else {
         // Andernfalls filtere nach den ausgewählten Kategorien
-        filteredExpenses = filteredExpenses.filter(expense =>
-          expense.category && this.selectedCategories.includes(expense.category)
+        filteredExpenses = filteredExpenses.filter(
+          (expense) =>
+            expense.category &&
+            this.selectedCategories.includes(expense.category)
         );
       }
     }
 
     // Filter nach Suchbegriff
     if (this.searchTerm) {
-      filteredExpenses = filteredExpenses.filter(expense =>
-        expense.description.toLowerCase().includes(this.searchTerm.toLowerCase())
+      filteredExpenses = filteredExpenses.filter((expense) =>
+        expense.description
+          .toLowerCase()
+          .includes(this.searchTerm.toLowerCase())
       );
     }
 
     this.groupExpensesByDate(filteredExpenses);
   }
-
-
 
   groupExpensesByDate(expenses: Expenses[]) {
     const grouped: { [key: string]: Expenses[] } = {};
@@ -353,19 +305,70 @@ export class ExpensePage implements OnInit, OnDestroy {
     this.router.navigate(['/group', this.groupId]);
   }
 
-  loadMoreExpenses(event: any) {
-    setTimeout(() => {
-      this.currentIndex += this.pageSize;
-      const nextItems = this.groupedExpenses.slice(0, this.currentIndex + this.pageSize);
-      this.visibleGroupedExpenses = nextItems;
+  async loadInitialExpenses() {
+    this.loadingService.show();
+    try {
+      if (this.unsubscribeExpenses) {
+        this.unsubscribeExpenses();
+        console.log('Vorherige Subscription beendet.');
+      }
+
+      // Starte eine neue Subscription
+      this.unsubscribeExpenses =
+        await this.expenseService.getPaginatedAndRealtimeExpenses(
+          this.groupId!,
+          null,
+          this.pageSize,
+          false,
+          (expenses) => {
+            this.expenses = expenses;
+            this.groupExpensesByDate(this.expenses);
+          }
+        );
+    } catch (error) {
+      console.error('Fehler beim Laden der Ausgaben:', error);
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
+  async loadMoreExpenses(event: any) {
+    if (!this.hasMoreExpenses || this.isLoadingMore) {
+      event.target.complete();
+      return;
+    }
+
+    this.isLoadingMore = true;
+
+    try {
+      const { expenses, lastVisible } =
+        await this.expenseService.getPaginatedExpenses(
+          this.groupId!,
+          this.lastVisibleDoc,
+          this.pageSize
+        );
+
+      // Filtere doppelte Einträge basierend auf der expenseId
+      const newExpenses = expenses.filter(
+        (expense) =>
+          !this.expenses.some((e) => e.expenseId === expense.expenseId)
+      );
+
+      // Aktualisiere die Liste der Ausgaben
+      this.expenses = [...this.expenses, ...newExpenses];
+      this.groupExpensesByDate(this.expenses);
+
+      // Aktualisiere den Cursor und die Pagination-Flags
+      this.lastVisibleDoc = lastVisible;
+      this.hasMoreExpenses = newExpenses.length > 0;
 
       event.target.complete();
-
-      // Wenn alles geladen ist, disable infinite scroll
-      if (this.visibleGroupedExpenses.length >= this.groupedExpenses.length) {
-        event.target.disabled = true;
-      }
-    }, 500);
+    } catch (error) {
+      console.error('Fehler beim Laden weiterer Ausgaben:', error);
+      event.target.complete();
+    } finally {
+      this.isLoadingMore = false;
+    }
   }
 
   onCategoryDropdownClick(event: Event) {
@@ -373,7 +376,7 @@ export class ExpensePage implements OnInit, OnDestroy {
     this.dropdownOpen = !this.dropdownOpen;
   }
 
-// Wählt eine Kategorie aus
+  // Wählt eine Kategorie aus
   selectCategories(category: { name: string; icon: string }, event: Event) {
     event.stopPropagation();
 
@@ -390,10 +393,9 @@ export class ExpensePage implements OnInit, OnDestroy {
     this.filterExpenses();
   }
 
-// Gibt Icon für ausgewählte Kategorie zurück
+  // Gibt Icon für ausgewählte Kategorie zurück
   getCategoryIcon(categoryName: string): string {
     const found = this.categories.find((cat) => cat.name === categoryName);
     return found?.icon || 'help-outline';
   }
-
 }

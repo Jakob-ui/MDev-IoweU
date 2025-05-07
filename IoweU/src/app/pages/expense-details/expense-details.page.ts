@@ -105,6 +105,7 @@ export class ExpenseDetailsPage {
   expenseMemberPaidByUid: string = '';
 
   repeatingExpense: boolean = false;
+  paid: boolean = false;
 
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
@@ -131,7 +132,7 @@ export class ExpenseDetailsPage {
       description: '',
       totalAmount: 0,
       paidBy: '',
-      paid: 'nein',
+      paid: false,
       date: new Date().toISOString().split('T')[0],
       currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
       category: '', // optional
@@ -211,7 +212,8 @@ export class ExpenseDetailsPage {
             const expenseData = this.expense[0];
             this.expenseDescription = expenseData.description || '';
             this.expenseTotalAmount = expenseData.totalAmount || 0;
-            this.expensePaidBy = expenseData.paidBy || '';
+            this.paid = expenseData.paid || false;
+            (this.expensePaidBy = expenseData.paidBy || '');
             this.expenseDate = expenseData.date || '';
             this.expenseCurrency = expenseData.currency[0] || '';
             this.expenseCategory = expenseData.category || '';
@@ -366,6 +368,7 @@ export class ExpenseDetailsPage {
       this.router.navigate(['/edit-expense', this.groupId, this.expenseId], {
         queryParams: {
           repeating: this.repeatingExpense, // true oder false übergeben
+          paid: this.paid,
         },
       });
     } else {

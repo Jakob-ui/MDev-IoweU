@@ -249,9 +249,9 @@ export class TransactionService {
       const stateis = state ? 'ja' : 'nein';
       const expenseRef = doc(this.firestore, 'expenses', expenseId);
 
-      await setDoc(expenseRef, { paid: stateis }, { merge: true });
+      await setDoc(expenseRef, { paid: state }, { merge: true });
 
-      console.log(`Expense ${expenseId} updated with paid: ${stateis}`);
+      console.log(`Expense ${expenseId} updated with paid: ${state}`);
     } catch (error) {
       throw new Error(
         `Fehler beim Aktualisieren des Feldes "paid": ${expenseId}`

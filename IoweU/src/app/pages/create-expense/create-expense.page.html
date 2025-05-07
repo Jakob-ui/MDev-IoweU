@@ -402,8 +402,10 @@
                   [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
                   (ionInput)="calculateSplitByPercentage(groupMember.uid, 'amount')"
                   step="0.01"
-                  readonly
-                ></ion-input>
+                  [readonly]="expense.splitType === 'prozent'"
+                  [disabled]="expense.splitType === 'prozent'">
+                </ion-input>
+
                 <span class="percent-symbol">€</span>
               </div>
 

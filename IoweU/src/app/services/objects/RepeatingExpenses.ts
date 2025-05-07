@@ -14,6 +14,6 @@ export interface RepeatingExpenses {
   repeat: string;
   splitType: 'prozent' | 'anteile' | 'produkte';
   splitBy: 'alle' | 'frei';
-  paid: 'ja' | 'nein';
+  paid: boolean;
   expenseMember: ExpenseMember[];
 }
