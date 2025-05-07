@@ -9,7 +9,6 @@ import {
   IonItem,
   IonButton,
   IonLabel,
-  IonSpinner,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
@@ -20,7 +19,6 @@ import { LoadingService } from 'src/app/services/loading.service';
   styleUrls: ['./register.page.scss'],
   standalone: true,
   imports: [
-    IonSpinner,
     IonLabel,
     IonButton,
     IonItem,

@@ -1,4 +1,3 @@
-import { Products } from './Products';
 import { ExpenseMember } from './ExpenseMember';
 
 export interface Expenses {
@@ -15,6 +14,6 @@ export interface Expenses {
   repeat: string;
   splitType: 'prozent' | 'anteile' | 'produkte';
   splitBy: 'alle' | 'frei';
-  paid: 'ja' | 'nein';
+  paid: boolean;
   expenseMember: ExpenseMember[];
 }
