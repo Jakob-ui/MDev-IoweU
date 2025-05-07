@@ -504,9 +504,13 @@
                   >
                   <span class="product">{{ product.productname }}</span>
                 </div>
-                <ion-badge class="product-price"
-                  >{{ product.price | currency: 'EUR' }}</ion-badge
-                >
+                <ion-badge class="product-price" *ngIf="selectedCurrency === 'EUR'">
+                  {{ product.price | currency: standardCurrency }}
+                </ion-badge>
+                <ion-badge class="product-price" *ngIf="selectedCurrency !== 'EUR'">
+                  {{ product.price | currency: standardCurrency }} |
+                  {{ product.foreignPrice | currency: selectedCurrency }}
+                </ion-badge>
                 <ion-icon
                   class="delete-icon"
                   [src]="'assets/icon/ionicons/ios-close.svg'"
@@ -516,30 +520,39 @@
             </ul>
           </div>
           <div class="product-input">
-            <ion-input
-              [(ngModel)]="productInputs[groupMember.uid].input.quantity"
-              placeholder="Menge"
-              type="number"
-            ></ion-input>
-            <ion-input
-              [(ngModel)]="productInputs[groupMember.uid].input.unit"
-              placeholder="Einheit"
-            ></ion-input>
-            <ion-input
-              [(ngModel)]="productInputs[groupMember.uid].input.productname"
-              placeholder="Produktname"
-            ></ion-input>
-            <ion-input
-              [(ngModel)]="productInputs[groupMember.uid].input.price"
-              (ngModelChange)="updateAmountToPayForProducts()"
-              placeholder="Preis"
-              type="number"
-            ></ion-input>
-            <ion-icon
-              class="edit-button"
-              (click)="addProduct(groupMember.uid)"
-              [src]="'assets/icon/ionicons/ios-add.svg'"
-            ></ion-icon>
+
+              <ion-input
+                [(ngModel)]="productInputs[groupMember.uid].input.quantity"
+                placeholder="Menge"
+                type="number"
+              ></ion-input>
+              <ion-input
+                [(ngModel)]="productInputs[groupMember.uid].input.unit"
+                placeholder="Einheit"
+              ></ion-input>
+              <ion-input
+                [(ngModel)]="productInputs[groupMember.uid].input.productname"
+                placeholder="Produktname"
+              ></ion-input>
+              <ion-input
+                *ngIf="selectedCurrency === 'EUR'"
+                [(ngModel)]="productInputs[groupMember.uid].input.price"
+                (ngModelChange)="updateAmountToPayForProducts()"
+                placeholder="Preis"
+                type="number"
+              ></ion-input>
+              <ion-input
+                *ngIf="selectedCurrency !== 'EUR'"
+                [(ngModel)]="productInputs[groupMember.uid].input.foreignPrice"
+                (ngModelChange)="updateAmountToPayForProducts()"
+                placeholder="Preis"
+                type="number"
+              ></ion-input>
+              <ion-icon
+                class="edit-button"
+                (click)="addProduct(groupMember.uid)"
+                [src]="'assets/icon/ionicons/ios-add.svg'"
+              ></ion-icon>
           </div>
         </div>
       </div>
