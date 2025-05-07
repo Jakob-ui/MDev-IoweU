@@ -17,8 +17,20 @@ import {
   checkmarkOutline,
   cameraOutline,
   imageOutline,
+  heartOutline,
+  schoolOutline,
+  briefcaseOutline,
+  shirtOutline,
+  cashOutline,
+  airplaneOutline,
+  giftOutline,
+  hammerOutline,
+  bulbOutline,
+  musicalNotesOutline,
+  rocketOutline
 } from 'ionicons/icons';
 addIcons({
+  // Bestehende Icons …
   'fast-food-outline': fastFoodOutline,
   'cart-outline': cartOutline,
   'wine-outline': wineOutline,
@@ -31,6 +43,18 @@ addIcons({
   'checkmark-outline': checkmarkOutline,
   'camera-outline': cameraOutline,
   'image-outline': imageOutline,
+
+  'heart-outline': heartOutline,
+  'school-outline': schoolOutline,
+  'briefcase-outline': briefcaseOutline,
+  'shirt-outline': shirtOutline,
+  'cash-outline': cashOutline,
+  'airplane-outline': airplaneOutline,
+  'gift-outline': giftOutline,
+  'hammer-outline': hammerOutline,
+  'bulb-outline': bulbOutline,
+  'musical-notes-outline': musicalNotesOutline,
+  'rocket-outline': rocketOutline,
 });
 import {
   IonContent,
@@ -140,7 +164,8 @@ export class CreateExpensePage {
   paidByDropdownOpen: boolean = false;
   selectedMember: any = null;
 
-  selectedCurrency: string = '€';
+  standardCurrency: string = 'EUR';
+  selectedCurrency: string = '';
   exchangeRate: number = 1;
   foreignAmountToPay: { [memberId: string]: number } = {};
 
@@ -163,7 +188,7 @@ export class CreateExpensePage {
     exchangeRate: 0,
     paidBy: '',
     date: new Date().toISOString().split('T')[0],
-    currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
+    currency: [],
     category: 'Sonstiges',
     invoice: '',
     repeat: 'nein',
@@ -181,16 +206,42 @@ export class CreateExpensePage {
     { name: 'Freizeit', icon: 'game-controller-outline' },
     { name: 'Wohnen', icon: 'home-outline' },
     { name: 'Rechnungen', icon: 'receipt-outline' },
+    { name: 'Gesundheit', icon: 'heart-outline' },
+    { name: 'Bildung', icon: 'school-outline' },
+    { name: 'Arbeit', icon: 'briefcase-outline' },
+    { name: 'Kleidung', icon: 'shirt-outline' },
+    { name: 'Finanzen', icon: 'cash-outline' },
+    { name: 'Reisen', icon: 'airplane-outline' },
+    { name: 'Geschenke', icon: 'gift-outline' },
+    { name: 'Haushalt', icon: 'hammer-outline' },
+    { name: 'Ideen/Projekte', icon: 'bulb-outline' },
+    { name: 'Musik/Events', icon: 'musical-notes-outline' },
+    { name: 'Technik', icon: 'rocket-outline' },
     { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
   ];
 
   currenciesWithSymbols = [
-    { code: 'EUR', symbol: '€' },
-    { code: 'USD', symbol: '$' },
-    { code: 'GBP', symbol: '£' },
-    { code: 'JPY', symbol: '¥' },
-    { code: 'AUD', symbol: 'A$' },
+    { code: 'AUD', symbol: 'A$' },      // Australischer Dollar
+    { code: 'BRL', symbol: 'R$' },      // Brasilianischer Real
+    { code: 'CAD', symbol: 'C$' },      // Kanadischer Dollar
+    { code: 'CHF', symbol: 'CHF' },     // Schweizer Franken
+    { code: 'CNY', symbol: '¥' },       // Chinesischer Yuan
+    { code: 'EUR', symbol: '€' },       // Euro
+    { code: 'GBP', symbol: '£' },       // Britisches Pfund
+    { code: 'INR', symbol: '₹' },       // Indische Rupie
+    { code: 'JPY', symbol: '¥' },       // Japanischer Yen
+    { code: 'KRW', symbol: '₩' },       // Südkoreanischer Won
+    { code: 'MXN', symbol: 'Mex$' },    // Mexikanischer Peso
+    { code: 'NOK', symbol: 'kr' },      // Norwegische Krone
+    { code: 'NZD', symbol: 'NZ$' },     // Neuseeländischer Dollar
+    { code: 'PLN', symbol: 'zł' },      // Polnischer Złoty
+    { code: 'SEK', symbol: 'kr' },      // Schwedische Krone
+    { code: 'SGD', symbol: 'S$' },      // Singapur-Dollar
+    { code: 'TRY', symbol: '₺' },       // Türkische Lira
+    { code: 'USD', symbol: '$' },       // US-Dollar
+    { code: 'ZAR', symbol: 'R' },       // Südafrikanischer Rand
   ];
+
 
   previousTotalAmount: number = this.expense.totalAmount;
   previousSplitValue: { [uid: string]: number } = { ...this.splitValue };
@@ -494,7 +545,7 @@ export class CreateExpensePage {
     this.expense.totalAmount = total;
 
     // Fremdwährungswert berechnen
-    if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
+    if (this.selectedCurrency !== this.standardCurrency && this.exchangeRate) {
       this.expense.totalAmountInForeignCurrency = +(total / this.exchangeRate).toFixed(2);
     }
 
@@ -515,7 +566,7 @@ export class CreateExpensePage {
       }
 
       // Fremdwährungswerte mitführen
-      if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
+      if (this.selectedCurrency !== this.standardCurrency && this.exchangeRate) {
         this.foreignAmountToPay[uid] = +(amount / this.exchangeRate).toFixed(2);
       }
     });
@@ -618,7 +669,7 @@ export class CreateExpensePage {
     }
 
     // Währungsumrechnung
-    if (this.selectedCurrency !== 'EUR' && this.exchangeRate > 0) {
+    if (this.selectedCurrency !== this.standardCurrency && this.exchangeRate > 0) {
       this.foreignAmountToPay[memberUid] = this.amountToPay[memberUid] / this.exchangeRate;
     } else {
       this.foreignAmountToPay[memberUid] = 0;
@@ -718,7 +769,7 @@ export class CreateExpensePage {
       const pct = this.splitValue[member.uid] || 0;
       this.amountToPay[member.uid] = (total * pct) / 100;
 
-      if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
+      if (this.selectedCurrency !== this.standardCurrency && this.exchangeRate) {
         this.foreignAmountToPay[member.uid] = this.amountToPay[member.uid] / this.exchangeRate;
       } else {
         this.foreignAmountToPay[member.uid] = 0;
@@ -729,7 +780,7 @@ export class CreateExpensePage {
   }
 
   splitAmountEqually() {
-    const isEuro = this.selectedCurrency === 'EUR';
+    const isEuro = this.selectedCurrency === this.standardCurrency;
     const total = isEuro
       ? this.expense.totalAmount
       : (
@@ -773,7 +824,7 @@ export class CreateExpensePage {
       this.amountToPay[uid] = parseFloat(this.amountToPay[uid].toFixed(2));
 
       // Fremdwährung ggf. auch aktualisieren
-      if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
+      if (this.selectedCurrency !== this.standardCurrency && this.exchangeRate) {
         this.foreignAmountToPay[uid] = parseFloat((this.amountToPay[uid] / this.exchangeRate).toFixed(2));
       }
 
@@ -793,13 +844,13 @@ getCurrencySymbol(): string {
   const currency = this.currenciesWithSymbols.find(
     (c) => c.code === this.selectedCurrency
   );
-  return currency ? currency.symbol : this.selectedCurrency;
+  return currency ? currency.code : this.selectedCurrency;
 }
 
   selectCurrency(newCurrency: string) {
     const oldCurrency = this.selectedCurrency;
-    const wasEuro = oldCurrency === 'EUR';
-    const willBeEuro = newCurrency === 'EUR';
+    const wasEuro = oldCurrency === this.standardCurrency;
+    const willBeEuro = newCurrency === this.standardCurrency;
     const previousRate = this.exchangeRate || 1;
 
     this.selectedCurrency = newCurrency;
@@ -820,7 +871,7 @@ getCurrencySymbol(): string {
     const url = `https://api.frankfurter.app/latest?from=${newCurrency}&to=EUR`;
     this.http.get<any>(url).subscribe({
       next: (data) => {
-        this.exchangeRate = data.rates['EUR'];
+        this.exchangeRate = data.rates[this.standardCurrency];
 
         if (wasEuro) {
           this.expense.totalAmountInForeignCurrency = +(this.expense.totalAmount / this.exchangeRate).toFixed(2);
@@ -840,7 +891,7 @@ getCurrencySymbol(): string {
 
   onForeignAmountChange() {
     if (
-      this.selectedCurrency !== 'EUR' &&
+      this.selectedCurrency !== this.standardCurrency &&
       this.expense.totalAmountInForeignCurrency !== undefined &&
       this.exchangeRate !== undefined
     ) {
@@ -965,7 +1016,7 @@ getCurrencySymbol(): string {
       this.updateTotals();
 
       // Wenn eine Fremdwährung gewählt wurde, berechne totalAmountInForeignCurrency
-      if (this.selectedCurrency !== 'EUR') {
+      if (this.selectedCurrency !== this.standardCurrency) {
         this.expense.totalAmountInForeignCurrency = +(this.expense.totalAmount / this.exchangeRate).toFixed(2); // Betrag in Fremdwährung
         this.expense.exchangeRate = this.exchangeRate; // Speichere den Wechselkurs
       } else {
