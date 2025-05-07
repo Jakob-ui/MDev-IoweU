@@ -88,6 +88,7 @@
               {{ feature }}
             </span>
             <ion-icon
+              *ngIf="userUid === founder"
               [src]="isFeatureInDB(feature) ? 'assets/icon/ionicons/md-eye.svg' : 'assets/icon/ionicons/md-eye-off.svg'"
               (click)="toggleFeatureVisibility(feature)"
               class="eye-icon">

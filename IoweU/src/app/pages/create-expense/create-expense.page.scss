@@ -300,6 +300,18 @@ ion-input::part(native) {
   margin-left: 0;
 }
 
+.invoice-uploaded{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.invoice-upload-header{
+  display: flex;
+  flex-direction: column;
+}
+
 .invoice-upload .input-label {
   margin-left: 0;
 }
@@ -351,7 +363,12 @@ ion-item.dropDownFelder::part(native) {
   background-color: #ffffff !important;
 
 }
-.custom-dropdown ion-label {
+
+.custom-dropdown .currency-symbol {
+  margin-left: 0;
+}
+
+.custom-dropdown .currency-code {
   margin-left: 15px;
 }
 
@@ -372,8 +389,8 @@ ion-item.dropDownFelder::part(native) {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     max-width: 400px;
     top: 100%;
-    
-    
+    padding: 0 5px;
+
   }
 
   .selected-currency {
@@ -524,8 +541,8 @@ ion-input {
 
 .percent-symbol {
   position: absolute;
-  right: 10px;
-  font-size: 12px;
+  right: 15px;
+  font-size: 14px;
   color: #666;
 }
 
@@ -635,13 +652,16 @@ ion-input {
 .split-percentage + .validation-content {
   margin-top: 0;
 }
+
+
 .rechnung-dropdown ion-icon {
   flex-shrink: 0;
   font-size: 24px;
   min-width: 24px;
+  margin-right: 0 !important;
 }
 .rechnung-dropdown  {
-width: 60px;
+width: auto;
 
 }
 .invoice-upload{
