@@ -584,6 +584,7 @@ export class ExpenseService {
               userBCredit: 0,
               lastUpdated: new Date().toISOString(),
               relatedExpenseId: [],
+              relatedTransactionId: []
             };
   
             const docRef = doc(balancesRef); // Generate a new document ID
@@ -716,7 +717,8 @@ export class ExpenseService {
       const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
   
       // Iterate through the members of the updated expense
-      for (const updatedMember of updatedExpense.expenseMember) {
+      for (const updatedMember of updatedExpense.expenseMember) 
+      {
         const oldMember = oldExpense.expenseMember.find(
           (member) => member.memberId === updatedMember.memberId
         );

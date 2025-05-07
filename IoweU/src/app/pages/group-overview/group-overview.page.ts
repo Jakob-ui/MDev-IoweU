@@ -112,7 +112,7 @@ export class GroupOverviewPage implements OnInit {
                   (totalBalance, member) => {
                     if (member.uid === uid) {
                       const balance =
-                        member.sumExpenseAmount - member.sumExpenseMemberAmount;
+                        member.sumExpenseAmount - member.sumAmountReceived + member.sumAmountPaid - member.sumExpenseMemberAmount;
                       return balance;
                     }
                     return totalBalance;

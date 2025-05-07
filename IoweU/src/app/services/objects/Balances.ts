@@ -10,4 +10,5 @@ export interface Balances {
   userBCredit: number;
   lastUpdated: string;
   relatedExpenseId: string[];
+  relatedTransactionId: string[];
 }

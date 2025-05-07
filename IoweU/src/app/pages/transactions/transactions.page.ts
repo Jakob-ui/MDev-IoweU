@@ -54,7 +54,7 @@ export class TransactionsPage implements OnInit {
   displayName: string | null = null;
   groupId: string | null = null;
 
-  myBalance: number = +200;
+  myBalance: number = 666;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   groupMembers: Members[] = []; // Mitglieder, die in der Gruppe sind
@@ -101,6 +101,12 @@ export class TransactionsPage implements OnInit {
               this.currentGroup.members.length > 0
             ) {
               this.groupMembers = this.currentGroup.members;
+              const member = this.groupMembers.find((m) => m.username === this.user);
+              if (!member) {
+                this.myBalance = 0;
+                return;
+              }
+              this.myBalance = member.sumExpenseAmount - member.sumAmountReceived + member.sumAmountPaid - member.sumExpenseMemberAmount;
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
