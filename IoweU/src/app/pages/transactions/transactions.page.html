@@ -51,7 +51,9 @@
       <div class="transaction" *ngFor="let transaction of transactions">
         <div class="top-container">
           <div class="left-container">
-            <h5 slot="start">{{ transaction.reason }}</h5>
+            <div class="reason-container">
+              <h5 slot="start">{{ transaction.reason }}</h5>
+            </div>
             <span slot="start">{{ getTransactionImpact(transaction).status || '' }}</span>
           </div>
           <span slot="end">{{ transaction.date | date: 'dd.MM.yyyy' }}</span>

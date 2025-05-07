@@ -53,20 +53,30 @@
         </div>
 
 
-        
+
         <div class="invoice-upload">
           <span class="input-label">Rechnung</span>
-      
+
           <div class="rechnung-dropdown" (click)="toggleInvoiceDropdown($event)">
             <ion-item class="input-item">
               <ion-icon *ngIf="!expense.invoice" name="add-outline" slot="start"></ion-icon>
-              <ion-icon *ngIf="expense.invoice" name="checkmark-outline" slot="start"></ion-icon>
-              <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
+
+              <div class="invoice-uploaded" *ngIf="expense.invoice">
+                <ion-icon *ngIf="expense.invoice" name="checkmark-outline" slot="start"></ion-icon>
+
+                <div class="divider"></div>
+
+                <ion-icon
+                  class="trash-icon"
+                  *ngIf="expense.invoice"
+                  [src]="iosIcons ? 'assets/icon/ionicons/ios-trash.svg' : 'assets/icon/ionicons/md-trash.svg'"
+                  (click)="removeInvoice()"
+                ></ion-icon>
+              </div>
+                <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
             </ion-item>
           </div>
-      
-          <ion-button *ngIf="expense.invoice" color="danger" (click)="removeInvoice()">Löschen</ion-button>
-      
+
           <div *ngIf="invoiceDropdownOpen" class="custom-dropdown" (click)="$event.stopPropagation()">
             <ion-list>
               <ion-item class="dropDownFelder" button (click)="openCamera()">
@@ -126,17 +136,20 @@
               </div>
             </ion-label>
           </ion-item>
-        
+
           <div *ngIf="currencyDropdownOpen" class="custom-dropdown">
             <ion-list>
               <ion-item
                 class="dropDownFelder"
                 button
                 *ngFor="let currency of currenciesWithSymbols"
-                (click)="selectCurrency(currency.code)"
+                (click)="selectCurrency(currency.symbol)"
               >
-                <ion-label>
-                  {{ currency.symbol }}</ion-label> <ion-label> {{ currency.code }}
+                <ion-label class="currency-symbol">
+                  {{ currency.symbol }}
+                </ion-label>
+                <ion-label class="currency-code">
+                  {{ currency.code }}
                 </ion-label>
               </ion-item>
             </ion-list>
@@ -148,7 +161,7 @@
       <div class="exchange">
         <!-- Umgerechneter Betrag in EUR -->
         <div class="betrag" *ngIf="selectedCurrency !== 'EUR'">
-          <span class="input-label">Umgerechnet in EUR</span>
+          <span class="input-label">Umgerechnet in €</span>
           <ion-item class="input-item">
             <div class="input-wrapper">
               <ion-input
@@ -156,7 +169,7 @@
                 [value]="expense.totalAmount | number: '1.2-2'"
                 readonly
               ></ion-input>
-              <span class="percent-symbol">EUR</span>
+              <span class="percent-symbol">€</span>
             </div>
           </ion-item>
         </div>
@@ -385,12 +398,12 @@
                   type="number"
                   placeholder="0,00"
                   [(ngModel)]="amountToPay[groupMember.uid]"
-                  (blur)="roundAmount(groupMember.uid)"
                   [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
                   (ionInput)="calculateSplitByPercentage(groupMember.uid, 'amount')"
                   step="0.01"
+                  readonly
                 ></ion-input>
-                <span class="percent-symbol">EUR</span>
+                <span class="percent-symbol">€</span>
               </div>
 
               <!-- Prozent-Split: Fremdwährungs-Felder -->
@@ -401,10 +414,9 @@
                 <ion-input
                   type="number"
                   [value]="amountToPay[groupMember.uid]"
-                  (blur)="roundAmount(groupMember.uid)"
                   readonly
                 ></ion-input>
-                <span class="percent-symbol">EUR</span>
+                <span class="percent-symbol">€</span>
               </div>
               <div
                 class="input-wrapper"
@@ -414,9 +426,9 @@
                   type="number"
                   placeholder="0,00"
                   [(ngModel)]="foreignAmountToPay[groupMember.uid]"
-                  (blur)="roundAmount(groupMember.uid)"
                   (ionInput)="onForeignAmountInput(groupMember.uid)"
                   step="0.01"
+                  readonly
                 ></ion-input>
                 <span class="percent-symbol">{{ selectedCurrency }}</span>
               </div>
@@ -430,13 +442,12 @@
                   type="number"
                   placeholder="0,00"
                   [(ngModel)]="amountToPay[groupMember.uid]"
-                  (blur)="roundAmount(groupMember.uid)"
                   [disabled]="expense.splitBy === 'alle'"
                   [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
                   (ionInput)="onAmountToPayChange()"
                   step="0.01"
                 ></ion-input>
-                <span class="percent-symbol">EUR</span>
+                <span class="percent-symbol">€</span>
               </div>
 
               <!-- Anteil/Produkte mit Fremdwährung -->
@@ -447,11 +458,10 @@
                 <ion-input
                   type="number"
                   [value]="amountToPay[groupMember.uid]"
-                  (blur)="roundAmount(groupMember.uid)"
                   [disabled]="expense.splitBy === 'alle'"
                   readonly
                 ></ion-input>
-                <span class="percent-symbol">EUR</span>
+                <span class="percent-symbol">€</span>
               </div>
               <div
                 class="input-wrapper"
@@ -461,7 +471,6 @@
                   type="number"
                   placeholder="0,00"
                   [(ngModel)]="foreignAmountToPay[groupMember.uid]"
-                  (blur)="roundAmount(groupMember.uid)"
                   [disabled]="expense.splitBy === 'alle'"
                   (ionInput)="onForeignAmountInput(groupMember.uid)"
                   step="0.01"

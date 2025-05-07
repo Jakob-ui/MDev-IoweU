@@ -439,6 +439,7 @@ export class EditExpensePage {
   //------------------------------------------RECHENFUNKTIONEN-------------------------------------------
 
   private updateTotals() {
+    console.log('updateTotals aufgerufen'); // Zum Debuggen
     // Berechnung des Gesamtbetrags
     const total = this.calculateTotalFromAmountToPay();
 
@@ -753,7 +754,7 @@ export class EditExpensePage {
 
   async saveExpenseChanges() {
     const hasChanges = this.hasExpenseChanges();
-
+    console.log("hasChanges", hasChanges); // Zum Debuggen
     if (hasChanges) {
       try {
         this.loadingService.show();
@@ -767,6 +768,12 @@ export class EditExpensePage {
           );
           this.expense.invoice = downloadURL;
         }
+        this.expense.expenseMember.forEach((expenseMember, index) => {
+          const memberUid = this.groupMembers[index].uid;
+          expenseMember.amountToPay = this.amountToPay[memberUid] || 0;
+          //expenseMember.products = this.productInputs[memberUid]?.products || [];
+        });
+        console.log("Die zu bearbeitende Ausgabe:", this.expense, this.amountToPay);
 
         await this.expenseService.updateExpense(
           this.expense,

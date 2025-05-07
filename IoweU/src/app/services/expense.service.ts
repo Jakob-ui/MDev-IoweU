@@ -135,7 +135,9 @@ export class ExpenseService {
     groupId: string,
     repeating: boolean
   ): Promise<void> {
+    console.log('updateExpense called with:', {updatedExpenseData, updatedExpenseMembersData, groupId, repeating});
     try {
+      // Validate required fields
       if (
         !updatedExpenseData.description ||
         updatedExpenseData.totalAmount === undefined ||
@@ -149,10 +151,10 @@ export class ExpenseService {
           'Ein oder mehrere Pflichtfelder fehlen bei updatedExpenseData'
         );
       }
-
+  
       const expenseId = updatedExpenseData.expenseId;
-
-      // Referenz zur alten Ausgabe holen (unabhängig ob normal oder wiederholend)
+  
+      // Reference to the old expense (normal or repeating)
       const expenseCollection = repeating ? 'repeatingExpenses' : 'expenses';
       const expenseRef = doc(
         this.firestore,
@@ -162,68 +164,65 @@ export class ExpenseService {
         expenseId
       );
       const expenseSnapshot = await getDoc(expenseRef);
-
+  
       if (!expenseSnapshot.exists()) {
         throw new Error(`Expense mit ID ${expenseId} existiert nicht.`);
       }
-
+  
       const oldExpense = expenseSnapshot.data() as Expenses;
-
-      // Mitglieder aktualisieren
-      const groupRef = await getDoc(doc(this.firestore, 'groups', groupId));
-      const groupData = groupRef.data() as Groups;
-
-      // Alte Werte entfernen
+  
+      // Fetch the group data
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      const groupSnapshot = await getDoc(groupRef);
+      if (!groupSnapshot.exists()) {
+        throw new Error(`Gruppe mit ID ${groupId} existiert nicht.`);
+      }
+      const groupData = groupSnapshot.data() as Groups;
+  
+      // Update member sums: Remove old values
       for (const member of groupData.members) {
         for (const oldMember of oldExpense.expenseMember) {
           if (oldMember.memberId === member.uid) {
             if (oldMember.memberId === oldExpense.paidBy) {
-              member.sumExpenseAmount -= oldExpense.totalAmount;
-              member.sumExpenseMemberAmount -=
-                oldExpense.totalAmount - oldMember.amountToPay;
+              const amountForOthers = oldExpense.totalAmount - oldMember.amountToPay;
+              member.sumExpenseAmount -= amountForOthers;
+              member.countExpenseAmount -= 1;
             } else {
-              member.sumExpenseAmount += oldMember.amountToPay;
+              member.sumExpenseMemberAmount -= oldMember.amountToPay;
+              member.countExpenseMemberAmount -= 1;
             }
-            member.countExpenseAmount -= 1;
-            member.countExpenseMemberAmount -= 1;
           }
         }
       }
-
-      // Neue Werte hinzufügen
+  
+      // Update member sums: Add new values
       for (const member of groupData.members) {
         for (const newMember of updatedExpenseMembersData) {
           if (newMember.memberId === member.uid) {
             if (newMember.memberId === updatedExpenseData.paidBy) {
-              member.sumExpenseAmount += updatedExpenseData.totalAmount;
-              member.sumExpenseMemberAmount +=
-                updatedExpenseData.totalAmount - newMember.amountToPay;
+              const amountForOthers = updatedExpenseData.totalAmount - newMember.amountToPay;
+              member.sumExpenseAmount += amountForOthers;
+              member.countExpenseAmount += 1;
             } else {
-              member.sumExpenseAmount -= newMember.amountToPay;
+              member.sumExpenseMemberAmount += newMember.amountToPay;
+              member.countExpenseMemberAmount += 1;
             }
-            member.countExpenseAmount += 1;
-            member.countExpenseMemberAmount += 1;
           }
         }
       }
-
-      // Gruppendokument aktualisieren
-      const groupDocRef = doc(this.firestore, 'groups', groupId);
-      await updateDoc(groupDocRef, {
+  
+      // Update the group document with updated member data
+      await updateDoc(groupRef, {
         members: groupData.members,
       });
-
-      // Neues Objekt vorbereiten
+  
+      // Prepare the updated expense object
       const updatedExpense: Expenses = {
         ...updatedExpenseData,
         expenseMember: updatedExpenseMembersData,
       };
-
-      // Wenn ein Bild vorhanden ist, wird es auch in das aktualisierte Objekt übernommen
-      if (updatedExpenseData.invoice) {
-        updatedExpense.invoice = updatedExpenseData.invoice; // Bild-URL zu `invoice` hinzufügen
-      }
-
+  
+      // If the expense is repeating, handle additional fields
       if (repeating) {
         const repeatingExpense: RepeatingExpenses = {
           ...updatedExpense,
@@ -235,7 +234,10 @@ export class ExpenseService {
       } else {
         await setDoc(expenseRef, updatedExpense);
       }
-
+  
+      // Update balances
+      await this.updateBalancesOnEditExpense(groupId, oldExpense, updatedExpense);
+  
       console.log(`Expense mit ID ${expenseId} erfolgreich aktualisiert.`);
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Ausgabe: ', error);
@@ -684,6 +686,47 @@ export class ExpenseService {
     expense: Expenses
   ): Promise<void> {
     try {
+      const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+  
+      for (const member of expense.expenseMember) {
+        if (member.memberId !== expense.paidBy) {
+          const creditor = expense.paidBy; // The user who paid
+          const debtor = member.memberId; // The user who owes
+          const amount = member.amountToPay;
+  
+          // Query for the balance document between the creditor and debtor
+          const q = query(
+            balancesRef,
+            where('userAId', 'in', [creditor, debtor]),
+            where('userBId', 'in', [creditor, debtor])
+          );
+          const snapshot = await getDocs(q);
+  
+          if (!snapshot.empty) {
+            const docRef = snapshot.docs[0].ref;
+            const data = snapshot.docs[0].data() as Balances;
+  
+            // Determine the direction of the balance and update accordingly
+            if (data.userAId === creditor && data.userBId === debtor) {
+              await updateDoc(docRef, {
+                userACredit: Number((data.userACredit - amount).toFixed(2)),
+                lastUpdated: new Date().toISOString(),
+                relatedExpenseId: Array.from(
+                  new Set([...data.relatedExpenseId].filter(id => id !== expense.expenseId))
+                ),
+              });
+            } else if (data.userAId === debtor && data.userBId === creditor) {
+              await updateDoc(docRef, {
+                userBCredit: Number((data.userBCredit - amount).toFixed(2)),
+                lastUpdated: new Date().toISOString(),
+                relatedExpenseId: Array.from(
+                  new Set([...data.relatedExpenseId].filter(id => id !== expense.expenseId))
+                ),
+              });
+            }
+          } 
+        }
+      }
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Balances: ', error);
     }
@@ -691,11 +734,62 @@ export class ExpenseService {
 
   async updateBalancesOnEditExpense(
     groupId: string,
-    expense: Expenses
+    oldExpense: Expenses,
+    updatedExpense: Expenses
   ): Promise<void> {
     try {
+      const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+  
+      // Iterate through the members of the updated expense
+      for (const updatedMember of updatedExpense.expenseMember) {
+        const oldMember = oldExpense.expenseMember.find(
+          (member) => member.memberId === updatedMember.memberId
+        );
+  
+        // If the member exists in the old expense, calculate the difference
+        const oldAmountToPay = oldMember ? oldMember.amountToPay : 0;
+        const newAmountToPay = updatedMember.amountToPay;
+        const amountDifference = newAmountToPay - oldAmountToPay;
+  
+        if (updatedMember.memberId !== updatedExpense.paidBy) {
+          const creditor = updatedExpense.paidBy; // The user who paid
+          const debtor = updatedMember.memberId; // The user who owes
+  
+          // Query for the balance document between the creditor and debtor
+          const q = query(
+            balancesRef,
+            where('userAId', 'in', [creditor, debtor]),
+            where('userBId', 'in', [creditor, debtor])
+          );
+          const snapshot = await getDocs(q);
+  
+          if (!snapshot.empty) {
+            const docRef = snapshot.docs[0].ref;
+            const data = snapshot.docs[0].data() as Balances;
+  
+            // Determine the direction of the balance and update accordingly
+            if (data.userAId === creditor && data.userBId === debtor) {
+              await updateDoc(docRef, {
+                userACredit: Number((data.userACredit + amountDifference).toFixed(2)),
+                lastUpdated: new Date().toISOString(),
+                relatedExpenseId: Array.from(
+                  new Set([...data.relatedExpenseId, updatedExpense.expenseId])
+                ),
+              });
+            } else if (data.userAId === debtor && data.userBId === creditor) {
+              await updateDoc(docRef, {
+                userBCredit: Number((data.userBCredit + amountDifference).toFixed(2)),
+                lastUpdated: new Date().toISOString(),
+                relatedExpenseId: Array.from(
+                  new Set([...data.relatedExpenseId, updatedExpense.expenseId])
+                ),
+              });
+            }
+          }
+        }
+      }
     } catch (error) {
-      console.error('Fehler beim Aktualisieren der Balances: ', error);
+      console.error('Error updating balances on edited expense:', error);
     }
   }
 
