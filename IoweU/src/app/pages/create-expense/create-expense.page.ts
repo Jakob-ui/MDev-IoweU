@@ -140,7 +140,7 @@ export class CreateExpensePage {
   paidByDropdownOpen: boolean = false;
   selectedMember: any = null;
 
-  selectedCurrency: string = 'EUR';
+  selectedCurrency: string = '€';
   exchangeRate: number = 1;
   foreignAmountToPay: { [memberId: string]: number } = {};
 
@@ -163,7 +163,7 @@ export class CreateExpensePage {
     exchangeRate: 0,
     paidBy: '',
     date: new Date().toISOString().split('T')[0],
-    currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'], // Verfügbare Währungen
+    currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
     category: 'Sonstiges',
     invoice: '',
     repeat: 'nein',
