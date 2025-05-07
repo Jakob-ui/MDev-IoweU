@@ -63,13 +63,15 @@ export class RepeatingExpensesPage implements OnInit {
 
   expenses: Expenses[] = [];
   currentGroup: Groups | null = null;
+  lastVisibleDoc: any | null = null;
+  isLoadingMore: boolean = false;
+  hasMoreExpenses: boolean = true;
+  unsubscribeExpenses: (() => void) | null = null;
 
-  updateExpensesCallback: (() => void) | null = null;
   private navCtrl: any;
 
   async ngOnInit() {
     this.loadingService.show();
-
     try {
       await this.authService.waitForUser();
 
@@ -83,75 +85,14 @@ export class RepeatingExpensesPage implements OnInit {
 
         if (groupId) {
           this.currentGroup = await this.groupService.getGroup();
-          console.log('diese jetzige gruppe', this.currentGroup);
           if (this.currentGroup === null) {
             this.currentGroup = await this.groupService.getGroupById(groupId);
-            console.log('leere Gruppe, hole gruppe aus der db');
           }
 
           if (this.currentGroup) {
             this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = this.currentGroup.groupId || '';
-
-            // Lade die Ausgaben
-            if (
-              this.currentGroup.hasOwnProperty('expenses') &&
-              Array.isArray(this.currentGroup.expenseId)
-            ) {
-              console.log('Expenses gefunden:', this.currentGroup.expenseId);
-              this.expenses = this.currentGroup.expenseId.map(
-                (expenseId: string) => ({
-                  expenseId: expenseId,
-                  description: '',
-                  totalAmount: 0,
-                  paidBy: '',
-                  paid: false,
-                  date: new Date().toISOString().split('T')[0],
-                  currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
-                  category: '',
-                  invoice: '',
-                  repeat: '',
-                  splitBy: 'alle',
-                  splitType: 'prozent',
-                  expenseMember: [],
-                })
-              );
-            } else {
-              console.warn(
-                'Keine Ausgaben gefunden oder expenses ist kein Array'
-              );
-              this.expenses = [];
-            }
-
-            // Initialisiere Mitglieder und expenseMember
-            if (
-              this.currentGroup.members &&
-              this.currentGroup.members.length > 0
-            ) {
-              this.groupMembers = this.currentGroup.members.map(
-                (member: any) => ({
-                  ...member,
-                  amount: 0,
-                })
-              );
-
-              this.expenses.forEach((expense) => {
-                expense.expenseMember = this.groupMembers.map((member) => ({
-                  memberId: member.uid,
-                  amountToPay: 0,
-                  split: 1,
-                  products: [],
-                }));
-              });
-            }
-
-            // Berechne die Balance, nachdem die Ausgaben geladen wurden
-            const { total, count } = this.expenseService.calculateBalance(
-              this.expenses
-            );
-
-            this.sumExpenses = total;
-            this.countExpenses = count;
+            await this.loadInitialExpenses();
           } else {
             console.error(
               'Gruppe mit der ID ' + this.groupId + ' nicht gefunden'
@@ -159,29 +100,6 @@ export class RepeatingExpensesPage implements OnInit {
             this.groupname = 'Unbekannte Gruppe';
           }
         }
-
-        // Echtzeit-Listener für Ausgaben
-        this.updateExpensesCallback =
-          await this.expenseService.getExpenseByGroup(
-            this.groupId || '',
-            true,
-            (expensestest) => {
-              console.log('Updated expenses:', expensestest);
-              this.expenses = Array.isArray(expensestest) ? expensestest : [];
-              const { total, count } = this.expenseService.calculateBalance(
-                this.expenses
-              );
-              this.sumExpenses = total;
-              this.countExpenses = count;
-              /*this.expenseService.updateSums(
-                this.groupId || '',
-                this.sumExpenses,
-                this.countExpenses,
-                'sumTotalExpenses',
-                'countTotalExpenses'
-              );*/
-            }
-          );
       } else {
         console.error('Kein Benutzer eingeloggt.');
       }
@@ -191,6 +109,14 @@ export class RepeatingExpensesPage implements OnInit {
       this.loadingService.hide();
     }
   }
+
+  ngOnDestroy() {
+    if (this.unsubscribeExpenses) {
+      this.unsubscribeExpenses();
+      console.log('Unsubscribed from expense updates');
+    }
+  }
+
   get repeatingExpenses() {
     return this.expenses.filter(
       (expense) => expense.repeat && expense.repeat.toLowerCase() !== 'nein'
@@ -200,17 +126,13 @@ export class RepeatingExpensesPage implements OnInit {
   goToExpenseDetails(expenseId: string, isRepeating: boolean = true) {
     this.loadingService.show();
     try {
-      this.router.navigate(
-        ['expense-details', this.groupId, expenseId],
-        {
-          queryParams: { repeating: isRepeating }
-        }
-      );
+      this.router.navigate(['expense-details', this.groupId, expenseId], {
+        queryParams: { repeating: isRepeating },
+      });
     } finally {
       this.loadingService.hide();
     }
   }
-
 
   goToCreateExpense() {
     this.loadingService.show();
@@ -218,6 +140,46 @@ export class RepeatingExpensesPage implements OnInit {
       this.router.navigate(['create-expense', this.groupId]);
     } finally {
       this.loadingService.hide();
+    }
+  }
+
+  async loadInitialExpenses() {
+    this.loadingService.show();
+    try {
+      // Beende die vorherige Subscription, falls vorhanden
+      if (this.unsubscribeExpenses) {
+        this.unsubscribeExpenses();
+        console.log('Vorherige Subscription beendet.');
+      }
+
+      // Starte eine neue Subscription
+      this.unsubscribeExpenses =
+        await this.expenseService.getPaginatedAndRealtimeExpenses(
+          this.groupId!,
+          null,
+          30,
+          true,
+          (expenses) => {
+            this.expenses = expenses;
+            this.groupExpensesByDate(this.expenses);
+          }
+        );
+    } catch (error) {
+      console.error('Fehler beim Laden der Ausgaben:', error);
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
+  groupExpensesByDate(expenses: Expenses[]) {
+    const grouped: { [key: string]: Expenses[] } = {};
+
+    for (const expense of expenses) {
+      const date = new Date(expense.date).toISOString().split('T')[0];
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(expense);
     }
   }
 

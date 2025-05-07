@@ -13,6 +13,9 @@ import {
   writeBatch,
   doc,
   setDoc,
+  startAfter,
+  orderBy,
+  limit,
 } from '@angular/fire/firestore';
 import { inject } from '@angular/core';
 import { ExpenseMember } from './objects/ExpenseMember';
@@ -135,7 +138,12 @@ export class ExpenseService {
     groupId: string,
     repeating: boolean
   ): Promise<void> {
-    console.log('updateExpense called with:', {updatedExpenseData, updatedExpenseMembersData, groupId, repeating});
+    console.log('updateExpense called with:', {
+      updatedExpenseData,
+      updatedExpenseMembersData,
+      groupId,
+      repeating,
+    });
     try {
       // Validate required fields
       if (
@@ -151,9 +159,9 @@ export class ExpenseService {
           'Ein oder mehrere Pflichtfelder fehlen bei updatedExpenseData'
         );
       }
-  
+
       const expenseId = updatedExpenseData.expenseId;
-  
+
       // Reference to the old expense (normal or repeating)
       const expenseCollection = repeating ? 'repeatingExpenses' : 'expenses';
       const expenseRef = doc(
@@ -164,13 +172,13 @@ export class ExpenseService {
         expenseId
       );
       const expenseSnapshot = await getDoc(expenseRef);
-  
+
       if (!expenseSnapshot.exists()) {
         throw new Error(`Expense mit ID ${expenseId} existiert nicht.`);
       }
-  
+
       const oldExpense = expenseSnapshot.data() as Expenses;
-  
+
       // Fetch the group data
       const groupRef = doc(this.firestore, 'groups', groupId);
       const groupSnapshot = await getDoc(groupRef);
@@ -178,13 +186,14 @@ export class ExpenseService {
         throw new Error(`Gruppe mit ID ${groupId} existiert nicht.`);
       }
       const groupData = groupSnapshot.data() as Groups;
-  
+
       // Update member sums: Remove old values
       for (const member of groupData.members) {
         for (const oldMember of oldExpense.expenseMember) {
           if (oldMember.memberId === member.uid) {
             if (oldMember.memberId === oldExpense.paidBy) {
-              const amountForOthers = oldExpense.totalAmount - oldMember.amountToPay;
+              const amountForOthers =
+                oldExpense.totalAmount - oldMember.amountToPay;
               member.sumExpenseAmount -= amountForOthers;
               member.countExpenseAmount -= 1;
             } else {
@@ -194,13 +203,14 @@ export class ExpenseService {
           }
         }
       }
-  
+
       // Update member sums: Add new values
       for (const member of groupData.members) {
         for (const newMember of updatedExpenseMembersData) {
           if (newMember.memberId === member.uid) {
             if (newMember.memberId === updatedExpenseData.paidBy) {
-              const amountForOthers = updatedExpenseData.totalAmount - newMember.amountToPay;
+              const amountForOthers =
+                updatedExpenseData.totalAmount - newMember.amountToPay;
               member.sumExpenseAmount += amountForOthers;
               member.countExpenseAmount += 1;
             } else {
@@ -210,18 +220,18 @@ export class ExpenseService {
           }
         }
       }
-  
+
       // Update the group document with updated member data
       await updateDoc(groupRef, {
         members: groupData.members,
       });
-  
+
       // Prepare the updated expense object
       const updatedExpense: Expenses = {
         ...updatedExpenseData,
         expenseMember: updatedExpenseMembersData,
       };
-  
+
       // If the expense is repeating, handle additional fields
       if (repeating) {
         const repeatingExpense: RepeatingExpenses = {
@@ -234,17 +244,25 @@ export class ExpenseService {
       } else {
         await setDoc(expenseRef, updatedExpense);
       }
-  
+
       // Update balances
-      await this.updateBalancesOnEditExpense(groupId, oldExpense, updatedExpense);
-  
+      await this.updateBalancesOnEditExpense(
+        groupId,
+        oldExpense,
+        updatedExpense
+      );
+
       console.log(`Expense mit ID ${expenseId} erfolgreich aktualisiert.`);
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Ausgabe: ', error);
     }
   }
 
-  async deleteExpense(groupId: string, expenseId: string, paid: boolean,): Promise<void> {
+  async deleteExpense(
+    groupId: string,
+    expenseId: string,
+    paid: boolean
+  ): Promise<void> {
     try {
       if (!paid) {
         return;
@@ -368,6 +386,121 @@ export class ExpenseService {
       updateExpenseCallback(null);
       return () => {};
     }
+  }
+
+  async getPaginatedExpenses(
+    groupId: string,
+    lastVisibleDoc: any | null,
+    pageSize: number
+  ): Promise<{ expenses: Expenses[]; lastVisible: any }> {
+    try {
+      const expensesRef = collection(
+        this.firestore,
+        'groups',
+        groupId,
+        'expenses'
+      );
+      let expensesQuery;
+
+      if (lastVisibleDoc) {
+        // Wenn ein Cursor vorhanden ist, starte nach dem letzten Dokument
+        expensesQuery = query(
+          expensesRef,
+          orderBy('date', 'desc'),
+          startAfter(lastVisibleDoc),
+          limit(pageSize)
+        );
+      } else {
+        // Erste Seite laden
+        expensesQuery = query(
+          expensesRef,
+          orderBy('date', 'desc'),
+          limit(pageSize)
+        );
+      }
+
+      const snapshot = await getDocs(expensesQuery);
+
+      const expenses = snapshot.docs.map((doc) => ({
+        expenseId: doc.id,
+        ...doc.data(),
+      })) as Expenses[];
+
+      const lastVisible = snapshot.docs[snapshot.docs.length - 1]; // Letztes Dokument als Cursor speichern
+
+      return { expenses, lastVisible };
+    } catch (error) {
+      console.error('Fehler beim Abrufen der paginierten Ausgaben:', error);
+      throw error;
+    }
+  }
+
+  async getPaginatedAndRealtimeExpenses(
+    groupId: string,
+    lastVisibleDoc: any | null,
+    pageSize: number,
+    repeating: boolean,
+    updateExpensesCallback: (expenses: Expenses[]) => void
+  ): Promise<() => void> {
+    let expensesRef;
+    if (!repeating) {
+      expensesRef = collection(this.firestore, 'groups', groupId, 'expenses');
+    } else {
+      expensesRef = collection(
+        this.firestore,
+        'groups',
+        groupId,
+        'repeatingExpenses'
+      );
+    }
+
+    // Pagination-Query
+    let expensesQuery;
+    if (lastVisibleDoc) {
+      expensesQuery = query(
+        expensesRef,
+        orderBy('date', 'desc'),
+        startAfter(lastVisibleDoc),
+        limit(pageSize)
+      );
+    } else {
+      expensesQuery = query(
+        expensesRef,
+        orderBy('date', 'desc'),
+        limit(pageSize)
+      );
+    }
+
+    // Lade die erste Seite der Daten
+    const snapshot = await getDocs(expensesQuery);
+    const paginatedExpenses = snapshot.docs.map((doc) => ({
+      expenseId: doc.id,
+      ...doc.data(),
+    })) as Expenses[];
+
+    const lastVisible = snapshot.docs[snapshot.docs.length - 1];
+
+    // Echtzeit-Subscription
+    const unsubscribe = onSnapshot(expensesRef, (realtimeSnapshot) => {
+      const realtimeExpenses = realtimeSnapshot.docs.map((doc) => ({
+        expenseId: doc.id,
+        ...doc.data(),
+      })) as Expenses[];
+
+      // Kombiniere die paginierten Daten mit den Echtzeit-Daten und entferne Duplikate
+      const combinedExpenses = [
+        ...new Map(
+          [...realtimeExpenses, ...paginatedExpenses].map((expense) => [
+            expense.expenseId,
+            expense,
+          ])
+        ).values(),
+      ];
+
+      updateExpensesCallback(combinedExpenses);
+    });
+
+    return unsubscribe;
   }
 
   //Calculation Methods
@@ -689,14 +822,19 @@ export class ExpenseService {
     expense: Expenses
   ): Promise<void> {
     try {
-      const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
-  
+      const balancesRef = collection(
+        this.firestore,
+        'groups',
+        groupId,
+        'balances'
+      );
+
       for (const member of expense.expenseMember) {
         if (member.memberId !== expense.paidBy) {
           const creditor = expense.paidBy; // The user who paid
           const debtor = member.memberId; // The user who owes
           const amount = member.amountToPay;
-  
+
           // Query for the balance document between the creditor and debtor
           const q = query(
             balancesRef,
@@ -704,18 +842,22 @@ export class ExpenseService {
             where('userBId', 'in', [creditor, debtor])
           );
           const snapshot = await getDocs(q);
-  
+
           if (!snapshot.empty) {
             const docRef = snapshot.docs[0].ref;
             const data = snapshot.docs[0].data() as Balances;
-  
+
             // Determine the direction of the balance and update accordingly
             if (data.userAId === creditor && data.userBId === debtor) {
               await updateDoc(docRef, {
                 userACredit: Number((data.userACredit - amount).toFixed(2)),
                 lastUpdated: new Date().toISOString(),
                 relatedExpenseId: Array.from(
-                  new Set([...data.relatedExpenseId].filter(id => id !== expense.expenseId))
+                  new Set(
+                    [...data.relatedExpenseId].filter(
+                      (id) => id !== expense.expenseId
+                    )
+                  )
                 ),
               });
             } else if (data.userAId === debtor && data.userBId === creditor) {
@@ -723,11 +865,15 @@ export class ExpenseService {
                 userBCredit: Number((data.userBCredit - amount).toFixed(2)),
                 lastUpdated: new Date().toISOString(),
                 relatedExpenseId: Array.from(
-                  new Set([...data.relatedExpenseId].filter(id => id !== expense.expenseId))
+                  new Set(
+                    [...data.relatedExpenseId].filter(
+                      (id) => id !== expense.expenseId
+                    )
+                  )
                 ),
               });
             }
-          } 
+          }
         }
       }
     } catch (error) {
@@ -741,23 +887,28 @@ export class ExpenseService {
     updatedExpense: Expenses
   ): Promise<void> {
     try {
-      const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
-  
+      const balancesRef = collection(
+        this.firestore,
+        'groups',
+        groupId,
+        'balances'
+      );
+
       // Iterate through the members of the updated expense
       for (const updatedMember of updatedExpense.expenseMember) {
         const oldMember = oldExpense.expenseMember.find(
           (member) => member.memberId === updatedMember.memberId
         );
-  
+
         // If the member exists in the old expense, calculate the difference
         const oldAmountToPay = oldMember ? oldMember.amountToPay : 0;
         const newAmountToPay = updatedMember.amountToPay;
         const amountDifference = newAmountToPay - oldAmountToPay;
-  
+
         if (updatedMember.memberId !== updatedExpense.paidBy) {
           const creditor = updatedExpense.paidBy; // The user who paid
           const debtor = updatedMember.memberId; // The user who owes
-  
+
           // Query for the balance document between the creditor and debtor
           const q = query(
             balancesRef,
@@ -765,15 +916,17 @@ export class ExpenseService {
             where('userBId', 'in', [creditor, debtor])
           );
           const snapshot = await getDocs(q);
-  
+
           if (!snapshot.empty) {
             const docRef = snapshot.docs[0].ref;
             const data = snapshot.docs[0].data() as Balances;
-  
+
             // Determine the direction of the balance and update accordingly
             if (data.userAId === creditor && data.userBId === debtor) {
               await updateDoc(docRef, {
-                userACredit: Number((data.userACredit + amountDifference).toFixed(2)),
+                userACredit: Number(
+                  (data.userACredit + amountDifference).toFixed(2)
+                ),
                 lastUpdated: new Date().toISOString(),
                 relatedExpenseId: Array.from(
                   new Set([...data.relatedExpenseId, updatedExpense.expenseId])
@@ -781,7 +934,9 @@ export class ExpenseService {
               });
             } else if (data.userAId === debtor && data.userBId === creditor) {
               await updateDoc(docRef, {
-                userBCredit: Number((data.userBCredit + amountDifference).toFixed(2)),
+                userBCredit: Number(
+                  (data.userBCredit + amountDifference).toFixed(2)
+                ),
                 lastUpdated: new Date().toISOString(),
                 relatedExpenseId: Array.from(
                   new Set([...data.relatedExpenseId, updatedExpense.expenseId])
