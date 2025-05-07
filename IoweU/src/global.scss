@@ -202,7 +202,7 @@ p,
 ion-card-content {
   font-family: var(--ion-font-family);
   font-weight: 100;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ion-color-dark) !important;
 }
 
@@ -234,7 +234,7 @@ ion-card-subtitle {
 }
 
 ion-card-subtitle span {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 100;
 }
 
@@ -699,7 +699,7 @@ ion-item.select-interface-option::part(native) {
 }
 
 .menu-text {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 100;
   cursor: pointer;
   text-align: center;
