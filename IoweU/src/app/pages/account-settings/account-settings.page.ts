@@ -265,6 +265,7 @@ export class AccountSettingsPage implements OnInit {
               {
                 text: 'Löschen',
                 role: 'destructive',
+                cssClass: 'danger-button',
                 handler: () => this.deleteAccount(),
               },
             ],

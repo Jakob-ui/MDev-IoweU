@@ -46,7 +46,7 @@
                   [name]="category.icon"
                   class="category-icon"
                 ></ion-icon>
-                <ion-label>{{ category.name }}</ion-label>
+                <ion-label class="Kategoriename">{{ category.name }}</ion-label>
               </ion-item>
             </ion-list>
           </div>
@@ -100,7 +100,7 @@
 
         <!-- Betrag in gewählter Währung -->
         <div class="betrag">
-          <span class="input-label">Betrag ({{ selectedCurrency }})</span>
+          <span class="input-label">Betrag in <strong>{{ selectedCurrency }}</strong></span>
           <ion-item class="input-item">
             <div class="input-wrapper" id="input-totalAmount">
               <ion-input
@@ -121,7 +121,8 @@
                 step="0.01"
               ></ion-input>
 
-              <span class="percent-symbol">{{ selectedCurrency === 'EUR' ? 'EUR' : selectedCurrency }}</span>
+              <span class="percent-symbol">{{ getCurrencySymbol(selectedCurrency) }}</span>
+
             </div>
           </ion-item>
         </div>
@@ -143,7 +144,7 @@
                 class="dropDownFelder"
                 button
                 *ngFor="let currency of currenciesWithSymbols"
-                (click)="selectCurrency(currency.symbol)"
+                (click)="selectCurrency(currency.code)"
               >
                 <ion-label class="currency-symbol">
                   {{ currency.symbol }}
@@ -430,7 +431,7 @@
                   step="0.01"
                   readonly
                 ></ion-input>
-                <span class="percent-symbol">{{ selectedCurrency }}</span>
+                <span class="percent-symbol">{{ getCurrencySymbol(selectedCurrency) }}</span>
               </div>
 
               <!-- Anteil/Produkte -->
@@ -475,7 +476,7 @@
                   (ionInput)="onForeignAmountInput(groupMember.uid)"
                   step="0.01"
                 ></ion-input>
-                <span class="percent-symbol">{{ selectedCurrency }}</span>
+                <span class="percent-symbol">{{ getCurrencySymbol(selectedCurrency) }}</span>
               </div>
             </div>
           </div>

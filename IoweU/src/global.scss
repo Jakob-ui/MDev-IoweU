@@ -796,31 +796,19 @@ ion-input:focus ~ .ionicon {
 
 //POPUP Styling Delete Gruppe
 .custom-alert {
-  ion-alert-button-group,
-  .alert-button-group {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: center;
-  }
   button.cancel-button,
   button.delete-button {
-    background-color: var(--ion-color-primary);
     color: var(--ion-color-dark);
     font-weight: 100;
-    //padding: 10px 20px;
     text-transform: uppercase;
-    border-radius: 50px;
     box-shadow: none !important;
   }
-  button.delete-button {
-    background-color: var(--ion-color-danger);
-  }
+ 
 }
 .custom-alert .alert-title {
   color: var(--ion-color-dark);
   font-weight: bold; /* Fett für die Überschrift */
   margin-bottom: 10px; /* Abstand unter der Überschrift */
-  text-align: center;
 }
 .custom-alert .alert-message {
   font-size: 16px;
@@ -867,9 +855,34 @@ ion-alert {
   .alert-button-inner {
     color: #000;
   }
+  
 }
 
+.alert-button.alert-button-role-destructive .alert-button-inner {
+  color: rgb(201, 64, 64); 
+  font-weight: 800;
+}
 
+//Popup Styling für pay-expenses, bzw auch generell für alle Popups
+.alert-button-group.sc-ion-alert-md  {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 10px;
+}
+
+.alert-button.sc-ion-alert-md{
+  display: flex;
+  justify-content: center; /* Zentriert den Text horizontal */
+  align-items: center; /* Zentriert den Text vertikal */
+  text-align: center; /* Stellt sicher, dass der Text innerhalb des Buttons zentriert ist */
+  margin: 0 7px; /* Abstand zwischen den Buttons */
+  padding: 12px;
+}
+
+.alert-wrapper.sc-ion-alert-md {
+  border-radius: 8px;
+}
 
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
