@@ -10,10 +10,6 @@
       </div>
 
       <div class="right-container" slot="end">
-        <div class="user-info" [routerLink]="'/account-settings'">
-          <div class="profile-placeholder"></div>
-          <span class="member-name">{{ name }}</span>
-        </div>
         <ion-icon
           [src]="iosIcons ? 'assets/icon/ionicons/ios-log-out.svg' : 'assets/icon/ionicons/md-log-out.svg'"
           (click)="logout()"
@@ -27,8 +23,13 @@
 
 <ion-content [fullscreen]="true">
   <div id="container" class="container">
-    <div class="profilepic">
-      <img src="../../../assets/icon/person.svg" />
+    <div class="user-div">
+      <div class="user-info-top">
+        <div
+          class="profile-placeholder">
+        </div>
+        <span class="user-name-big">{{ name }}</span>
+      </div>
     </div>
 
     <h2>Mein Account</h2>
@@ -39,6 +40,7 @@
         [(ngModel)]="newname"
         [value]="name"
         placeholder="Gib einen Namen ein"
+        [readonly]="!userEditing"
       ></ion-input>
       <ion-icon
         *ngIf="userEditing"
@@ -63,6 +65,7 @@
         type="email"
         [(ngModel)]="email"
         placeholder="E-Mail ändern"
+        readonly
       ></ion-input>
     </ion-item>
 
@@ -73,8 +76,8 @@
 
     <ion-item class="input-item">
       <ion-label class="farbenblind-label">Farbenblind-Modus</ion-label>
-      <ion-toggle 
-        slot="end"  
+      <ion-toggle
+        slot="end"
         class="toggle"
         [checked]="colorBlindMode"
         (ionChange)="onColorBlindToggle($event)">

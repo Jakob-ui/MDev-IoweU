@@ -15,7 +15,7 @@ import {
 import { OverlayEventDetail } from '@ionic/core/components';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
-import { NavController, Platform } from '@ionic/angular';
+import {NavController, Platform, ToastController} from '@ionic/angular';
 import { AccountService } from 'src/app/services/account.service';
 import { UserService } from 'src/app/services/user.service';
 import { AlertController } from '@ionic/angular';
@@ -52,10 +52,13 @@ export class AccountSettingsPage implements OnInit {
   private userService = inject(UserService);
   private alertController = inject(AlertController);
   private loadingService = inject(LoadingService);
+  private toastController = inject(ToastController);
+
   iosIcons: boolean = false;
 
   displayName: string | null = null;
 
+  uid: string = '';
   name: string = '';
   newname: string = '';
   email: string = '';
@@ -88,6 +91,7 @@ export class AccountSettingsPage implements OnInit {
       await this.authService.waitForUser();
 
       if (this.authService.currentUser) {
+        this.uid = this.authService.currentUser.uid;
         this.name = this.authService.currentUser.username;
         this.newname = this.name;
         this.email = this.authService.currentUser.email;
@@ -160,16 +164,31 @@ export class AccountSettingsPage implements OnInit {
   edit(message: string) {
     this.userEditing = true;
     this.changeMessage = message;
-    this.newname = '';
-    console.log(this.userEditing);
+    this.newname = this.name;
   }
+
   cancel() {
     this.userEditing = false;
-    this.newname = this.authService.currentUser?.username || '';
+    this.newname = this.name;
   }
-  confirm() {
+
+  async confirm() {
+    if (!this.newname.trim()) {
+      const toast = await this.toastController.create({
+        message: 'Name darf nicht leer sein.',
+        duration: 2000, // verschwindet nach 2 Sekunden
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+      return;
+    }
+
+    this.name = this.newname.trim();
     this.userEditing = false;
   }
+
+
 
   goBack() {
     this.navCtrl.back();
