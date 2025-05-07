@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { addIcons } from 'ionicons';
+import { AlertController } from '@ionic/angular';
+
 import {
   fastFoodOutline,
   cartOutline,
@@ -72,6 +74,7 @@ export class PayExpensesPage {
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
   private transactionService = inject(TransactionService);
+  private alertController = inject(AlertController);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -359,7 +362,7 @@ export class PayExpensesPage {
     console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 
-  pay() {
+  async pay() {
     const amount = this.getAmountToPayForMember(this.expense[0], this.uid!);
     const trans: Transactions = {
       from: this.uid || '',
@@ -369,11 +372,32 @@ export class PayExpensesPage {
       date: new Date().toISOString(),
       relatedExpenses: [this.expenseId],
     };
-    this.transactionService.makeTransactionById(
-      this.groupId,
-      this.expenseId,
-      trans
-    );
-    this.router.navigate(['expense', this.groupId]);
+  
+    //Transaktion wird direkt ausgeführt
+    await this.transactionService.makeTransactionById(this.groupId, this.expenseId, trans);
+  
+    // Danach: Nur noch fragen, ob man sie sehen will
+    const alert = await this.alertController.create({
+      header: 'Transaktion abgeschlossen',
+      message: 'Deine Schulden wurden bezahlt. Möchtest du dir die Transaktion ansehen?',
+      cssClass: 'custom-alert-pay-expenses',
+      buttons: [
+        {
+          text: 'Nein',
+          role: 'cancel',
+          handler: () => {
+            this.router.navigate(['expense', this.groupId]);
+          },
+        },
+        {
+          text: 'Ja',
+          handler: () => {
+            this.router.navigate(['transactions', this.groupId]);
+          },
+        },
+      ],
+    });
+  
+    await alert.present();
   }
 }
