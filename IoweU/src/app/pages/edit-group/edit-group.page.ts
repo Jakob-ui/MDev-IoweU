@@ -190,7 +190,7 @@ iosIcons: any;
         header: 'Aktion nicht erlaubt',
         message:
           'Sie sind nicht der Gründer dieser Gruppe und können sie daher nicht löschen.',
-        cssClass: 'custom-alert', // Eigene CSS-Klasse zuweisen
+        cssClass: 'custom-alert-', // Eigene CSS-Klasse zuweisen
         buttons: [
           {
             text: 'OK',
