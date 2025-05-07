@@ -154,6 +154,7 @@ h2 {
   font-weight: 700;
   font-size: 36px;
   color: var(--ion-color-dark);
+  max-width: 90%;
 }
 
 h3,
@@ -255,7 +256,6 @@ ion-card-subtitle h6 {
 .finance-card,
 .expense-card,
 .shopping-card {
-  width: 60%;
   max-width: 600px;
   margin: auto;
   padding: 20px;
@@ -275,6 +275,7 @@ ion-card-subtitle h6 {
   align-items: center;
   justify-content: center;
   text-align: center;
+  width: 100%;
 }
 
 .card-content-finance h2,
@@ -952,7 +953,7 @@ body.color-blind {
     color: #000 !important;
   }
 
-  
+
 
   .button-container{
     background-color: #121212 !important;
