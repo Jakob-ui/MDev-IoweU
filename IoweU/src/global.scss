@@ -866,6 +866,12 @@ ion-alert {
   .alert-button-inner {
     color: #000;
   }
+  
+}
+
+.alert-button.alert-button-role-destructive .alert-button-inner {
+  color: rgb(201, 64, 64); 
+  font-weight: 800;
 }
 
 
