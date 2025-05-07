@@ -154,6 +154,7 @@ h2 {
   font-weight: 700;
   font-size: 36px;
   color: var(--ion-color-dark);
+  max-width: 90%;
 }
 
 h3,
@@ -201,7 +202,7 @@ p,
 ion-card-content {
   font-family: var(--ion-font-family);
   font-weight: 100;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--ion-color-dark) !important;
 }
 
@@ -233,7 +234,7 @@ ion-card-subtitle {
 }
 
 ion-card-subtitle span {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 100;
 }
 
@@ -255,7 +256,6 @@ ion-card-subtitle h6 {
 .finance-card,
 .expense-card,
 .shopping-card {
-  width: 60%;
   max-width: 600px;
   margin: auto;
   padding: 20px;
@@ -275,6 +275,7 @@ ion-card-subtitle h6 {
   align-items: center;
   justify-content: center;
   text-align: center;
+  width: 100%;
 }
 
 .card-content-finance h2,
@@ -698,7 +699,7 @@ ion-item.select-interface-option::part(native) {
 }
 
 .menu-text {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 100;
   cursor: pointer;
   text-align: center;
@@ -965,7 +966,7 @@ ion-alert {
     color: #000 !important;
   }
 
-  
+
 
   .button-container{
     background-color: #121212 !important;
