@@ -758,7 +758,6 @@ export class EditExpensePage {
       try {
         this.loadingService.show();
 
-        // 📸 Falls ein Bild (invoice) ausgewählt wurde
         if (this.uploadInvoice) {
           const invoicePath = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
           const downloadURL = await this.imageService.uploadImage(
@@ -831,14 +830,10 @@ export class EditExpensePage {
         return;
       }
 
-      // Überprüfen, ob die Ausgabe wiederholt wird
-      const repeating = this.expense.repeat !== 'nein';
-
       // Löschen der Ausgabe aufrufen
       await this.expenseService.deleteExpense(
         this.groupId,
-        this.expense.expenseId,
-        repeating
+        this.expense.expenseId
       );
 
       // Weiterleitung zur Gruppenansicht

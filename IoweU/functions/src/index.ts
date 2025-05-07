@@ -7,8 +7,6 @@ import {
   FirestoreEvent,
   DocumentSnapshot,
 } from "firebase-functions/v2/firestore";
-import {onRequest} from "firebase-functions/https";
-import {getFirestore} from "firebase-admin/firestore";
 
 interface RepeatingExpenses {
   expenseId: string;
@@ -48,12 +46,14 @@ const firestore = admin.firestore();
 // Funktion um alle wiederkehrende Kosten zu behandeln
 export const handlerepeatingExpenses = onSchedule(
   {
-    schedule: "every day 00:01",
+    schedule: "every day 00:20",
     timeZone: "Europe/Berlin",
     region: "europe-west1",
   },
   async () => {
     const now = new Date();
+    const adjustedDate = new Date(now);
+    adjustedDate.setHours(0, 0, 0, 0);
     const expensesRef = firestore.collectionGroup("repeatingExpenses");
 
     try {
@@ -89,7 +89,7 @@ export const handlerepeatingExpenses = onSchedule(
         logger.info(`Next expense date: ${nextExpenseDate.toISOString()}`);
 
         // Check if the next expense date is due
-        if (nextExpenseDate <= now) {
+        if (nextExpenseDate <= adjustedDate) {
           // Generate a new expenseId
           const expenseId = firestore
             .collection(`groups/${groupId}/expenses`)
@@ -98,13 +98,14 @@ export const handlerepeatingExpenses = onSchedule(
           // Create the new expense object
           const newExpense = {
             ...expense,
-            lastPay: now.toISOString(),
+            lastPay: adjustedDate.toISOString(),
             expenseId: expenseId,
           };
 
           // Remove unnecessary fields
-          const {lastPay, ...cleanedExpense}=newExpense as RepeatingExpenses;
-          cleanedExpense.date = now.toISOString();
+          const {lastPay, ...cleanedExpense} =
+            newExpense as RepeatingExpenses;
+          cleanedExpense.date = adjustedDate.toISOString();
 
           // Save the new expense in the Firestore database
           await firestore
@@ -114,7 +115,7 @@ export const handlerepeatingExpenses = onSchedule(
 
           // Update the `lastPay` field in the original repeatingExpense
           await snapshotDoc.ref.update({
-            lastPay: now.toISOString(),
+            lastPay: adjustedDate.toISOString(),
           });
 
           logger.info(`Repeating expense created: ${expenseId}`);

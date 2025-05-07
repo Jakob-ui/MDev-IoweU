@@ -52,7 +52,7 @@ export class TransactionService {
       await this.updateMemberAmounts(groupId, transaction, 1);
 
       //Expense Status updaten
-      await this.updateExpenseState(expenseId, true);
+      await this.updateExpenseState(expenseId, groupId, true);
       return transactionData;
     } catch {
       return null;
@@ -115,7 +115,7 @@ export class TransactionService {
       await deleteDoc(transactionCollection);
       await this.updateMemberAmounts(groupId, transaction, -1);
       //Expense Status updaten
-      await this.updateExpenseState(expenseId, false);
+      await this.updateExpenseState(expenseId, groupId, false);
     } catch {
       throw new Error(`Couldnt delete Transaction with Id: ${transactionId}`);
       return null;
@@ -173,10 +173,10 @@ export class TransactionService {
     }
   }
 
-  async updateExpenseState(expenseId: string, state: boolean) {
+  async updateExpenseState(expenseId: string, groupId: string, state: boolean) {
     try {
       const stateis = state ? 'ja' : 'nein';
-      const expenseRef = doc(this.firestore, 'expenses', expenseId);
+      const expenseRef = doc(this.firestore, 'groups', groupId, 'expenses', expenseId);
 
       await setDoc(expenseRef, { paid: stateis }, { merge: true });
 
