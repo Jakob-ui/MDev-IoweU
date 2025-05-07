@@ -862,6 +862,13 @@ body.color-blind {
 .member-username {
   color: #2f2f2f;
 }
+ion-alert {
+  .alert-button-inner {
+    color: #000;
+  }
+}
+
+
 
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
