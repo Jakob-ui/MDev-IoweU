@@ -365,6 +365,7 @@ export class PayExpensesPage {
   async pay() {
     const amount = this.getAmountToPayForMember(this.expense[0], this.uid!);
     const trans: Transactions = {
+      transactionId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
       from: this.uid || '',
       to: this.expensePaidBy || '',
       amount: amount,

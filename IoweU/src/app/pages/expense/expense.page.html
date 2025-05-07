@@ -38,23 +38,33 @@
 
     <!-- Such- und Filterfelder -->
     <div class="filter">
-      <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterExpenses()" debounce="500" placeholder="Suche Ausgabe" class="custom-search"></ion-searchbar>
+      <ion-searchbar
+        [(ngModel)]="searchTerm"
+        (ionInput)="filterExpenses()"
+        debounce="500"
+        placeholder="Suche Ausgabe"
+        class="custom-search"
+      ></ion-searchbar>
 
       <div class="divider" slot="end"></div>
-      <div class="Kategorie" (click)="onCategoryDropdownClick($event)" slot="end">
-            <div class="selected-category">
-              <ion-icon
-                *ngIf="selectedCategories.length > 0"
-                [name]="getCategoryIcon(selectedCategories[0])"
-                class="category-icon"
-              ></ion-icon>
-              <ion-icon
-                class="category-icon"
-                *ngIf="selectedCategories.length === 0"
-                [src]="'assets/icon/ionicons/filter.svg'">
-
-              </ion-icon>
-            </div>
+      <div
+        class="Kategorie"
+        (click)="onCategoryDropdownClick($event)"
+        slot="end"
+      >
+        <div class="selected-category">
+          <ion-icon
+            *ngIf="selectedCategories.length > 0"
+            [name]="getCategoryIcon(selectedCategories[0])"
+            class="category-icon"
+          ></ion-icon>
+          <ion-icon
+            class="category-icon"
+            *ngIf="selectedCategories.length === 0"
+            [src]="'assets/icon/ionicons/filter.svg'"
+          >
+          </ion-icon>
+        </div>
 
         <div *ngIf="dropdownOpen" class="custom-dropdown">
           <ion-list>
@@ -65,10 +75,7 @@
               [ngClass]="{ 'selected': selectedCategories.includes(category.name) }"
               (click)="selectCategories(category, $event)"
             >
-              <ion-icon
-                [name]="category.icon"
-                class="category-icon"
-              ></ion-icon>
+              <ion-icon [name]="category.icon" class="category-icon"></ion-icon>
               <ion-label>{{ category.name }}</ion-label>
             </ion-item>
           </ion-list>
@@ -76,12 +83,9 @@
       </div>
     </div>
 
-
     <ion-list class="expense-list">
       <ng-container *ngFor="let group of visibleGroupedExpenses">
-        <span class="date">
-          {{ group.date | date: 'dd.MM.yyyy' }}
-        </span>
+        <span class="date"> {{ group.date | date: 'dd.MM.yyyy' }} </span>
 
         <ion-item
           class="info-item"
@@ -93,7 +97,8 @@
             [ngStyle]="{
               'background-color': 'var(--member-color-' + expense.paidBy + ')',
               'border-color': 'var(--member-color-' + expense.paidBy + ')'
-            }">
+            }"
+          >
             <span class="username">{{ getFirstLetter(expense.paidBy) }}</span>
           </div>
           <h5 class="einzelneAusgabe">{{ expense.description }}</h5>
@@ -111,13 +116,16 @@
       </ng-container>
     </ion-list>
 
-    <ion-infinite-scroll (ionInfinite)="loadMoreExpenses($event)">
+    <ion-infinite-scroll
+      threshold="100px"
+      (ionInfinite)="loadMoreExpenses($event)"
+      [disabled]="!hasMoreExpenses"
+    >
       <ion-infinite-scroll-content
         loadingSpinner="bubbles"
-        loadingText="Weitere Ausgaben werden geladen...">
-      </ion-infinite-scroll-content>
+        loadingText="Weitere Ausgaben werden geladen..."
+      ></ion-infinite-scroll-content>
     </ion-infinite-scroll>
-
 
     <div class="button-container">
       <ion-button

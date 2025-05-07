@@ -210,11 +210,8 @@ export class GroupPage implements OnInit {
       return;
     }
 
-    // Berechnung der Bilanz (Guthaben - Ausgaben)
-    const paidByUser = member.sumExpenseAmount; // Guthaben (Beträge, die ich bezahlt habe)
-    const paidByMember = member.sumExpenseMemberAmount; // Ausgaben (Schulden, die ich bezahlt bekommen habe)
-
-    this.myBalance = paidByUser - paidByMember; // Speichere den berechneten Wert
+    // Berechnung der Bilanz)
+    this.myBalance = member.sumExpenseAmount - member.sumAmountReceived + member.sumAmountPaid - member.sumExpenseMemberAmount; // Speichere den berechneten Wert
     console.log('Berechnete Bilanz:', this.myBalance);
   }
 
