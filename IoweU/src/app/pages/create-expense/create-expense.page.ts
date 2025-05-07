@@ -567,18 +567,6 @@ export class CreateExpensePage {
     );
   }
 
-  private updateTotalAmount() {
-    const newTotalAmount = this.calculateTotalFromAmountToPay();
-
-    if (newTotalAmount !== this.expense.totalAmount) {
-      this.expense.totalAmount = parseFloat(newTotalAmount.toFixed(2));
-    }
-
-    if (this.expense.splitBy === 'alle') {
-      this.splitAmountEqually();
-    }
-  }
-
   // Überprüft, ob der Betrag nach Änderung angepasst werden muss
   onAmountToPayChange() {
     if (
@@ -591,7 +579,7 @@ export class CreateExpensePage {
 
   onSplitByChange() {
     // Wenn wir von Anteilen auf Prozente wechseln, können wir `splitBy` wieder anpassen
-    if (this.expense.splitBy === 'frei') {
+    if (this.expense.splitBy === 'frei' && this.expense.splitType === 'anteile') {
       this.resetSplitValues();
     } else if (this.expense.splitBy === 'alle') {
       this.chooseSplitType = true;
@@ -650,10 +638,18 @@ export class CreateExpensePage {
     this.error = '';
     this.expense.splitBy = 'frei';
     this.chooseSplitType = false;
-    this.groupMembers.forEach((member) => {
-      this.calculateSplitByPercentage(member.uid, 'percentage');
-    });
+
+    const hasAmounts = this.groupMembers.some(
+      member => (this.amountToPay[member.uid] ?? 0) > 0
+    );
+
+    if (hasAmounts) {
+      this.groupMembers.forEach((member) => {
+        this.calculateSplitByPercentage(member.uid, 'amount');
+      });
+    }
   }
+
 
   // Fall: Split-Typ 'produkte'
   private handleProdukteChange() {
@@ -676,18 +672,23 @@ export class CreateExpensePage {
   ) {
     const totalAmount = this.expense.totalAmount;
 
+    if (!totalAmount || totalAmount <= 0) {
+      return;
+    }
+
     if (changedField === 'percentage') {
-      const percentage = this.splitValue[memberUid] || 0;
+      const percentage = this.splitValue[memberUid] ?? 0;
       const amount = parseFloat(((totalAmount * percentage) / 100).toFixed(2));
       this.amountToPay[memberUid] = amount;
     } else if (changedField === 'amount') {
-      const amount = this.amountToPay[memberUid] || 0;
+      const amount = this.amountToPay[memberUid] ?? 0;
       const percentage = parseFloat(((amount / totalAmount) * 100).toFixed(2));
       this.splitValue[memberUid] = percentage;
     }
 
     this.validatePercentageSum();
   }
+
 
   private validatePercentageSum() {
     let totalPercentage = 0;
@@ -701,7 +702,7 @@ export class CreateExpensePage {
       this.error =
         difference > 0
           ? `Es fehlen noch ${difference}% – du kannst den Rest auf die verbleibenden Mitglieder verteilen.`
-          : `Die Summe der Prozentwerte überschreitet 100 %. Sie sind ${Math.abs(
+          : `Die Summe der Prozentwerte überschreitet 100%. Sie sind ${Math.abs(
             difference
           )}% drüber.`;
 
@@ -771,9 +772,20 @@ export class CreateExpensePage {
       this.splitAmountEqually();
     }
     if (this.expense.splitType === 'prozent') {
-      this.updatePercentageValues();
+      this.updateAmountToPayFromPercentages();
     }
 
+  }
+
+  private updateAmountToPayFromPercentages() {
+    this.groupMembers.forEach((member) => {
+      const percentage = this.splitValue[member.uid] || 0;
+      const amount = parseFloat(
+        ((this.expense.totalAmount * percentage) / 100).toFixed(2)
+      );
+      this.amountToPay[member.uid] = amount;
+    });
+    //this.validatePercentageSum();
   }
 
   private updatePercentageValues() {
@@ -785,8 +797,9 @@ export class CreateExpensePage {
       this.splitValue[member.uid] = percentage;
     });
 
-    this.validatePercentageSum();
+    //this.validatePercentageSum();
   }
+
 
   splitAmountEqually() {
     const isEuro = this.selectedCurrency === this.standardCurrency;
