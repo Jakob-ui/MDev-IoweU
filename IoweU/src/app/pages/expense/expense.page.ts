@@ -133,7 +133,7 @@ export class ExpensePage implements OnInit, OnDestroy {
               this.expenses = currentGroup.expenseId.map(
                 (expenseId: string) => ({
                   expenseId: expenseId,
-                  paid: 'nein',
+                  paid: false,
                   description: '',
                   totalAmount: 0,
                   paidBy: '',

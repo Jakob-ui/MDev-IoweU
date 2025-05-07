@@ -141,7 +141,7 @@ export class PayExpensesPage {
       repeat: '', // Wiederholung, falls benötigt
       splitType: 'prozent', // Kann 'prozent', 'anteile' oder 'produkte' sein
       splitBy: 'alle', // Kann 'alle' oder 'frei' sein
-      paid: 'nein',
+      paid: false,
       expenseMember: [
         {
           memberId: '', // Leerer String für den Member

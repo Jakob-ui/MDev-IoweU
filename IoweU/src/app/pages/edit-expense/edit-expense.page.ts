@@ -1,4 +1,10 @@
-import {Component, ElementRef, HostListener, inject, ViewChild} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -34,7 +40,9 @@ import {
   IonIcon,
   IonBadge,
   IonLabel,
-  IonList, IonNote, IonText,
+  IonList,
+  IonNote,
+  IonText,
 } from '@ionic/angular/standalone';
 
 // Import interfaces
@@ -46,8 +54,8 @@ import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
-import {Groups} from "../../services/objects/Groups";
-import {ImageService} from "../../services/image.service";
+import { Groups } from '../../services/objects/Groups';
+import { ImageService } from '../../services/image.service';
 
 @Component({
   selector: 'app-edit-expense',
@@ -114,6 +122,7 @@ export class EditExpensePage {
   validationErrors: string[] = [];
   showValidationError: boolean = false;
   repeating: boolean = false;
+  deletable: boolean = false;
 
   canDistributeRest = false;
 
@@ -135,7 +144,7 @@ export class EditExpensePage {
     date: new Date().toISOString().split('T')[0],
     currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
     category: '',
-    paid: 'nein',
+    paid: false,
     invoice: '',
     repeat: 'nein',
     splitBy: 'alle',
@@ -165,6 +174,8 @@ export class EditExpensePage {
     this.loadingService.show();
 
     try {
+      this.authService.waitForUser();
+
       if (this.authService.currentUser) {
         this.uid = this.authService.currentUser.uid;
         this.user = this.authService.currentUser.username;
@@ -174,11 +185,18 @@ export class EditExpensePage {
         const expenseId = this.activeRoute.snapshot.paramMap.get('expenseId');
         const repeatingParam =
           this.activeRoute.snapshot.queryParamMap.get('repeating');
-        const isRepeating = repeatingParam === 'true'; // true, wenn repeating=true in URL
+        const isRepeating = repeatingParam === 'true';
 
         this.repeating = isRepeating;
         if (!this.repeating) {
           this.expense.repeat = 'nein';
+        }
+
+        const paidParam = this.activeRoute.snapshot.queryParamMap.get('paid');
+        if (paidParam === 'false') {
+          this.deletable = false;
+        } else {
+          this.deletable = true
         }
 
         if (groupId) {
@@ -200,7 +218,6 @@ export class EditExpensePage {
                   amount: 0,
                 };
               });
-
               if (expenseId) {
                 this.unsubscribe = await this.expenseService.getExpenseById(
                   this.groupId,
@@ -754,7 +771,7 @@ export class EditExpensePage {
 
   async saveExpenseChanges() {
     const hasChanges = this.hasExpenseChanges();
-    console.log("hasChanges", hasChanges); // Zum Debuggen
+    console.log('hasChanges', hasChanges); // Zum Debuggen
     if (hasChanges) {
       try {
         this.loadingService.show();
@@ -773,7 +790,11 @@ export class EditExpensePage {
           expenseMember.amountToPay = this.amountToPay[memberUid] || 0;
           //expenseMember.products = this.productInputs[memberUid]?.products || [];
         });
-        console.log("Die zu bearbeitende Ausgabe:", this.expense, this.amountToPay);
+        console.log(
+          'Die zu bearbeitende Ausgabe:',
+          this.expense,
+          this.amountToPay
+        );
 
         await this.expenseService.updateExpense(
           this.expense,
@@ -840,7 +861,8 @@ export class EditExpensePage {
       // Löschen der Ausgabe aufrufen
       await this.expenseService.deleteExpense(
         this.groupId,
-        this.expense.expenseId
+        this.expense.expenseId,
+        this.expense.paid
       );
 
       // Weiterleitung zur Gruppenansicht

@@ -65,7 +65,7 @@ export class ExpenseService {
           expenseData.totalAmountInForeignCurrency || 0,
         exchangeRate: expenseData.exchangeRate || 0,
         paidBy: expenseData.paidBy,
-        paid: 'nein',
+        paid: false,
         date: expenseData.date
           ? new Date(expenseData.date).toISOString()
           : new Date().toISOString(),
@@ -111,7 +111,7 @@ export class ExpenseService {
           lastPay: expenseData.date
             ? new Date(expenseData.date).toISOString()
             : new Date().toISOString(),
-          paid: 'nein',
+          paid: false,
         };
         const expenseRef = doc(
           this.firestore,
@@ -244,8 +244,11 @@ export class ExpenseService {
     }
   }
 
-  async deleteExpense(groupId: string, expenseId: string): Promise<void> {
+  async deleteExpense(groupId: string, expenseId: string, paid: boolean,): Promise<void> {
     try {
+      if (!paid) {
+        return;
+      }
       const expenseRef = doc(
         this.firestore,
         'groups',

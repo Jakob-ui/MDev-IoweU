@@ -105,7 +105,7 @@ export class RepeatingExpensesPage implements OnInit {
                   description: '',
                   totalAmount: 0,
                   paidBy: '',
-                  paid: 'nein',
+                  paid: false,
                   date: new Date().toISOString().split('T')[0],
                   currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
                   category: '',

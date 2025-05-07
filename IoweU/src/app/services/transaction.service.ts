@@ -175,12 +175,11 @@ export class TransactionService {
 
   async updateExpenseState(expenseId: string, groupId: string, state: boolean) {
     try {
-      const stateis = state ? 'ja' : 'nein';
       const expenseRef = doc(this.firestore, 'groups', groupId, 'expenses', expenseId);
 
-      await setDoc(expenseRef, { paid: stateis }, { merge: true });
+      await setDoc(expenseRef, { paid: state }, { merge: true });
 
-      console.log(`Expense ${expenseId} updated with paid: ${stateis}`);
+      console.log(`Expense ${expenseId} updated with paid: ${state}`);
     } catch (error) {
       throw new Error(
         `Fehler beim Aktualisieren des Feldes "paid": ${expenseId}`
