@@ -144,6 +144,8 @@ export class CreateExpensePage {
 
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
+  foreignAmountToPay: { [uid: string]: number } = {};
+  foreignPrice: { [uid: string]: number } = {};
   products: (Products & {})[] = [];
 
   //Validation Bools
@@ -167,8 +169,6 @@ export class CreateExpensePage {
   standardCurrency: string = 'EUR';
   selectedCurrency: string = this.standardCurrency;
   exchangeRate: number = 1;
-  totalAmountInForeignCurrency: number = 0;
-  foreignAmountToPay: { [memberId: string]: number } = {};
 
   showAddProductButton: { [key: string]: boolean } = {};
   showProductInputFields: { [key: string]: boolean } = {};
@@ -300,6 +300,7 @@ export class CreateExpensePage {
               this.expense.expenseMember = this.groupMembers.map((member) => ({
                 memberId: member.uid,
                 amountToPay: 0,
+                foreignAmountToPay: 0,
                 split: 1,
                 products: [],
               }));
@@ -533,7 +534,7 @@ export class CreateExpensePage {
         }
       }
     }
-
+    this.updateAmountToPayForProducts();
     this.updateTotals();
   }
 
@@ -760,31 +761,45 @@ export class CreateExpensePage {
 
   updateAmountToPayForProducts() {
     let totalAmount = 0;
+    let totalAmountForeign = 0;
 
     this.groupMembers.forEach((member) => {
       let memberAmountToPay = 0;
+      let memberForeignAmountToPay = 0;
+
       const products: Products[] = this.productInputs[member.uid]?.products || [];
 
-      // Berechnung des Betrags, den das Mitglied zu zahlen hat
       products.forEach((product) => {
-        memberAmountToPay += product.price;
+        let priceInEuro = product.price || 0;
+        let priceInForeign = product.foreignPrice || 0;
+
+        // Wenn aktuelle Währung nicht EUR ist, rechnen wir um
+        if (this.selectedCurrency !== 'EUR') {
+          priceInEuro = priceInForeign * this.exchangeRate;
+          product.price = priceInEuro; // Speichern des Euro-Werts
+        } else {
+          priceInForeign = priceInEuro / this.exchangeRate;
+          product.foreignPrice = priceInForeign; // Nur zur Anzeige
+        }
+
+        memberAmountToPay += priceInEuro;
+        memberForeignAmountToPay += priceInForeign;
       });
 
-      // Setzen der Beträge für das Mitglied
       this.amountToPay[member.uid] = memberAmountToPay;
-
-      // Setzen von foreignAmountToPay auf null für jedes Mitglied
-      this.foreignAmountToPay[member.uid] = 0;
+      this.foreignAmountToPay[member.uid] = memberForeignAmountToPay;
 
       totalAmount += memberAmountToPay;
+      totalAmountForeign += memberForeignAmountToPay;
     });
 
-    // Setzen des Gesamtbetrags
     this.expense.totalAmount = totalAmount;
+    this.expense.totalAmountInForeignCurrency = totalAmountForeign;
 
-    // Aufruf der Funktion zum Aktualisieren der Gesamtsummen
-    this.updateTotals();
+    this.updateTotals(); // falls du damit z.B. Summary-Werte aktualisierst
   }
+
+
 
 
   onTotalAmountChange() {
@@ -874,6 +889,7 @@ export class CreateExpensePage {
   }
 
   selectCurrency(newCurrency: string) {
+    this.resetProductInputs();
     const totalInEuro = this.expense.totalAmount || 0;
     this.selectedCurrency = newCurrency;
 

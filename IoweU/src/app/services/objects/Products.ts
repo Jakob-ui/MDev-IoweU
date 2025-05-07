@@ -9,4 +9,5 @@ export interface Products {
   quantity: number; // Menge des Produkts
   unit: string; // Einheit des Produkts (z.B. "kg", "Stück")
   price: number; // Preis des Produkts
+  foreignPrice?: number; // Preis des Produkts in Fremdwährung
 }
