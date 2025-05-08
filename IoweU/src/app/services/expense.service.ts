@@ -68,7 +68,6 @@ export class ExpenseService {
           expenseData.totalAmountInForeignCurrency || 0,
         exchangeRate: expenseData.exchangeRate || 0,
         paidBy: expenseData.paidBy,
-        paid: false,
         date: expenseData.date
           ? new Date(expenseData.date).toISOString()
           : new Date().toISOString(),
@@ -114,7 +113,6 @@ export class ExpenseService {
           lastPay: expenseData.date
             ? new Date(expenseData.date).toISOString()
             : new Date().toISOString(),
-          paid: false,
         };
         const expenseRef = doc(
           this.firestore,

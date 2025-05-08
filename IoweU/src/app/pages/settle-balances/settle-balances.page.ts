@@ -117,12 +117,12 @@ export class SettleBalancesPage implements OnInit {
       repeat: '', // Wiederholung, falls benötigt
       splitType: 'prozent', // Kann 'prozent', 'anteile' oder 'produkte' sein
       splitBy: 'alle', // Kann 'alle' oder 'frei' sein
-      paid: false,
       expenseMember: [
         {
           memberId: '', // Leerer String für den Member
           amountToPay: 0, // Betrag, der zu zahlen ist
           split: 0, // Optional, je nach Bedarf
+          paid: false,
           products: [
             {
               productId: (

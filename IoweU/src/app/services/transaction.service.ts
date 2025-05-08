@@ -116,6 +116,7 @@ export class TransactionService {
     transactionId: string
   ) {
     try {
+      // Reference to the transaction document
       const transactionCollection = doc(
         this.firestore,
         'groups',
@@ -123,7 +124,11 @@ export class TransactionService {
         'transactions',
         transactionId
       );
+
+      // Delete the transaction document
       await deleteDoc(transactionCollection);
+
+      // Update member amounts and balances
       await this.updateMemberAmounts(groupId, transaction, -1);
       await this.updateMemberBalancesOnTransaction(
         'deletion',
@@ -131,11 +136,50 @@ export class TransactionService {
         transaction,
         transactionId
       );
+
+      // Update the expense to remove the `paid` property for the specific member
+      const expenseRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'expenses',
+        expenseId
+      );
+      const expenseSnapshot = await getDoc(expenseRef);
+
+      if (expenseSnapshot.exists()) {
+        const expense = expenseSnapshot.data() as Expenses;
+
+        // Remove the `paid` property for the member with the matching `uid`
+        const updatedExpenseMembers = expense.expenseMember.map((member) => {
+          if (member.memberId === uid) {
+            const { paid, ...rest } = member; // Remove the `paid` property
+            return rest;
+          }
+          return member;
+        });
+
+        // Update the expense document with the modified `expenseMember` array
+        await setDoc(
+          expenseRef,
+          { expenseMember: updatedExpenseMembers },
+          { merge: true }
+        );
+
+        console.log(
+          `Removed 'paid' property for member ${uid} in expense ${expenseId}`
+        );
+      } else {
+        console.warn(`Expense with ID ${expenseId} not found.`);
+      }
+
       console.log('Transaction deleted:', transactionId);
-      //Expense Status updaten
-      await this.updateUserStateOnExpense(groupId, expenseId, uid, false);
-    } catch {
-      throw new Error(`Couldnt delete Transaction with Id: ${transactionId}`);
+    } catch (error) {
+      console.error(
+        `Error deleting transaction with ID ${transactionId}:`,
+        error
+      );
+      throw new Error(`Could not delete transaction with ID: ${transactionId}`);
     }
   }
 
@@ -309,7 +353,13 @@ export class TransactionService {
     state: boolean
   ) {
     try {
-      const expenseRef = doc(this.firestore,'groups', groupId, 'expenses', expenseId);
+      const expenseRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'expenses',
+        expenseId
+      );
 
       // Hole die aktuelle Ausgabe aus der Datenbank
       const snapshot = await getDoc(expenseRef);

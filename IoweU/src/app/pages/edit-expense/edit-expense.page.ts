@@ -123,6 +123,7 @@ export class EditExpensePage {
   showValidationError: boolean = false;
   repeating: boolean = false;
   deletable: boolean = false;
+  paid: boolean = false;
 
   canDistributeRest = false;
 
@@ -144,7 +145,6 @@ export class EditExpensePage {
     date: new Date().toISOString().split('T')[0],
     currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
     category: '',
-    paid: false,
     invoice: '',
     repeat: 'nein',
     splitBy: 'alle',
@@ -196,7 +196,7 @@ export class EditExpensePage {
         if (paidParam === 'false') {
           this.deletable = false;
         } else {
-          this.deletable = true
+          this.deletable = true;
         }
 
         if (groupId) {
@@ -862,7 +862,7 @@ export class EditExpensePage {
       await this.expenseService.deleteExpense(
         this.groupId,
         this.expense.expenseId,
-        this.expense.paid
+        this.paid
       );
 
       // Weiterleitung zur Gruppenansicht

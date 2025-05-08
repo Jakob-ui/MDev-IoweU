@@ -133,7 +133,6 @@ export class ExpenseDetailsPage {
       totalAmount: 0,
       totalAmountInForeignCurrency: 0,
       paidBy: '',
-      paid: false,
       date: new Date().toISOString().split('T')[0],
       currency: [''],
       category: '',
@@ -147,6 +146,7 @@ export class ExpenseDetailsPage {
           amountToPay: 0,
           foreignAmountToPay: 0,
           split: 0,
+          paid: false,
           products: [
             {
               productId: (
@@ -215,8 +215,7 @@ export class ExpenseDetailsPage {
             const expenseData = this.expense[0];
             this.expenseDescription = expenseData.description || '';
             this.expenseTotalAmount = expenseData.totalAmount || 0;
-            this.paid = expenseData.paid || false;
-            (this.expensePaidBy = expenseData.paidBy || '');
+            this.expensePaidBy = expenseData.paidBy || '';
             this.expenseDate = expenseData.date || '';
             this.expenseCurrency = expenseData.currency[0] || '';
             this.expenseCategory = expenseData.category || '';
@@ -303,7 +302,6 @@ export class ExpenseDetailsPage {
     // Alle anderen → grau
     return 'neutral';
   }
-
 
   hasProducts(groupMemberId: string): boolean {
     if (!this.expense || this.expense.length === 0) {
@@ -402,9 +400,8 @@ export class ExpenseDetailsPage {
     }
   }
 
-  requestExpense(){
+  requestExpense() {
     // Hier die Logik für die Anfrage implementieren
-
   }
 
   getPaidByName(uid: string): string {
@@ -430,8 +427,7 @@ export class ExpenseDetailsPage {
   }
 
   getCategoryIcon(categoryName: string): string | undefined {
-    const category = this.categories.find(c => c.name === categoryName);
+    const category = this.categories.find((c) => c.name === categoryName);
     return category?.icon;
   }
-
 }

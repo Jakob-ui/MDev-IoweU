@@ -5,4 +5,5 @@ export interface ExpenseMember {
   foreignAmountToPay?: number;
   split?: number;
   products?: Products[];
+  paid: boolean;
 }

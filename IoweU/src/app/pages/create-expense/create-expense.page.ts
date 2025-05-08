@@ -194,7 +194,6 @@ export class CreateExpensePage {
     invoice: '',
     repeat: 'nein',
     splitBy: 'alle',
-    paid: false,
     splitType: 'anteile',
     expenseMember: [],
   };
@@ -303,6 +302,7 @@ export class CreateExpensePage {
                 foreignAmountToPay: 0,
                 split: 1,
                 products: [],
+                paid: false,
               }));
 
               if (!this.expense.paidBy && this.uid) {
@@ -1039,6 +1039,7 @@ export class CreateExpensePage {
           amountToPay: parseFloat(amount.toFixed(2)),
           foreignAmountToPay: parseFloat(foreignAmount.toFixed(2)),
           split: 1,
+          paid: false,
           products: products.map((p) => ({
             ...p,
             price: Number(p.price),

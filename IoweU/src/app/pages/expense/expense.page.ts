@@ -135,6 +135,7 @@ export class ExpensePage implements OnInit, OnDestroy {
                 amountToPay: 0,
                 split: 1,
                 products: [],
+                paid: false,
               }));
             });
 
