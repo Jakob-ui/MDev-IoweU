@@ -324,6 +324,18 @@ iosIcons: any;
       return;
     }
 
+    // Prüfen, ob der User noch offene Salden hat
+    const hasUnpaidBalance = await this.expenseService.checkMemberBalance(this.groupId, this.userUid);
+    if (hasUnpaidBalance) {
+      const alert = await this.alertController.create({
+        header: 'Gruppe kann nicht verlassen werden',
+        message: 'Du hast noch offene Schulden oder Guthaben in dieser Gruppe. Bitte begleiche sie zuerst.',
+        buttons: ['OK'],
+      });
+      await alert.present();
+      return;
+    }
+
     if (this.userUid === this.founder) {
       const members = group.members
         .filter((member: any) => member.uid !== this.userUid)
@@ -337,7 +349,7 @@ iosIcons: any;
         message: 'Bevor du die Gruppe verlässt, musst du einen neuen Gründer festlegen.',
         inputs: members.map((member: any) => ({
           name: 'newFounder',
-          type: 'radio', // ✔ gültiger Typ
+          type: 'radio',
           label: member.username,
           value: member.uid,
           checked: false,
@@ -368,7 +380,6 @@ iosIcons: any;
 
       await alert.present();
     } else {
-      // Gründer verlässt die Gruppe ohne Notwendigkeit zur Auswahl eines neuen Gründers
       const confirm = await this.alertController.create({
         header: 'Gruppe verlassen',
         message: 'Möchtest du diese Gruppe wirklich verlassen? Du kannst später wieder eingeladen werden.',
@@ -382,10 +393,8 @@ iosIcons: any;
             role: 'destructive',
             handler: async () => {
               try {
-                // Entferne das Mitglied aus der Gruppe
                 await this.groupService.removeUserFromGroupByUid(this.groupId, this.userUid);
 
-                // Optional: Weiterleitung und Bestätigung
                 const alert = await this.alertController.create({
                   header: 'Gruppe verlassen',
                   message: 'Du hast die Gruppe erfolgreich verlassen.',
@@ -393,8 +402,7 @@ iosIcons: any;
                 });
                 await alert.present();
 
-                // Weiterleitung zur Gruppenübersicht
-                this.router.navigate([`/groups-overview`]);
+                this.router.navigate([`/group-overview`]);
               } catch (error) {
                 console.error('Fehler beim Verlassen der Gruppe:', error);
                 const alertError = await this.alertController.create({
@@ -412,6 +420,7 @@ iosIcons: any;
       await confirm.present();
     }
   }
+
 
 }
 

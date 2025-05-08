@@ -68,24 +68,25 @@
     <ion-card
       *ngFor="let feature of features; let i = index"
       class="feature-card"
+      [ngClass]="getFeatureColor(feature)"
       [routerLink]="getFeatureLink(feature)"
     >
+    <div class="glassmorphism">
       <div class="card-content">
         <ion-card-title>{{ feature }}</ion-card-title>
         <ion-card-subtitle>
           <ng-container [ngSwitch]="feature">
             <!-- Finanzübersicht -->
             <div *ngSwitchCase="'Finanzübersicht'">
-              <span
-                class="myBalance"
-                [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }"
-              >
-                <span *ngIf="myBalance >= 0">Mein Guthaben:</span>
-                <span *ngIf="myBalance < 0">Meine Schulden:</span>
-                <strong>{{ myBalance | currency: 'EUR' }}</strong>
-              </span>
+            <span
+              class="myBalance"
+              [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }"
+            >
+              <span *ngIf="myBalance >= 0">Mein Guthaben:</span>
+              <span *ngIf="myBalance < 0">Meine Schulden:</span>
+              <strong>{{ myBalance | currency: 'EUR' }}</strong>
+            </span>
             </div>
-
 
             <!-- Ausgaben -->
             <div *ngSwitchCase="'Ausgaben'">
@@ -110,7 +111,9 @@
           </ng-container>
         </ion-card-subtitle>
       </div>
+    </div>
     </ion-card>
+
 
     <div class="feature-select-container" *ngIf="isFounder && canAddFeatures && features.length === 0">
       <!-- Hinweis nur anzeigen, wenn keine Features vorhanden sind -->

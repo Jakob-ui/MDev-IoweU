@@ -1,3 +1,7 @@
+.page-container{
+  margin-bottom: 30px;
+}
+
 .image-upload {
   width: 100px;
   height: 100px;
@@ -119,6 +123,78 @@ margin-bottom: 5%;
   margin-bottom: 20px;
   width: 80%;
 }
+
+
+ion-card {
+  font-family: var(--ion-font-family);
+  font-weight: 100;
+  border-radius: 15px;
+  width: 80%;
+  max-width: 800px;
+  height: 120px;
+  display: flex;
+  box-shadow: none !important;
+  --box-shadow: none !important;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  background: url('/assets/background.png') no-repeat center center; /* Hintergrundbild */
+  background-size: cover;
+  background-position: center;
+}
+
+.card-content {
+  position: relative;
+  z-index: 2; /* Inhalt bleibt über dem Glas-Effekt */
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: white; /* Textfarbe */
+}
+
+.glassmorphism {
+  background: rgba(231, 231, 231, 0.53); /* Semi-transparenter Hintergrund für den Glas-Effekt */
+  backdrop-filter: blur(12px) saturate(180%); /* Glass-Effekt */
+  -webkit-backdrop-filter: blur(12px) saturate(180%); /* Für Safari */
+  border-radius: 15px;
+  border: 1px solid rgba(0, 0, 0, 0.3); /* Leichter Rand */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); /* Schatten für Tiefe */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: absolute; /* Positioniert den Glaseffekt über der Karte */
+  top: 0;
+  left: 0;
+  z-index: 1; /* Glas-Effekt bleibt unterhalb des Inhalts */
+}
+
+.feature-card {
+  //background: transparent; /* Der Hintergrund der Karte ist transparent, damit der Glas-Effekt sichtbar ist */
+}
+
+.color-red {
+  //background: rgba(255, 99, 71, 0.4); /* Beispiel für eine transparente, leicht rötliche Hintergrundfarbe */
+}
+
+.color-blue {
+  //background: rgba(70, 130, 180, 0.4); /* Beispiel für eine transparente, leicht blaue Hintergrundfarbe */
+}
+
+.color-green {
+  //background: rgba(60, 179, 113, 0.4); /* Beispiel für eine transparente, leicht grüne Hintergrundfarbe */
+}
+
+.color-yellow {
+  //background: rgba(255, 255, 0, 0.4); /* Beispiel für eine transparente, leicht gelbe Hintergrundfarbe */
+}
+
+
+
+
+
 
 
 @media (prefers-color-scheme: dark) {
