@@ -50,8 +50,13 @@ ion-card {
   margin-bottom: 20px;
 }
 
+.balance-item{
+  width: auto !important;
+}
+
 .balance-item h2{
   padding: 0 10px !important;
+  max-width: 100% !important;
 }
 
 .input-label{
