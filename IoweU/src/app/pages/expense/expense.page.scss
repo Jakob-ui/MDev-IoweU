@@ -58,7 +58,6 @@ ion-searchbar::part(native) {
 }
 
 .Kategorie {
-  flex: 2;
   align-items: center;
   justify-content: right;
   margin-right: 15px;
@@ -119,7 +118,6 @@ ion-item.dropDownFelder::part(native) {
 .filter .divider{
   background-color: var(--ion-color-secondary) !important;
   height: 45px !important;
-  margin-top: 5px !important;
 }
 .custom-search{
   background-color: #ffffff !important;
