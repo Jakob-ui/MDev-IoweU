@@ -246,6 +246,7 @@ export class ExpenseDetailsPage {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
       this.loadingService.hide();
+
     }
   }
 
@@ -430,4 +431,21 @@ export class ExpenseDetailsPage {
     const category = this.categories.find((c) => c.name === categoryName);
     return category?.icon;
   }
+
+  goToTransactions() {
+    this.router.navigate(['/transactions', this.groupId]);
+  }
+
+
+  hasUserPaid(expense: Expenses): boolean {
+    if (expense.paidBy === this.uid) {
+      return false; // Zahler sieht keine Anzeige
+    }
+    const userEntry = expense.expenseMember?.find(
+      (member) => member.memberId === this.uid
+    );
+    return !!userEntry?.paid;
+  }
+
+
 }

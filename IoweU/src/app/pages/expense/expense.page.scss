@@ -136,6 +136,18 @@ ion-searchbar {
   background-color: white !important;
 }
 
+.amountToPay{
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+  align-items: center;
+}
+
+.paid{
+  height: 30px;
+  width: 30px;
+}
+
 @media (prefers-color-scheme: dark) {
   .date {
     color: var(--ion-color-light);
@@ -172,7 +184,7 @@ ion-searchbar {
   .custom-dropdown ion-label {
     color: #ffffff !important; /* Helle Schriftfarbe für Labels */
   }
-  
+
   .custom-dropdown ion-item ion-icon.category-icon {
     color: #ffffff !important; /* Weiße Farbe für das Icon im Dark-Modus */
   }

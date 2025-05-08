@@ -107,9 +107,24 @@
               <h5 class="Gesamtpreis">
                 {{ expense.totalAmount | currency: 'EUR' }}
               </h5>
-              <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
-                {{ getUserAmount(expense) | currency: 'EUR' }}
-              </ion-badge>
+              <div class="amountToPay">
+                <ng-container *ngIf="expense.paidBy !== uid">
+                  <ion-icon
+                    class="paid"
+                    *ngIf="!hasUserPaid(expense)"
+                    [src]="'assets/icon/ionicons/ios-close.svg'">
+                  </ion-icon>
+                  <ion-icon
+                    class="paid"
+                    *ngIf="hasUserPaid(expense)"
+                    [src]="'assets/icon/ionicons/ios-checkmark.svg'">
+                  </ion-icon>
+                </ng-container>
+                <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
+                  {{ getUserAmount(expense) | currency: 'EUR' }}
+                </ion-badge>
+              </div>
+
             </div>
           </div>
         </ion-item>

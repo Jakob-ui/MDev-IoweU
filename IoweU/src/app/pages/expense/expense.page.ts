@@ -414,4 +414,16 @@ export class ExpensePage implements OnInit, OnDestroy {
     const found = this.categories.find((cat) => cat.name === categoryName);
     return found?.icon || 'help-outline';
   }
+
+  hasUserPaid(expense: Expenses): boolean {
+    if (expense.paidBy === this.uid) {
+      return false; // Zahler sieht keine Anzeige
+    }
+    const userEntry = expense.expenseMember?.find(
+      (member) => member.memberId === this.uid
+    );
+    return !!userEntry?.paid;
+  }
+
+
 }
