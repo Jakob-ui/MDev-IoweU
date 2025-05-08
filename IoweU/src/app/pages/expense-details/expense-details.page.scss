@@ -1,3 +1,19 @@
+.gesamtpreis{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.date{
+  margin-bottom: 50px;
+}
+
+.member-price{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
 .detailedprice-overview {
   width: 80%;
 }
@@ -28,17 +44,12 @@
   justify-content: center;
   flex-direction: column;
   margin-top: 10px;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
 }
 
 .payed-by-lbl {
   margin-bottom: 5px;
 }
-
-.edit-button {
-  margin-top: 30px;
-}
-
 
 .toggle-arrow {
   cursor: pointer;
@@ -192,8 +203,8 @@
     background-color: #121212 !important;
     color: white !important;
   }
- 
+
   .member-name {
-    background: none !important; 
+    background: none !important;
   }
 }

@@ -167,7 +167,7 @@
             <div class="input-wrapper">
               <ion-input
                 type="number"
-                [value]="expense.totalAmount | number: '1.2-2'"
+                [value]="expense.totalAmount"
                 readonly
               ></ion-input>
               <span class="percent-symbol">€</span>
@@ -369,11 +369,15 @@
           <div
             class="right-container"
             [ngStyle]="{
-              width:
-                expense.splitType === 'prozent' && selectedCurrency !== 'EUR'
-                  ? '70%'
-                  : '50%'
+              width: expense.splitType === 'prozent' && selectedCurrency === 'EUR'
+                ? '70%'
+                : selectedCurrency === 'EUR'
+                  ? '50%'
+                : expense.splitType === 'prozent'
+                  ? '90%'
+                  : '60%'
             }"
+
           >
             <div class="input-field" *ngIf="expense.splitType === 'prozent'">
               <!-- Prozentfeld -->

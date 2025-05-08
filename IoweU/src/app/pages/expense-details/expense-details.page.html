@@ -77,7 +77,9 @@
         <span class="member-name">{{ expensePaidByUsername }}</span>
       </div>
     </div>
+    <span class="date">am <strong>{{ expense[0].date | date: 'dd.MM.yyyy' }}</strong></span>
 
+    <span class="category-lbl">{{ expense[0].category }}</span>
     <ion-button
       *ngIf="getCategoryIcon(expenseCategory)"
       class="edit-button"
@@ -88,9 +90,16 @@
 
 
     <h2>{{ expense[0].description }}</h2>
-    <ion-badge class="detailedprice">
-      {{ expense[0].totalAmount | currency: 'EUR' }}
-    </ion-badge>
+
+    <div class="gesamtpreis">
+      <ion-badge class="detailedprice">
+        {{ expense[0].totalAmount | currency: 'EUR' }}
+      </ion-badge>
+
+      <ion-badge *ngIf="expense[0].currency[0] !== 'EUR'" class="detailedprice">
+        {{ expense[0].totalAmountInForeignCurrency | currency: expense[0].currency[0] }}
+      </ion-badge>
+    </div>
 
     <div class="separator"></div>
 
@@ -132,10 +141,15 @@
               </ion-icon>
             </div>
           </div>
-          <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0], groupMember.uid)">
-            {{ getAmountToPayForMember(expense[0], groupMember.uid) | currency:
-            'EUR' }}
-          </ion-badge>
+          <div class="member-price">
+            <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0], groupMember.uid)">
+              {{ getAmountToPayForMember(expense[0], groupMember.uid) | currency: 'EUR' }}
+            </ion-badge>
+
+            <ion-badge *ngIf="expense[0]?.currency?.[0] !== 'EUR'" class="Preis" [ngClass]="getAmountClass(expense[0], groupMember.uid)">
+              {{ getForeignAmountToPayForMember(expense[0], groupMember.uid) | currency: expense[0].currency[0] }}
+            </ion-badge>
+          </div>
         </div>
 
         <!-- Produktliste, die bei Klick angezeigt wird -->
@@ -156,6 +170,10 @@
               </div>
               <ion-badge class="product-price">
                 {{ product.price | currency: 'EUR' }}
+              </ion-badge>
+
+              <ion-badge *ngIf="expense[0]?.currency?.[0] !== 'EUR'" class="product-price">
+                {{ product.foreignPrice | currency: expense[0].currency[0] }}
               </ion-badge>
             </li>
           </ul>

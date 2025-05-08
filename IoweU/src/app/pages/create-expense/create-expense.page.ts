@@ -1031,11 +1031,13 @@ export class CreateExpensePage {
       this.expense.expenseMember = this.groupMembers.map((member) => {
         const uid = member.uid;
         const amount = this.amountToPay[uid] || 0;
+        const foreignAmount = this.foreignAmountToPay[uid] || 0;
         const products = this.productInputs[uid]?.products || [];
 
         return {
           memberId: uid,
           amountToPay: parseFloat(amount.toFixed(2)),
+          foreignAmountToPay: parseFloat(foreignAmount.toFixed(2)),
           split: 1,
           products: products.map((p) => ({
             ...p,
@@ -1059,6 +1061,9 @@ export class CreateExpensePage {
 
       // totalAmount muss immer den Betrag in EUR enthalten
       this.expense.totalAmount = Number(this.expense.totalAmount.toFixed(2));
+
+      // Hier wird die ausgewählte Währung in das currency Array gespeichert
+      this.expense.currency = [this.selectedCurrency];
 
       // Wenn Rechnung ausgewählt wurde → hochladen und URL setzen
       if (this.uploadInvoice) {
@@ -1087,6 +1092,7 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
+
 
   removeInvoice() {
     this.expense.invoice = undefined;

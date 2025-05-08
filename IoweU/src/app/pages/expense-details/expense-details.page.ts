@@ -131,30 +131,33 @@ export class ExpenseDetailsPage {
       expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
       description: '',
       totalAmount: 0,
+      totalAmountInForeignCurrency: 0,
       paidBy: '',
       paid: false,
       date: new Date().toISOString().split('T')[0],
-      currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
-      category: '', // optional
-      invoice: '', // optional
-      repeat: '', // Wiederholung, falls benötigt
-      splitType: 'prozent', // Kann 'prozent', 'anteile' oder 'produkte' sein
-      splitBy: 'alle', // Kann 'alle' oder 'frei' sein
+      currency: [''],
+      category: '',
+      invoice: '',
+      repeat: '',
+      splitType: 'prozent',
+      splitBy: 'alle',
       expenseMember: [
         {
-          memberId: '', // Leerer String für den Member
-          amountToPay: 0, // Betrag, der zu zahlen ist
-          split: 0, // Optional, je nach Bedarf
+          memberId: '',
+          amountToPay: 0,
+          foreignAmountToPay: 0,
+          split: 0,
           products: [
             {
               productId: (
                 Date.now() + Math.floor(Math.random() * 1000)
               ).toString(),
-              memberId: '', // Leerer String für den Member
-              productname: '', // Leerer String für den Produktnamen
-              quantity: 1, // Standardmenge 1
-              unit: '', // Einheit, z.B. "kg", "Stück"
-              price: 0, // Preis des Produkts
+              memberId: '',
+              productname: '',
+              quantity: 1,
+              unit: '',
+              price: 0,
+              foreignPrice: 0,
             },
           ],
         },
@@ -256,6 +259,17 @@ export class ExpenseDetailsPage {
       (m) => m.memberId === memberId
     );
     return memberEntry?.amountToPay ?? 0;
+  }
+
+  getForeignAmountToPayForMember(
+    expense: Partial<Expenses>,
+    memberId: string
+  ): number {
+    if (!expense || !expense.expenseMember) return 0;
+    const memberEntry = expense.expenseMember.find(
+      (m) => m.memberId === memberId
+    );
+    return memberEntry?.foreignAmountToPay ?? 0;
   }
 
   getAmountClass(expense: Expenses, memberId: string): string {
