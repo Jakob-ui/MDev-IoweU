@@ -363,19 +363,32 @@ export class PayExpensesPage {
   }
 
   async pay() {
-    const amount = this.getAmountToPayForMember(this.expense[0], this.uid!);
-    const trans: Transactions = {
-      transactionId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
-      from: this.uid || '',
-      to: this.expensePaidBy || '',
-      amount: amount,
-      reason: this.expense[0].description,
-      date: new Date().toISOString(),
-      relatedExpenses: [this.expenseId],
-    };
-  
-    //Transaktion wird direkt ausgeführt
-    await this.transactionService.makeTransactionById(this.groupId, this.expenseId, trans);
+       if (this.authService.currentUser) {
+         const amount = this.getAmountToPayForMember(
+           this.expense[0],
+           this.authService.currentUser.uid
+         );
+         const trans: Transactions = {
+           transactionId: (
+             Date.now() + Math.floor(Math.random() * 1000)
+           ).toString(),
+           from: this.uid || '',
+           to: this.expensePaidBy || '',
+           amount: amount,
+           reason: this.expense[0].description,
+           date: new Date().toISOString(),
+           relatedExpenses: [this.expenseId],
+         };
+
+         await this.transactionService.makeTransactionById(
+           this.groupId,
+           this.expenseId,
+           this.authService.currentUser.uid,
+           trans
+         );
+       } else {
+         console.log('current user is null');
+       }
   
     // Danach: Nur noch fragen, ob man sie sehen will
     const alert = await this.alertController.create({
