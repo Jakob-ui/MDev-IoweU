@@ -1,14 +1,14 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonHeader,
-  IonToolbar,
-  IonContent,
-  IonItem,
-  IonList,
-  IonBadge,
-  IonCard,
-  IonIcon,
+    IonHeader,
+    IonToolbar,
+    IonContent,
+    IonItem,
+    IonList,
+    IonBadge,
+    IonCard,
+    IonIcon, IonButton,
 } from '@ionic/angular/standalone';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -23,18 +23,19 @@ import {QRCodeComponent} from "angularx-qrcode";
   templateUrl: './finance.page.html',
   styleUrls: ['./finance.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonContent,
-    IonItem,
-    IonList,
-    IonBadge,
-    IonCard,
-    IonIcon,
-    RouterModule,
-  ],
+    imports: [
+        CommonModule,
+        IonHeader,
+        IonToolbar,
+        IonContent,
+        IonItem,
+        IonList,
+        IonBadge,
+        IonCard,
+        IonIcon,
+        RouterModule,
+        IonButton,
+    ],
 })
 export class FinancePage implements OnInit {
   private authService = inject(AuthService);
@@ -203,5 +204,9 @@ export class FinancePage implements OnInit {
     }
 
     console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
+  }
+
+  goToPayAllExpenses(){
+    this.router.navigate(['/settle-balances', this.groupId]);
   }
 }
