@@ -333,4 +333,20 @@ export class GroupPage implements OnInit {
     this.shoppingProducts = await this.shoppinglistService.getShoppingProducts(this.groupId!, this.shoppingListId);
   }
 
+  getFeatureColor(feature: string): string {
+    switch (feature) {
+      case 'Finanzübersicht':
+        return 'color-blue';
+      case 'Ausgaben':
+        return 'color-red';
+      case 'Einkaufsliste':
+        return 'color-green';
+      case 'Anlagegüter':
+        return 'color-yellow';
+      default:
+        return '';
+    }
+  }
+
+
 }
