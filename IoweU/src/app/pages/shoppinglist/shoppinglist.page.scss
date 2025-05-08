@@ -173,6 +173,19 @@ strong {
   margin-left: 10px;
 }
 
+.shoppingplist-item {
+  transition: transform 0.3s ease;
+}
+
+.shoppingplist-item.swipe-right {
+  transform: translateX(80px); // Slide nach rechts
+}
+
+.shoppingplist-item.swipe-left {
+  transform: translateX(-80px); // Slide nach links
+}
+
+
 .shoppingproduct-item .first-container{
   width: 50px;
   text-align: right;
@@ -284,10 +297,11 @@ strong {
 }
 
 
-
 form .top-container{
   margin-bottom: 20px;
 }
+
+
 
 @media (prefers-color-scheme: dark) {
   .date {

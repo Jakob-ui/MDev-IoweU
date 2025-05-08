@@ -63,7 +63,7 @@ export class ShoppinglistPage implements OnInit {
 
   groupname: string = '';
   groupId: string | null = '';
-  groupMembers: Members[] = []; // Verwenden Sie das Members-Interface
+  groupMembers: Members[] = [];
   iosIcons: boolean = false;
 
   forMemberDropdownOpen: boolean = false;
@@ -86,6 +86,8 @@ export class ShoppinglistPage implements OnInit {
   touchStartX: number = 0;
 
   addProductOpen = false;
+  animatedItems: { [key: string]: boolean } = {};
+
 
   newProduct = {
     quantity: 1,
@@ -112,7 +114,7 @@ export class ShoppinglistPage implements OnInit {
     this.loadingService.show();
 
     try {
-      // Benutzer wird gewartet und überprüft
+
       await this.authService.waitForUser();
 
       if (!this.authService.currentUser) {
@@ -124,7 +126,6 @@ export class ShoppinglistPage implements OnInit {
       this.user = this.authService.currentUser.username;
       this.displayName = this.authService.currentUser.username;
 
-      // Die groupId aus der URL erhalten
       this.groupId = this.activeRoute.snapshot.paramMap.get('groupId');
       this.shoppingListId = await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId!);
       console.log('shoppingListId:', this.shoppingListId);
@@ -134,7 +135,6 @@ export class ShoppinglistPage implements OnInit {
         return;
       }
 
-      // Hole die Gruppe basierend auf der groupId
       const currentGroup = await this.groupService.getGroupById(this.groupId);
 
       if (currentGroup) {
@@ -152,7 +152,6 @@ export class ShoppinglistPage implements OnInit {
         ) ||
         { uid: this.uid, username: this.displayName || 'Unbekannt' };
 
-      // Holen der Produkte für diese Gruppe
       await this.loadShoppingProducts();
 
     } catch (error) {
@@ -162,7 +161,6 @@ export class ShoppinglistPage implements OnInit {
     }
   }
 
-// Methode zum Laden der Produkte aus der Firebase-Datenbank
   async loadShoppingProducts() {
     try {
 
@@ -188,13 +186,11 @@ export class ShoppinglistPage implements OnInit {
 
   async getShoppingProductById(groupId: string, shoppingProductId: string): Promise<ShoppingProducts | null> {
     try {
-      // Stelle sicher, dass eine gültige groupId und shoppingProductId übergeben wurden
       if (!groupId || !shoppingProductId) {
         console.error('Ungültige groupId oder shoppingProductId');
         return null;
       }
 
-      // Rufe das Produkt anhand der groupId und shoppingProductId ab
       const product = await this.shoppinglistService.getShoppingProductById(groupId, shoppingProductId, shoppingProductId);
 
       if (product) {
@@ -243,14 +239,12 @@ export class ShoppinglistPage implements OnInit {
       }
     }
 
-    // Frühestes Fälligkeitsdatum berechnen (außer "Nicht dringend")
     if (validDates.length > 0) {
       this.earliestDueDate = new Date(Math.min(...validDates.map(d => d.getTime())));
     } else {
       this.earliestDueDate = new Date(); // Fallback
     }
 
-    // earliestDueDate Label erzeugen
     this.earliestDueDateLabel = this.formatDateLabel(this.earliestDueDate.toISOString().split('T')[0], today, yesterday, tomorrow);
 
     const sortedDates = Object.keys(grouped).sort((a, b) => {
@@ -291,7 +285,6 @@ export class ShoppinglistPage implements OnInit {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Wenn "Gestern", "Heute", "Morgen" als Label übergeben wird
     if (typeof date === 'string') {
       const lower = date.toLowerCase();
       if (lower === 'gestern') return true;
@@ -313,12 +306,10 @@ export class ShoppinglistPage implements OnInit {
     return '';
   }
 
-  // Methode, um den Benutzernamen anhand der forMemberId zu finden
   getUsernameById(memberId: string): string {
     const member = this.groupMembers.find(m => m.uid === memberId);
     return member ? member.username : 'Unbekanntes Mitglied';
   }
-
 
   goBack() {
     this.router.navigate(['/group', this.groupId]);
@@ -328,7 +319,6 @@ export class ShoppinglistPage implements OnInit {
 
     console.log('Overlay state:', this.overlayState);
 
-    // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
     if (this.overlayState === 'start') {
       this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
     } else if (this.overlayState === 'normal') {
@@ -339,7 +329,7 @@ export class ShoppinglistPage implements OnInit {
       this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
     }
 
-    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
+    console.log('Overlay state:', this.overlayState);
   }
 
   async toggleDetailsOverlay(shoppingProductId: string) {
@@ -356,7 +346,7 @@ export class ShoppinglistPage implements OnInit {
     }
 
     try {
-      // Rufe das Produkt anhand von groupId, shoppingListId und shoppingProductId ab
+
       const selectedShoppingProduct = await this.shoppinglistService.getShoppingProductById(
         this.groupId,
         this.shoppingListId,
@@ -364,13 +354,12 @@ export class ShoppinglistPage implements OnInit {
       );
 
       if (selectedShoppingProduct) {
-        this.selectedProduct = {...selectedShoppingProduct}; // Kopie setzen
+        this.selectedProduct = {...selectedShoppingProduct};
       } else {
         console.error('Produkt konnte nicht geladen werden');
         return;
       }
 
-      // Wechsel des Overlay-Zustands
       if (this.detailsOverlayState === 'start') {
         this.detailsOverlayState = 'normal'; // Overlay wird sichtbar und Animation startet
       } else if (this.detailsOverlayState === 'normal') {
@@ -386,9 +375,7 @@ export class ShoppinglistPage implements OnInit {
   }
 
 
-  // Methode zum Speichern der Produktdetails
   async saveProductDetails() {
-    // Überprüfen, ob die groupId und shoppingListId vorhanden sind
     if (!this.groupId || !this.shoppingListId) {
       console.error('Group ID oder ShoppingList ID ist null oder undefined');
       alert('Die Gruppen- oder ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
@@ -396,18 +383,16 @@ export class ShoppinglistPage implements OnInit {
     }
 
     try {
-      // Überprüfen, ob das ausgewählte Produkt vorhanden ist
       if (this.selectedProduct) {
-        // Aufruf der Service-Methode zum Bearbeiten des Produkts
+
         await this.shoppinglistService.editShoppingProduct(
           this.groupId,
           this.shoppingListId,
           this.selectedProduct.shoppingProductId,
-          this.selectedProduct // Die Änderungen werden hier gespeichert
+          this.selectedProduct
         );
         console.log('Produktdetails gespeichert:', this.selectedProduct);
 
-        // Overlay nach dem Speichern schließen
         this.toggleDetailsOverlay(this.selectedProduct.shoppingProductId);
       } else {
         console.error('Kein Produkt zum Speichern ausgewählt.');
@@ -434,14 +419,14 @@ export class ShoppinglistPage implements OnInit {
   }
 
   toggleForMemberDropdown(event: Event) {
-    this.forMemberDropdownOpen = !this.forMemberDropdownOpen; // Öffnen/Schließen des Dropdowns
-    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
+    this.forMemberDropdownOpen = !this.forMemberDropdownOpen;
+    event.stopPropagation();
   }
   selectMember(member: any, event: Event) {
-    this.newProduct.forMemberId = member.uid; // Setze die UID des ausgewählten Mitglieds
-    this.selectedMember = member; // Speichere das ausgewählte Mitglied
-    this.forMemberDropdownOpen = false; // Schließe das Dropdown
-    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
+    this.newProduct.forMemberId = member.uid;
+    this.selectedMember = member;
+    this.forMemberDropdownOpen = false;
+    event.stopPropagation();
   }
 
 
@@ -459,10 +444,8 @@ export class ShoppinglistPage implements OnInit {
     const trimmedName = this.newProduct.productname?.trim();
 
     if (trimmedName) {
-      // Produktname vorhanden → speichern und Overlay schließen
       this.saveNewProduct();
     } else {
-      // Kein Produktname → Overlay einfach schließen
       this.addProductOpen = false;
     }
   }
@@ -481,7 +464,6 @@ export class ShoppinglistPage implements OnInit {
       return;
     }
 
-    // Setze ein extrem weit entferntes Datum, wenn kein Datum gesetzt ist
     const dueDate = this.newProduct.dueDate || '9999-12-31';
 
     const shoppingProductData: ShoppingProducts = {
@@ -492,7 +474,7 @@ export class ShoppinglistPage implements OnInit {
       quantity: this.newProduct.quantity ?? 1, // Default: 1
       unit: this.newProduct.unit?.trim() || 'Stück', // Default: 'Stück'
       status: 'open',
-      date: dueDate // Speichere das weit entfernte Datum
+      date: dueDate
     };
 
     try {
@@ -500,7 +482,6 @@ export class ShoppinglistPage implements OnInit {
       console.log('Produkt erfolgreich gespeichert!');
       this.toggleAddProductOverlay();
 
-      // Reset mit Defaults
       this.newProduct = {
         quantity: 1,
         unit: 'Stück',
@@ -520,7 +501,6 @@ export class ShoppinglistPage implements OnInit {
         throw new Error('ShoppingListId ist nicht definiert!');
       }
 
-      // Lösche das Produkt aus der Subcollection `shoppingProducts` der Einkaufsliste
       await this.shoppinglistService.deleteShoppingProduct(
         this.groupId!,
         this.shoppingListId,  // Hier wird sicher die shoppingListId übergeben
@@ -528,7 +508,6 @@ export class ShoppinglistPage implements OnInit {
       );
       console.log('Produkt gelöscht:', shoppingProductId);
 
-      // Nach dem Löschen die Liste der Produkte neu laden
       await this.loadShoppingProducts();
     } catch (error) {
       console.error('Fehler beim Löschen des Produkts:', error);
@@ -543,7 +522,6 @@ export class ShoppinglistPage implements OnInit {
     }
 
     try {
-      // Hole die Einkaufslistendaten für die Gruppe
       const shoppingList = await this.shoppinglistService.getShoppingListByGroupId(groupId);
       if (!shoppingList) {
         console.error('Keine Einkaufsliste für diese Gruppe gefunden');
@@ -552,11 +530,9 @@ export class ShoppinglistPage implements OnInit {
 
       const shoppingListId = shoppingList.shoppinglistId;
 
-      // Produkt ins Warenkorb verschieben
       await this.shoppinglistService.moveProductToShoppingCart(groupId, shoppingListId, shoppingProductId);
       console.log('Produkt verschoben!');
 
-      // Liste der Produkte nach dem Verschieben neu laden
       this.loadShoppingProducts();
     } catch (error) {
       console.error('Fehler beim Verschieben:', error);
@@ -572,16 +548,35 @@ export class ShoppinglistPage implements OnInit {
   onTouchEnd(event: TouchEvent, shoppingProduct: any) {
     const touchEndX = event.changedTouches[0].screenX;
     const deltaX = touchEndX - this.touchStartX;
-    const swipeThreshold = 50; // etwas niedriger als vorher für bessere Erkennung
+    const swipeThreshold = 50;
 
     if (deltaX > swipeThreshold) {
-      this.moveProductToCart(shoppingProduct.shoppingProductId);
-      this.presentToast('Produkt wurde in den Warenkorb verschoben!');
+      (shoppingProduct as any).swiped = 'right';
+
+      setTimeout(() => {
+        this.moveProductToCart(shoppingProduct.shoppingProductId);
+        this.presentToast('Produkt wurde in den Warenkorb verschoben!');
+
+
+        this.shoppingproducts = this.shoppingproducts.filter(
+          (p) => p.shoppingProductId !== shoppingProduct.shoppingProductId
+        );
+
+        this.groupProductsByDate();
+      }, 300);
+
     } else if (deltaX < -swipeThreshold) {
-      this.productToDelete = shoppingProduct;
-      this.showDeleteAlert();
+      (shoppingProduct as any).swiped = 'left';
+      setTimeout(() => {
+        this.productToDelete = shoppingProduct;
+        this.showDeleteAlert();
+        (shoppingProduct as any).swiped = null;
+      }, 300);
     }
   }
+
+
+
 
 
   async presentToast(message: string) {

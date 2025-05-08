@@ -305,15 +305,17 @@
 
     <ion-list class="shopping-list">
       <ng-container *ngFor="let group of groupedProducts">
-    <span class="date" [ngClass]="{'past-date': isPast(group.date)}">
-      {{ group.date }}
-    </span>
+        <span class="date" [ngClass]="{'past-date': isPast(group.date)}">
+          {{ group.date }}
+        </span>
 
         <ion-item
           class="shoppingplist-item"
           *ngFor="let shoppingproduct of group.shoppingproducts"
           (touchstart)="onTouchStart($event)"
-          (touchend)="onTouchEnd($event, shoppingproduct)">
+          (touchend)="onTouchEnd($event, shoppingproduct)"
+          [class.swipe-right]="shoppingproduct.swiped === 'right'"
+          [class.swipe-left]="shoppingproduct.swiped === 'left'">
 
         <div class="profile-placeholder"
                [ngStyle]="{
