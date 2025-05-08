@@ -1,25 +1,41 @@
-import {Component, inject, OnInit} from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {IonBadge, IonButton, IonContent, IonHeader, IonIcon, IonTitle, IonToolbar} from '@ionic/angular/standalone';
-import {AuthService} from "../../services/auth.service";
-import {ActivatedRoute, Router} from "@angular/router";
-import {AlertController, NavController, Platform} from "@ionic/angular";
-import {LoadingService} from "../../services/loading.service";
-import {GroupService} from "../../services/group.service";
-import {ExpenseService} from "../../services/expense.service";
-import {TransactionService} from "../../services/transaction.service";
-import {ExpenseMember} from "../../services/objects/ExpenseMember";
-import {Products} from "../../services/objects/Products";
-import {Expenses} from "../../services/objects/Expenses";
-import {Transactions} from "../../services/objects/Transactions";
+import {
+  IonBadge,
+  IonButton,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonToolbar,
+} from '@ionic/angular/standalone';
+import { AuthService } from '../../services/auth.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AlertController, NavController, Platform } from '@ionic/angular';
+import { LoadingService } from '../../services/loading.service';
+import { GroupService } from '../../services/group.service';
+import { ExpenseService } from '../../services/expense.service';
+import { TransactionService } from '../../services/transaction.service';
+import { ExpenseMember } from '../../services/objects/ExpenseMember';
+import { Products } from '../../services/objects/Products';
+import { Expenses } from '../../services/objects/Expenses';
+import { Transactions } from '../../services/objects/Transactions';
 
 @Component({
   selector: 'app-settle-balances',
   templateUrl: './settle-balances.page.html',
   styleUrls: ['./settle-balances.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonBadge, IonButton, IonIcon]
+  imports: [
+    IonContent,
+    IonHeader,
+    IonToolbar,
+    CommonModule,
+    FormsModule,
+    IonBadge,
+    IonButton,
+    IonIcon,
+  ],
 })
 export class SettleBalancesPage implements OnInit {
   private authService = inject(AuthService);
@@ -315,24 +331,37 @@ export class SettleBalancesPage implements OnInit {
   }
 
   async pay() {
-    const amount = this.getAmountToPayForMember(this.expense[0], this.uid!);
-    const trans: Transactions = {
-      transactionId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
-      from: this.uid || '',
-      to: this.expensePaidBy || '',
-      amount: amount,
-      reason: this.expense[0].description,
-      date: new Date().toISOString(),
-      relatedExpenses: [this.expenseId],
-    };
+    if(this.authService.currentUser){
+      const amount = this.getAmountToPayForMember(
+        this.expense[0],
+        this.authService.currentUser.uid
+      );
+      const trans: Transactions = {
+        transactionId: (
+          Date.now() + Math.floor(Math.random() * 1000)
+        ).toString(),
+        from: this.uid || '',
+        to: this.expensePaidBy || '',
+        amount: amount,
+        reason: this.expense[0].description,
+        date: new Date().toISOString(),
+        relatedExpenses: [this.expenseId],
+      };
 
-    //Transaktion wird direkt ausgeführt
-    await this.transactionService.makeTransactionById(this.groupId, this.expenseId, trans);
-
+      await this.transactionService.makeTransactionById(
+        this.groupId,
+        this.expenseId,
+        this.authService.currentUser.uid,
+        trans
+      );
+    } else {
+      console.log("current user is null")
+    }
     // Danach: Nur noch fragen, ob man sie sehen will
     const alert = await this.alertController.create({
       header: 'Transaktion abgeschlossen',
-      message: 'Deine Schulden wurden bezahlt. Möchtest du dir die Transaktion ansehen?',
+      message:
+        'Deine Schulden wurden bezahlt. Möchtest du dir die Transaktion ansehen?',
       cssClass: 'custom-alert-pay-expenses',
       buttons: [
         {

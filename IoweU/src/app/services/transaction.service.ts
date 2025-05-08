@@ -14,6 +14,7 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { Balances } from './objects/Balances';
+import { Expenses } from './objects/Expenses';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +27,7 @@ export class TransactionService {
   async makeTransactionById(
     groupId: string,
     expenseId: string,
+    uid: string,
     transaction: Transactions
   ): Promise<Transactions | null> {
     try {
@@ -52,10 +54,15 @@ export class TransactionService {
 
       //Mitglieder Felder aktualisieren
       await this.updateMemberAmounts(groupId, transaction, 1);
-      await this.updateMemberBalancesOnTransaction('addition', groupId, transaction, transactionId);
+      await this.updateMemberBalancesOnTransaction(
+        'addition',
+        groupId,
+        transaction,
+        transactionId
+      );
       console.log('Transaction added:', transactionId);
       //Expense Status updaten
-      await this.updateExpenseState(expenseId, true);
+      await this.updateUserStateOnExpense(groupId, expenseId, uid, true);
       return transactionData;
     } catch {
       return null;
@@ -103,7 +110,8 @@ export class TransactionService {
 
   async deleteTransactionsById(
     groupId: string,
-    expenseId : string,
+    expenseId: string,
+    uid: string,
     transaction: Transactions,
     transactionId: string
   ) {
@@ -117,10 +125,15 @@ export class TransactionService {
       );
       await deleteDoc(transactionCollection);
       await this.updateMemberAmounts(groupId, transaction, -1);
-      await this.updateMemberBalancesOnTransaction('deletion', groupId, transaction, transactionId);
+      await this.updateMemberBalancesOnTransaction(
+        'deletion',
+        groupId,
+        transaction,
+        transactionId
+      );
       console.log('Transaction deleted:', transactionId);
       //Expense Status updaten
-      await this.updateExpenseState(expenseId, false);
+      await this.updateUserStateOnExpense(groupId, expenseId, uid, false);
     } catch {
       throw new Error(`Couldnt delete Transaction with Id: ${transactionId}`);
     }
@@ -182,79 +195,153 @@ export class TransactionService {
     groupId: string,
     currentTransaction: Transactions,
     newTransactionId: string
-    ): Promise<void> 
-    {
-      //Update the id of the transaction
-      currentTransaction.transactionId = newTransactionId;
-      // Get the balances collection for the group
-      
-      const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
-      const balancesQuery = query(
-        balancesRef,
-        where('userAId', 'in', [currentTransaction.from, currentTransaction.to]),
-        where('userBId', 'in', [currentTransaction.from, currentTransaction.to])
-      );
-      const snapshot = await getDocs(balancesQuery);
-      if (!snapshot.empty) {
-        const docRef = snapshot.docs[0].ref;
-        const data = snapshot.docs[0].data() as Balances;
-        const relatedTransactions = data.relatedTransactionId || [];
+  ): Promise<void> {
+    //Update the id of the transaction
+    currentTransaction.transactionId = newTransactionId;
+    // Get the balances collection for the group
 
-        switch (action) 
-        {
-          case 'addition':
-            // Update the balance for the new transaction and add it into the transaction list of the balance
-            if(currentTransaction.from === data.userAId && currentTransaction.to === data.userBId) 
+    const balancesRef = collection(
+      this.firestore,
+      'groups',
+      groupId,
+      'balances'
+    );
+    const balancesQuery = query(
+      balancesRef,
+      where('userAId', 'in', [currentTransaction.from, currentTransaction.to]),
+      where('userBId', 'in', [currentTransaction.from, currentTransaction.to])
+    );
+    const snapshot = await getDocs(balancesQuery);
+    if (!snapshot.empty) {
+      const docRef = snapshot.docs[0].ref;
+      const data = snapshot.docs[0].data() as Balances;
+      const relatedTransactions = data.relatedTransactionId || [];
+
+      switch (action) {
+        case 'addition':
+          // Update the balance for the new transaction and add it into the transaction list of the balance
+          if (
+            currentTransaction.from === data.userAId &&
+            currentTransaction.to === data.userBId
+          ) {
+            const newCreditA = data.userACredit + currentTransaction.amount;
+            relatedTransactions.push(currentTransaction.transactionId);
+            await setDoc(
+              docRef,
               {
-                const newCreditA = data.userACredit + currentTransaction.amount;
-                relatedTransactions.push(currentTransaction.transactionId);
-                await setDoc(docRef, { userACredit: newCreditA, relatedTransactionId: relatedTransactions}, { merge: true });
-                console.log(`Credit of the user ${data.userAId} at the user ${data.userBId} updated to ${newCreditA}. Transaction with the ID ${currentTransaction.transactionId} added to the list of transactions.`);
-              } 
-            else if(currentTransaction.from === data.userBId && currentTransaction.to === data.userAId)
+                userACredit: newCreditA,
+                relatedTransactionId: relatedTransactions,
+              },
+              { merge: true }
+            );
+            console.log(
+              `Credit of the user ${data.userAId} at the user ${data.userBId} updated to ${newCreditA}. Transaction with the ID ${currentTransaction.transactionId} added to the list of transactions.`
+            );
+          } else if (
+            currentTransaction.from === data.userBId &&
+            currentTransaction.to === data.userAId
+          ) {
+            const newCreditB = data.userBCredit + currentTransaction.amount;
+            relatedTransactions.push(currentTransaction.transactionId);
+            await setDoc(docRef, { userBCredit: newCreditB }, { merge: true });
+            console.log(
+              `Credit of the user ${data.userBId} at the user ${data.userBId} updated to ${newCreditB}. Transaction with the ID ${currentTransaction.transactionId} added to the list of transactions.`
+            );
+          }
+          break;
+        case 'deletion':
+          // Update the balance for the deleted transaction and remove it from the transaction list of the balance
+          if (
+            currentTransaction.from === data.userAId &&
+            currentTransaction.to === data.userBId
+          ) {
+            const deletedBalanceA =
+              data.userACredit - currentTransaction.amount;
+            const updatedTransactions = relatedTransactions.filter(
+              (id) => id !== currentTransaction.transactionId
+            );
+            await setDoc(
+              docRef,
               {
-                const newCreditB = data.userBCredit + currentTransaction.amount;
-                relatedTransactions.push(currentTransaction.transactionId);
-                await setDoc(docRef, { userBCredit: newCreditB}, { merge: true });
-                console.log(`Credit of the user ${data.userBId} at the user ${data.userBId} updated to ${newCreditB}. Transaction with the ID ${currentTransaction.transactionId} added to the list of transactions.`);
-              }
-            break;
-            case 'deletion':
-              // Update the balance for the deleted transaction and remove it from the transaction list of the balance
-              if (currentTransaction.from === data.userAId && currentTransaction.to === data.userBId) {
-                const deletedBalanceA = data.userACredit - currentTransaction.amount;
-                const updatedTransactions = relatedTransactions.filter(
-                  (id) => id !== currentTransaction.transactionId
-                );
-                await setDoc(docRef, { userACredit: deletedBalanceA, relatedTransactionId: updatedTransactions }, { merge: true });
-                console.log(`Transaction with ID ${currentTransaction.transactionId} removed from ${data.relatedTransactionId}. Updated credit: ${deletedBalanceA}`);
-              } else if (currentTransaction.from === data.userBId && currentTransaction.to === data.userAId) {
-                const deletedBalanceB = data.userBCredit - currentTransaction.amount;
-                const updatedTransactions = relatedTransactions.filter(
-                  (id) => id !== currentTransaction.transactionId
-                );
-                await setDoc(docRef, { userBCredit: deletedBalanceB, relatedTransactionId: updatedTransactions }, { merge: true });
-                console.log(`Transaction with ID ${currentTransaction.transactionId} removed from ${data.relatedTransactionId}. Updated credit: ${deletedBalanceB}`);
-              }
-              break;
-        }
-      } else {
-        console.error(`Balance between ${currentTransaction.from} and ${currentTransaction.to} doesn't exist.`);
-        return;
+                userACredit: deletedBalanceA,
+                relatedTransactionId: updatedTransactions,
+              },
+              { merge: true }
+            );
+            console.log(
+              `Transaction with ID ${currentTransaction.transactionId} removed from ${data.relatedTransactionId}. Updated credit: ${deletedBalanceA}`
+            );
+          } else if (
+            currentTransaction.from === data.userBId &&
+            currentTransaction.to === data.userAId
+          ) {
+            const deletedBalanceB =
+              data.userBCredit - currentTransaction.amount;
+            const updatedTransactions = relatedTransactions.filter(
+              (id) => id !== currentTransaction.transactionId
+            );
+            await setDoc(
+              docRef,
+              {
+                userBCredit: deletedBalanceB,
+                relatedTransactionId: updatedTransactions,
+              },
+              { merge: true }
+            );
+            console.log(
+              `Transaction with ID ${currentTransaction.transactionId} removed from ${data.relatedTransactionId}. Updated credit: ${deletedBalanceB}`
+            );
+          }
+          break;
       }
+    } else {
+      console.error(
+        `Balance between ${currentTransaction.from} and ${currentTransaction.to} doesn't exist.`
+      );
+      return;
     }
+  }
 
-  async updateExpenseState(expenseId: string, state: boolean) {
+  async updateUserStateOnExpense(
+    groupId: string,
+    expenseId: string,
+    uid: string,
+    state: boolean
+  ) {
     try {
-      const stateis = state ? 'ja' : 'nein';
-      const expenseRef = doc(this.firestore, 'expenses', expenseId);
+      const expenseRef = doc(this.firestore,'groups', groupId, 'expenses', expenseId);
 
-      await setDoc(expenseRef, { paid: state }, { merge: true });
+      // Hole die aktuelle Ausgabe aus der Datenbank
+      const snapshot = await getDoc(expenseRef);
 
-      console.log(`Expense ${expenseId} updated with paid: ${state}`);
+      if (snapshot.exists()) {
+        const expense = snapshot.data() as Expenses;
+
+        // Aktualisiere das Feld "paid" für den entsprechenden Member
+        const updatedExpenseMembers = expense.expenseMember.map((member) => {
+          if (member.memberId === uid) {
+            return { ...member, paid: state }; // Füge das Feld "paid" hinzu oder aktualisiere es
+          }
+          return member;
+        });
+
+        // Speichere die aktualisierte Liste zurück in die Datenbank
+        await setDoc(
+          expenseRef,
+          { expenseMember: updatedExpenseMembers },
+          { merge: true }
+        );
+
+        console.log(
+          `Expense ${expenseId} updated for member ${uid} with paid: ${state}`
+        );
+      } else {
+        console.error(`Expense with ID ${expenseId} not found.`);
+      }
     } catch (error) {
+      console.error(error);
       throw new Error(
-        `Fehler beim Aktualisieren des Feldes "paid": ${expenseId}`
+        `Fehler beim Aktualisieren des Feldes "paid" für Expense ${expenseId}`
       );
     }
   }
