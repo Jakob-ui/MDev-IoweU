@@ -138,6 +138,26 @@ export class GroupService {
     }
   }
 
+  listenToGroupChanges(
+    groupId: string,
+    updateGroupCallback: (group: Groups | null) => void
+  ): () => void {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+
+    const unsubscribe = onSnapshot(groupRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const groupData = docSnapshot.data() as Groups;
+        groupData.groupId = groupId;
+        updateGroupCallback(groupData); 
+      } else {
+        console.warn(`Gruppe mit ID ${groupId} nicht gefunden.`);
+        updateGroupCallback(null); 
+      }
+    });
+
+    return unsubscribe; 
+  }
+
   //Gruppe bearbeiten (nur als Gründer*in möglich):
   async updateGroup(
     uid: string,
@@ -234,42 +254,44 @@ export class GroupService {
       // 1. Fetch the group document
       const groupRef = doc(this.firestore, 'groups', groupId);
       const groupSnap = await getDoc(groupRef);
-  
+
       if (!groupSnap.exists()) {
         console.error(`Group with ID ${groupId} does not exist.`);
         return false;
       }
-  
+
       const groupData = groupSnap.data();
       const members = groupData['members'] || [];
-  
+
       // 2. Find the user in the group's members list
       const user = members.find((member: any) => member.uid === userId);
       if (!user) {
         console.error(`User with ID ${userId} is not a member of the group.`);
         return false;
       }
-  
+
       // 3. Check if the user's total group balance is 0
       const balance1 = user.sumExpenseMemberAmount - user.sumAmountPaid;
       const balance2 = user.sumExpenseAmount - user.sumAmountReceived;
-  
+
       if (balance1 !== 0 || balance2 !== 0) {
         console.error(
           `User ${userId} cannot be removed because they have an outstanding balance.`
         );
         return false;
       }
-  
+
       // 4. Remove the user from the group's members list
-      const updatedMembers = members.filter((member: any) => member.uid !== userId);
+      const updatedMembers = members.filter(
+        (member: any) => member.uid !== userId
+      );
       await updateDoc(groupRef, { members: updatedMembers });
       console.log(`User ${userId} removed from group ${groupId}.`);
-  
+
       // 5. Remove the groupId from the user's document
       const userRef = doc(this.firestore, 'users', userId);
       const userSnap = await getDoc(userRef);
-  
+
       if (userSnap.exists()) {
         const userData = userSnap.data();
         const updatedGroupIds = (userData['groupId'] || []).filter(

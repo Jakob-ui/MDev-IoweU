@@ -76,11 +76,12 @@ export class ExpensePage implements OnInit, OnDestroy {
   groupedExpenses: { date: string; expenses: Expenses[] }[] = [];
 
   visibleGroupedExpenses: { date: string; expenses: Expenses[] }[] = [];
-  private pageSize = 10;
+  private pageSize = 20;
   lastVisibleDoc: any | null = null;
   isLoadingMore: boolean = false;
   hasMoreExpenses: boolean = true;
   unsubscribeExpenses: (() => void) | null = null;
+  unsubscribeGroupListener: (() => void) | null = null;
 
   searchTerm: string = '';
   selectedCategories: string[] = [];
@@ -126,7 +127,17 @@ export class ExpensePage implements OnInit, OnDestroy {
               );
               this.groupMembers = [];
             }
+            //lade die ersten expenses
             await this.loadInitialExpenses();
+
+            //erstelle einen listener der auf changes in der Gruppe horcht
+            this.groupService.listenToGroupChanges(this.groupId!, (group) => {
+              if (group) {
+                this.sumExpenses = group.sumTotalExpenses || 0;
+              } else {
+                console.error('Gruppe nicht gefunden oder gelöscht.');
+              }
+            });
 
             // Initialisiere expenseMember
             this.expenses.forEach((expense) => {
@@ -175,6 +186,10 @@ export class ExpensePage implements OnInit, OnDestroy {
     if (this.unsubscribeExpenses) {
       this.unsubscribeExpenses();
       console.log('Unsubscribed from expense updates');
+    }
+    if (this.unsubscribeGroupListener) {
+      this.unsubscribeGroupListener();
+      console.log('Group listener unsubscribed');
     }
     document.addEventListener(
       'click',
