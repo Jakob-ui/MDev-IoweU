@@ -201,14 +201,14 @@ h7 {
 p,
 ion-card-content {
   font-family: var(--ion-font-family);
-  font-weight: 100;
+  font-weight: 300;
   font-size: 14px;
   color: var(--ion-color-dark) !important;
 }
 
 ion-card {
   font-family: var(--ion-font-family);
-  font-weight: 100;
+  font-weight: 300;
   background: var(--ion-color-secondary);
   border-radius: 15px;
   width: 80%;
@@ -235,7 +235,7 @@ ion-card-subtitle {
 
 ion-card-subtitle span {
   font-size: 14px;
-  font-weight: 100;
+  font-weight: 300;
 }
 
 ion-card-subtitle p {
@@ -343,7 +343,7 @@ ion-card-subtitle h6 {
 
 .Preis {
   margin-left: auto;
-  font-weight: 100;
+  font-weight: 400;
   padding: 5px 10px;
   font-size: 14px;
   border-radius: 50px;
@@ -390,7 +390,7 @@ ion-title {
 }
 
 ion-title .pagename {
-  font-weight: 100;
+  font-weight: 300;
   font-size: 16px;
   color: var(--ion-color-dark);
   border-bottom: solid 1px var(--ion-color-dark);
@@ -399,7 +399,7 @@ ion-title .pagename {
 }
 
 ion-title .username {
-  font-weight: 100;
+  font-weight: 300;
   font-size: 16px;
   color: var(--ion-color-dark);
   border-bottom: solid 1px var(--ion-color-dark);
@@ -428,16 +428,27 @@ ion-button.back-button::part(native) {
 
 ion-button.main-button::part(native) {
   --background: var(--ion-color-primary);
-  font-weight: 100;
+  font-weight: 700;
   padding: 12px 24px;
   text-transform: uppercase;
   border-radius: 50px;
+  box-shadow: none !important;
+  border: solid 2px var(--ion-color-dark);
+}
+
+ion-button.outline-button::part(native) {
+  --background: white;
+  font-weight: 700;
+  padding: 12px 24px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  border: solid 2px var(--ion-color-dark);
   box-shadow: none !important;
 }
 
 ion-button.delete-button::part(native) {
   --background: var(--ion-color-danger);
-  font-weight: 100;
+  font-weight: 700;
   padding: 12px 24px;
   text-transform: uppercase;
   border-radius: 50px;
@@ -447,7 +458,7 @@ ion-button.delete-button::part(native) {
 
 ion-button.edit-button::part(native) {
   --background: var(--ion-color-primary);
-  font-weight: 100;
+  font-weight: 700;
   font-size: 12px;
   padding: 10px 20px;
   text-transform: uppercase;
@@ -466,7 +477,7 @@ ion-button.main-button.error-button::part(native) {
 
 ion-icon.logout-button::part(native) {
   --background: var(--ion-color-primary);
-  font-weight: 100;
+  font-weight: 300;
   --font-size: 24px;
   padding: 10px 20px;
   text-transform: uppercase;
@@ -476,7 +487,7 @@ ion-icon.logout-button::part(native) {
 
 ion-item::part(native) {
   font-family: var(--ion-font-family);
-  font-weight: 100;
+  font-weight: 300;
   font-size: 14px;
   background: var(--ion-color-secondary) !important;
   border-radius: 50px;
@@ -486,7 +497,7 @@ ion-item::part(native) {
 
 ion-item .input-label::part(native) {
   font-family: var(--ion-font-family);
-  font-weight: 100;
+  font-weight: 300;
   font-size: 12px;
   background: var(--ion-color-dark);
   color: var(--ion-color-dark);
@@ -494,7 +505,7 @@ ion-item .input-label::part(native) {
 
 ion-item .Dropdown-label {
   font-family: var(--ion-font-family);
-  font-weight: 100;
+  font-weight: 300;
   font-size: 12px;
   color: var(--ion-color-dark);
 }
@@ -653,8 +664,14 @@ ion-item.select-interface-option::part(native) {
 }
 
 .input-item,
-.main-button {
+.main-button, {
   width: 80%;
+  max-width: 800px;
+  margin-bottom: 10px;
+}
+
+.outline-button{
+  width: auto;
   max-width: 800px;
   margin-bottom: 10px;
 }
@@ -700,7 +717,7 @@ ion-item.select-interface-option::part(native) {
 
 .menu-text {
   font-size: 14px;
-  font-weight: 100;
+  font-weight: 300;
   cursor: pointer;
   text-align: center;
   flex: 1;
@@ -726,7 +743,7 @@ ion-item.select-interface-option::part(native) {
 
 .link-text {
   font-size: 14px;
-  font-weight: 100;
+  font-weight: 300;
   cursor: pointer;
   text-align: center;
 }
@@ -799,11 +816,11 @@ ion-input:focus ~ .ionicon {
   button.cancel-button,
   button.delete-button {
     color: var(--ion-color-dark);
-    font-weight: 100;
+    font-weight: 300;
     text-transform: uppercase;
     box-shadow: none !important;
   }
- 
+
 }
 .custom-alert .alert-title {
   color: var(--ion-color-dark);
@@ -855,11 +872,11 @@ ion-alert {
   .alert-button-inner {
     color: #000;
   }
-  
+
 }
 
 .alert-button.alert-button-role-destructive .alert-button-inner {
-  color: rgb(201, 64, 64); 
+  color: rgb(201, 64, 64);
   font-weight: 800;
 }
 

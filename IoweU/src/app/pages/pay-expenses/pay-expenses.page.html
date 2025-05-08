@@ -49,10 +49,14 @@
   </div>
 
   <div class="page-container" *ngIf="expense">
+    <ion-button
+      class="outline-button"
+      expand="block">
+      Beleg hinzufügen
+    </ion-button>
     <div class="titel">
-      <h4>Du möchtest deinen Anteil an der Ausgabe</h4>
+      <h4>Ausgabe begleichen</h4>
       <h2>{{ expense[0].description }}</h2>
-      <h4>begleichen!</h4>
     </div>
 
     <div class="debt-details">
@@ -122,11 +126,6 @@
             </li>
           </ul>
         </div>
-      <ion-button
-        class="main-button"
-        expand="block">
-        Beleg hinzufügen
-      </ion-button>
     </ng-container>
 
     <div class="space"></div>
