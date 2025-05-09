@@ -87,6 +87,7 @@ export class SettleBalancesPage implements OnInit {
 
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
+  deptList = [{ from: '', to: '', debt: 0 }];
   products: Products[] = [];
 
   visibleProducts: { [key: string]: boolean } = {};
@@ -112,27 +113,27 @@ export class SettleBalancesPage implements OnInit {
       paidBy: '',
       date: new Date().toISOString().split('T')[0],
       currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
-      category: '', // optional
-      invoice: '', // optional
-      repeat: '', // Wiederholung, falls benötigt
-      splitType: 'prozent', // Kann 'prozent', 'anteile' oder 'produkte' sein
-      splitBy: 'alle', // Kann 'alle' oder 'frei' sein
+      category: '',
+      invoice: '',
+      repeat: '',
+      splitType: 'prozent',
+      splitBy: 'alle',
       expenseMember: [
         {
-          memberId: '', // Leerer String für den Member
-          amountToPay: 0, // Betrag, der zu zahlen ist
-          split: 0, // Optional, je nach Bedarf
+          memberId: '',
+          amountToPay: 0,
+          split: 0,
           paid: false,
           products: [
             {
               productId: (
                 Date.now() + Math.floor(Math.random() * 1000)
               ).toString(),
-              memberId: '', // Leerer String für den Member
-              productname: '', // Leerer String für den Produktnamen
-              quantity: 1, // Standardmenge 1
-              unit: '', // Einheit, z.B. "kg", "Stück"
-              price: 0, // Preis des Produkts
+              memberId: '',
+              productname: '',
+              quantity: 1,
+              unit: '',
+              price: 0,
             },
           ],
         },
@@ -163,6 +164,16 @@ export class SettleBalancesPage implements OnInit {
         console.error(`Gruppe mit der ID ${this.groupId} nicht gefunden`);
         return;
       }
+      const rawDeptList = await this.transactionService.settleAllDepts(
+        this.groupId,
+        currentGroup
+      );
+      this.deptList = rawDeptList.map(([from, to, debt]) => ({
+        from,
+        to,
+        debt,
+      }));
+      console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
 
       this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
       this.groupMembers = currentGroup.members || [];
@@ -173,60 +184,12 @@ export class SettleBalancesPage implements OnInit {
       this.memberRoles = this.groupMembers.map((m) => m.role || '');
       this.memberUids = this.groupMembers.map((m) => m.uid || '');
 
-      await this.expenseService.getExpenseById(
-        this.groupId,
-        this.expenseId,
-        this.repeatingExpense,
-        (fetchedExpense) => {
-          if (fetchedExpense) {
-            this.expense = [fetchedExpense];
-
-            const expenseData = this.expense[0];
-            this.expenseDescription = expenseData.description || '';
-            this.expenseTotalAmount = expenseData.totalAmount || 0;
-            this.expensePaidBy = expenseData.paidBy || '';
-            this.expenseDate = expenseData.date || '';
-            this.expenseCurrency = expenseData.currency[0] || '';
-            this.expenseCategory = expenseData.category || '';
-            this.expenseMember = expenseData.expenseMember || [];
-            this.expenseMemberIds = this.expenseMember.map(
-              (m) => m.memberId || ''
-            );
-            this.expenseMemberSplitType = expenseData.splitType || '';
-            this.expenseMemberSplitBy = expenseData.splitBy || '';
-            this.expenseMemberPaidBy = expenseData.paidBy || '';
-
-            const currentMember = this.expenseMember.find(
-              (m) => m.memberId === this.uid
-            );
-            this.expenseAmountToPay = currentMember?.amountToPay || 0;
-
-            this.expensePaidByUsername = this.getPaidByName(this.expensePaidBy);
-
-            console.log('Geladene Expense:', this.expense);
-          } else {
-            console.error('Expense nicht gefunden');
-          }
-        }
-      );
-
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
       this.loadingService.hide();
     }
-  }
-
-  getAmountToPayForMember(
-    expense: Partial<Expenses>,
-    memberId: string
-  ): number {
-    if (!expense || !expense.expenseMember) return 0;
-    const memberEntry = expense.expenseMember.find(
-      (m) => m.memberId === memberId
-    );
-    return memberEntry?.amountToPay ?? 0;
   }
 
   getAmountClass(expense: Expenses, memberId: string): string {
@@ -271,7 +234,6 @@ export class SettleBalancesPage implements OnInit {
   }
 
   getPurchasedProductsForMember(memberId: string): Products[] {
-    // Ensure that this.expense is properly defined and is not empty
     if (!this.expense || this.expense.length === 0) {
       return []; // Return an empty array if no expense is available
     }
@@ -291,26 +253,8 @@ export class SettleBalancesPage implements OnInit {
     return member?.products ?? [];
   }
 
-  isProductsVisibleForMember(memberId: string): boolean {
-    return this.visibleProducts[memberId] || false;
-  }
-
-  getUserAmount(expense: Expenses): number {
-    //console.log('Aktueller Benutzer:', this.uid);
-    const userEntry = expense.expenseMember?.find(
-      (member) => member.memberId === this.uid
-    );
-    //console.log('UserEntry:', userEntry);
-    return userEntry?.amountToPay ?? 0;
-  }
-
   goBack() {
     this.navCtrl.back();
-  }
-
-  getPaidByName(uid: string): string {
-    const memberIndex = this.memberUids.indexOf(uid);
-    return memberIndex >= 0 ? this.memberUsernames[memberIndex] : '';
   }
 
   toggleInvoiceOverlay() {
@@ -331,32 +275,6 @@ export class SettleBalancesPage implements OnInit {
   }
 
   async pay() {
-    if(this.authService.currentUser){
-      const amount = this.getAmountToPayForMember(
-        this.expense[0],
-        this.authService.currentUser.uid
-      );
-      const trans: Transactions = {
-        transactionId: (
-          Date.now() + Math.floor(Math.random() * 1000)
-        ).toString(),
-        from: this.uid || '',
-        to: this.expensePaidBy || '',
-        amount: amount,
-        reason: this.expense[0].description,
-        date: new Date().toISOString(),
-        relatedExpenses: [this.expenseId],
-      };
-
-      await this.transactionService.makeTransactionById(
-        this.groupId,
-        this.expenseId,
-        this.authService.currentUser.uid,
-        trans
-      );
-    } else {
-      console.log("current user is null")
-    }
     // Danach: Nur noch fragen, ob man sie sehen will
     const alert = await this.alertController.create({
       header: 'Transaktion abgeschlossen',

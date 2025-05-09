@@ -15,12 +15,19 @@ import {
 } from '@angular/fire/firestore';
 import { Balances } from './objects/Balances';
 import { Expenses } from './objects/Expenses';
+import { GroupService } from './group.service';
+import { AuthService } from './auth.service';
+import { Groups } from './objects/Groups';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TransactionService {
   private firestore = inject(Firestore);
+  private groupService = inject(GroupService);
+  private authService = inject(AuthService);
+
+  deptList = [{ from: '', to: '', debt: 0 }];
 
   constructor() {}
 
@@ -394,5 +401,99 @@ export class TransactionService {
         `Fehler beim Aktualisieren des Feldes "paid" für Expense ${expenseId}`
       );
     }
+  }
+
+  async settleAllDepts(groupId: string, currentGroup: Groups) {
+    try {
+      // Abrufen aller Balances aus der Datenbank
+      const querySnapshot = await getDocs(
+        collection(this.firestore, 'groups', groupId, 'balances')
+      );
+
+      // Liste der Schulden erstellen
+      const schulden: [string, string, number][] = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const userACredit = data['userACredit'] || 0;
+        const userBCredit = data['userBCredit'] || 0;
+        const userAId = data['userAId'];
+        const userBId = data['userBId'];
+
+        const debt = userACredit - userBCredit;
+
+        if (currentGroup) {
+          const userAName = currentGroup.members.find(
+            (member) => member.uid === userAId
+          )?.username;
+          const userBName = currentGroup.members.find(
+            (member) => member.uid === userBId
+          )?.username;
+
+          if (debt > 0) {
+            schulden.push([userBName || '', userAName || '', debt]);
+          } else if (debt < 0) {
+            schulden.push([userAName || '', userBName || '', -debt]);
+          }
+        } 
+      });
+
+      // Schulden in deptList speichern
+      this.deptList = schulden.map(([from, to, debt]) => ({ from, to, debt }));
+      console.log('Dept List:', this.deptList);
+
+      // Schuldenverteilung berechnen
+      const ausgleichTransaktionen = this.schuldenAusgleichen(schulden);
+      console.log('Ausgleichstransaktionen:', ausgleichTransaktionen);
+
+      return ausgleichTransaktionen;
+    } catch (error) {
+      console.error('Fehler beim Berechnen der Schulden:', error);
+      throw new Error('Fehler beim Berechnen der Schulden');
+    }
+  }
+
+  schuldenAusgleichen(schulden: [string, string, number][]) {
+    const nettoSchulden: Record<string, number> = {};
+
+    for (const [schuldner, glaeubiger, betrag] of schulden) {
+      nettoSchulden[schuldner] = (nettoSchulden[schuldner] || 0) - betrag;
+      nettoSchulden[glaeubiger] = (nettoSchulden[glaeubiger] || 0) + betrag;
+    }
+
+    const ausgleichTransaktionen: [string, string, number][] = [];
+    const glaeubiger = Object.entries(nettoSchulden)
+      .filter(([, betrag]) => betrag > 0)
+      .sort(([, a], [, b]) => b - a); // Nach höchster Gutschrift sortieren
+    const schuldner = Object.entries(nettoSchulden)
+      .filter(([, betrag]) => betrag < 0)
+      .sort(([, a], [, b]) => a - b); // Nach höchster Schuld sortieren (negativ)
+
+    let i = 0;
+    let j = 0;
+
+    while (i < schuldner.length && j < glaeubiger.length) {
+      const [schuldnerName, schuld] = schuldner[i];
+      const [glaeubigerName, gutschrift] = glaeubiger[j];
+
+      const ausgleichsBetrag = Math.min(-schuld, gutschrift);
+      ausgleichTransaktionen.push([
+        schuldnerName,
+        glaeubigerName,
+        ausgleichsBetrag,
+      ]);
+
+      nettoSchulden[schuldnerName] += ausgleichsBetrag;
+      nettoSchulden[glaeubigerName] -= ausgleichsBetrag;
+
+      if (nettoSchulden[schuldnerName] === 0) {
+        i++;
+      }
+      if (nettoSchulden[glaeubigerName] === 0) {
+        j++;
+      }
+    }
+
+    return ausgleichTransaktionen;
   }
 }

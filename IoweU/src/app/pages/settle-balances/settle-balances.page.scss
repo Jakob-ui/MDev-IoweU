@@ -4,6 +4,7 @@ h2{
 
 h4{
   margin-top: 10px !important;
+  text-align: center;
 }
 
 .titel{
@@ -11,12 +12,21 @@ h4{
   flex-direction: column;
   margin-bottom: 30px;
   margin-top: 30px;
-  max-width: 80%;
-  justify-content: center;
+  max-width: 90%;
   align-items: center;
 }
 
+.beleg-button{
+  width: 80%;
+}
 
+.balance-page-container{
+  width: 100%;
+  margin: auto;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
 
 .detailedprice-overview {
   width: 80%;
@@ -30,10 +40,14 @@ h4{
   padding: 10px 0; /* Etwas Abstand oben und unten */
 }
 
+.transaction-details{
+  display: flex;
+}
+
 .member-info {
   display: flex;
   align-items: center;
-  flex-grow: 0; /* Verhindert, dass die member-info-Box wächst */
+  flex-grow: 0;
 }
 
 .detailedprice {
@@ -214,8 +228,8 @@ h4{
   font-weight: 600;
   font-size: 20px;
   padding: 10px 20px;
+  margin: 0 10px;
 }
-
 
 @media (max-width: 500px) {
   .debt-details {

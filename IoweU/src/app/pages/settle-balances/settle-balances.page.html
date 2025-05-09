@@ -8,83 +8,73 @@
       ></ion-icon>
     </div>
 
-    <div class="right-container" slot="end">
-
-    </div>
+    <div class="right-container" slot="end"></div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="page-container" *ngIf="expense">
-    <ion-button
-      class="outline-button"
-      expand="block">
+  <div class="balance-page-container" *ngIf="expense">
+    <ion-button class="outline-button" expand="block">
       Beleg hinzufügen
     </ion-button>
     <div class="titel">
-      <h4>Bilanzen ausgleichen</h4>
+      <h4>Großer Gruppenausgleich</h4>
       <h2>{{ groupname }}</h2>
     </div>
 
-    <div class="debt-details">
-      <div
-        class="member-info"
-        [ngStyle]="{
+    <div class="debt-details" *ngFor="let debt of deptList">
+      <div class="transaction-details">
+        <div
+          class="member-info"
+          [ngStyle]="{
                   'background-color': 'var(--member-color-background-' + uid + ')',
                   'border-color': 'var(--member-color-' + uid + ')'
                }"
-      >
-        <div
-          class="profile-placeholder"
-          [ngStyle]="{
+        >
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{
                 'background-color': 'var(--member-color-' + uid + ')',
                 'border-color': 'var(--member-color-' + uid + ')'
               }"
-        ></div>
-        <span class="member-name">{{ user }}</span>
-      </div>
-      <span>überweise</span>
-      <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0], uid!)">
-        {{ getAmountToPayForMember(expense[0], uid!) | currency:
-        'EUR' }}
-      </ion-badge>
-      <span>an</span>
+          ></div>
+          <span class="member-name">{{ debt.from }}</span>
+        </div>
+        <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0], uid!)"
+          >{{ debt.debt | number: '1.2-2' }}
+        </ion-badge>
 
-      <div
-        class="member-info"
-        [ngStyle]="{
+        <div
+          class="member-info"
+          [ngStyle]="{
                   'background-color': 'var(--member-color-background-' + expense[0].paidBy + ')',
                   'border-color': 'var(--member-color-' + expense[0].paidBy + ')'
                }"
-      >
-        <div
-          class="profile-placeholder"
-          [ngStyle]="{
+        >
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{
                 'background-color': 'var(--member-color-' + expense[0].paidBy + ')',
                 'border-color': 'var(--member-color-' + expense[0].paidBy + ')'
               }"
-        ></div>
-        <span class="member-name">{{ expensePaidByUsername }}</span>
+          ></div>
+          <span class="member-name">{{ debt.to }}</span>
+        </div>
       </div>
-
     </div>
     <ng-container
       *ngIf="expense?.length && expense[0].expenseMember?.length && groupMembers?.length"
     >
-
-      <div
-        *ngIf="isProductsVisibleForMember(uid!)"
-        class="product-list"
-      >
+      <div *ngIf="products" class="product-list">
         <ul>
           <li
             class="products"
             *ngFor="let product of getPurchasedProductsForMember(uid!)"
           >
             <div class="left-container">
-                <span class="product-quantity"
+              <span class="product-quantity"
                 >{{ product.quantity }} {{ product.unit }}</span
-                >
+              >
               <span class="product">{{ product.productname }}</span>
             </div>
             <ion-badge class="product-price">
@@ -97,10 +87,7 @@
 
     <div class="space"></div>
     <div class="button-container">
-      <ion-button
-        class="main-button"
-        expand="block"
-        (click)="pay()">
+      <ion-button class="main-button" expand="block" (click)="pay()">
         Bilanzen wurden ausgeglichen
       </ion-button>
     </div>

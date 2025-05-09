@@ -1,6 +1,32 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
+  IonHeader,
+  IonToolbar,
+  IonContent,
+  IonItem,
+  IonList,
+  IonBadge,
+  IonCard,
+  IonIcon,
+  IonButton,
+} from '@ionic/angular/standalone';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { NavController, Platform } from '@ionic/angular';
+import { LoadingService } from '../../services/loading.service';
+import { GroupService } from '../../services/group.service';
+import { ExpenseService } from '../../services/expense.service';
+import { QRCodeComponent } from 'angularx-qrcode';
+import { TransactionService } from 'src/app/services/transaction.service';
+
+@Component({
+  selector: 'app-finance',
+  templateUrl: './finance.page.html',
+  styleUrls: ['./finance.page.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
     IonHeader,
     IonToolbar,
     IonContent,
@@ -8,34 +34,10 @@ import {
     IonList,
     IonBadge,
     IonCard,
-    IonIcon, IonButton,
-} from '@ionic/angular/standalone';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { NavController, Platform } from '@ionic/angular';
-import { LoadingService } from '../../services/loading.service';
-import { GroupService } from '../../services/group.service';
-import { ExpenseService } from "../../services/expense.service";
-import {QRCodeComponent} from "angularx-qrcode";
-
-@Component({
-  selector: 'app-finance',
-  templateUrl: './finance.page.html',
-  styleUrls: ['./finance.page.scss'],
-  standalone: true,
-    imports: [
-        CommonModule,
-        IonHeader,
-        IonToolbar,
-        IonContent,
-        IonItem,
-        IonList,
-        IonBadge,
-        IonCard,
-        IonIcon,
-        RouterModule,
-        IonButton,
-    ],
+    IonIcon,
+    RouterModule,
+    IonButton,
+  ],
 })
 export class FinancePage implements OnInit {
   private authService = inject(AuthService);
@@ -46,6 +48,7 @@ export class FinancePage implements OnInit {
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
+  private transactionService = inject(TransactionService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -79,7 +82,9 @@ export class FinancePage implements OnInit {
       const currentUser = this.authService.currentUser;
 
       if (!currentUser || !currentUser.uid || !currentUser.username) {
-        console.error('Kein Benutzer eingeloggt oder unvollständige Benutzerdaten.');
+        console.error(
+          'Kein Benutzer eingeloggt oder unvollständige Benutzerdaten.'
+        );
         return;
       }
 
@@ -137,7 +142,9 @@ export class FinancePage implements OnInit {
               );
 
               const saldo = amount; // Positiv bedeutet: Ich bekomme Geld
-              console.log(`Saldo zwischen ${this.user} und ${member.username}: ${saldo}`);
+              console.log(
+                `Saldo zwischen ${this.user} und ${member.username}: ${saldo}`
+              );
 
               if (saldo > 0) {
                 this.myIncome += saldo;
@@ -166,11 +173,9 @@ export class FinancePage implements OnInit {
     }
   }
 
-
   get myBalance(): number {
     return this.myIncome - this.myExpenses;
   }
-
 
   async logout() {
     this.loadingService.show();
@@ -189,7 +194,6 @@ export class FinancePage implements OnInit {
   }
 
   toggleInfoOverlay() {
-
     console.log('Overlay state:', this.overlayState);
 
     // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
@@ -206,7 +210,7 @@ export class FinancePage implements OnInit {
     console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 
-  goToPayAllExpenses(){
+  async goToPayAllExpenses() {
     this.router.navigate(['/settle-balances', this.groupId]);
   }
 }
