@@ -404,7 +404,90 @@ export class TransactionService {
     }
   }
 
-  async settleAllDepts(groupId: string, currentGroup: Groups) {
+  async markAllMembersAsPaid(
+    groupId: string,
+    expenseId: string
+  ): Promise<void> {
+    try {
+      const expenseRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'expenses',
+        expenseId
+      );
+      const expenseSnapshot = await getDoc(expenseRef);
+
+      if (expenseSnapshot.exists()) {
+        const expense = expenseSnapshot.data() as Expenses;
+
+        // Aktualisiere das Feld "paid" für alle Mitglieder
+        const updatedExpenseMembers = expense.expenseMember.map((member) => ({
+          ...member,
+          paid: true,
+        }));
+
+        // Speichere die aktualisierte Liste zurück in die Datenbank
+        await setDoc(
+          expenseRef,
+          { expenseMember: updatedExpenseMembers },
+          { merge: true }
+        );
+
+        console.log(
+          `Expense ${expenseId} updated: All members marked as paid.`
+        );
+      } else {
+        console.warn(`Expense with ID ${expenseId} not found.`);
+      }
+    } catch (error) {
+      console.error(
+        `Fehler beim Aktualisieren des Feldes "paid" für Expense ${expenseId}:`,
+        error
+      );
+      throw new Error(
+        `Fehler beim Aktualisieren des Feldes "paid" für Expense ${expenseId}`
+      );
+    }
+  }
+
+  async getFilteredRelatedExpenses(
+    groupId: string,
+    relatedExpenseIds: string[],
+    uid: string
+  ): Promise<Expenses[]> {
+    const filteredExpenses: Expenses[] = [];
+
+    for (const expenseId of relatedExpenseIds) {
+      const expenseRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'expenses',
+        expenseId
+      );
+      const expenseSnapshot = await getDoc(expenseRef);
+
+      if (expenseSnapshot.exists()) {
+        const expense = expenseSnapshot.data() as Expenses;
+
+        // Filtere die Ausgaben, bei denen der Benutzer noch nicht bezahlt hat
+        const hasUnpaidMember = expense.expenseMember.some(
+          (member) => member.memberId === uid && !member.paid
+        );
+
+        if (hasUnpaidMember) {
+          filteredExpenses.push(expense);
+        }
+      } else {
+        console.warn(`Expense with ID ${expenseId} not found.`);
+      }
+    }
+
+    return filteredExpenses;
+  }
+
+  async settleAllDepts(groupId: string) {
     try {
       // Abrufen aller Balances aus der Datenbank
       const querySnapshot = await getDocs(
@@ -424,21 +507,16 @@ export class TransactionService {
 
         const debt = userACredit - userBCredit;
 
-          if (debt > 0) {
-            schulden.push([
-              userBId || '',
-              userAId || '',
-              debt,
-              relatedExpenseId,
-            ]);
-          } else if (debt < 0) {
-            schulden.push([
-              userAId || '',
-              userBId || '',
-              -debt,
-              relatedExpenseId,
-            ]);
-          }
+        if (debt > 0) {
+          schulden.push([userBId || '', userAId || '', debt, relatedExpenseId]);
+        } else if (debt < 0) {
+          schulden.push([
+            userAId || '',
+            userBId || '',
+            -debt,
+            relatedExpenseId,
+          ]);
+        }
       });
 
       // Schulden in deptList speichern

@@ -7,7 +7,10 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
-  IonToolbar, IonItem, IonList } from '@ionic/angular/standalone';
+  IonToolbar,
+  IonItem,
+  IonList,
+} from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, NavController, Platform } from '@ionic/angular';
@@ -172,8 +175,7 @@ export class SettleBalancesPage implements OnInit {
         return;
       }
       const rawDeptList = await this.transactionService.settleAllDepts(
-        this.groupId,
-        currentGroup
+        this.groupId
       );
       this.deptList = rawDeptList.map(([from, to, debt, relatedExpenses]) => ({
         from,
@@ -265,13 +267,21 @@ export class SettleBalancesPage implements OnInit {
   }
 
   getUserAmount(expense: Expenses): number {
-    const userEntry = expense.expenseMember?.find(
+    if (!expense || !expense.expenseMember) {
+      return 0;
+    }
+
+    const userEntry = expense.expenseMember.find(
       (member) => member.memberId === this.uid
     );
     return userEntry?.amountToPay ?? 0;
   }
 
   getAmountClass(expense: Expenses): string {
+    if (!expense) {
+      return 'neutral';
+    }
+
     const amount = this.getUserAmount(expense);
     const isPaidByCurrentUser = expense.paidBy === this.uid;
 
@@ -305,17 +315,20 @@ export class SettleBalancesPage implements OnInit {
     const relatedExpenseIds = this.deptList.flatMap(
       (debt) => debt.relatedExpenses
     );
-    const repeating = false; // Setze dies auf `true`, wenn es sich um wiederkehrende Ausgaben handelt
 
-    this.expenseService.getExpensesByRelatedIds(
-      this.groupId,
-      relatedExpenseIds,
-      repeating,
-      (expenses) => {
-        console.log('Gefundene Ausgaben:', expenses);
-        this.expense = expenses;
-      }
-    );
+    try {
+      const filteredExpenses =
+        await this.transactionService.getFilteredRelatedExpenses(
+          this.groupId,
+          relatedExpenseIds,
+          this.uid!
+        );
+
+      console.log('Gefilterte Ausgaben:', filteredExpenses);
+      this.expense = filteredExpenses; // Speichere die gefilterten Ausgaben
+    } catch (error) {
+      console.error('Fehler beim Laden der gefilterten Ausgaben:', error);
+    }
   }
 
   async pay() {
@@ -331,14 +344,24 @@ export class SettleBalancesPage implements OnInit {
           relatedExpenses: debtmember.relatedExpenses,
         };
         console.log('transaction', transaction);
-        await this.transactionService.makeTransactionById(
-          this.groupId,
+        if (
           Array.isArray(debtmember.relatedExpenses)
             ? debtmember.relatedExpenses
-            : [debtmember.relatedExpenses],
-          debtmember.from,
-          transaction
-        );
+            : [debtmember.relatedExpenses]
+        ) {
+          await this.transactionService.makeTransactionById(
+            this.groupId,
+            debtmember.relatedExpenses,
+            debtmember.from,
+            transaction
+          );
+        }
+        for (const expenseId of debtmember.relatedExpenses) {
+          await this.transactionService.markAllMembersAsPaid(
+            this.groupId,
+            expenseId
+          );
+        }
         this.loadingService.hideLittle();
       } catch (error) {
         console.error(
