@@ -207,7 +207,7 @@ export class PayExpensesPage {
 
       await this.expenseService.getExpenseById(
         this.groupId,
-        this.expenseId,
+         this.expenseId,
         this.repeatingExpense,
         (fetchedExpense) => {
           if (fetchedExpense) {
@@ -369,9 +369,6 @@ export class PayExpensesPage {
            this.authService.currentUser.uid
          );
          const trans: Transactions = {
-           transactionId: (
-             Date.now() + Math.floor(Math.random() * 1000)
-           ).toString(),
            from: this.uid || '',
            to: this.expensePaidBy || '',
            amount: amount,
@@ -382,7 +379,7 @@ export class PayExpensesPage {
 
          await this.transactionService.makeTransactionById(
            this.groupId,
-           this.expenseId,
+           [this.expenseId],
            this.authService.currentUser.uid,
            trans
          );

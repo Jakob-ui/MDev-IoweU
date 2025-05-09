@@ -1,13 +1,14 @@
-h2{
+h2 {
   margin: 0;
+  text-align: center;
 }
 
-h4{
+h4 {
   margin-top: 10px !important;
   text-align: center;
 }
 
-.titel{
+.titel {
   display: flex;
   flex-direction: column;
   margin-bottom: 30px;
@@ -16,11 +17,11 @@ h4{
   align-items: center;
 }
 
-.beleg-button{
+.beleg-button {
   width: 80%;
 }
 
-.balance-page-container{
+.balance-page-container {
   width: 100%;
   margin: auto;
   align-items: center;
@@ -40,7 +41,7 @@ h4{
   padding: 10px 0; /* Etwas Abstand oben und unten */
 }
 
-.transaction-details{
+.transaction-details {
   display: flex;
 }
 
@@ -230,6 +231,18 @@ h4{
   padding: 10px 20px;
   margin: 0 10px;
 }
+.balance-page-container-empty{
+    display: flex;
+  justify-content: center;
+  align-items: center;    
+  height: 70%;
+  width: 100%;
+  text-align: center; 
+}
+
+.nothingToPay h2{
+  margin: auto;
+}
 
 @media (max-width: 500px) {
   .debt-details {
@@ -241,4 +254,3 @@ h4{
     margin: 10px 0;
   }
 }
-

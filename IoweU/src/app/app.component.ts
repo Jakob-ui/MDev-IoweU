@@ -11,12 +11,16 @@ import { LoadingService } from './services/loading.service';
 })
 export class AppComponent implements OnInit {
   loading: boolean = false;
+  littleloading: boolean = false;
   videoSource: string = ''; // Dynamische Videoquelle
 
   constructor(private LoadingService: LoadingService) {}
 
   isDarkMode(): boolean {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return (
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    );
   }
 
   ngOnInit() {
@@ -30,11 +34,18 @@ export class AppComponent implements OnInit {
       this.loading = isLoading;
     });
 
-    // Überwache Änderungen des Farbschemas
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
-      this.videoSource = event.matches
-        ? 'assets/gifs/loadingDarkMode.gif'
-        : 'assets/gifs/loadingLightMode.gif';
+    // Abonniere den Zustand des kleinen Lade-Overlays
+    this.LoadingService.littleLoading$.subscribe((isLittleLoading) => {
+      this.littleloading = isLittleLoading;
     });
+
+    // Überwache Änderungen des Farbschemas
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', (event) => {
+        this.videoSource = event.matches
+          ? 'assets/gifs/loadingDarkMode.gif'
+          : 'assets/gifs/loadingLightMode.gif';
+      });
   }
 }

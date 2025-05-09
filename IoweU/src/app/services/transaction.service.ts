@@ -33,8 +33,8 @@ export class TransactionService {
 
   async makeTransactionById(
     groupId: string,
-    expenseId: string,
-    uid: string,
+    expenseId: string[],
+    fromUid: string,
     transaction: Transactions
   ): Promise<Transactions | null> {
     try {
@@ -48,7 +48,7 @@ export class TransactionService {
         amount: transaction.amount,
         reason: transaction.reason,
         date: transaction.date,
-        relatedExpenses: [expenseId],
+        relatedExpenses: expenseId,
       };
       const expenseRef = doc(
         this.firestore,
@@ -68,8 +68,9 @@ export class TransactionService {
         transactionId
       );
       console.log('Transaction added:', transactionId);
-      //Expense Status updaten
-      await this.updateUserStateOnExpense(groupId, expenseId, uid, true);
+      for (const id of expenseId) {
+        await this.updateUserStateOnExpense(groupId, id, fromUid, true);
+      }
       return transactionData;
     } catch {
       return null;
@@ -411,7 +412,7 @@ export class TransactionService {
       );
 
       // Liste der Schulden erstellen
-      const schulden: [string, string, number][] = [];
+      const schulden: [string, string, number, string[]][] = [];
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -419,23 +420,25 @@ export class TransactionService {
         const userBCredit = data['userBCredit'] || 0;
         const userAId = data['userAId'];
         const userBId = data['userBId'];
+        const relatedExpenseId = data['relatedExpenseId'] || [];
 
         const debt = userACredit - userBCredit;
 
-        if (currentGroup) {
-          const userAName = currentGroup.members.find(
-            (member) => member.uid === userAId
-          )?.username;
-          const userBName = currentGroup.members.find(
-            (member) => member.uid === userBId
-          )?.username;
-
           if (debt > 0) {
-            schulden.push([userBName || '', userAName || '', debt]);
+            schulden.push([
+              userBId || '',
+              userAId || '',
+              debt,
+              relatedExpenseId,
+            ]);
           } else if (debt < 0) {
-            schulden.push([userAName || '', userBName || '', -debt]);
+            schulden.push([
+              userAId || '',
+              userBId || '',
+              -debt,
+              relatedExpenseId,
+            ]);
           }
-        } 
       });
 
       // Schulden in deptList speichern
@@ -453,15 +456,15 @@ export class TransactionService {
     }
   }
 
-  schuldenAusgleichen(schulden: [string, string, number][]) {
+  schuldenAusgleichen(schulden: [string, string, number, string[]][]) {
     const nettoSchulden: Record<string, number> = {};
+    const ausgleichTransaktionen: [string, string, number, string[]][] = [];
 
-    for (const [schuldner, glaeubiger, betrag] of schulden) {
+    for (const [schuldner, glaeubiger, betrag, relatedExpenses] of schulden) {
       nettoSchulden[schuldner] = (nettoSchulden[schuldner] || 0) - betrag;
       nettoSchulden[glaeubiger] = (nettoSchulden[glaeubiger] || 0) + betrag;
     }
 
-    const ausgleichTransaktionen: [string, string, number][] = [];
     const glaeubiger = Object.entries(nettoSchulden)
       .filter(([, betrag]) => betrag > 0)
       .sort(([, a], [, b]) => b - a); // Nach höchster Gutschrift sortieren
@@ -477,10 +480,18 @@ export class TransactionService {
       const [glaeubigerName, gutschrift] = glaeubiger[j];
 
       const ausgleichsBetrag = Math.min(-schuld, gutschrift);
+
+      // Finde die zugehörigen Expenses für diese Transaktion
+      const relatedExpenses = schulden
+        .filter(([s, g]) => s === schuldnerName && g === glaeubigerName)
+        .map(([, , , expenses]: [string, string, number, string[]]) => expenses)
+        .flat();
+
       ausgleichTransaktionen.push([
         schuldnerName,
         glaeubigerName,
         ausgleichsBetrag,
+        relatedExpenses,
       ]);
 
       nettoSchulden[schuldnerName] += ausgleichsBetrag;

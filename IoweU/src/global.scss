@@ -307,17 +307,17 @@ ion-card-subtitle h6 {
   flex-grow: 1;
 }
 
-.shoppingproduct-item h5{
+.shoppingproduct-item h5 {
   margin: 0 !important;
   top: 3px;
   position: relative;
 }
 
-.shoppingproduct-item .forMember{
+.shoppingproduct-item .forMember {
   margin-left: 10px;
 }
 
-.checkboxToShoppingcart{
+.checkboxToShoppingcart {
   margin-right: 10px;
   display: flex;
   align-items: center;
@@ -544,7 +544,7 @@ ion-item.select-interface-option::part(native) {
 
 .balance-list,
 .expense-list,
-.shopping-list{
+.shopping-list {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -664,13 +664,13 @@ ion-item.select-interface-option::part(native) {
 }
 
 .input-item,
-.main-button, {
+.main-button {
   width: 80%;
   max-width: 800px;
   margin-bottom: 10px;
 }
 
-.outline-button{
+.outline-button {
   width: auto;
   max-width: 800px;
   margin-bottom: 10px;
@@ -764,6 +764,22 @@ ion-item.select-interface-option::part(native) {
   z-index: 100;
 }
 
+.little-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(189, 189, 189, 0.449);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--ion-color-secondary);
+  font-size: 18px;
+  z-index: 100;
+}
+
 .space {
   height: 40px;
   background-color: transparent;
@@ -820,7 +836,6 @@ ion-input:focus ~ .ionicon {
     text-transform: uppercase;
     box-shadow: none !important;
   }
-
 }
 .custom-alert .alert-title {
   color: var(--ion-color-dark);
@@ -872,7 +887,6 @@ ion-alert {
   .alert-button-inner {
     color: #000;
   }
-
 }
 
 .alert-button.alert-button-role-destructive .alert-button-inner {
@@ -881,14 +895,14 @@ ion-alert {
 }
 
 //Popup Styling für pay-expenses, bzw auch generell für alle Popups
-.alert-button-group.sc-ion-alert-md  {
+.alert-button-group.sc-ion-alert-md {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
   gap: 10px;
 }
 
-.alert-button.sc-ion-alert-md{
+.alert-button.sc-ion-alert-md {
   display: flex;
   justify-content: center; /* Zentriert den Text horizontal */
   align-items: center; /* Zentriert den Text vertikal */
@@ -949,6 +963,10 @@ ion-alert {
     color: var(--ion-color-light);
     background: var(--ion-background-color);
   }
+  .little-loading-overlay {
+    color: var(--ion-color-light);
+    background: rgba(0, 0, 0, 0.603);;
+  }
 
   .logo {
     content: url("/assets/logo/LogoWeiss.png");
@@ -979,7 +997,7 @@ ion-alert {
     -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
 
-  .info-button{
+  .info-button {
     color: #000;
   }
 
@@ -990,12 +1008,10 @@ ion-alert {
     color: #000 !important;
   }
 
-
-
-  .button-container{
+  .button-container {
     background-color: #121212 !important;
   }
-  .backdrop-wrapper{
+  .backdrop-wrapper {
     background-color: #121212 !important;
   }
   ion-toolbar {
@@ -1007,11 +1023,10 @@ ion-alert {
   .page-container {
     background-color: #121212 !important;
   }
-  .button-row{
+  .button-row {
     background-color: #121212 !important;
   }
   .alert-button-inner.sc-ion-alert-md {
     color: var(--ion-color-light) !important;
-
   }
 }

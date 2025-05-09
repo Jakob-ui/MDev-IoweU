@@ -3,5 +3,9 @@
     <img class="loading-gif" [src]="videoSource" alt="Loading animation" />
     <p>loading...</p>
   </div>
+  <div *ngIf="littleloading" class="little-loading-overlay">
+    <img class="loading-gif" [src]="videoSource" alt="Loading animation" />
+    <p>Der Ausgleich wird Ausgeführt...</p>
+  </div>
   <ion-router-outlet></ion-router-outlet>
 </ion-app>

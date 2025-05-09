@@ -87,7 +87,12 @@ export class SettleBalancesPage implements OnInit {
 
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
-  deptList = [{ from: '', to: '', debt: 0 }];
+  deptList: {
+    from: string;
+    to: string;
+    debt: number;
+    relatedExpenses: string[];
+  }[] = [{ from: '', to: '', debt: 0, relatedExpenses: [] }];
   products: Products[] = [];
 
   visibleProducts: { [key: string]: boolean } = {};
@@ -168,10 +173,11 @@ export class SettleBalancesPage implements OnInit {
         this.groupId,
         currentGroup
       );
-      this.deptList = rawDeptList.map(([from, to, debt]) => ({
+      this.deptList = rawDeptList.map(([from, to, debt, relatedExpenses]) => ({
         from,
         to,
         debt,
+        relatedExpenses,
       }));
       console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
 
@@ -205,6 +211,11 @@ export class SettleBalancesPage implements OnInit {
     }
 
     return 'neutral';
+  }
+
+  getMemberNameById(memberId: string): string {
+    const member = this.groupMembers.find((m) => m.uid === memberId);
+    return member ? member.username : 'Unbekannt';
   }
 
   hasProducts(groupMemberId: string): boolean {
@@ -275,6 +286,34 @@ export class SettleBalancesPage implements OnInit {
   }
 
   async pay() {
+    this.loadingService.showLittle();
+    for (let debtmember of this.deptList) {
+      try {
+        const transaction: Transactions = {
+          from: debtmember.from,
+          to: debtmember.to,
+          amount: debtmember.debt,
+          reason: 'Gruppenausgleich',
+          date: new Date().toISOString(),
+          relatedExpenses: debtmember.relatedExpenses,
+        };
+        console.log('transaction', transaction);
+        await this.transactionService.makeTransactionById(
+          this.groupId,
+          Array.isArray(debtmember.relatedExpenses)
+            ? debtmember.relatedExpenses
+            : [debtmember.relatedExpenses],
+          debtmember.from,
+          transaction
+        );
+        this.loadingService.hideLittle();
+      } catch (error) {
+        console.error(
+          `Fehler beim Erstellen der Transaktion für ${debtmember.from} -> ${debtmember.to}:`,
+          error
+        );
+      }
+    }
     // Danach: Nur noch fragen, ob man sie sehen will
     const alert = await this.alertController.create({
       header: 'Transaktion abgeschlossen',
