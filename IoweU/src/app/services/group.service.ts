@@ -18,7 +18,7 @@ import {
 } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { elementAt } from 'rxjs';
-import { Categories } from './objects/Categories';
+import { CATEGORIES } from './objects/Categories';
 import { Storage } from '@angular/fire/storage';
 import { UserService } from './user.service';
 import { ImageService } from './image.service';

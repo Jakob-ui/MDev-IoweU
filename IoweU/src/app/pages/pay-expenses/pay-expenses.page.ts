@@ -34,6 +34,7 @@ import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 import { TransactionService } from 'src/app/services/transaction.service';
 import { Transactions } from 'src/app/services/objects/Transactions';
+import { CATEGORIES } from 'src/app/services/objects/Categories';
 
 
 addIcons({
@@ -120,16 +121,7 @@ export class PayExpensesPage {
 
   overlayState: 'start' | 'normal' | 'hidden' = 'start';
 
-  categories = [
-    { name: 'Lebensmittel', icon: 'fast-food-outline' },
-    { name: 'Einkäufe', icon: 'cart-outline' },
-    { name: 'Restaurant/Bar', icon: 'wine-outline' },
-    { name: 'Transport', icon: 'car-outline' },
-    { name: 'Freizeit', icon: 'game-controller-outline' },
-    { name: 'Wohnen', icon: 'home-outline' },
-    { name: 'Rechnungen', icon: 'receipt-outline' },
-    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
-  ];
+  categories = CATEGORIES;
 
   expense: Expenses[] = [
     {

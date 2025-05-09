@@ -19,7 +19,7 @@ import { Router } from '@angular/router';
 import { UserService } from 'src/app/services/user.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { AuthService } from 'src/app/services/auth.service';
-import { Categories } from 'src/app/services/objects/Categories';
+import { CATEGORIES } from 'src/app/services/objects/Categories';
 import { ImageService } from 'src/app/services/image.service';
 
 @Component({
@@ -58,18 +58,7 @@ export class CreateGroupPage {
   showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige
   newGroup: Groups | null = null; // Initialisierung der newGroup-Variable
 
-  defaultCategories: Categories = {
-    categories: [
-      { name: 'Lebensmittel', icon: 'fast-food-outline' },
-      { name: 'Einkäufe', icon: 'cart-outline' },
-      { name: 'Restaurant/Bar', icon: 'wine-outline' },
-      { name: 'Transport', icon: 'car-outline' },
-      { name: 'Freizeit', icon: 'game-controller-outline' },
-      { name: 'Wohnen', icon: 'home-outline' },
-      { name: 'Rechnungen', icon: 'receipt-outline' },
-      { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
-    ],
-  };
+  defaultCategories = CATEGORIES;
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 

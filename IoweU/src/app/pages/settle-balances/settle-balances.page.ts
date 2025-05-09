@@ -22,6 +22,7 @@ import { ExpenseMember } from '../../services/objects/ExpenseMember';
 import { Products } from '../../services/objects/Products';
 import { Expenses } from '../../services/objects/Expenses';
 import { Transactions } from '../../services/objects/Transactions';
+import { CATEGORIES } from 'src/app/services/objects/Categories';
 
 @Component({
   selector: 'app-settle-balances',
@@ -104,16 +105,7 @@ export class SettleBalancesPage implements OnInit {
 
   overlayState: 'start' | 'normal' | 'hidden' = 'start';
 
-  categories = [
-    { name: 'Lebensmittel', icon: 'fast-food-outline' },
-    { name: 'Einkäufe', icon: 'cart-outline' },
-    { name: 'Restaurant/Bar', icon: 'wine-outline' },
-    { name: 'Transport', icon: 'car-outline' },
-    { name: 'Freizeit', icon: 'game-controller-outline' },
-    { name: 'Wohnen', icon: 'home-outline' },
-    { name: 'Rechnungen', icon: 'receipt-outline' },
-    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
-  ];
+  categories = CATEGORIES;
 
   expense: Expenses[] = [
     {

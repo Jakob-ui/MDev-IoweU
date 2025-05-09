@@ -86,6 +86,8 @@ import { AuthService } from '../../services/auth.service';
 import { Groups } from 'src/app/services/objects/Groups';
 import { HostListener } from '@angular/core';
 import { ImageService } from '../../services/image.service';
+import { CATEGORIES } from 'src/app/services/objects/Categories';
+import { CURRENCIESWITHSYMBOLS } from 'src/app/services/objects/Currencies';
 
 @Component({
   selector: 'app-create-expense',
@@ -176,7 +178,6 @@ export class CreateExpensePage {
   invoice: string | ArrayBuffer | null = null;
   uploadInvoice: any;
 
-
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   invoiceDropdownOpen: boolean = false;
@@ -198,52 +199,9 @@ export class CreateExpensePage {
     expenseMember: [],
   };
 
-  categories = [
-    { name: 'Lebensmittel', icon: 'fast-food-outline' },
-    { name: 'Einkäufe', icon: 'cart-outline' },
-    { name: 'Restaurant/Bar', icon: 'wine-outline' },
-    { name: 'Transport', icon: 'car-outline' },
-    { name: 'Freizeit', icon: 'game-controller-outline' },
-    { name: 'Wohnen', icon: 'home-outline' },
-    { name: 'Rechnungen', icon: 'receipt-outline' },
-    { name: 'Gesundheit', icon: 'heart-outline' },
-    { name: 'Bildung', icon: 'school-outline' },
-    { name: 'Arbeit', icon: 'briefcase-outline' },
-    { name: 'Kleidung', icon: 'shirt-outline' },
-    { name: 'Finanzen', icon: 'cash-outline' },
-    { name: 'Reisen', icon: 'airplane-outline' },
-    { name: 'Geschenke', icon: 'gift-outline' },
-    { name: 'Haushalt', icon: 'hammer-outline' },
-    { name: 'Ideen/Projekte', icon: 'bulb-outline' },
-    { name: 'Musik/Events', icon: 'musical-notes-outline' },
-    { name: 'Technik', icon: 'rocket-outline' },
-    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
-  ];
+  categories = CATEGORIES;
 
-
-  currenciesWithSymbols = [
-    { code: 'AUD', symbol: 'A$' },      // Australischer Dollar
-    { code: 'BRL', symbol: 'R$' },      // Brasilianischer Real
-    { code: 'CAD', symbol: 'C$' },      // Kanadischer Dollar
-    { code: 'CHF', symbol: 'CHF' },     // Schweizer Franken
-    { code: 'CNY', symbol: '¥' },       // Chinesischer Yuan
-    { code: 'EUR', symbol: '€' },       // Euro
-    { code: 'GBP', symbol: '£' },       // Britisches Pfund
-    { code: 'INR', symbol: '₹' },       // Indische Rupie
-    { code: 'JPY', symbol: '¥' },       // Japanischer Yen
-    { code: 'KRW', symbol: '₩' },       // Südkoreanischer Won
-    { code: 'MXN', symbol: 'Mex$' },    // Mexikanischer Peso
-    { code: 'NOK', symbol: 'kr' },      // Norwegische Krone
-    { code: 'NZD', symbol: 'NZ$' },     // Neuseeländischer Dollar
-    { code: 'PLN', symbol: 'zł' },      // Polnischer Złoty
-    { code: 'SEK', symbol: 'kr' },      // Schwedische Krone
-    { code: 'SGD', symbol: 'S$' },      // Singapur-Dollar
-    { code: 'TRY', symbol: '₺' },       // Türkische Lira
-    { code: 'USD', symbol: '$' },       // US-Dollar
-    { code: 'ZAR', symbol: 'R' },       // Südafrikanischer Rand
-  ];
-
-
+  currenciesWithSymbols = CURRENCIESWITHSYMBOLS;
 
   async ngOnInit() {
     this.loadingService.show();
@@ -357,7 +315,6 @@ export class CreateExpensePage {
   async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-
       const reader = new FileReader();
       reader.onload = async () => {
         const imageDataUrl = reader.result as string;
@@ -400,7 +357,6 @@ export class CreateExpensePage {
       console.error('Error opening camera:', error);
     }
   }
-
 
   togglePaidByDropdown(event: Event) {
     this.paidByDropdownOpen = !this.paidByDropdownOpen; // Öffnen/Schließen des Dropdowns
@@ -538,15 +494,16 @@ export class CreateExpensePage {
     this.updateTotals();
   }
 
-
-//------------------------------------------RECHENFUNKTIONEN-------------------------------------------
+  //------------------------------------------RECHENFUNKTIONEN-------------------------------------------
 
   private updateTotals() {
     const total = parseFloat(this.calculateTotalFromAmountToPay().toFixed(2));
     this.expense.totalAmount = total;
 
     if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
-      this.expense.totalAmountInForeignCurrency = +(total / this.exchangeRate).toFixed(2);
+      this.expense.totalAmountInForeignCurrency = +(
+        total / this.exchangeRate
+      ).toFixed(2);
     }
 
     if (this.expense.splitBy === 'alle') {
@@ -575,14 +532,17 @@ export class CreateExpensePage {
       this.expense.splitType === 'anteile' &&
       this.expense.splitBy === 'frei'
     ) {
-      this.updateForeignAmountToPay()
+      this.updateForeignAmountToPay();
       this.updateTotals();
     }
   }
 
   onSplitByChange() {
     // Wenn wir von Anteilen auf Prozente wechseln, können wir `splitBy` wieder anpassen
-    if (this.expense.splitBy === 'frei' && this.expense.splitType === 'anteile') {
+    if (
+      this.expense.splitBy === 'frei' &&
+      this.expense.splitType === 'anteile'
+    ) {
       this.resetSplitValues();
     } else if (this.expense.splitBy === 'alle') {
       this.chooseSplitType = true;
@@ -643,7 +603,7 @@ export class CreateExpensePage {
     this.chooseSplitType = false;
 
     const hasAmounts = this.groupMembers.some(
-      member => (this.amountToPay[member.uid] ?? 0) > 0
+      (member) => (this.amountToPay[member.uid] ?? 0) > 0
     );
 
     if (hasAmounts) {
@@ -653,7 +613,6 @@ export class CreateExpensePage {
     }
     this.updateForeignAmountToPay();
   }
-
 
   // Fall: Split-Typ 'produkte'
   private handleProdukteChange() {
@@ -699,7 +658,6 @@ export class CreateExpensePage {
     this.updateForeignAmountToPay();
   }
 
-
   private validatePercentageSum() {
     let totalPercentage = 0;
     this.groupMembers.forEach((member) => {
@@ -713,8 +671,8 @@ export class CreateExpensePage {
         difference > 0
           ? `Es fehlen noch ${difference}% – du kannst den Rest auf die verbleibenden Mitglieder verteilen.`
           : `Die Summe der Prozentwerte überschreitet 100%. Sie sind ${Math.abs(
-            difference
-          )}% drüber.`;
+              difference
+            )}% drüber.`;
 
       this.isFormValid = false;
       this.canDistributeRest = difference > 0;
@@ -767,7 +725,8 @@ export class CreateExpensePage {
       let memberAmountToPay = 0;
       let memberForeignAmountToPay = 0;
 
-      const products: Products[] = this.productInputs[member.uid]?.products || [];
+      const products: Products[] =
+        this.productInputs[member.uid]?.products || [];
 
       products.forEach((product) => {
         let priceInEuro = product.price || 0;
@@ -799,9 +758,6 @@ export class CreateExpensePage {
     this.updateTotals(); // falls du damit z.B. Summary-Werte aktualisierst
   }
 
-
-
-
   onTotalAmountChange() {
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
@@ -809,7 +765,6 @@ export class CreateExpensePage {
     if (this.expense.splitType === 'prozent') {
       this.updateAmountToPayFromPercentages();
     }
-
   }
 
   private updateAmountToPayFromPercentages() {
@@ -835,17 +790,14 @@ export class CreateExpensePage {
     //this.validatePercentageSum();
   }
 
-
   splitAmountEqually() {
     const isEuro = this.selectedCurrency === this.standardCurrency;
     const total = isEuro
       ? this.expense.totalAmount
-      : (
-        this.expense.totalAmountInForeignCurrency !== undefined &&
+      : this.expense.totalAmountInForeignCurrency !== undefined &&
         this.exchangeRate !== undefined
-      )
-        ? this.expense.totalAmountInForeignCurrency * this.exchangeRate
-        : 0;
+      ? this.expense.totalAmountInForeignCurrency * this.exchangeRate
+      : 0;
 
     const count = this.groupMembers.length;
 
@@ -854,7 +806,7 @@ export class CreateExpensePage {
       let rest = total - base * count;
 
       // Unrund speichern
-      this.groupMembers.forEach(m => {
+      this.groupMembers.forEach((m) => {
         this.amountToPay[m.uid] = base;
         if (!isEuro && this.exchangeRate !== undefined) {
           this.foreignAmountToPay[m.uid] = base / this.exchangeRate;
@@ -867,7 +819,8 @@ export class CreateExpensePage {
         const uid = this.groupMembers[idx].uid;
         this.amountToPay[uid] += 0.01;
         if (!isEuro && this.exchangeRate !== undefined) {
-          this.foreignAmountToPay[uid] = this.amountToPay[uid] / this.exchangeRate;
+          this.foreignAmountToPay[uid] =
+            this.amountToPay[uid] / this.exchangeRate;
         }
         rest -= 0.01;
         idx = (idx + 1) % count;
@@ -875,16 +828,14 @@ export class CreateExpensePage {
     }
   }
 
-
-
-//-----------------------------------FREMDWÄHRUNG-------------------------------------------------------
+  //-----------------------------------FREMDWÄHRUNG-------------------------------------------------------
   toggleCurrencyDropdown(event: Event): void {
     event.stopPropagation();
     this.currencyDropdownOpen = !this.currencyDropdownOpen;
   }
 
   getCurrencySymbol(code: string): string {
-    const currency = this.currenciesWithSymbols.find(c => c.code === code);
+    const currency = this.currenciesWithSymbols.find((c) => c.code === code);
     return currency ? currency.symbol : code;
   }
 
@@ -907,12 +858,15 @@ export class CreateExpensePage {
 
         // Berechnung von totalAmountInForeignCurrency und foreignAmountToPay
         if (totalInEuro > 0 && this.exchangeRate > 0) {
-          this.expense.totalAmountInForeignCurrency = +(totalInEuro / this.exchangeRate).toFixed(2);
+          this.expense.totalAmountInForeignCurrency = +(
+            totalInEuro / this.exchangeRate
+          ).toFixed(2);
         }
 
-        console.log(`Wechselkurs geladen: 1 ${newCurrency} = ${this.exchangeRate} EUR`);
+        console.log(
+          `Wechselkurs geladen: 1 ${newCurrency} = ${this.exchangeRate} EUR`
+        );
         this.updateForeignAmountToPay();
-
       },
       error: (err) => {
         console.error('Fehler beim Laden des Wechselkurses:', err);
@@ -945,13 +899,14 @@ export class CreateExpensePage {
   }
 
   private updateForeignAmountToPay() {
-    this.groupMembers.forEach(member => {
+    this.groupMembers.forEach((member) => {
       const amountInEuro = this.amountToPay[member.uid] || 0;
       // Umrechnung in die fremde Währung
-      this.foreignAmountToPay[member.uid] = +(amountInEuro / this.exchangeRate).toFixed(2);
+      this.foreignAmountToPay[member.uid] = +(
+        amountInEuro / this.exchangeRate
+      ).toFixed(2);
     });
   }
-
 
   onForeignAmountInput(memberId: string) {
     const foreignAmount = this.foreignAmountToPay[memberId] || 0;
@@ -1053,7 +1008,9 @@ export class CreateExpensePage {
 
       // Wenn eine Fremdwährung gewählt wurde, berechne totalAmountInForeignCurrency
       if (this.selectedCurrency !== this.standardCurrency) {
-        this.expense.totalAmountInForeignCurrency = +(this.expense.totalAmount / this.exchangeRate).toFixed(2); // Betrag in Fremdwährung
+        this.expense.totalAmountInForeignCurrency = +(
+          this.expense.totalAmount / this.exchangeRate
+        ).toFixed(2); // Betrag in Fremdwährung
         this.expense.exchangeRate = this.exchangeRate; // Speichere den Wechselkurs
       } else {
         this.expense.totalAmountInForeignCurrency = 0; // Kein Fremdwährungsbetrag, wenn EUR gewählt wurde
@@ -1094,7 +1051,6 @@ export class CreateExpensePage {
     }
   }
 
-
   removeInvoice() {
     this.expense.invoice = undefined;
   }
@@ -1108,6 +1064,4 @@ export class CreateExpensePage {
     this.invoiceDropdownOpen = false;
     this.currencyDropdownOpen = false;
   }
-
-
 }

@@ -56,6 +56,7 @@ import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 import { Groups } from '../../services/objects/Groups';
 import { ImageService } from '../../services/image.service';
+import { CATEGORIES } from 'src/app/services/objects/Categories';
 
 @Component({
   selector: 'app-edit-expense',
@@ -158,16 +159,7 @@ export class EditExpensePage {
   uploadInvoice: any;
   @ViewChild('fileInput') fileInput!: ElementRef;
 
-  categories = [
-    { name: 'Lebensmittel', icon: 'fast-food-outline' },
-    { name: 'Einkäufe', icon: 'cart-outline' },
-    { name: 'Restaurant/Bar', icon: 'wine-outline' },
-    { name: 'Transport', icon: 'car-outline' },
-    { name: 'Freizeit', icon: 'game-controller-outline' },
-    { name: 'Wohnen', icon: 'home-outline' },
-    { name: 'Rechnungen', icon: 'receipt-outline' },
-    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
-  ];
+  categories = CATEGORIES;
   private unsubscribe: () => void = () => {};
 
   async ngOnInit() {
