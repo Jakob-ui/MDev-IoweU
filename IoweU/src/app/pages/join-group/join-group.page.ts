@@ -249,7 +249,7 @@ export class JoinGroupPage {
       } else {
         group = await this.groupService.getGroupByGroupId(this.joinCode);
         if (group && group.accessCode) {
-          this.joinCode = group.accessCode; // ⚠️ hier wird der AccessCode gesetzt!
+          this.joinCode = group.accessCode;
         }
       }
 

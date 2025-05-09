@@ -61,9 +61,7 @@
           <span class="member-name">{{ getMemberNameById(debt.to) }}</span>
         </div>
       </div>
-    </div>
-
-    <div
+          <div
         *ngIf="expense && expense.length > 0"
         class="toggle-arrow"
         (click)="showExpenses = !showExpenses"
@@ -100,6 +98,9 @@
           </div>
         </ion-item>
     </ion-list>
+    </div>
+
+
 
     <div class="space"></div>
     <div class="button-container">
@@ -110,7 +111,7 @@
   </div>
   <div class="balance-page-container-empty" *ngIf="deptList.length === 0">
     <div class="nothingToPay">
-      <h2>Alle sind Schuldenfrei! <br />🎉</h2>
+      <h2>Alle sind schuldenfrei! <br />🎉</h2>
     </div>
     <div class="button-container">
       <ion-button class="main-button" expand="block" (click)="goBack()">

@@ -427,13 +427,13 @@ export class ExpensePage implements OnInit, OnDestroy {
   }
 
   hasUserPaid(expense: Expenses): boolean {
-    if (expense.paidBy === this.uid) {
-      return false; // Zahler sieht keine Anzeige
+    if (expense.paidBy === this.uid && expense) {
+      return false;
     }
     const userEntry = expense.expenseMember?.find(
       (member) => member.memberId === this.uid
     );
-    return !!userEntry?.paid;
+    return !!userEntry?.paid && userEntry.amountToPay > 0;
   }
 
 

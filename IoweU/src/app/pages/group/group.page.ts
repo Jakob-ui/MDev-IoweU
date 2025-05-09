@@ -72,7 +72,7 @@ export class GroupPage implements OnInit {
   groupImage: string = '';
   members: Members[] = [];
   accessCode: string = '';
-  sumTotalExpenses: number | undefined = undefined;
+  sumTotalExpenses: number | undefined = 0.00;
   countTotalExpenses: number | undefined = undefined;
   sumTotalExpensesMembers: number | undefined = undefined;
   countTotalExpensesMembers: number | undefined = undefined;
@@ -86,7 +86,7 @@ export class GroupPage implements OnInit {
   shoppingListId: string | null = '';
   shoppingProducts: ShoppingProducts[] = [];
   shoppingList: string[] = [];
-  assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
+  assetsList: string[] = [];
   group: Groups | null = null;
 
   myBalance: number = 0;
