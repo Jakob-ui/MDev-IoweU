@@ -386,6 +386,25 @@ export class ExpenseService {
     }
   }
 
+  async getExpensesByRelatedIds(
+    groupId: string,
+    relatedExpenseIds: string[],
+    repeating: boolean,
+    updateExpensesCallback: (expenses: Expenses[]) => void
+  ): Promise<void> {
+    const expenses: Expenses[] = [];
+
+    for (const expenseId of relatedExpenseIds) {
+      await this.getExpenseById(groupId, expenseId, repeating, (expense) => {
+        if (expense) {
+          expenses.push(expense);
+        }
+      });
+    }
+
+    updateExpensesCallback(expenses);
+  }
+
   async getPaginatedExpenses(
     groupId: string,
     lastVisibleDoc: any | null,
@@ -738,7 +757,7 @@ export class ExpenseService {
               userBCredit: 0,
               lastUpdated: new Date().toISOString(),
               relatedExpenseId: [],
-              relatedTransactionId: []
+              relatedTransactionId: [],
             };
 
             const docRef = doc(balancesRef); // Generate a new document ID
@@ -894,8 +913,7 @@ export class ExpenseService {
       );
 
       // Iterate through the members of the updated expense
-      for (const updatedMember of updatedExpense.expenseMember) 
-      {
+      for (const updatedMember of updatedExpense.expenseMember) {
         const oldMember = oldExpense.expenseMember.find(
           (member) => member.memberId === updatedMember.memberId
         );

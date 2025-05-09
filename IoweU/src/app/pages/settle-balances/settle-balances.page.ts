@@ -7,8 +7,7 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
-  IonToolbar,
-} from '@ionic/angular/standalone';
+  IonToolbar, IonItem, IonList } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, NavController, Platform } from '@ionic/angular';
@@ -27,6 +26,8 @@ import { Transactions } from '../../services/objects/Transactions';
   styleUrls: ['./settle-balances.page.scss'],
   standalone: true,
   imports: [
+    IonList,
+    IonItem,
     IonContent,
     IonHeader,
     IonToolbar,
@@ -51,6 +52,7 @@ export class SettleBalancesPage implements OnInit {
 
   groupname: string = '';
   iosIcons: boolean = false;
+  showExpenses: boolean = false;
 
   uid: string | null = '';
   user: string | null = '';
@@ -179,6 +181,7 @@ export class SettleBalancesPage implements OnInit {
         debt,
         relatedExpenses,
       }));
+      await this.loadRelatedExpenses();
       console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
 
       this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
@@ -196,21 +199,6 @@ export class SettleBalancesPage implements OnInit {
     } finally {
       this.loadingService.hide();
     }
-  }
-
-  getAmountClass(expense: Expenses, memberId: string): string {
-    const isPaidByMember = expense.paidBy === memberId;
-    const member = expense.expenseMember.find((m) => m.memberId === memberId);
-
-    if (isPaidByMember) {
-      return 'neutral';
-    }
-
-    if (member && member.amountToPay > 0) {
-      return 'negative';
-    }
-
-    return 'neutral';
   }
 
   getMemberNameById(memberId: string): string {
@@ -268,6 +256,34 @@ export class SettleBalancesPage implements OnInit {
     this.navCtrl.back();
   }
 
+  getFirstLetter(paidBy: string): string {
+    const member = this.groupMembers.find((m) => m.uid === paidBy);
+    if (member && member.username && member.username.length > 0) {
+      return member.username.charAt(0).toUpperCase();
+    }
+    return '';
+  }
+
+  getUserAmount(expense: Expenses): number {
+    const userEntry = expense.expenseMember?.find(
+      (member) => member.memberId === this.uid
+    );
+    return userEntry?.amountToPay ?? 0;
+  }
+
+  getAmountClass(expense: Expenses): string {
+    const amount = this.getUserAmount(expense);
+    const isPaidByCurrentUser = expense.paidBy === this.uid;
+
+    if (isPaidByCurrentUser) {
+      return 'neutral';
+    }
+    if (amount > 0) {
+      return 'negative';
+    }
+    return 'neutral';
+  }
+
   toggleInvoiceOverlay() {
     console.log('Overlay state:', this.overlayState);
 
@@ -283,6 +299,23 @@ export class SettleBalancesPage implements OnInit {
     }
 
     console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
+  }
+
+  async loadRelatedExpenses() {
+    const relatedExpenseIds = this.deptList.flatMap(
+      (debt) => debt.relatedExpenses
+    );
+    const repeating = false; // Setze dies auf `true`, wenn es sich um wiederkehrende Ausgaben handelt
+
+    this.expenseService.getExpensesByRelatedIds(
+      this.groupId,
+      relatedExpenseIds,
+      repeating,
+      (expenses) => {
+        console.log('Gefundene Ausgaben:', expenses);
+        this.expense = expenses;
+      }
+    );
   }
 
   async pay() {

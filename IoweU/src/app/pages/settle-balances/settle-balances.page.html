@@ -40,7 +40,7 @@
           ></div>
           <span class="member-name">{{ getMemberNameById(debt.from) }}</span>
         </div>
-        <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0], uid!)"
+        <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0])"
           >{{ debt.debt | number: '1.2-2' }}
         </ion-badge>
 
@@ -62,28 +62,44 @@
         </div>
       </div>
     </div>
-    <ng-container
-      *ngIf="expense?.length && expense[0].expenseMember?.length && groupMembers?.length"
-    >
-      <div *ngIf="products" class="product-list">
-        <ul>
-          <li
-            class="products"
-            *ngFor="let product of getPurchasedProductsForMember(uid!)"
-          >
-            <div class="left-container">
-              <span class="product-quantity"
-                >{{ product.quantity }} {{ product.unit }}</span
-              >
-              <span class="product">{{ product.productname }}</span>
-            </div>
-            <ion-badge class="product-price">
-              {{ product.price | currency: 'EUR' }}
-            </ion-badge>
-          </li>
-        </ul>
+
+    <div
+        *ngIf="expense && expense.length > 0"
+        class="toggle-arrow"
+        (click)="showExpenses = !showExpenses"
+      > Zeige RelatedExpenses an
+        <ion-icon
+          [src]="showExpenses ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
+        >
+        </ion-icon>
       </div>
-    </ng-container>
+
+    <ion-list class="expense-list" *ngIf="expense.length !==0 && showExpenses">
+        <ion-item class="info-item" *ngFor="let expense of expense">
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{
+              'background-color': 'var(--member-color-' + expense.paidBy + ')',
+              'border-color': 'var(--member-color-' + expense.paidBy + ')'
+            }"
+          >
+            <span class="username">{{ getFirstLetter(expense.paidBy) }}</span>
+          </div>
+          <h5 class="einzelneAusgabe">{{ expense.description }}</h5>
+          <div class="expense-item">
+            <div class="Ausgabepreis">
+              <h5 class="Gesamtpreis">
+                {{ expense.totalAmount | currency: 'EUR' }}
+              </h5>
+              <div class="amountToPay">
+                <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
+                  {{ getUserAmount(expense) | currency: 'EUR' }}
+                </ion-badge>
+              </div>
+            </div>
+          </div>
+        </ion-item>
+    </ion-list>
 
     <div class="space"></div>
     <div class="button-container">
@@ -93,9 +109,10 @@
     </div>
   </div>
   <div class="balance-page-container-empty" *ngIf="deptList.length === 0">
-    <div class="nothingToPay"><h2>Alle sind Schuldenfrei! 🎉</h2>
+    <div class="nothingToPay">
+      <h2>Alle sind Schuldenfrei! <br />🎉</h2>
     </div>
-          <div class="button-container">
+    <div class="button-container">
       <ion-button class="main-button" expand="block" (click)="goBack()">
         Okay!
       </ion-button>
