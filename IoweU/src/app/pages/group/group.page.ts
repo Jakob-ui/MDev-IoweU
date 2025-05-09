@@ -72,7 +72,7 @@ export class GroupPage implements OnInit {
   groupImage: string = '';
   members: Members[] = [];
   accessCode: string = '';
-  sumTotalExpenses: number | undefined = 0.00;
+  sumTotalExpenses: number | undefined = 0.0;
   countTotalExpenses: number | undefined = undefined;
   sumTotalExpensesMembers: number | undefined = undefined;
   countTotalExpensesMembers: number | undefined = undefined;
@@ -140,6 +140,14 @@ export class GroupPage implements OnInit {
     } finally {
       this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
+  }
+
+  ionViewWillLeave() {
+    this.overlayState = 'start'; // Setze den Overlay-Zustand zurück
+    console.log(
+      'Overlay state beim Verlassen zurückgesetzt:',
+      this.overlayState
+    );
   }
 
   ngOnDestroy() {
@@ -211,7 +219,11 @@ export class GroupPage implements OnInit {
     }
 
     // Berechnung der Bilanz)
-    this.myBalance = member.sumExpenseAmount - member.sumAmountReceived + member.sumAmountPaid - member.sumExpenseMemberAmount; // Speichere den berechneten Wert
+    this.myBalance =
+      member.sumExpenseAmount -
+      member.sumAmountReceived +
+      member.sumAmountPaid -
+      member.sumExpenseMemberAmount; // Speichere den berechneten Wert
     console.log('Berechnete Bilanz:', this.myBalance);
   }
 
@@ -230,8 +242,6 @@ export class GroupPage implements OnInit {
     this.router.navigate(['group-overview']);
   }
 
-
-
   // Funktion zur Generierung der Feature-Links mit groupId
   getFeatureLink(feature: string): string {
     switch (feature) {
@@ -242,7 +252,7 @@ export class GroupPage implements OnInit {
       case 'Einkaufsliste':
         return `/shoppinglist/${this.groupId}`;
       case 'Anlagegüter':
-        return `/assets/${this.groupId}`;
+        return `/group/${this.groupId}`;
       default:
         return '/'; // Rückfalloption für unbekannte Features
     }
@@ -323,14 +333,18 @@ export class GroupPage implements OnInit {
   }
 
   async getShoppingProducts() {
-    this.shoppingListId = await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId!);
+    this.shoppingListId =
+      await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId!);
 
     if (!this.shoppingListId) {
       console.error('ShoppingListId ist null!');
       return;
     }
 
-    this.shoppingProducts = await this.shoppinglistService.getShoppingProducts(this.groupId!, this.shoppingListId);
+    this.shoppingProducts = await this.shoppinglistService.getShoppingProducts(
+      this.groupId!,
+      this.shoppingListId
+    );
   }
 
   getFeatureColor(feature: string): string {
@@ -347,6 +361,4 @@ export class GroupPage implements OnInit {
         return '';
     }
   }
-
-
 }

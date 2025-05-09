@@ -64,7 +64,12 @@ export class CreateGroupPage {
 
   constructor() {}
 
+  ionViewWillLeave() {
+    this.router.navigate(['/group-overview'], { replaceUrl: true });
+  }
+
   async saveGroup() {
+    0;
     if (!this.groupname || !this.selectedTemplate) {
       console.error('Group name and template are required!');
       alert('Wähle ein Template aus!');

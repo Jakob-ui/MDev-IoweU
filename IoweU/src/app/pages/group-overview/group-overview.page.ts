@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import {
   IonHeader,
   IonToolbar,
@@ -45,6 +45,7 @@ export class GroupOverviewPage implements OnInit {
   private loadingService = inject(LoadingService);
   private unsubscribeFromGroups: (() => void) | null = null;
   private currentScrollSpeed: number | null = null;
+  private location = inject(Location);
 
   username: string | null = '';
   iosIcons: boolean = false;
@@ -170,6 +171,11 @@ export class GroupOverviewPage implements OnInit {
       clearTimeout(this.longPressTimeout);
       this.longPressTimeout = null;
     }
+  }
+
+  goToCreateGroup() {
+    this.location.replaceState('/group-overview');
+    this.router.navigate(['/create-group'], { replaceUrl: true });
   }
 
   stopEditMode() {
