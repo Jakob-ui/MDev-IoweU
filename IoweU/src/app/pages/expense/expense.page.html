@@ -108,7 +108,7 @@
                 {{ expense.totalAmount | currency: 'EUR' }}
               </h5>
               <div class="amountToPay">
-                <ng-container *ngIf="expense.paidBy !== uid">
+                <ng-container *ngIf="expense.paidBy !== uid && getUserAmount(expense) !== 0">
                   <ion-icon
                     class="paid"
                     *ngIf="!hasUserPaid(expense)"
@@ -120,10 +120,12 @@
                     [src]="'assets/icon/ionicons/ios-checkmark.svg'">
                   </ion-icon>
                 </ng-container>
+
                 <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
                   {{ getUserAmount(expense) | currency: 'EUR' }}
                 </ion-badge>
               </div>
+
 
             </div>
           </div>
