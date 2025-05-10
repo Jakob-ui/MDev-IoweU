@@ -27,6 +27,7 @@ h4 {
   align-items: center;
   display: flex;
   flex-direction: column;
+  padding-bottom: 40px;
 }
 
 .detailedprice-overview {
@@ -228,19 +229,34 @@ h4 {
   margin: 0 10px;
 }
 
-.Preis {
+h5{
+  font-size: 16px;
+}
+
+.einzelneAusgabe {
+  width: 40%;
+}
+
+.BalancePrice{
   font-weight: 600;
   font-size: 20px;
   padding: 10px 20px;
   margin: 0 10px;
+  border-radius: 50px;
 }
+
+.info-item{
+  width: 100% !important;
+}
+
+
 .balance-page-container-empty{
     display: flex;
   justify-content: center;
-  align-items: center;    
+  align-items: center;
   height: 60%;
   width: 100%;
-  text-align: center; 
+  text-align: center;
 }
 
 .nothingToPay h2{

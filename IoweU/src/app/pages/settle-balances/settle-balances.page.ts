@@ -387,4 +387,14 @@ export class SettleBalancesPage implements OnInit {
 
     await alert.present();
   }
+
+  goToExpenseDetails(expenseId: string) {
+    this.loadingService.show();
+    try {
+      // Hier wird der expenseId der aktuellen Ausgabe übergeben
+      this.router.navigate(['expense-details', this.groupId, expenseId]);
+    } finally {
+      this.loadingService.hide();
+    }
+  }
 }
