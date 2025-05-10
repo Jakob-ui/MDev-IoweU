@@ -5,7 +5,7 @@ import {
   IonHeader,
   IonToolbar,
   IonContent,
-  IonItem,
+  IonItem, IonList, IonButton, IonIcon, IonLabel, IonBadge,
 } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -29,6 +29,11 @@ import { Groups } from '../../services/objects/Groups';
     IonContent,
     RouterModule,
     IonItem,
+    IonList,
+    IonButton,
+    IonIcon,
+    IonLabel,
+    IonBadge,
   ],
 })
 export class OverallBalancePage implements OnInit {
@@ -47,11 +52,19 @@ export class OverallBalancePage implements OnInit {
 
   expenses: Expenses[] = [];
   groups: Groups[] = [];
-  groupExpenses: { groupName: string; sum: number }[] = [];
+  groupExpenses: { groupId: string; groupName: string; sum: number }[] = [];
+
 
   groupId: string | null = '';
   myGroupSum: number = 0;
   myExpenseSum: number = 0;
+
+  showChart = false;
+
+  showCategoryChart = false;
+  categoryChartData: { category: string; sum: number }[] = [];
+  selectedGroupName: string | null = null;
+
 
   constructor() {}
 
@@ -70,7 +83,10 @@ export class OverallBalancePage implements OnInit {
         const userColor = this.authService.currentUser.color;
         document.documentElement.style.setProperty('--user-color', userColor);
 
-        await this.loadMyGroups(); // Gruppen laden und warten, bis alles geladen ist
+        await this.loadMyGroups();
+        this.groupService.getGroupsByUserId(this.uid, (groups) => {
+          this.groups = groups;
+        });
       } else {
         console.error('Fehler: Kein Benutzer eingeloggt.');
       }
@@ -116,6 +132,7 @@ export class OverallBalancePage implements OnInit {
 
                       // Speichere den Gruppennamen und die Summe in einem neuen Array
                       this.groupExpenses.push({
+                        groupId: group.groupId,
                         groupName: group.groupname,
                         sum: sumForGroup,
                       });
@@ -136,8 +153,6 @@ export class OverallBalancePage implements OnInit {
 
             await Promise.all(groupPromises);
 
-            // PieChart erstellen mit den gesammelten Gruppensummen
-            this.createPieChart();
           }
         );
       }
@@ -161,10 +176,19 @@ export class OverallBalancePage implements OnInit {
   createPieChart() {
     console.log('Erstelle PieChart...', this.groupExpenses);
 
+    const isCategoryView = this.showCategoryChart;
+    const data = isCategoryView ? this.categoryChartData : this.groupExpenses;
+
+    // Sicherstellen, dass `data` ein Array mit Objekten ist, die eine `sum`-Eigenschaft haben
+    if (!Array.isArray(data) || data.some(d => typeof d.sum !== 'number')) {
+      console.error('Ungültige Datenstruktur');
+      return;
+    }
+
     const containerWidth = Math.min(window.innerWidth - 20, 500);
     const width = containerWidth;
     const height = containerWidth;
-    const radius = (containerWidth / 2) * 0.6; // 70% der halben Breite = großer Kreis
+    const radius = (containerWidth / 2) * 0.6;
 
     d3.select('.balance-chart').html('');
 
@@ -178,59 +202,73 @@ export class OverallBalancePage implements OnInit {
 
     const color = d3.scaleOrdinal(d3.schemeSet3);
 
-    if (this.groupExpenses.length === 0) {
+
+
+    if (data.length === 0) {
       console.log('Keine Daten für das PieChart verfügbar.');
       return;
     }
 
     const pie = d3
-      .pie<{ groupName: string; sum: number }>()
+      .pie<{ groupName?: string; category?: string; sum: number }>()
       .value((d) => d.sum)
       .sort(null);
 
-    const data_ready = pie(this.groupExpenses);
+    const filteredData = data.filter(d => d.sum > 0);
+
+    if (filteredData.length === 0) {
+      console.log('Keine gültigen (nicht-null) Daten für das PieChart verfügbar.');
+      return;
+    }
+
+    const data_ready = pie(filteredData);
 
     const arc = d3
-      .arc<d3.PieArcDatum<{ groupName: string; sum: number }>>()
+      .arc<d3.PieArcDatum<{ groupName?: string; category?: string; sum: number }>>()
       .innerRadius(0)
       .outerRadius(radius);
 
     const outerArc = d3
-      .arc<d3.PieArcDatum<{ groupName: string; sum: number }>>()
-      .innerRadius(radius * 1.05) // nur 5% größer als der Kreis
+      .arc<d3.PieArcDatum<{ groupName?: string; category?: string; sum: number }>>()
+      .innerRadius(radius * 1.05)
       .outerRadius(radius * 1.05);
 
-    // Pie-Segmente
+    // Pie-Segmente mit Klick-Event
     svg
       .selectAll('slices')
       .data(data_ready)
       .enter()
       .append('path')
       .attr('d', arc)
-      .attr('fill', (d, i) => color(i.toString())) // Ausgangsfarbe setzen
+      .attr('fill', (d, i) => color(i.toString()))
       .attr('stroke', '#fff')
       .style('stroke-width', '2px')
       .each(function (event, d) {
-        // Speichern der Ausgangsfarbe im Element
         d3.select(this).attr(
           'data-original-color',
           d3.select(this).attr('fill')
         );
       })
       .on('mouseover', function (event, d) {
-        const currentColor = d3.select(this).attr('data-original-color'); // Hole die gespeicherte Ausgangsfarbe
-        const darkerColor = d3.rgb(currentColor).darker(0.2).toString(); // Umwandlung in einen String
+        const currentColor = d3.select(this).attr('data-original-color');
+        const darkerColor = d3.rgb(currentColor).darker(0.2).toString();
         d3.select(this)
           .transition()
-          .duration(200) // Dauer der Übergangsanimation
-          .attr('fill', darkerColor); // Dunklere Farbe setzen
+          .duration(200)
+          .attr('fill', darkerColor);
       })
       .on('mouseout', function (event, d) {
-        const originalColor = d3.select(this).attr('data-original-color'); // Hole die gespeicherte Ausgangsfarbe
+        const originalColor = d3.select(this).attr('data-original-color');
         d3.select(this)
           .transition()
-          .duration(200) // Dauer der Übergangsanimation
-          .attr('fill', originalColor); // Rücksetzen der ursprünglichen Farbe
+          .duration(200)
+          .attr('fill', originalColor);
+      })
+      .on('click', (event, d) => {
+        if (!isCategoryView && d.data.groupName) {
+          this.selectedGroupName = d.data.groupName;
+          this.loadCategoryBreakdown(d.data.groupName);
+        }
       });
 
     // Leader Lines
@@ -248,13 +286,11 @@ export class OverallBalancePage implements OnInit {
         const posC = [...posB];
         const midAngle = d.startAngle + (d.endAngle - d.startAngle) / 2;
 
-        // Verschiebe den Startpunkt der Linie in das äußere Drittel des Arcs
-        const offset = radius * 0.33; // Verschiebung im äußeren Drittel (kann angepasst werden)
-        posA[0] = posA[0] * (1 + offset / radius); // Position weiter nach außen verschieben
+        const offset = radius * 0.33;
+        posA[0] = posA[0] * (1 + offset / radius);
         posA[1] = posA[1] * (1 + offset / radius);
 
-        // Berechne den Endpunkt (verbleibt bei posB und posC)
-        posC[0] = radius * 1.05 * (midAngle < Math.PI ? 1 : -1); // nur leicht raus
+        posC[0] = radius * 1.05 * (midAngle < Math.PI ? 1 : -1);
         return [posA, posB, posC].map((p) => p.join(',')).join(' ');
       });
 
@@ -279,8 +315,8 @@ export class OverallBalancePage implements OnInit {
       .style('alignment-baseline', 'middle')
       .each(function (d) {
         const text = d3.select(this);
-        const label = d.data.groupName;
-        const myGroupSum = d.data.sum; // Füge den Wert von myGroupSum hinzu
+        const label = isCategoryView ? d.data.category || '' : d.data.groupName || '';
+        const myGroupSum = d.data.sum;
 
         const words = label.split(' ');
         const lineHeight = 1.2;
@@ -314,36 +350,106 @@ export class OverallBalancePage implements OnInit {
             .attr('dy', `${dy === 0 ? 0 : lineHeight}em`);
         }
 
-        // Füge myGroupSum als Wert unter dem Gruppennamen hinzu
         if (myGroupSum) {
-          // Berechne die Position des Rechtecks basierend auf der Textposition
-          const rectWidth = 40; // Breite des Rechtecks
-          const rectHeight = 15; // Höhe des Rechtecks
-          const rectX = -20; // Horizontale Position (relative Position zur Mitte)
-          const rectY = dy * 12; // Vertikale Position, abhängig von der Textzeilenhöhe
+          const rectWidth = 40;
+          const rectHeight = 15;
+          const rectX = -20;
+          const rectY = dy * 12;
 
-          // Füge das Rechteck hinter den Text hinzu
           text
             .append('rect')
             .attr('x', rectX)
             .attr('y', rectY)
             .attr('width', rectWidth)
             .attr('height', rectHeight)
-            .attr('rx', 5) // Abgerundete Ecken
-            .attr('ry', 5) // Abgerundete Ecken
-            .style('fill', '#808080'); // Grauer Hintergrund
+            .attr('rx', 5)
+            .attr('ry', 5)
+            .style('fill', '#808080');
 
-          // Der Text, der den Wert anzeigt
           text
             .append('tspan')
             .text(`${myGroupSum}€`)
             .attr('x', 0)
-            .attr('dy', `${dy * 12 + 1.2}em`) // Position des Texts unterhalb des Rechtecks
+            .attr('dy', `${dy * 12 + 1.2}em`)
             .style('font-size', '10px')
             .style('fill', 'black');
         }
       });
 
+    if (isCategoryView) {
+      this.showCategoryChart = true;
+
+      // Button sichtbar machen
+      const backButton = document.getElementById('backToGroupsButton');
+      if (backButton) {
+        backButton.style.display = 'block';  // Button sichtbar machen
+      }
+    } else {
+      // Button ausblenden, wenn nicht in der Kategorienansicht
+      const backButton = document.getElementById('backToGroupsButton');
+      if (backButton) {
+        backButton.style.display = 'none';  // Button unsichtbar machen
+      }
+    }
+
     console.log('PieChart erfolgreich erstellt.');
   }
+
+
+  toggleView() {
+    this.showChart = !this.showChart;
+    if (this.showChart) {
+      // Nur Gruppen mit Summe > 0 anzeigen
+      this.groupExpenses = this.groupExpenses.filter((g) => g.sum > 0);
+      this.createPieChart(); // wichtig: erneut erzeugen
+    }
+  }
+
+  goBackToGroups() {
+    this.showCategoryChart = false;
+    this.selectedGroupName = null;
+    this.createPieChart();
+
+    // Button ausblenden
+    const backButton = document.getElementById('backToGroupsButton');
+    if (backButton) {
+      backButton.style.display = 'none';  // Button nach der Aktion wieder unsichtbar machen
+    }
+  }
+
+  goToGroup(groupId: string) {
+    this.navCtrl.navigateRoot('/group/' + groupId);
+  }
+
+
+
+  loadCategoryBreakdown(groupName: string | null) {
+    const group = this.groups.find((g) => g.groupname === groupName);
+    if (!group || !this.uid) return;
+
+    this.expenseService.getExpenseByGroup(group.groupId, false, (expenses) => {
+      const categoryMap: { [category: string]: number } = {};
+
+      expenses.forEach((expense) => {
+        if (!expense.category) {
+          console.warn('Expense category is undefined or null:', expense);
+          return; // Ignoriere diese Ausgabe, falls keine Kategorie vorhanden ist
+        }
+
+        const userPart = expense.expenseMember.find((m) => m.memberId === this.uid);
+        if (userPart && userPart.amountToPay) {
+          categoryMap[expense.category] = (categoryMap[expense.category] || 0) + userPart.amountToPay;
+        }
+      });
+
+      this.categoryChartData = Object.entries(categoryMap).map(([category, sum]) => ({
+        category,
+        sum,
+      }));
+
+      this.showCategoryChart = true;
+      this.createPieChart();
+    });
+  }
+
 }

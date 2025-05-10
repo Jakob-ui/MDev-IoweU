@@ -30,7 +30,51 @@
     <ion-item class="balance-item">
       <h2>{{ myExpenseSum }} €</h2>
     </ion-item>
-    <div class="balance-chart"></div>
+
+    <div class="my-expenses">
+
+      <div class="toggle-buttons" style="text-align: right; margin-bottom: 10px;">
+        <ion-icon
+          class="toggle-button"
+          [ngClass]="{ 'active': !showChart }"
+          (click)="toggleView()"
+          [src]="'assets/icon/ionicons/list-outline.svg'">
+        </ion-icon>
+
+        <div class="divider"></div>
+
+        <ion-icon
+          class="toggle-button"
+          [ngClass]="{ 'active': showChart }"
+          (click)="toggleView()"
+          [src]="'assets/icon/ionicons/pie-chart-outline.svg'">
+        </ion-icon>
+      </div>
+
+      <!-- Listenansicht -->
+      <ion-list class="group-list" *ngIf="!showChart">
+        <ion-item *ngFor="let group of groupExpenses" (click)="goToGroup(group.groupId)">
+          <div>
+            <h5>{{ group.groupName }}</h5>
+            <ion-badge class="Preis">{{ group.sum | number: '1.2-2' }}€</ion-badge>
+          </div>
+        </ion-item>
+      </ion-list>
+
+
+      <!-- PieChart-Ansicht -->
+      <div class="balance-chart" [ngStyle]="{ display: showChart ? 'block' : 'none' }"></div>
+
+      <ion-button
+        id="backToGroupsButton"
+        class="outline-button"
+        style="display: none;"
+        (click)="goBackToGroups()">
+        Zurück zu Gruppen
+      </ion-button>
+    </div>
+
+
 
   </div>
 </ion-content>
