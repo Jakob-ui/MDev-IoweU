@@ -71,3 +71,4 @@ node_modules/
 # Capacitor native platforms
 android/
 ios/
+.environment/
