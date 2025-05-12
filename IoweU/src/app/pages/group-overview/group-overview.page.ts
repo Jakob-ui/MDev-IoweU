@@ -8,8 +8,9 @@ import {
   IonCard,
   IonCardSubtitle,
   IonCardTitle,
-  IonList, IonReorderGroup, IonReorder, 
-  ItemReorderEventDetail} from '@ionic/angular/standalone';
+  IonList, IonReorderGroup, IonReorder,
+  ItemReorderEventDetail, IonBadge
+} from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
@@ -35,6 +36,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
     IonCardSubtitle,
     IonCardTitle,
     IonList,
+    IonBadge,
   ],
 })
 export class GroupOverviewPage implements OnInit {
@@ -126,7 +128,7 @@ export class GroupOverviewPage implements OnInit {
                   name: group.groupname,
                   myBalance: myBalance,
                   link: group.groupId,
-                  position: group.position ?? undefined, 
+                  position: group.position ?? undefined,
                 };
               })
               .sort((a, b) => {

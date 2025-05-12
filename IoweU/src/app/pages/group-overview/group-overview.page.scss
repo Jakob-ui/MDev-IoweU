@@ -19,6 +19,28 @@
   box-sizing: border-box;
 }
 
+ion-card-subtitle{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 26px;
+  width: 100%;
+  padding-left: 2px;
+}
+
+ion-card-subtitle span, {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+ion-badge{
+  font-size: 16px;
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 50px;
+}
+
 .card-content {
   width: 100%;
   text-align: center;

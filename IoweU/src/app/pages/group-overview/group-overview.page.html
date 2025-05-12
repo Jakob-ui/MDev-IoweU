@@ -29,7 +29,7 @@
     <div *ngIf="groups.length === 0" class="no-groups">
       <p>Noch keine Gruppen vorhanden.</p>
     </div>
-    
+
     <!-- Gruppenliste -->
     <ion-list class="group-list" *ngIf="groups.length > 0">
     <ion-reorder-group
@@ -50,11 +50,13 @@
       <div class="card-content">
         <ion-card-title class="groupname">{{ group.name }}</ion-card-title>
         <ion-card-subtitle
-          [ngClass]="{ 'negative': group.myBalance < 0, 'positive': group.myBalance >= 0 }"
+
         >
           <span *ngIf="group.myBalance >= 0">Mein Guthaben:</span>
           <span *ngIf="group.myBalance < 0">Meine Schulden:</span>
-          {{ group.myBalance | currency: 'EUR' }}
+          <ion-badge [ngClass]="{ 'negative': group.myBalance < 0, 'positive': group.myBalance >= 0 }">
+            {{ group.myBalance | currency: 'EUR' }}
+          </ion-badge>
         </ion-card-subtitle>
       </div>
     </ion-card>
