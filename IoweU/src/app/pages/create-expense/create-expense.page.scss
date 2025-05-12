@@ -357,6 +357,13 @@ ion-input::part(native) {
   border-radius: 4px;
 }
 
+.custom-dropdown .selected {
+  color: var(--ion-color-secondary-shade);
+}
+
+.custom-dropdown ion-item.selected ion-icon.category-icon {
+  color: var(--ion-color-shade) !important; /* Farbe für das Icon des ausgewählten Elements */
+}
 
 ion-item.dropDownFelder::part(native) {
   --background: #ffffff;
@@ -704,6 +711,7 @@ width: auto;
   .custom-dropdown {
     background-color: #121212;
   }
+  
   #category-icon-label {
     color: #000000;
     font-size: 24px;
