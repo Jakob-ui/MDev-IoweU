@@ -468,6 +468,7 @@ export class ShoppinglistPage implements OnInit {
 
     if (trimmedName) {
       this.saveNewProduct();
+      this.presentToast('Produkt wurde erfolgreich hinzugefügt!');
     } else {
       this.addProductOpen = false;
     }
