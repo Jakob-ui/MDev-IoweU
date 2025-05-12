@@ -46,6 +46,7 @@
                 class="dropDownFelder"
                 button
                 *ngFor="let category of categories"
+                [ngClass]="{ 'selected': selectedCategory?.name === category.name }"
                 (click)="selectCategory(category, $event)"
               >
                 <ion-icon
@@ -171,6 +172,7 @@
                 class="dropDownFelder"
                 button
                 *ngFor="let currency of currenciesWithSymbols"
+                [ngClass]="{ 'selected': selectedCurrency === currency.code }"
                 (click)="selectCurrency(currency.code)"
               >
                 <ion-label class="currency-symbol">
