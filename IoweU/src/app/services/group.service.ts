@@ -81,9 +81,9 @@ export class GroupService {
       };
 
       // Features basierend auf dem Template hinzufügen
-      if (template === 'Standard') {
-        newGroup.features.push('Finanzübersicht');
-      } else if (template === 'Projekt') {
+      if (template === 'Basic') {
+        newGroup.features.push('Finanzübersicht', 'Ausgaben');
+      } else if (template === 'Wohngemeinschaft') {
         newGroup.features.push(
           'Finanzübersicht',
           'Ausgaben',
@@ -92,8 +92,8 @@ export class GroupService {
         );
       } else if (template === 'Reise') {
         newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Einkaufsliste');
-      } else {
-        newGroup.features.push('Finanzübersicht');
+      } else if (template === 'Projekt') {
+        newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Anlagegüter');
       }
       // Gruppe in Firestore speichern
       const groupRef = await setDoc(
@@ -148,14 +148,14 @@ export class GroupService {
       if (docSnapshot.exists()) {
         const groupData = docSnapshot.data() as Groups;
         groupData.groupId = groupId;
-        updateGroupCallback(groupData); 
+        updateGroupCallback(groupData);
       } else {
         console.warn(`Gruppe mit ID ${groupId} nicht gefunden.`);
-        updateGroupCallback(null); 
+        updateGroupCallback(null);
       }
     });
 
-    return unsubscribe; 
+    return unsubscribe;
   }
 
   //Gruppe bearbeiten (nur als Gründer*in möglich):

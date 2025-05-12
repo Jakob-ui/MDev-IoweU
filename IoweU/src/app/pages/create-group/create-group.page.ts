@@ -52,7 +52,7 @@ export class CreateGroupPage {
 
   groupname: string = '';
   selectedTemplate: string = '';
-  templates: string[] = ['Standard', 'Projekt', 'Reise'];
+  templates: string[] = ['Basic', 'Wohngemeinschaft', 'Reise', 'Projekt'];
   groupImage: string | ArrayBuffer | null = null;
   uploadImage: any;
   showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige

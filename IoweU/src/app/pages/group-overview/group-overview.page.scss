@@ -3,7 +3,39 @@
   max-width: 100%;
   padding: 16px; // Optional für Abstand zum Rand
   box-sizing: border-box;
+  margin-top: 50px;
 }
+
+.user-info {
+  display: inline-flex;
+  align-items: center;
+  height: 60px;
+  border-radius: 100px;
+  gap: 20px;
+  background: var(--user-color-background, rgba(218, 218, 218, 0.84));
+  border: 3px solid var(--user-color, #1a65eb);
+  padding: 10px 20px 10px 10px;
+  margin-bottom: 20px;
+}
+
+.user-info .profile-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--user-color, #1a65eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--ion-color-dark);
+  font-size: 36px;
+  border: 2px solid var(--user-color);
+}
+
+.user-info span{
+  font-size: 28px;
+}
+
 
 .my-groups {
   width: 100%; // Stellt sicher, dass die Karte die volle Breite hat
@@ -86,11 +118,6 @@ ion-badge{
   margin-left: 10px;
 }
 
-.page-container .profile-placeholder {
-  height: 80px;
-  width: 80px;
-  margin-bottom: 20px;
-}
 
 @keyframes wiggle {
   0% { transform: rotate(0.7deg); }

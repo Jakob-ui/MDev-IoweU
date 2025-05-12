@@ -233,6 +233,11 @@ iosIcons: any;
   }
 
   async saveeditedGroup() {
+    if (!this.groupname || this.groupname.trim() === '') {
+      this.presentAlert('Bitte gib einen Gruppennamen ein.');
+      return;
+    }
+
     await this.groupService.updateGroup(
       this.userUid,
       this.groupId,
@@ -242,6 +247,16 @@ iosIcons: any;
     );
     this.router.navigate([`/group`, this.groupId]);
   }
+
+  async presentAlert(message: string) {
+    const alert = await this.alertController.create({
+      header: 'Fehler',
+      message,
+      buttons: ['OK'],
+    });
+    await alert.present();
+  }
+
 
   generateQRCode() {
     if (this.accessCode) {

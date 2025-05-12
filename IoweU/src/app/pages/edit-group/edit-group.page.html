@@ -28,6 +28,7 @@
           type="text"
           placeholder="Access Code"
           [(ngModel)]="accessCode"
+          readonly
         ></ion-input>
         <ion-icon [src]="'assets/icon/ionicons/qr-code-outline.svg'" (click)="generateQRCode()"></ion-icon>
       </ion-item>
