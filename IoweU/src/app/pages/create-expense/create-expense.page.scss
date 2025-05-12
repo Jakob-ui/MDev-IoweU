@@ -361,7 +361,8 @@ ion-input::part(native) {
   font-weight: 800;
 }
 
-.custom-dropdown ion-item.selected ion-icon.category-icon {
+.custom-dropdown ion-item.selected ion-icon.category-icon
+{
   color: var(--ion-color-dark) !important;
   background-color: var(--ion-color-primary) !important;
   border-radius: 50px;
@@ -375,6 +376,18 @@ ion-item.dropDownFelder::part(native) {
 }
 
 .custom-dropdown .currency-symbol {
+  margin-left: 0;
+  width: auto;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.custom-dropdown ion-item.selected ion-label.currency-symbol{
+  color: var(--ion-color-dark) !important;
+  background-color: var(--ion-color-primary) !important;
+  border-radius: 50px;
+  padding: 5px;
   margin-left: 0;
 }
 
