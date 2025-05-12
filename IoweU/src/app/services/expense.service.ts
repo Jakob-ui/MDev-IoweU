@@ -1015,46 +1015,100 @@ export class ExpenseService {
     return amount;
   }
 
+  async getUserBalance(groupId: string, currentUserId: string, selectedMemberId: string) {
+    const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+
+    // Erste Abfrage nach den Benutzern, wobei der eingeloggte Benutzer als `userA` und der ausgewählte Benutzer als `userB` sein könnte
+    const q1 = query(
+      balancesRef,
+      where('userAId', '==', currentUserId),
+      where('userBId', '==', selectedMemberId)
+    );
+
+    let snapshot = await getDocs(q1);
+    console.log("q1 snapshot", snapshot.empty, snapshot.docs);
+
+    // Falls keine Daten gefunden werden, auch nach den umgekehrten IDs suchen
+    if (snapshot.empty) {
+      const q2 = query(
+        balancesRef,
+        where('userAId', '==', selectedMemberId),
+        where('userBId', '==', currentUserId)
+      );
+      snapshot = await getDocs(q2);
+      console.log("q2 snapshot", snapshot.empty, snapshot.docs);
+
+      if (snapshot.empty) {
+        return { myIncome: 0, myExpenses: 0 }; // Keine Bilanz gefunden
+      }
+
+      // Berechnung der Werte, wenn die Reihenfolge der Benutzer vertauscht ist
+      let myIncome = 0;
+      let myExpenses = 0;
+      snapshot.forEach((doc) => {
+        const data = doc.data() as Balances;
+        console.log("Data from q2:", data);
+        myIncome += data.userBCredit;  // Betrag, den der ausgewählte Benutzer erhalten muss
+        myExpenses += data.userACredit; // Betrag, den der eingeloggte Benutzer zahlen muss
+      });
+
+      return { myIncome, myExpenses };
+    }
+
+    // Falls die direkte Zuordnung gefunden wurde, Berechnung für den eingeloggten Benutzer
+    let myIncome = 0;
+    let myExpenses = 0;
+    snapshot.forEach((doc) => {
+      const data = doc.data() as Balances;
+      console.log("Data from q1:", data);
+      myIncome += data.userACredit;  // Betrag, den der eingeloggte Benutzer erhalten soll
+      myExpenses += data.userBCredit; // Betrag, den der ausgewählte Benutzer zahlen muss
+    });
+
+    return { myIncome, myExpenses };
+  }
+
   async getExpensesByBalanceEntries(
     groupId: string,
-    balanceEntry: Balances
+    currentUserUid: string,
+    selectedMemberUid: string
   ): Promise<Expenses[]> {
+    if (!currentUserUid || !selectedMemberUid) return [];
+
+    const expensesRef = collection(this.firestore, 'groups', groupId, 'expenses');
+    const allExpensesSnap = await getDocs(expensesRef);
+
     const expenses: Expenses[] = [];
 
-    if (
-      !balanceEntry.relatedExpenseId ||
-      balanceEntry.relatedExpenseId.length === 0
-    ) {
-      return expenses;
-    }
+    allExpensesSnap.forEach((docSnap) => {
+      const data = docSnap.data() as Expenses;
 
-    for (const expenseId of balanceEntry.relatedExpenseId) {
-      try {
-        const expenseRef = doc(
-          this.firestore,
-          'groups',
-          groupId,
-          'expenses',
-          expenseId
-        );
-        const expenseSnap = await getDoc(expenseRef);
+      const currentIsMember = data.expenseMember?.some(
+        (member) => member.memberId === currentUserUid && member.amountToPay > 0
+      );
 
-        if (expenseSnap.exists()) {
-          const data = expenseSnap.data();
-          expenses.push({
-            expenseId: expenseSnap.id,
-            ...data,
-          } as Expenses);
-        } else {
-          console.warn(`Expense with ID ${expenseId} not found.`);
-        }
-      } catch (error) {
-        console.error(`Error fetching expense ${expenseId}:`, error);
+      const selectedIsMember = data.expenseMember?.some(
+        (member) => member.memberId === selectedMemberUid && member.amountToPay > 0
+      );
+
+      const selectedPaid = data.paidBy === selectedMemberUid;
+      const currentPaid = data.paidBy === currentUserUid;
+
+      const isRelevant =
+        (currentIsMember && selectedPaid) || (selectedIsMember && currentPaid);
+
+      const isPaid = data.expenseMember?.some(
+        (member) => member.paid === true
+      );
+
+      if (isRelevant && !isPaid) {
+        expenses.push({ ...data, expenseId: docSnap.id });
       }
-    }
+    });
 
     return expenses;
   }
+
 
   async checkMemberBalance(groupId: string, userId: string): Promise<boolean> {
     const groupRef = doc(this.firestore, 'groups', groupId);
