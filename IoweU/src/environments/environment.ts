@@ -1,6 +1,6 @@
 export const environment = {
   firebase: {
-    apiKey: 'AIzaSyDn4hAduYYpx_ERORW58vl-I1IjewZey9o',
+    apiKey: 'AIzaSyAzZzkLQun-s4BPMmbl0qkcHoG3I3WeWK8',
     authDomain: 'ioweu-a74cd.firebaseapp.com',
     projectId: 'ioweu-a74cd',
     storageBucket: 'ioweu-a74cd.firebasestorage.app',
