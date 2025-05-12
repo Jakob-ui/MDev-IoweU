@@ -71,6 +71,15 @@
             <ion-item
               class="dropDownFelder"
               button
+              [ngClass]="{ 'selected': selectedCategories.length === 0 }"
+              (click)="clearCategoryFilter($event)"
+            >
+              <ion-icon name="layers-outline" class="category-icon"></ion-icon>
+              <ion-label>Alle</ion-label>
+            </ion-item>
+            <ion-item
+              class="dropDownFelder"
+              button
               *ngFor="let category of categories"
               [ngClass]="{ 'selected': selectedCategories.includes(category.name) }"
               (click)="selectCategories(category, $event)"

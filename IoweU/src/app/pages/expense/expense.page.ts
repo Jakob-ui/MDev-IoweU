@@ -390,24 +390,26 @@ export class ExpensePage implements OnInit, OnDestroy {
     this.dropdownOpen = !this.dropdownOpen;
   }
 
-  // Wählt eine Kategorie aus
   selectCategories(category: { name: string; icon: string }, event: Event) {
     event.stopPropagation();
-
-    // Toggle-Verhalten für einfache Auswahl
     if (this.selectedCategories.includes(category.name)) {
       this.selectedCategories = this.selectedCategories.filter(
         (cat) => cat !== category.name
       );
     } else {
-      this.selectedCategories = [category.name]; // Single-Select – nur eine Kategorie gleichzeitig
+      this.selectedCategories = [category.name];
     }
-
     this.dropdownOpen = false;
     this.filterExpenses();
   }
 
-  // Gibt Icon für ausgewählte Kategorie zurück
+  clearCategoryFilter(event: Event) {
+    event.stopPropagation();
+    this.selectedCategories = [];
+    this.dropdownOpen = false;
+    this.filterExpenses();
+  }
+
   getCategoryIcon(categoryName: string): string {
     const found = this.categories.find((cat) => cat.name === categoryName);
     return found?.icon || 'help-outline';
