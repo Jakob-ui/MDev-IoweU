@@ -848,6 +848,34 @@ ion-input:focus ~ .ionicon {
   margin-bottom: 10px;
 }
 
+/* Optional: Scrollbar-Styling für Webkit-Browser */
+.custom-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-dropdown::-webkit-scrollbar-thumb {
+  background-color: var(--ion-color-secondary);
+  border-radius: 4px;
+}
+
+.custom-dropdown .selected ion-label {
+  color: var(--ion-color-dark);
+  font-weight: 800;
+}
+
+.custom-dropdown ion-item.selected ion-icon.category-icon {
+  color: var(--ion-color-dark) !important;
+  background-color: var(--ion-color-primary) !important;
+  border-radius: 50px;
+  padding: 5px;
+}
+
+ion-item.dropDownFelder::part(native) {
+  --background: #ffffff;
+  background-color: #ffffff !important;
+
+}
+
 body.color-blind {
   --ion-color-danger: #ff9900 !important; // Rot → Orange
   --ion-color-success: #3399ff !important; // Grün → Blau
