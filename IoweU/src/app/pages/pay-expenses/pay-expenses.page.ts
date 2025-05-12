@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { AlertController } from '@ionic/angular';
+import {AlertController, ToastController} from '@ionic/angular';
 
 import {
   fastFoodOutline,
@@ -76,6 +76,7 @@ export class PayExpensesPage {
   private expenseService = inject(ExpenseService);
   private transactionService = inject(TransactionService);
   private alertController = inject(AlertController);
+  private toastController = inject(ToastController);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -355,30 +356,41 @@ export class PayExpensesPage {
   }
 
   async pay() {
-       if (this.authService.currentUser) {
-         const amount = this.getAmountToPayForMember(
-           this.expense[0],
-           this.authService.currentUser.uid
-         );
-         const trans: Transactions = {
-           from: this.uid || '',
-           to: this.expensePaidBy || '',
-           amount: amount,
-           reason: this.expense[0].description,
-           date: new Date().toISOString(),
-           relatedExpenses: [this.expenseId],
-         };
+    if (this.authService.currentUser) {
+      const amount = this.getAmountToPayForMember(
+        this.expense[0],
+        this.authService.currentUser.uid
+      );
+      const trans: Transactions = {
+        from: this.uid || '',
+        to: this.expensePaidBy || '',
+        amount: amount,
+        reason: this.expense[0].description,
+        date: new Date().toISOString(),
+        relatedExpenses: [this.expenseId],
+      };
 
-         await this.transactionService.makeTransactionById(
-           this.groupId,
-           [this.expenseId],
-           this.authService.currentUser.uid,
-           trans
-         );
-       } else {
-         console.log('current user is null');
-       }
-  
+      try {
+        // Transaktion durchführen
+        await this.transactionService.makeTransactionById(
+          this.groupId,
+          [this.expenseId],
+          this.authService.currentUser.uid,
+          trans
+        );
+        // Erfolgreicher Abschluss der Transaktion
+        await this.presentToast('Deine Schulden wurden erfolgreich bezahlt!');
+      } catch (error) {
+        console.error('Fehler bei der Transaktion:', error);
+        await this.presentToast('Fehler bei der Zahlung. Bitte versuche es erneut.');
+        return;
+      }
+    } else {
+      console.log('current user is null');
+      await this.presentToast('Fehler: Benutzer nicht angemeldet. Bitte melde dich an.');
+      return;
+    }
+
     // Danach: Nur noch fragen, ob man sie sehen will
     const alert = await this.alertController.create({
       header: 'Transaktion abgeschlossen',
@@ -400,7 +412,18 @@ export class PayExpensesPage {
         },
       ],
     });
-  
+
     await alert.present();
   }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
+
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
+import {AlertController, ToastController} from "@ionic/angular";
 import { addIcons } from 'ionicons';
 import {
   fastFoodOutline,
@@ -125,6 +126,10 @@ export class CreateExpensePage {
   private expenseService = inject(ExpenseService);
   private imageService = inject(ImageService);
   private http = inject(HttpClient);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
+
+
   constructor() {}
 
   groupname: string = '';
@@ -1042,10 +1047,11 @@ export class CreateExpensePage {
         this.repeating
       );
 
+      await this.presentToast('Ausgabe erfolgreich gespeichert!');
       this.navCtrl.back();
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);
-      alert('Es ist ein Fehler aufgetreten. Bitte versuche es erneut.');
+      await this.presentAlert('Fehler', 'Es ist ein Fehler aufgetreten. Bitte versuche es erneut.');
     } finally {
       this.loadingService.hide();
     }
@@ -1063,5 +1069,25 @@ export class CreateExpensePage {
   closeInvoiceDropdowns(): void {
     this.invoiceDropdownOpen = false;
     this.currencyDropdownOpen = false;
+  }
+
+  async presentAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header: header,
+      message: message,
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
   }
 }

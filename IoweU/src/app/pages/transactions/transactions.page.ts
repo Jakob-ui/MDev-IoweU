@@ -171,17 +171,6 @@ export class TransactionsPage implements OnInit {
     }
   }
 
-  async logout() {
-    this.loadingService.show();
-    try {
-      this.authService.logout();
-      this.router.navigate(['login']);
-    } catch (e) {
-      console.error('Fehler beim Logout:', e);
-    } finally {
-      this.loadingService.hide();
-    }
-  }
 
   goBack() {
     this.router.navigate(['/group', this.groupId]);
