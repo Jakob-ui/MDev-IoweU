@@ -98,10 +98,11 @@
               <span class="input-label">Fälligkeitsdatum</span>
               <ion-item>
                 <ion-input
-                  [(ngModel)]="selectedProduct.date"
                   [readonly]="true"
-                  [placeholder]="selectedProduct.date ? (selectedProduct.date | date: 'dd.MM.yyyy') : 'Wähle ein Datum'"
-                  (click)="openDatePicker()" name="date">
+                  [value]="getDateDisplay(selectedProduct.date)"
+                  placeholder="Wähle ein Datum"
+                  (click)="openDatePicker(selectedProduct)"
+                  name="date">
                 </ion-input>
               </ion-item>
             </div>
@@ -239,7 +240,7 @@
                   [(ngModel)]="newProduct.dueDate"
                   [readonly]="true"
                   [placeholder]="newProduct.dueDate ? (newProduct.dueDate | date: 'dd.MM.yyyy') : 'Wähle ein Datum'"
-                  (click)="openDatePicker()"
+                  (click)="openDatePicker(newProduct)"
                 ></ion-input>
               </ion-item>
             </div>
