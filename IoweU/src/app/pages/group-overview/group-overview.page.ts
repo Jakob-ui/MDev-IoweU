@@ -15,6 +15,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
 import { LoadingService } from 'src/app/services/loading.service';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 @Component({
   selector: 'app-group-overview',
@@ -161,10 +162,15 @@ export class GroupOverviewPage implements OnInit {
   }
 
   onLongPressStart() {
-    this.longPressTimeout = setTimeout(() => {
-      this.isEditMode = true;
-    }, 900);
-  }
+  this.longPressTimeout = setTimeout(() => {
+    this.isEditMode = true;
+
+    // Haptisches Feedback auslösen
+    Haptics.impact({
+      style: ImpactStyle.Heavy, // Korrekte Verwendung von ImpactStyle
+    });
+  }, 900);
+}
 
   onLongPressCancel() {
     if (this.longPressTimeout) {
