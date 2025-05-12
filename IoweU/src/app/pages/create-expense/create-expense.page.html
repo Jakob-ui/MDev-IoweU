@@ -653,16 +653,19 @@
   <!-- Datepicker Modal -->
   <ion-datetime
     class="datepicker"
-    presentation="date"
-    [formatOptions]="{
-      month: 'short',
-      year: 'numeric',
-      day: '2-digit'
-    }"
-    *ngIf="isDatePickerOpen"
-    [(ngModel)]="expense.date"
-    (ionChange)="onDateChange($event)"
-    (ionCancel)="closeDatePicker()"
+    presentation="datetime"
+  [formatOptions]="{
+  month: 'short',
+  year: 'numeric',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit'
+  }"
+  *ngIf="isDatePickerOpen"
+  [(ngModel)]="expense.date"
+  (ionChange)="onDateChange($event)"
+  (ionCancel)="closeDatePicker()"
   >
   </ion-datetime>
+
 </ion-content>

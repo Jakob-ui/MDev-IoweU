@@ -290,16 +290,22 @@ export class ExpensePage implements OnInit, OnDestroy {
       grouped[date].push(expense);
     }
 
-    // In korrektes Format umwandeln und nach Datum sortieren (neueste zuerst)
     this.groupedExpenses = Object.keys(grouped)
       .map((date) => ({
         date: date,
-        expenses: grouped[date],
+        expenses: grouped[date].sort((a, b) => {
+          const timeDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+          if (timeDiff !== 0) return timeDiff;
+
+          return a.description.localeCompare(b.description);
+        }),
       }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     this.visibleGroupedExpenses = this.groupedExpenses.slice(0, this.pageSize);
+    console.log('Grouped expenses:', this.groupedExpenses);
   }
+
 
   getFirstLetter(paidBy: string): string {
     const member = this.groupMembers.find((m) => m.uid === paidBy);

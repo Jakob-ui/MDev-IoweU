@@ -189,7 +189,7 @@ export class CreateExpensePage {
     totalAmountInForeignCurrency: 0,
     exchangeRate: 0,
     paidBy: '',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString(),
     currency: ['EUR'],
     category: 'Sonstiges',
     invoice: '',
