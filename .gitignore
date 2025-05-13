@@ -71,3 +71,6 @@ node_modules/
 # Capacitor native platforms
 android/
 ios/
+IoweU/src/environments/
+IoweU/src/environments/environment.prod.ts
+IoweU/src/environments/environment.ts

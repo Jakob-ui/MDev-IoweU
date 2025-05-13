@@ -4,7 +4,7 @@ import { AuthGuard } from './guards/auth.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'login',
+    redirectTo: 'group-overview',
     pathMatch: 'full',
   },
   {
@@ -142,12 +142,35 @@ export const routes: Routes = [
   },
   {
     path: 'overall-balance',
-    loadComponent: () => import('./pages/overall-balance/overall-balance.page').then(
-      (m) => m.OverallBalancePage
+    loadComponent: () =>
+      import('./pages/overall-balance/overall-balance.page').then(
+        (m) => m.OverallBalancePage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'pay-expenses/:groupId/:expenseId',
+    loadComponent: () =>
+      import('./pages/pay-expenses/pay-expenses.page').then(
+        (m) => m.PayExpensesPage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'shoppingcart/:groupId',
+    loadComponent: () =>
+      import('./pages/shoppingcart/shoppingcart.page').then(
+        (m) => m.ShoppingcartPage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'settle-balances/:groupId',
+    loadComponent: () => import('./pages/settle-balances/settle-balances.page').then(
+      (m) => m.SettleBalancesPage
     ),
     canActivate: [AuthGuard],
   },
-
   {
     path: 'not-found',
     loadComponent: () =>
@@ -158,6 +181,7 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'not-found',
   },
+
 
 
 

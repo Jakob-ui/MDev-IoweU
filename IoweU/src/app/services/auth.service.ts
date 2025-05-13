@@ -10,6 +10,7 @@ import {
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +19,9 @@ export class AuthService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private groupService = inject(GroupService);
+  private router = inject(Router);
   currentUser: Users | null = null;
+  colorBlindMode: boolean = false;
 
   constructor() {
     this.auth.onAuthStateChanged((user) => {
@@ -33,6 +36,9 @@ export class AuthService {
         };
         const groupRef = doc(this.firestore, 'users', user.uid);
         getDoc(groupRef).then((docsnap) => {
+          this.colorBlindMode =
+            localStorage.getItem('colorBlindMode') === 'true';
+          this.applyColorBlindMode(this.colorBlindMode);
           this.firestore;
           if (docsnap.exists()) {
             this.currentUser = {
@@ -180,8 +186,19 @@ export class AuthService {
       document.documentElement.style.removeProperty('--user-color');
       document.documentElement.style.removeProperty('--user-color-background');
 
-      // Weitere globale Daten zurücksetzen
+      // Lösche Gruppendaten und lokale Daten
       this.groupService.clearGroupData();
+      localStorage.removeItem('colorBlindMode');
+      sessionStorage.clear(); // Lösche alle Daten aus dem Session Storage
+      console.log('Lokale und globale Daten wurden gelöscht.');
+
+      // Setze den Zustand des GroupService zurück
+      this.groupService.currentGroup = null;
+
+      // Optional: Seite neu laden, um sicherzustellen, dass alles zurückgesetzt wird
+      this.router.navigate(['/login']).then(() => {
+        window.location.reload();
+      });
     });
   }
 
@@ -193,6 +210,14 @@ export class AuthService {
     return sendPasswordResetEmail(this.auth, email.trim(), {
       url: 'http://localhost:8100/login',
     });
+  }
+
+  applyColorBlindMode(enabled: boolean) {
+    if (enabled) {
+      document.body.classList.add('color-blind');
+    } else {
+      document.body.classList.remove('color-blind');
+    }
   }
 
   //-------------Workaround---------------------

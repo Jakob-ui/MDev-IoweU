@@ -307,7 +307,30 @@ ion-input::part(native) {
   padding-bottom: 15%;
   border-radius: 10px;
   background-color: #ffffff;
+
+  /* Scrollbar aktivieren */
+ max-height: 300px; /* Passe die maximale Höhe an deine Anforderungen an */
+ overflow-y: auto; /* Scrollbar aktivieren, wenn der Inhalt zu groß ist */
 }
+
+/* Optional: Scrollbar-Styling für Webkit-Browser */
+.custom-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-dropdown::-webkit-scrollbar-thumb {
+  background-color: var(--ion-color-secondary);
+  border-radius: 4px;
+}
+
+.custom-dropdown .selected {
+  color: var(--ion-color-secondary-shade);
+}
+
+.custom-dropdown ion-item.selected ion-icon.category-icon {
+  color: var(--ion-color-shade) !important; /* Farbe für das Icon des ausgewählten Elements */
+}
+
 ion-item.dropDownFelder::part(native) {
   --background: #ffffff;
   background-color: #ffffff !important;
@@ -593,26 +616,44 @@ ion-input {
     color: #989797;
   }
   ion-item.dropDownFelder::part(native) {
-
     background-color: #121212 !important;
     color: var(--ion-color-light) !important;
   }
   .custom-dropdown {
     background-color: #121212;
   }
-  #category-icon-label {
-    color: #000000;
-    font-size: 24px;
+  .custom-dropdown ion-item.selected::part(native){
+    color: var(--ion-color-medium) !important; /* Schriftfarbe für das ausgewählte Element */
   }
-  .paid-by .custom-dropdown {
-    background-color: #121212;
+  .custom-dropdown ion-item.selected ion-icon.category-icon {
+    color: var(--ion-color-medium) !important; /* Farbe für das Icon des ausgewählten Elements */
+  }
+  .Kategorie ion-icon.category-icon {
+    color: var(--ion-color-light) !important; /* Schwarze Farbe für das Icon */
+  }
+
+  #category-icon-label {
+    color: #000000 !important;
+  }
+  .paid-by .custom-dropdown { 
+    background-color: #121212; 
   }
   .paid-by ion-item.dropDownFelder::part(native) {
     background-color: #121212 !important;
+}
+.upload-icon{
+  color: #000 !important;
+}
 
-  }
-  .upload-icon{
-    color: #000000;
-  }
+.datepicker{
+  background-color: #000;
+}
 
+.invoice-upload{
+  .custom-dropdown {
+    ion-icon{
+      color: #ffffff;
+    }
+  }
+}
 }

@@ -12,7 +12,7 @@ import {
   IonIcon,
   IonItem,
   IonSelect,
-  IonSelectOption,
+  IonSelectOption, IonBadge,
 } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -22,6 +22,8 @@ import { LoadingService } from '../../services/loading.service';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { FormsModule } from '@angular/forms';
 import { Members } from 'src/app/services/objects/Members';
+import {ShoppinglistService} from "../../services/shoppinglist.service";
+import {ShoppingProducts} from "../../services/objects/ShoppingProducts";
 
 @Component({
   selector: 'app-group',
@@ -43,6 +45,7 @@ import { Members } from 'src/app/services/objects/Members';
     IonItem,
     IonSelect,
     IonSelectOption,
+    IonBadge,
   ],
 })
 export class GroupPage implements OnInit {
@@ -53,13 +56,14 @@ export class GroupPage implements OnInit {
   private route = inject(ActivatedRoute);
   private groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
+  private shoppinglistService = inject(ShoppinglistService);
 
   iosIcons: boolean = false;
 
   user: string | null = '';
   isFounder: boolean = false;
   currentGroup: Groups | null = null;
-  balance: number = -20;
+  balance: number = 0;
   totalCost: number = 120.5;
   displayName: string | null = null;
 
@@ -69,7 +73,7 @@ export class GroupPage implements OnInit {
   groupImage: string = '';
   members: Members[] = [];
   accessCode: string = '';
-  sumTotalExpenses: number | undefined = undefined;
+  sumTotalExpenses: number | undefined = 0.0;
   countTotalExpenses: number | undefined = undefined;
   sumTotalExpensesMembers: number | undefined = undefined;
   countTotalExpensesMembers: number | undefined = undefined;
@@ -80,8 +84,10 @@ export class GroupPage implements OnInit {
 
   currentMonth: string = 'März 2025';
 
-  shoppingList: string[] = ['Milch', 'Brot', 'Eier', 'Butter'];
-  assetsList: string[] = ['Sofa', 'Küche', 'Fernseher'];
+  shoppingListId: string | null = '';
+  shoppingProducts: ShoppingProducts[] = [];
+  shoppingList: string[] = [];
+  assetsList: string[] = [];
   group: Groups | null = null;
 
   myBalance: number = 0;
@@ -118,10 +124,12 @@ export class GroupPage implements OnInit {
         const groupId = this.route.snapshot.paramMap.get('groupId');
         if (groupId) {
           this.groupId = groupId;
+
           console.log('Bilanz:', this.myBalance);
 
           // Lade die Gruppendaten
           await this.loadGroupData(this.groupId);
+          await this.getShoppingProducts();
         } else {
           console.error('Keine Gruppen-ID in den Routenparametern gefunden.');
         }
@@ -135,10 +143,17 @@ export class GroupPage implements OnInit {
     }
   }
 
+  ionViewWillLeave() {
+    this.overlayState = 'start'; // Setze den Overlay-Zustand zurück
+    console.log(
+      'Overlay state beim Verlassen zurückgesetzt:',
+      this.overlayState
+    );
+  }
+
   ngOnDestroy() {
     if (this.updateGroupCallback) {
-      this.updateGroupCallback(); // Entfernt den Echtzeit-Listener
-      console.log('Echtzeit-Listener entfernt.');
+      this.updateGroupCallback();
     }
   }
 
@@ -178,8 +193,6 @@ export class GroupPage implements OnInit {
 
             // Überprüfe, ob Features in der DB vorhanden sind
             this.canAddFeatures = this.features.length === 0;
-
-            console.log('Echtzeit-Update der Gruppe:', group);
           } else {
             console.warn('Gruppe nicht gefunden!');
           }
@@ -206,11 +219,12 @@ export class GroupPage implements OnInit {
       return;
     }
 
-    // Berechnung der Bilanz (Guthaben - Ausgaben)
-    const paidByUser = member.sumExpenseAmount; // Guthaben (Beträge, die ich bezahlt habe)
-    const paidByMember = member.sumExpenseMemberAmount; // Ausgaben (Schulden, die ich bezahlt bekommen habe)
-
-    this.myBalance = paidByUser - paidByMember; // Speichere den berechneten Wert
+    // Berechnung der Bilanz)
+    this.myBalance =
+      member.sumExpenseAmount -
+      member.sumAmountReceived +
+      member.sumAmountPaid -
+      member.sumExpenseMemberAmount; // Speichere den berechneten Wert
     console.log('Berechnete Bilanz:', this.myBalance);
   }
 
@@ -237,9 +251,9 @@ export class GroupPage implements OnInit {
       case 'Ausgaben':
         return `/expense/${this.groupId}`;
       case 'Einkaufsliste':
-        return `/shoppinglist/${this.groupId}`; // Beispiel-Link für Shopping-List
+        return `/shoppinglist/${this.groupId}`;
       case 'Anlagegüter':
-        return `/assets/${this.groupId}`; // Beispiel-Link für Assets
+        return `/group/${this.groupId}`;
       default:
         return '/'; // Rückfalloption für unbekannte Features
     }
@@ -316,6 +330,36 @@ export class GroupPage implements OnInit {
       console.log('Features erfolgreich hinzugefügt:', newFeatures);
     } catch (error) {
       console.error('Fehler beim Hinzufügen der Features:', error);
+    }
+  }
+
+  async getShoppingProducts() {
+    this.shoppingListId =
+      await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId!);
+
+    if (!this.shoppingListId) {
+      console.error('ShoppingListId ist null!');
+      return;
+    }
+
+    this.shoppingProducts = await this.shoppinglistService.getShoppingProducts(
+      this.groupId!,
+      this.shoppingListId
+    );
+  }
+
+  getFeatureColor(feature: string): string {
+    switch (feature) {
+      case 'Finanzübersicht':
+        return 'color-1';
+      case 'Ausgaben':
+        return 'color-2';
+      case 'Einkaufsliste':
+        return 'color-3';
+      case 'Anlagegüter':
+        return 'color-4';
+      default:
+        return '';
     }
   }
 }

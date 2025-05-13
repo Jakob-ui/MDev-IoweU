@@ -14,13 +14,15 @@ import {
   getDoc,
   updateDoc,
   onSnapshot,
+  collectionGroup,
 } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { elementAt } from 'rxjs';
-import { Categories } from './objects/Categories';
+import { CATEGORIES } from './objects/Categories';
 import { Storage } from '@angular/fire/storage';
 import { UserService } from './user.service';
 import { ImageService } from './image.service';
+import { Expenses } from './objects/Expenses';
 
 @Injectable({
   providedIn: 'root',
@@ -32,6 +34,7 @@ export class GroupService {
   private imageService = inject(ImageService);
 
   currentGroup: Groups | null = null;
+  groupCount: number = 0;
 
   setGroup(group: Groups): void {
     this.currentGroup = group;
@@ -78,9 +81,9 @@ export class GroupService {
       };
 
       // Features basierend auf dem Template hinzufügen
-      if (template === 'Standard') {
-        newGroup.features.push('Finanzübersicht');
-      } else if (template === 'Projekt') {
+      if (template === 'Basic') {
+        newGroup.features.push('Finanzübersicht', 'Ausgaben');
+      } else if (template === 'Wohngemeinschaft') {
         newGroup.features.push(
           'Finanzübersicht',
           'Ausgaben',
@@ -89,8 +92,8 @@ export class GroupService {
         );
       } else if (template === 'Reise') {
         newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Einkaufsliste');
-      } else {
-        newGroup.features.push('Finanzübersicht');
+      } else if (template === 'Projekt') {
+        newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Anlagegüter');
       }
       // Gruppe in Firestore speichern
       const groupRef = await setDoc(
@@ -133,6 +136,26 @@ export class GroupService {
     } catch (error) {
       console.error('Error creating group:', error);
     }
+  }
+
+  listenToGroupChanges(
+    groupId: string,
+    updateGroupCallback: (group: Groups | null) => void
+  ): () => void {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+
+    const unsubscribe = onSnapshot(groupRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const groupData = docSnapshot.data() as Groups;
+        groupData.groupId = groupId;
+        updateGroupCallback(groupData);
+      } else {
+        console.warn(`Gruppe mit ID ${groupId} nicht gefunden.`);
+        updateGroupCallback(null);
+      }
+    });
+
+    return unsubscribe;
   }
 
   //Gruppe bearbeiten (nur als Gründer*in möglich):
@@ -221,6 +244,68 @@ export class GroupService {
     } catch (error) {
       console.error('Fehler beim Entfernen der groupId aus Benutzern:', error);
     }
+  }
+
+  async removeUserFromGroupByUid(
+    groupId: string,
+    userId: string
+  ): Promise<boolean> {
+    try {
+      // 1. Fetch the group document
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      const groupSnap = await getDoc(groupRef);
+
+      if (!groupSnap.exists()) {
+        console.error(`Group with ID ${groupId} does not exist.`);
+        return false;
+      }
+
+      const groupData = groupSnap.data();
+      const members = groupData['members'] || [];
+
+      // 2. Find the user in the group's members list
+      const user = members.find((member: any) => member.uid === userId);
+      if (!user) {
+        console.error(`User with ID ${userId} is not a member of the group.`);
+        return false;
+      }
+
+      // 3. Check if the user's total group balance is 0
+      const balance1 = user.sumExpenseMemberAmount - user.sumAmountPaid;
+      const balance2 = user.sumExpenseAmount - user.sumAmountReceived;
+
+      if (balance1 !== 0 || balance2 !== 0) {
+        console.error(
+          `User ${userId} cannot be removed because they have an outstanding balance.`
+        );
+        return false;
+      }
+
+      // 4. Remove the user from the group's members list
+      const updatedMembers = members.filter(
+        (member: any) => member.uid !== userId
+      );
+      await updateDoc(groupRef, { members: updatedMembers });
+      console.log(`User ${userId} removed from group ${groupId}.`);
+
+      // 5. Remove the groupId from the user's document
+      const userRef = doc(this.firestore, 'users', userId);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const updatedGroupIds = (userData['groupId'] || []).filter(
+          (id: string) => id !== groupId
+        );
+        await updateDoc(userRef, { groupId: updatedGroupIds });
+        console.log(`Group ID ${groupId} removed from user ${userId}.`);
+        return true;
+      }
+    } catch (error) {
+      console.error('Error removing user from group:', error);
+      return false;
+    }
+    return false; // Ensure a boolean is always returned
   }
 
   async joinGroup(joinee: Users, accessCode: string): Promise<void> {
@@ -358,6 +443,7 @@ export class GroupService {
             ...doc.data(),
           })) as Groups[];
           updateGroupsCallback(groups); // Aktualisiere die Gruppenliste
+          this.groupCount = groups.length;
         } else {
           console.log('No groups found for this user.');
           updateGroupsCallback([]); // Leere Gruppenliste zurückgeben
@@ -367,6 +453,15 @@ export class GroupService {
 
     // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
     return unsub;
+  }
+
+  async updateGroupOrder(groupId: string, newPosition: number): Promise<void> {
+    try {
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      await updateDoc(groupRef, { position: newPosition });
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren der Gruppenposition:', error);
+    }
   }
 
   //Bestimmte Gruppe finden:
@@ -502,10 +597,6 @@ export class GroupService {
 
   async getGroupByGroupId(groupId: string): Promise<Groups | null> {
     console.log('Suche Gruppe mit groupId:', groupId);
-    if (!groupId) {
-      console.error('groupId ist undefined. Abfrage abgebrochen.');
-      return null;
-    }
     try {
       const groupRef = collection(this.firestore, 'groups');
       const q = query(groupRef, where('groupId', '==', groupId));
@@ -529,13 +620,6 @@ export class GroupService {
     groupId: string,
     updateGroupCallback: (group: Groups[]) => void
   ): Promise<() => void> {
-    if (!groupId) {
-      console.error('groupId ist undefined. Abfrage abgebrochen.');
-      return () => {};
-    }
-
-    console.log('Suche Gruppe mit groupId:', groupId);
-
     try {
       const groupRef = collection(this.firestore, 'groups');
       const q = query(groupRef, where('groupId', '==', groupId));
@@ -567,5 +651,38 @@ export class GroupService {
   clearGroupData(): void {
     this.currentGroup = null;
     console.log('Gruppendaten wurden zurückgesetzt.');
+  }
+
+  async setNewFounder(
+    groupId: string,
+    oldFounderUid: string,
+    newFounderUid: string
+  ): Promise<void> {
+    const groupRef = doc(this.firestore, 'groups', groupId);
+    const groupSnapshot = await getDoc(groupRef);
+
+    if (!groupSnapshot.exists()) {
+      throw new Error('Gruppe nicht gefunden.');
+    }
+
+    const groupData = groupSnapshot.data() as Groups;
+    const members = groupData.members || [];
+
+    const updatedMembers = members.map((member) => {
+      if (member.uid === oldFounderUid) {
+        return { ...member, role: 'member' as 'member' };
+      }
+      if (member.uid === newFounderUid) {
+        return { ...member, role: 'founder' as 'founder' };
+      }
+      return { ...member, role: member.role as 'member' | 'founder' }; // falls role evtl. noch string war
+    });
+
+    const updatedGroupData: Partial<Groups> = {
+      founder: newFounderUid,
+      members: updatedMembers,
+    };
+
+    await setDoc(groupRef, updatedGroupData, { merge: true });
   }
 }

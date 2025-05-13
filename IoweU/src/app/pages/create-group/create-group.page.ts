@@ -7,7 +7,8 @@ import {
   IonLabel,
   IonInput,
   IonSelect,
-  IonSelectOption, IonNote,
+  IonSelectOption,
+  IonNote,
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -18,8 +19,10 @@ import { Router } from '@angular/router';
 import { UserService } from 'src/app/services/user.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { AuthService } from 'src/app/services/auth.service';
-import { Categories } from 'src/app/services/objects/Categories';
+import { CATEGORIES } from 'src/app/services/objects/Categories';
 import { ImageService } from 'src/app/services/image.service';
+import {AlertController, ToastController} from "@ionic/angular";
+
 @Component({
   selector: 'app-create-group',
   templateUrl: './create-group.page.html',
@@ -47,34 +50,32 @@ export class CreateGroupPage {
   router = inject(Router);
   private userService = inject(UserService);
   private imageService = inject(ImageService);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
 
   groupname: string = '';
   selectedTemplate: string = '';
-  templates: string[] = ['Standard', 'Projekt', 'Reise'];
+  templates: string[] = ['Basic', 'Wohngemeinschaft', 'Reise', 'Projekt'];
   groupImage: string | ArrayBuffer | null = null;
   uploadImage: any;
   showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige
   newGroup: Groups | null = null; // Initialisierung der newGroup-Variable
 
-  defaultCategories: Categories = {
-    categories: [
-      { name: 'Lebensmittel', icon: 'fast-food-outline' },
-      { name: 'Einkäufe', icon: 'cart-outline' },
-      { name: 'Restaurant/Bar', icon: 'wine-outline' },
-      { name: 'Transport', icon: 'car-outline' },
-      { name: 'Freizeit', icon: 'game-controller-outline' },
-      { name: 'Wohnen', icon: 'home-outline' },
-      { name: 'Rechnungen', icon: 'receipt-outline' },
-      { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
-    ],
-  };
+  defaultCategories = CATEGORIES;
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
+  constructor() {}
+
+  ionViewWillLeave() {
+    this.router.navigate(['/group-overview'], { replaceUrl: true });
+  }
+
   async saveGroup() {
+    0;
     if (!this.groupname || !this.selectedTemplate) {
       console.error('Group name and template are required!');
-      alert('Wähle ein Template aus!');
+      await this.presentAlert('Fehler','Wähle einen Gruppennamen und Template aus!');
       return;
     }
 
@@ -97,14 +98,16 @@ export class CreateGroupPage {
         this.groupname,
         founder,
         this.selectedTemplate,
-        this.uploadImage,
+        this.uploadImage
       );
-      console.log('Groups successfully created!');
+      await this.presentToast('Gruppe erfolgreich erstellt!');
+      //this.router.navigate(['group', this.groupId]);
       console.log('Group successfully created!');
     } catch (error) {
       console.error('Error creating group:', error);
+      await this.presentToast('Fehler beim erstellen der Gruppe!');
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
@@ -112,15 +115,14 @@ export class CreateGroupPage {
     this.fileInput.nativeElement.click();
   }
 
-  onFileSelected(event: any) {
+  async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
-        this.groupImage = reader.result;
-        if (typeof this.groupImage === 'string') {
-          this.uploadImage = this.imageService.dataURLtoBlob(this.groupImage);
-        }
+      reader.onload = async () => {
+        const imageDataUrl = reader.result as string;
+        this.uploadImage = this.imageService.dataURLtoBlob(imageDataUrl);
+        this.groupImage = imageDataUrl;
       };
       reader.readAsDataURL(file);
     }
@@ -130,4 +132,25 @@ export class CreateGroupPage {
   onSelectChange() {
     this.showLabel = !this.selectedTemplate;
   }
+
+  async presentAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header: header,
+      message: message,
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
+
 }

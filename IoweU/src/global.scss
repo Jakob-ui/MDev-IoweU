@@ -154,6 +154,7 @@ h2 {
   font-weight: 700;
   font-size: 36px;
   color: var(--ion-color-dark);
+  max-width: 90%;
 }
 
 h3,
@@ -200,14 +201,14 @@ h7 {
 p,
 ion-card-content {
   font-family: var(--ion-font-family);
-  font-weight: 100;
-  font-size: 12px;
+  font-weight: 300;
+  font-size: 14px;
   color: var(--ion-color-dark) !important;
 }
 
 ion-card {
   font-family: var(--ion-font-family);
-  font-weight: 100;
+  font-weight: 300;
   background: var(--ion-color-secondary);
   border-radius: 15px;
   width: 80%;
@@ -233,8 +234,8 @@ ion-card-subtitle {
 }
 
 ion-card-subtitle span {
-  font-size: 12px;
-  font-weight: 100;
+  font-size: 14px;
+  font-weight: 300;
 }
 
 ion-card-subtitle p {
@@ -255,8 +256,7 @@ ion-card-subtitle h6 {
 .finance-card,
 .expense-card,
 .shopping-card {
-  width: 60%;
-  max-width: 800px;
+  max-width: 600px;
   margin: auto;
   padding: 20px;
   text-align: center;
@@ -275,6 +275,7 @@ ion-card-subtitle h6 {
   align-items: center;
   justify-content: center;
   text-align: center;
+  width: 100%;
 }
 
 .card-content-finance h2,
@@ -306,17 +307,17 @@ ion-card-subtitle h6 {
   flex-grow: 1;
 }
 
-.shoppingproduct-item h5{
+.shoppingproduct-item h5 {
   margin: 0 !important;
   top: 3px;
   position: relative;
 }
 
-.shoppingproduct-item .forMember{
+.shoppingproduct-item .forMember {
   margin-left: 10px;
 }
 
-.checkboxToShoppingcart{
+.checkboxToShoppingcart {
   margin-right: 10px;
   display: flex;
   align-items: center;
@@ -342,7 +343,7 @@ ion-card-subtitle h6 {
 
 .Preis {
   margin-left: auto;
-  font-weight: 100;
+  font-weight: 400;
   padding: 5px 10px;
   font-size: 14px;
   border-radius: 50px;
@@ -389,7 +390,7 @@ ion-title {
 }
 
 ion-title .pagename {
-  font-weight: 100;
+  font-weight: 300;
   font-size: 16px;
   color: var(--ion-color-dark);
   border-bottom: solid 1px var(--ion-color-dark);
@@ -398,7 +399,7 @@ ion-title .pagename {
 }
 
 ion-title .username {
-  font-weight: 100;
+  font-weight: 300;
   font-size: 16px;
   color: var(--ion-color-dark);
   border-bottom: solid 1px var(--ion-color-dark);
@@ -427,16 +428,27 @@ ion-button.back-button::part(native) {
 
 ion-button.main-button::part(native) {
   --background: var(--ion-color-primary);
-  font-weight: 100;
+  font-weight: 700;
   padding: 12px 24px;
   text-transform: uppercase;
   border-radius: 50px;
+  box-shadow: none !important;
+  border: solid 2px var(--ion-color-dark);
+}
+
+ion-button.outline-button::part(native) {
+  --background: white;
+  font-weight: 700;
+  padding: 12px 24px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  border: solid 2px var(--ion-color-dark);
   box-shadow: none !important;
 }
 
 ion-button.delete-button::part(native) {
   --background: var(--ion-color-danger);
-  font-weight: 100;
+  font-weight: 700;
   padding: 12px 24px;
   text-transform: uppercase;
   border-radius: 50px;
@@ -446,7 +458,7 @@ ion-button.delete-button::part(native) {
 
 ion-button.edit-button::part(native) {
   --background: var(--ion-color-primary);
-  font-weight: 100;
+  font-weight: 700;
   font-size: 12px;
   padding: 10px 20px;
   text-transform: uppercase;
@@ -465,7 +477,7 @@ ion-button.main-button.error-button::part(native) {
 
 ion-icon.logout-button::part(native) {
   --background: var(--ion-color-primary);
-  font-weight: 100;
+  font-weight: 300;
   --font-size: 24px;
   padding: 10px 20px;
   text-transform: uppercase;
@@ -475,7 +487,7 @@ ion-icon.logout-button::part(native) {
 
 ion-item::part(native) {
   font-family: var(--ion-font-family);
-  font-weight: 100;
+  font-weight: 300;
   font-size: 14px;
   background: var(--ion-color-secondary) !important;
   border-radius: 50px;
@@ -485,7 +497,7 @@ ion-item::part(native) {
 
 ion-item .input-label::part(native) {
   font-family: var(--ion-font-family);
-  font-weight: 100;
+  font-weight: 300;
   font-size: 12px;
   background: var(--ion-color-dark);
   color: var(--ion-color-dark);
@@ -493,7 +505,7 @@ ion-item .input-label::part(native) {
 
 ion-item .Dropdown-label {
   font-family: var(--ion-font-family);
-  font-weight: 100;
+  font-weight: 300;
   font-size: 12px;
   color: var(--ion-color-dark);
 }
@@ -532,7 +544,7 @@ ion-item.select-interface-option::part(native) {
 
 .balance-list,
 .expense-list,
-.shopping-list{
+.shopping-list {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -658,6 +670,12 @@ ion-item.select-interface-option::part(native) {
   margin-bottom: 10px;
 }
 
+.outline-button {
+  width: auto;
+  max-width: 800px;
+  margin-bottom: 10px;
+}
+
 .button-container {
   position: fixed;
   bottom: -5px;
@@ -698,8 +716,8 @@ ion-item.select-interface-option::part(native) {
 }
 
 .menu-text {
-  font-size: 12px;
-  font-weight: 100;
+  font-size: 14px;
+  font-weight: 300;
   cursor: pointer;
   text-align: center;
   flex: 1;
@@ -725,7 +743,7 @@ ion-item.select-interface-option::part(native) {
 
 .link-text {
   font-size: 14px;
-  font-weight: 100;
+  font-weight: 300;
   cursor: pointer;
   text-align: center;
 }
@@ -737,6 +755,22 @@ ion-item.select-interface-option::part(native) {
   width: 100%;
   height: 100%;
   background: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--ion-color-secondary);
+  font-size: 18px;
+  z-index: 100;
+}
+
+.little-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(189, 189, 189, 0.449);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -795,31 +829,18 @@ ion-input:focus ~ .ionicon {
 
 //POPUP Styling Delete Gruppe
 .custom-alert {
-  ion-alert-button-group,
-  .alert-button-group {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: center;
-  }
   button.cancel-button,
   button.delete-button {
-    background-color: var(--ion-color-primary);
     color: var(--ion-color-dark);
-    font-weight: 100;
-    //padding: 10px 20px;
+    font-weight: 300;
     text-transform: uppercase;
-    border-radius: 50px;
     box-shadow: none !important;
-  }
-  button.delete-button {
-    background-color: var(--ion-color-danger);
   }
 }
 .custom-alert .alert-title {
   color: var(--ion-color-dark);
   font-weight: bold; /* Fett für die Überschrift */
   margin-bottom: 10px; /* Abstand unter der Überschrift */
-  text-align: center;
 }
 .custom-alert .alert-message {
   font-size: 16px;
@@ -827,9 +848,37 @@ ion-input:focus ~ .ionicon {
   margin-bottom: 10px;
 }
 
+/* Optional: Scrollbar-Styling für Webkit-Browser */
+.custom-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-dropdown::-webkit-scrollbar-thumb {
+  background-color: var(--ion-color-secondary);
+  border-radius: 4px;
+}
+
+.custom-dropdown .selected ion-label {
+  color: var(--ion-color-dark);
+  font-weight: 800;
+}
+
+.custom-dropdown ion-item.selected ion-icon.category-icon {
+  color: var(--ion-color-dark) !important;
+  background-color: var(--ion-color-primary) !important;
+  border-radius: 50px;
+  padding: 5px;
+}
+
+ion-item.dropDownFelder::part(native) {
+  --background: #ffffff;
+  background-color: #ffffff !important;
+
+}
+
 body.color-blind {
-  --ion-color-danger: #ff9900 !important; // Rot → Orange
-  --ion-color-success: #3399ff !important; // Grün → Blau
+  --ion-color-danger: #ffbe60 !important; // Rot → Orange
+  --ion-color-success: #89c5ff !important; // Grün → Blau
 }
 
 @media (max-width: 768px) {
@@ -853,14 +902,47 @@ body.color-blind {
   z-index: 1000;
 }
 
-.loading-video {
-  width: 200px; /* Passe die Größe des Videos an */
+.loading-gif {
+  width: 200px; /* Passe die Größe des GIFs an */
   height: auto;
   border-radius: 10px; /* Optional: Abgerundete Ecken */
 }
+
 .member-username {
   color: #2f2f2f;
 }
+ion-alert {
+  .alert-button-inner {
+    color: #000;
+  }
+}
+
+.alert-button.alert-button-role-destructive .alert-button-inner {
+  color: rgb(201, 64, 64);
+  font-weight: 800;
+}
+
+//Popup Styling für pay-expenses, bzw auch generell für alle Popups
+.alert-button-group.sc-ion-alert-md {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 10px;
+}
+
+.alert-button.sc-ion-alert-md {
+  display: flex;
+  justify-content: center; /* Zentriert den Text horizontal */
+  align-items: center; /* Zentriert den Text vertikal */
+  text-align: center; /* Stellt sicher, dass der Text innerhalb des Buttons zentriert ist */
+  margin: 0 7px; /* Abstand zwischen den Buttons */
+  padding: 12px;
+}
+
+.alert-wrapper.sc-ion-alert-md {
+  border-radius: 8px;
+}
+
 
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {
@@ -910,6 +992,10 @@ body.color-blind {
     color: var(--ion-color-light);
     background: var(--ion-background-color);
   }
+  .little-loading-overlay {
+    color: var(--ion-color-light);
+    background: rgba(0, 0, 0, 0.603);;
+  }
 
   .logo {
     content: url("/assets/logo/LogoWeiss.png");
@@ -940,9 +1026,9 @@ body.color-blind {
     -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
 
-  .info-button{
+  .info-button {
     color: #000;
-  } 
+  }
 
   ion-icon.qr-code-icon,
   ion-icon.edit-button,
@@ -951,10 +1037,10 @@ body.color-blind {
     color: #000 !important;
   }
 
-  .button-container{
+  .button-container {
     background-color: #121212 !important;
   }
-  .backdrop-wrapper{
+  .backdrop-wrapper {
     background-color: #121212 !important;
   }
   ion-toolbar {
@@ -966,11 +1052,10 @@ body.color-blind {
   .page-container {
     background-color: #121212 !important;
   }
-  .button-row{
+  .button-row {
     background-color: #121212 !important;
   }
   .alert-button-inner.sc-ion-alert-md {
     color: var(--ion-color-light) !important;
-   
   }
 }

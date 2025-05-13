@@ -36,11 +36,65 @@
       </div>
     </ion-card>
 
+    <!-- Such- und Filterfelder -->
+    <div class="filter">
+      <ion-searchbar
+        [(ngModel)]="searchTerm"
+        (ionInput)="filterExpenses()"
+        debounce="500"
+        placeholder="Suche Ausgabe"
+        class="custom-search"
+      ></ion-searchbar>
+
+      <div class="divider" slot="end"></div>
+      <div
+        class="Kategorie"
+        (click)="onCategoryDropdownClick($event)"
+        slot="end"
+      >
+        <div class="selected-category">
+          <ion-icon
+            *ngIf="selectedCategories.length > 0"
+            [name]="getCategoryIcon(selectedCategories[0])"
+            class="category-icon"
+          ></ion-icon>
+          <ion-icon
+            class="category-icon"
+            *ngIf="selectedCategories.length === 0"
+            [src]="'assets/icon/ionicons/filter.svg'"
+          >
+          </ion-icon>
+        </div>
+
+        <div *ngIf="dropdownOpen" class="custom-dropdown">
+          <ion-list>
+            <ion-item
+              class="dropDownFelder"
+              button
+              [ngClass]="{ 'selected': selectedCategories.length === 0 }"
+              (click)="clearCategoryFilter($event)"
+            >
+              <ion-icon name="layers-outline" class="category-icon"></ion-icon>
+              <ion-label>Alle</ion-label>
+            </ion-item>
+            <ion-item
+              class="dropDownFelder"
+              button
+              *ngFor="let category of categories"
+              [ngClass]="{ 'selected': selectedCategories.includes(category.name) }"
+              (click)="selectCategories(category, $event)"
+            >
+              <ion-icon [name]="category.icon" class="category-icon"></ion-icon>
+              <ion-label>{{ category.name }}</ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+      </div>
+    </div>
+
     <ion-list class="expense-list">
-      <ng-container *ngFor="let group of groupedExpenses">
-    <span class="date">
-      {{ group.date | date: 'dd.MM.yyyy' }}
-    </span>
+      <ng-container *ngFor="let group of visibleGroupedExpenses">
+        <span class="date"> {{ group.date | date: 'dd.MM.yyyy' }} </span>
 
         <ion-item
           class="info-item"
@@ -52,7 +106,8 @@
             [ngStyle]="{
               'background-color': 'var(--member-color-' + expense.paidBy + ')',
               'border-color': 'var(--member-color-' + expense.paidBy + ')'
-            }">
+            }"
+          >
             <span class="username">{{ getFirstLetter(expense.paidBy) }}</span>
           </div>
           <h5 class="einzelneAusgabe">{{ expense.description }}</h5>
@@ -61,15 +116,42 @@
               <h5 class="Gesamtpreis">
                 {{ expense.totalAmount | currency: 'EUR' }}
               </h5>
-              <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
-                {{ getUserAmount(expense) | currency: 'EUR' }}
-              </ion-badge>
+              <div class="amountToPay">
+                <ng-container *ngIf="expense.paidBy !== uid && getUserAmount(expense) !== 0">
+                  <ion-icon
+                    class="paid"
+                    *ngIf="!hasUserPaid(expense)"
+                    [src]="'assets/icon/ionicons/ios-close.svg'">
+                  </ion-icon>
+                  <ion-icon
+                    class="paid"
+                    *ngIf="hasUserPaid(expense)"
+                    [src]="'assets/icon/ionicons/ios-checkmark.svg'">
+                  </ion-icon>
+                </ng-container>
+
+                <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
+                  {{ getUserAmount(expense) | currency: 'EUR' }}
+                </ion-badge>
+              </div>
+
+
             </div>
           </div>
         </ion-item>
       </ng-container>
     </ion-list>
 
+    <ion-infinite-scroll
+      threshold="100px"
+      (ionInfinite)="loadMoreExpenses($event)"
+      [disabled]="!hasMoreExpenses"
+    >
+      <ion-infinite-scroll-content
+        loadingSpinner="bubbles"
+        loadingText="Weitere Ausgaben werden geladen..."
+      ></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
 
     <div class="button-container">
       <ion-button

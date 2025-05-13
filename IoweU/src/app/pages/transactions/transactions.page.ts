@@ -17,6 +17,7 @@ import { GroupService } from '../../services/group.service';
 import { Transactions } from '../../services/objects/Transactions';
 import { Members } from '../../services/objects/Members';
 import { Groups } from 'src/app/services/objects/Groups';
+import { TransactionService } from 'src/app/services/transaction.service';
 
 @Component({
   selector: 'app-transactions',
@@ -43,6 +44,7 @@ export class TransactionsPage implements OnInit {
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
+  private transactionService = inject(TransactionService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -52,19 +54,20 @@ export class TransactionsPage implements OnInit {
   displayName: string | null = null;
   groupId: string | null = null;
 
-  myBalance: number = +200;
+  myBalance: number = 666;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   groupMembers: Members[] = []; // Mitglieder, die in der Gruppe sind
   transactions: Transactions[] = []; // Liste der Transaktionen
   currentGroup: Groups | null = null;
+  updateTransactionsCallback: (() => void) | null = null;
 
   constructor() {}
 
   async ngOnInit() {
-    this.loadingService.show();
-
     try {
+      await this.authService.waitForUser();
+
       if (this.authService.currentUser) {
         this.user = this.authService.currentUser.username;
         this.uid = this.authService.currentUser.uid;
@@ -75,6 +78,15 @@ export class TransactionsPage implements OnInit {
         if (groupId) {
           this.currentGroup = await this.groupService.currentGroup;
           console.log('diese jetzige gruppe', this.currentGroup);
+          this.updateTransactionsCallback =
+            await this.transactionService.getTransactionsByName(
+              this.uid,
+              groupId,
+              (updatedTransactions) => {
+                this.transactions = updatedTransactions;
+                console.log('Aktualisierte Transaktionen:', this.transactions);
+              }
+            );
           if (this.currentGroup === null) {
             this.currentGroup = await this.groupService.getGroupById(groupId);
             console.log('leere Gruppe, hole gruppe aus der db');
@@ -89,31 +101,12 @@ export class TransactionsPage implements OnInit {
               this.currentGroup.members.length > 0
             ) {
               this.groupMembers = this.currentGroup.members;
-
-              // Dummy Transaktionen hinzufügen
-              this.transactions = [
-                {
-                  from: this.currentGroup.members[0].uid,
-                  to: this.currentGroup.members[1].uid,
-                  amount: 50,
-                  reason: 'Schuldenausgleich',
-                  date: new Date().toISOString(),
-                },
-                {
-                  from: this.currentGroup.members[1].uid,
-                  to: this.currentGroup.members[2].uid,
-                  amount: 30,
-                  reason: 'Getränke gekauft',
-                  date: new Date().toISOString(),
-                },
-                {
-                  from: this.currentGroup.members[1].uid,
-                  to: this.currentGroup.members[0].uid,
-                  amount: 40,
-                  reason: 'Getränke gekauft',
-                  date: new Date().toISOString(),
-                },
-              ];
+              const member = this.groupMembers.find((m) => m.username === this.user);
+              if (!member) {
+                this.myBalance = 0;
+                return;
+              }
+              this.myBalance = member.sumExpenseAmount - member.sumAmountReceived + member.sumAmountPaid - member.sumExpenseMemberAmount;
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -134,6 +127,13 @@ export class TransactionsPage implements OnInit {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
       this.loadingService.hide();
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.updateTransactionsCallback) {
+      this.updateTransactionsCallback();
+      console.log('Unsubscribed from expense updates');
     }
   }
 
@@ -171,17 +171,6 @@ export class TransactionsPage implements OnInit {
     }
   }
 
-  async logout() {
-    this.loadingService.show();
-    try {
-      this.authService.logout();
-      this.router.navigate(['login']);
-    } catch (e) {
-      console.error('Fehler beim Logout:', e);
-    } finally {
-      this.loadingService.hide();
-    }
-  }
 
   goBack() {
     this.router.navigate(['/group', this.groupId]);

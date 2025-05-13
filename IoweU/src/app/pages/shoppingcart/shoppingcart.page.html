@@ -1,0 +1,192 @@
+<ion-header [translucent]="true" class="header">
+  <div class="backdrop-wrapper">
+    <ion-toolbar>
+      <div class="left-container" slot="start">
+        <ion-icon
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+          class="back-button"
+          (click)="goBack()"
+        ></ion-icon>
+      </div>
+
+      <div class="right-container" slot="end">
+        <div class="user-info" [routerLink]="'/account-settings'">
+          <div class="profile-placeholder"></div>
+          <span class="member-name">{{ user }}</span>
+        </div>
+        <ion-icon
+          [src]="'assets/icon/ionicons/information-outline.svg'"
+          class="info-button"
+          (click)="toggleInfoOverlay()"
+        ></ion-icon>
+      </div>
+    </ion-toolbar>
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div
+    class="info-overlay"
+    [ngClass]="{
+      'hidden': overlayState === 'hidden',
+      'normal': overlayState === 'normal',
+      'start': overlayState === 'start',
+      'slideUp': overlayState === 'normal',
+      'slideDown': overlayState === 'hidden'
+    }"
+    (click)="toggleInfoOverlay()">
+    <div class="info-wrapper" (click)="$event.stopPropagation()">
+      <h5>Info – Warenkorb</h5>
+      <p>
+        Auf dieser Seite findest du den <strong>gemeinsamen Warenkorb</strong> deiner Gruppe. Er zeigt alle Produkte, die gerade eingekauft werden und auf die Weiterverrechnung warten.
+      </p>
+      <p>
+        Um mit diesen Produkten eine neue Ausgabe zu erstellen klicke auf <strong>Produkte weiterverrechnen</strong>.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Details-Overlay für Detailansicht -->
+  <div class="info-overlay" id="details-overlay"
+       [ngClass]="{
+       'hidden': detailsOverlayState === 'hidden',
+       'normal': detailsOverlayState === 'normal',
+       'start': detailsOverlayState === 'start',
+       'slideUp': detailsOverlayState === 'normal',
+       'slideDown': detailsOverlayState === 'hidden'
+     }"
+       (click)="toggleDetailsOverlay(selectedProduct.shoppingProductId || '')">
+    <div class="info-wrapper" (click)="$event.stopPropagation()">
+      <h5>Produkt Details</h5>
+      <form>
+        <div class="top-container">
+          <div class="input-container">
+            <span class="input-label">Produktname</span>
+            <ion-item>
+              <ion-input type="text" [(ngModel)]="selectedProduct.productname" name="productname" readonly></ion-input>
+            </ion-item>
+          </div>
+        </div>
+
+        <div>
+          <div class="middle-container">
+            <div class="input-container">
+              <span class="input-label">Menge</span>
+              <ion-item>
+                <ion-input type="number" [(ngModel)]="selectedProduct.quantity" name="quantity" readonly></ion-input>
+              </ion-item>
+            </div>
+
+            <div class="input-container">
+              <span class="input-label">Einheit</span>
+              <ion-item>
+                <ion-input type="text" [(ngModel)]="selectedProduct.unit" name="unit" readonly></ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <div class="bottom-container">
+            <div class="input-container">
+              <span class="input-label">Fälligkeitsdatum</span>
+              <ion-item>
+                <ion-input
+                  [readonly]="true"
+                  [value]="getDateDisplay(selectedProduct.date)"
+                  name="date">
+                </ion-input>
+              </ion-item>
+            </div>
+
+            <div class="input-container">
+              <span class="input-label">Für</span>
+              <ion-item class="input-item" readonly>
+                <ion-label>
+                  <div class="selected-forMember">
+                    <div class="member-info"
+                         [ngStyle]="{
+                        'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
+                        'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+                      }">
+                      <div class="profile-placeholder"
+                           [ngStyle]="{
+                          'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
+                          'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+                        }"></div>
+                      <span class="member-name">{{ selectedMember?.username }}</span>
+                    </div>
+                  </div>
+                </ion-label>
+              </ion-item>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <div class="page-container">
+    <h4>{{ groupname }}</h4>
+    <h1>Warenkorb</h1>
+
+    <ion-card class="shopping-card">
+      <div class="card-content-shopping">
+        <h2>{{ shoppingproducts.length }} {{ shoppingproducts.length === 1 ? 'Produkt' : 'Produkte' }}</h2>
+
+        <p [ngClass]="{'past-date': isPast(earliestDueDateLabel)}">
+          früheste Fälligkeit: {{ earliestDueDateLabel }}
+        </p>
+
+      </div>
+    </ion-card>
+
+    <div class="menu">
+      <div class="menu-text" [routerLink]="['/shoppinglist', groupId]">
+        <span>Einkaufsliste</span>
+      </div>
+      <div class="divider"></div>
+      <div class="menu-text active">
+        <span>Warenkorb</span>
+      </div>
+    </div>
+
+
+
+
+    <ion-list class="shopping-list">
+      <ng-container *ngFor="let group of groupedProducts">
+        <ion-item
+          class="shoppingplist-item"
+          *ngFor="let shoppingproduct of group.shoppingproducts">
+
+          <div class="profile-placeholder"
+               [ngStyle]="{
+             'background-color': 'var(--member-color-' + shoppingproduct.memberId + ')',
+             'border-color': 'var(--member-color-' + shoppingproduct.memberId + ')'
+           }">
+            <span class="username">{{ getFirstLetter(shoppingproduct.memberId) }}</span>
+          </div>
+
+          <div class="shoppingproduct-item" (click)="toggleDetailsOverlay(shoppingproduct.shoppingProductId)">
+            <span class="first-container">{{ shoppingproduct.quantity }} {{ shoppingproduct.unit }}</span>
+            <div class="divider"></div>
+            <h5 class="shoppingproduct-name">{{ shoppingproduct.productname }}</h5>
+            <span class="forMember">für {{ getUsernameById(shoppingproduct.forMemberId) }}</span>
+          </div>
+        </ion-item>
+      </ng-container>
+    </ion-list>
+
+    <div class="button-container">
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="goToCreateExpense()"
+      >
+        Produkte weiterverrechnen
+      </ion-button>
+    </div>
+  </div>
+
+</ion-content>

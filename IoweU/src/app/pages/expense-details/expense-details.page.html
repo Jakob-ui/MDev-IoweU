@@ -48,7 +48,7 @@
 
       <ng-template #noInvoice>
         <p>Keine Rechnung vorhanden.</p>
-        <ion-button class="main-button" expand="block" (click)="editExpense()">
+        <ion-button class="outline-button" expand="block" (click)="editExpense()">
           Rechnung hinzufügen
         </ion-button>
       </ng-template>
@@ -77,11 +77,29 @@
         <span class="member-name">{{ expensePaidByUsername }}</span>
       </div>
     </div>
+    <span class="date">am <strong>{{ expense[0].date | date: 'dd.MM.yyyy' }}</strong></span>
+
+    <span class="category-lbl">{{ expense[0].category }}</span>
+    <ion-button
+      *ngIf="getCategoryIcon(expenseCategory)"
+      class="edit-button"
+      shape="round"
+      fill="solid">
+      <ion-icon slot="icon-only" [name]="getCategoryIcon(expenseCategory)"></ion-icon>
+    </ion-button>
+
 
     <h2>{{ expense[0].description }}</h2>
-    <ion-badge class="detailedprice">
-      {{ expense[0].totalAmount | currency: 'EUR' }}
-    </ion-badge>
+
+    <div class="gesamtpreis">
+      <ion-badge class="detailedprice">
+        {{ expense[0].totalAmount | currency: 'EUR' }}
+      </ion-badge>
+
+      <ion-badge *ngIf="expense[0].currency[0] !== 'EUR'" class="detailedprice">
+        {{ expense[0].totalAmountInForeignCurrency | currency: expense[0].currency[0] }}
+      </ion-badge>
+    </div>
 
     <div class="separator"></div>
 
@@ -123,10 +141,15 @@
               </ion-icon>
             </div>
           </div>
-          <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0], groupMember.uid)">
-            {{ getAmountToPayForMember(expense[0], groupMember.uid) | currency:
-            'EUR' }}
-          </ion-badge>
+          <div class="member-price">
+            <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0], groupMember.uid)">
+              {{ getAmountToPayForMember(expense[0], groupMember.uid) | currency: 'EUR' }}
+            </ion-badge>
+
+            <ion-badge *ngIf="expense[0]?.currency?.[0] !== 'EUR'" class="Preis" [ngClass]="getAmountClass(expense[0], groupMember.uid)">
+              {{ getForeignAmountToPayForMember(expense[0], groupMember.uid) | currency: expense[0].currency[0] }}
+            </ion-badge>
+          </div>
         </div>
 
         <!-- Produktliste, die bei Klick angezeigt wird -->
@@ -148,6 +171,10 @@
               <ion-badge class="product-price">
                 {{ product.price | currency: 'EUR' }}
               </ion-badge>
+
+              <ion-badge *ngIf="expense[0]?.currency?.[0] !== 'EUR'" class="product-price">
+                {{ product.foreignPrice | currency: expense[0].currency[0] }}
+              </ion-badge>
             </li>
           </ul>
         </div>
@@ -156,9 +183,34 @@
 
     <div class="space"></div>
     <div class="button-container">
-      <ion-button class="main-button" expand="block"
-        >Schulden begleichen</ion-button
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="payExpense()"
+        *ngIf="!hasUserPaid(expense[0]) && expense[0].paidBy !== uid!"
       >
+        Schulden begleichen
+      </ion-button>
+
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="requestExpense()"
+        *ngIf="!hasUserPaid(expense[0]) && expense[0].paidBy === uid!"
+      >
+        Schulden anfordern
+      </ion-button>
+
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="goToTransactions()"
+        *ngIf="hasUserPaid(expense[0])"
+      >
+        bereits bezahlt
+      </ion-button>
+
     </div>
+
   </div>
 </ion-content>

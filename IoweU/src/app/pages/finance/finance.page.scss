@@ -6,6 +6,9 @@ h1{
   margin-top: 0px;
 }
 
+.page-container{
+  margin-bottom: 80px;
+}
 
 .info-overlay {
   position: fixed;
@@ -71,6 +74,13 @@ h1{
   flex-direction: column;
   gap: 15px;
   color: #2c2c2c;
+}
+
+@media (prefers-color-scheme: dark) {
+  .info-wrapper {
+  background: var(--ion-color-dark);
+  color: #e0e2e5;
+}
 }
 
 .info-wrapper h5 {

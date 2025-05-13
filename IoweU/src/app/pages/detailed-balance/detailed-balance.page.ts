@@ -22,6 +22,7 @@ import { Users } from '../../services/objects/Users';
 import { Balances } from '../../services/objects/Balances';
 
 import { Firestore, collection, query, where, getDocs } from '@angular/fire/firestore';
+import {TransactionService} from "../../services/transaction.service";
 
 @Component({
   selector: 'app-detailed-balance',
@@ -50,16 +51,16 @@ export class DetailedBalancePage implements OnInit {
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
   private firestore: Firestore = inject(Firestore);
+  private transactionService = inject(TransactionService);
 
   groupname: string = '';
   iosIcons: boolean = false;
+  showExpenses: boolean = false;
+  showExpensesFromSelectedMember: boolean = false;
 
   uid: string | null = '';
   username: string | null = '';
   groupId: string | null = null;
-
-  myExpenses: number = 0;
-  myIncome: number = 0;
 
   groupMembers: Members[] = [];
   selectedMember: Members | null = null;
@@ -68,17 +69,27 @@ export class DetailedBalancePage implements OnInit {
   balances: Balances[] = [];
   paidByCurrentUser: Expenses[] = [];
   paidBySelectedMember: Expenses[] = [];
+  myExpenses: number = 0;
+  myIncome: number = 0;
+
+  payable: boolean = false;
 
   productToggles: { [expenseId: string]: boolean } = {};
 
   balanceDetails: any = {}; // Balance Details object for storing calculated balance
-
+  deptList: {
+    from: string;
+    to: string;
+    debt: number;
+    relatedExpenses: string[];
+  }[] = [{ from: '', to: '', debt: 0, relatedExpenses: [] }];
   constructor() {}
 
   async ngOnInit() {
     this.loadingService.show();
 
     try {
+      await this.authService.waitForUser();
       if (this.authService.currentUser) {
         this.username = this.authService.currentUser.username;
         this.uid = this.authService.currentUser.uid;
@@ -99,39 +110,54 @@ export class DetailedBalancePage implements OnInit {
 
             if (currentGroup.members && currentGroup.members.length > 0) {
               this.groupMembers = currentGroup.members;
-              this.selectedMember =
-                this.groupMembers.find((m) => m.uid === validSelectedMember) ?? null;
+              this.selectedMember = this.groupMembers.find((m) => m.uid === validSelectedMember) ?? null;
 
               console.log('Selected Member:', this.selectedMember);
               console.log('Current User UID:', this.uid);
 
-              // ✅ Neue Balance-Funktion: ergibt Saldo aus Sicht des eingeloggten Users
+              // Stellen sicher, dass selectedMemberId korrekt gesetzt wird
+              const currentUserId = this.uid!;
+              const selectedMemberId = this.selectedMember?.uid!;
+
               const saldo = await this.expenseService.getBalanceBetweenUsers(
                 validGroupId,
-                validSelectedMember,
-                this.uid!
+                currentUserId,
+                selectedMemberId
               );
 
               console.log(
                 `Saldo zwischen ${this.username} und ${this.selectedMember?.username}: ${saldo}`
               );
 
-              // 🔁 myIncome / myExpenses befüllen
-              this.myIncome = saldo > 0 ? saldo : 0;
-              this.myExpenses = saldo < 0 ? saldo : 0;
-
               this.balanceDetails = {
                 from: this.username,
                 to: this.selectedMember?.username,
-                balance: saldo,
+                balance: saldo
               };
 
               console.log('Balance Details:', this.balanceDetails);
 
-              this.allExpenses = await this.expenseService.getExpensesByBalanceEntries(validGroupId, this.balanceDetails);
+              // Ruft updateBalances mit den korrekten Parametern auf
+              await this.updateBalances(validGroupId, currentUserId, selectedMemberId);
+              this.allExpenses = await this.expenseService.getExpensesByBalanceEntries(validGroupId, currentUserId, selectedMemberId);
               console.log('All Expenses:', this.allExpenses);
 
-              
+              this.paidByCurrentUser = this.allExpenses.filter(
+                expense =>
+                  (expense.paidBy === this.uid)
+              );
+
+              this.paidBySelectedMember = this.allExpenses.filter(
+                expense =>
+                  (expense.paidBy === this.selectedMember?.uid)
+              );
+
+              if (this.allExpenses.length > 0 || this.myBalance < 0) {
+                this.payable = true;
+              } else {
+                this.payable = false;
+              }
+
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -154,37 +180,94 @@ export class DetailedBalancePage implements OnInit {
     }
   }
 
+
   get myBalance(): number {
     return this.balanceDetails.balance || 0;
   }
 
+  async updateBalances(groupId: string, currentUserId: string, selectedMemberId: string) {
+    try {
+      const balance = await this.expenseService.getUserBalance(groupId, currentUserId, selectedMemberId);
 
-  getProducts(expense: any, uid: string): any[] {
-    return expense.products || [];  // Replace with real logic
+      console.log("Balance:", balance);  // Überprüfe, was zurückgegeben wird
+
+      // Setze die Werte für myIncome und myExpenses
+      this.myIncome = balance.myIncome;
+      this.myExpenses = balance.myExpenses;
+
+      console.log("myIncome:", this.myIncome);  // Überprüfe den Wert von myIncome
+      console.log("myExpenses:", this.myExpenses);  // Überprüfe den Wert von myExpenses
+    } catch (error) {
+      console.error('Fehler beim Laden der Bilanz:', error);
+    }
   }
+
+  toggleExpenses() {
+    this.showExpenses = !this.showExpenses;
+  }
+
+  toggleExpensesFromSelectedMember() {
+    this.showExpensesFromSelectedMember = !this.showExpensesFromSelectedMember;
+  }
+
 
   toggleProducts(expenseId: string) {
     this.productToggles[expenseId] = !this.productToggles[expenseId];
   }
 
+  getProducts(expense: any, uid: string): any[] {
+    const member = expense.expenseMember?.find((m: any) => m.memberId === uid);
+    return member?.products || [];
+  }
+
+
   isProductsVisible(expenseId: string): boolean {
     return this.productToggles[expenseId];
   }
 
-  async logout() {
-    try {
-      await this.authService.logout();
-      this.router.navigate(['login']);
-    } catch (e) {
-      console.log(e);
-    }
-  }
 
   goBack() {
     this.navCtrl.back();
   }
+  pay() {
+    if (!this.groupId) {
+      console.error('groupId is null or undefined');
+      return;
+    }
 
-  editBalance() {
-    // navigiere ggf. zur Bearbeitungsseite
+    const relatedExpenses = this.allExpenses
+      .filter((expense) => {
+        const member = expense.expenseMember?.find(
+          (m) => m.memberId === this.uid
+        );
+        return member && member.amountToPay > 0 && !member.paid;
+      })
+      .map((expense) => expense.expenseId);
+
+    if (relatedExpenses.length === 0) {
+      console.log('Keine offenen Ausgaben für diesen Nutzer.');
+      return;
+    }
+
+    try {
+        this.transactionService.settleDebtWithOneMember(
+          this.groupId,
+          this.selectedMember?.uid ?? '',
+          this.authService.currentUser?.uid ?? '',
+          this.myBalance,
+          `SchuldenAusgleich mit ${this.username}`,
+          relatedExpenses
+        );
+    } catch {
+      console.log("Error occured, while paying")
+    }
   }
+
+  getAmountToPay(expense: any, uid: string | null): number {
+    if (!uid || !expense || !expense.expenseMember) return 0;
+
+    const memberEntry = expense.expenseMember.find((m: any) => m.memberId === uid);
+    return memberEntry?.amountToPay || 0;
+  }
+
 }

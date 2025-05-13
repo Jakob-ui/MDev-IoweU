@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import {
   IonHeader,
   IonToolbar,
@@ -7,13 +7,16 @@ import {
   IonButton,
   IonCard,
   IonCardSubtitle,
-  IonCardTitle, IonList,
+  IonCardTitle,
+  IonList, IonReorderGroup, IonReorder,
+  ItemReorderEventDetail, IonBadge
 } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
 import { LoadingService } from 'src/app/services/loading.service';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 @Component({
   selector: 'app-group-overview',
@@ -21,9 +24,9 @@ import { LoadingService } from 'src/app/services/loading.service';
   styleUrls: ['./group-overview.page.scss'],
   standalone: true,
   imports: [
+    IonReorder,
+    IonReorderGroup,
     CommonModule,
-    IonHeader,
-    IonToolbar,
     IonContent,
     IonButton,
     RouterModule,
@@ -31,6 +34,7 @@ import { LoadingService } from 'src/app/services/loading.service';
     IonCardSubtitle,
     IonCardTitle,
     IonList,
+    IonBadge,
   ],
 })
 export class GroupOverviewPage implements OnInit {
@@ -41,21 +45,28 @@ export class GroupOverviewPage implements OnInit {
   private groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
   private unsubscribeFromGroups: (() => void) | null = null;
+  private currentScrollSpeed: number | null = null;
+  private location = inject(Location);
 
   username: string | null = '';
   iosIcons: boolean = false;
-  groups: { name: string; myBalance: number; link: string }[] = [];
+  groups: {
+    name: string;
+    myBalance: number;
+    link: string;
+    position?: number;
+  }[] = [];
 
   draggedGroup: any = null;
   isEditMode = false;
   touchStartY: number | null = null;
   longPressTimeout: any = null;
+  autoScrollInterval: any = null;
 
   constructor() {}
 
   async ngOnInit() {
     this.loadingService.show();
-
     try {
       await this.authService.waitForUser();
 
@@ -63,11 +74,12 @@ export class GroupOverviewPage implements OnInit {
         this.username = this.authService.currentUser.username;
         this.iosIcons = this.platform.is('ios');
         console.log(
-          'group overview lodaed: ' + this.authService.currentUser.username
+          'Group overview loaded: ' + this.authService.currentUser.username
         );
 
         const userColor = this.authService.currentUser.color;
         document.documentElement.style.setProperty('--user-color', userColor);
+
         // Gruppen laden
         await this.loadMyGroups();
       } else {
@@ -96,23 +108,32 @@ export class GroupOverviewPage implements OnInit {
         this.unsubscribeFromGroups = await this.groupService.getGroupsByUserId(
           uid,
           (groups) => {
-            this.groups = groups.map((group) => {
-              // Berechne myBalance für jedes Mitglied der Gruppe
-              const myBalance = group.members.reduce((totalBalance, member) => {
-                // Berechnung der Bilanz für jedes Mitglied
-                if (member.uid === uid) { // Nur für das eingeloggte Mitglied
-                  const balance = member.sumExpenseAmount - member.sumExpenseMemberAmount;
-                  return balance; // Setze die Bilanz auf den berechneten Wert
-                }
-                return totalBalance;
-              }, 0);
+            this.groups = groups
+              .map((group, index) => {
+                const myBalance = group.members.reduce(
+                  (totalBalance, member) => {
+                    if (member.uid === uid) {
+                      const balance =
+                        member.sumExpenseAmount - member.sumAmountReceived + member.sumAmountPaid - member.sumExpenseMemberAmount;
+                      return balance;
+                    }
+                    return totalBalance;
+                  },
+                  0
+                );
 
-              return {
-                name: group.groupname,
-                myBalance: myBalance, // Berechnete Bilanz für das eingeloggte Mitglied
-                link: group.groupId,
-              };
-            });
+                return {
+                  name: group.groupname,
+                  myBalance: myBalance,
+                  link: group.groupId,
+                  position: group.position ?? undefined,
+                };
+              })
+              .sort((a, b) => {
+                const posA = a.position !== undefined && a.position !== null ? a.position : Infinity;
+                const posB = b.position !== undefined && b.position !== null ? b.position : Infinity;
+                return posA - posB;
+              });
           }
         );
       }
@@ -122,7 +143,6 @@ export class GroupOverviewPage implements OnInit {
       this.loadingService.hide();
     }
   }
-
 
   navigateToGroup(link: string) {
     this.router.navigate(['group/', link]);
@@ -141,67 +161,56 @@ export class GroupOverviewPage implements OnInit {
     }
   }
 
-  startEditMode() {
+  onLongPressStart() {
+  this.longPressTimeout = setTimeout(() => {
     this.isEditMode = true;
+
+    // Haptisches Feedback auslösen
+    Haptics.impact({
+      style: ImpactStyle.Heavy, // Korrekte Verwendung von ImpactStyle
+    });
+  }, 900);
+}
+
+  onLongPressCancel() {
+    if (this.longPressTimeout) {
+      clearTimeout(this.longPressTimeout);
+      this.longPressTimeout = null;
+    }
+  }
+
+  goToCreateGroup() {
+    this.location.replaceState('/group-overview');
+    this.router.navigate(['/create-group'], { replaceUrl: true });
   }
 
   stopEditMode() {
     this.isEditMode = false;
+    this.saveGroupOrderToDatabase();
   }
 
-  onLongPressStart(group: any) {
-    this.longPressTimeout = setTimeout(() => {
-      this.startEditMode();
-    }, 500);
+  handleReorder(event: CustomEvent<ItemReorderEventDetail>) {
+    const from = event.detail.from;
+    const to = event.detail.to;
+    const movedItem = this.groups.splice(from, 1)[0];
+    this.groups.splice(to, 0, movedItem);
+
+    this.groups.forEach((group, index) => {
+      group.position = index;
+    });
+    event.detail.complete();
   }
 
-  onLongPressCancel() {
-    clearTimeout(this.longPressTimeout);
-  }
-
-// Für Desktop Drag & Drop
-  onDragStart(event: DragEvent, group: any) {
-    this.draggedGroup = group;
-  }
-
-  onDrop(event: DragEvent, targetGroup: any) {
-    event.preventDefault();
-    this.swapGroups(targetGroup);
-    this.draggedGroup = null;
-  }
-
-  allowDrop(event: DragEvent) {
-    event.preventDefault();
-  }
-
-  swapGroups(targetGroup: any) {
-    const fromIndex = this.groups.indexOf(this.draggedGroup);
-    const toIndex = this.groups.indexOf(targetGroup);
-
-    if (fromIndex > -1 && toIndex > -1 && fromIndex !== toIndex) {
-      const updatedGroups = [...this.groups];
-      const [moved] = updatedGroups.splice(fromIndex, 1);
-      updatedGroups.splice(toIndex, 0, moved);
-      this.groups = updatedGroups;
-    }
-  }
-
-// Für Touch Drag & Drop
-  onTouchStart(event: TouchEvent, group: any) {
-    if (!this.isEditMode) return;
-    this.draggedGroup = group;
-    this.touchStartY = event.touches[0].clientY;
-  }
-
-  onTouchMove(event: TouchEvent, group: any) {
-    if (!this.isEditMode || !this.draggedGroup) return;
-
-    const currentY = event.touches[0].clientY;
-    const deltaY = currentY - (this.touchStartY ?? 0);
-
-    if (Math.abs(deltaY) > 40) {
-      this.swapGroups(group);
-      this.touchStartY = currentY;
+  async saveGroupOrderToDatabase() {
+    try {
+      for (const group of this.groups) {
+        if (group.link) {
+          await this.groupService.updateGroupOrder(group.link, group.position!);
+        }
+      }
+      console.log('Reihenfolge erfolgreich in der Datenbank gespeichert.');
+    } catch (error) {
+      console.error('Fehler beim Speichern der Reihenfolge:', error);
     }
   }
 }

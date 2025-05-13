@@ -4,11 +4,11 @@ import { Groups } from './Groups';
 
 export interface Balances {
   groupId: string;
-  fromMemberId: string;
-  sumFrom: number;
-  toMemberId: string;
-  sumTo: number;
-  amount: number;
+  userAId: string;
+  userACredit: number;
+  userBId: string;
+  userBCredit: number;
   lastUpdated: string;
   relatedExpenseId: string[];
+  relatedTransactionId: string[];
 }

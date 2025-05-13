@@ -14,10 +14,11 @@
           <div class="profile-placeholder"></div>
           <span class="member-name">{{ user }}</span>
         </div>
-        <ion-icon 
+        <ion-icon
           [src]="'assets/icon/ionicons/qr-code-outline.svg'"
           class="qr-code-icon"
-          (click)="toggleQRCodeOverlay()">
+          (click)="toggleQRCodeOverlay()"
+        >
         </ion-icon>
 
         <ion-icon
@@ -40,10 +41,16 @@
       'slideUp': overlayState === 'normal',
       'slideDown': overlayState === 'hidden'
     }"
-    (click)="toggleQRCodeOverlay()">
+    (click)="toggleQRCodeOverlay()"
+  >
     <div class="qr-code-wrapper" (click)="$event.stopPropagation()">
       <h5>Scannen um Gruppe beizutreten.</h5>
-      <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>
+      <qrcode
+        [qrdata]="qrCodeValue  || 'default-value'"
+        [width]="256"
+        [errorCorrectionLevel]="'M'"
+        [allowEmptyString]="true"
+      ></qrcode>
       <h5>Code zum Beitreten:</h5>
       <h5 class="access-code">{{ accessCode }}</h5>
     </div>
@@ -51,11 +58,7 @@
   <div class="page-container">
     <div class="image-upload">
       <ng-container *ngIf="group?.groupimage; else placeholder">
-        <img
-          [src]="group?.groupimage"
-          alt="Gruppenbild"
-          class="group-image"
-        />
+        <img [src]="group?.groupimage" alt="Gruppenbild" class="group-image" />
       </ng-container>
       <ng-template #placeholder>
         <div class="upload-placeholder"></div>
@@ -68,55 +71,68 @@
     <ion-card
       *ngFor="let feature of features; let i = index"
       class="feature-card"
+      [ngClass]="getFeatureColor(feature)"
       [routerLink]="getFeatureLink(feature)"
     >
-      <div class="card-content">
-        <ion-card-title>{{ feature }}</ion-card-title>
-        <ion-card-subtitle>
-          <ng-container [ngSwitch]="feature">
-            <!-- Finanzübersicht -->
-            <div *ngSwitchCase="'Finanzübersicht'">
-              <span
-                class="myBalance"
-                [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }"
-              >
-                <span *ngIf="myBalance >= 0">Mein Guthaben:</span>
-                <span *ngIf="myBalance < 0">Meine Schulden:</span>
-                <strong>{{ myBalance | currency: 'EUR' }}</strong>
-              </span>
-            </div>
+      <div class="glassmorphism">
+        <div *ngIf="feature === 'Anlagegüter'" class="notavailableFeatures">
+          <h4>Feature coming soon</h4>
+        </div>
+        <div class="card-content">
+          <ion-card-title>{{ feature }}</ion-card-title>
+          <ion-card-subtitle>
+            <ng-container [ngSwitch]="feature">
+              <!-- Finanzübersicht -->
+              <div *ngSwitchCase="'Finanzübersicht'">
+                <span
+                  class="myBalance"
+                >
+                  <span *ngIf="myBalance >= 0">Mein Guthaben</span>
+                  <span *ngIf="myBalance < 0">Meine Schulden</span>
+                  <ion-badge [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }">{{ myBalance | currency: 'EUR' }}</ion-badge>
+                </span>
+              </div>
 
+              <!-- Ausgaben -->
+              <div *ngSwitchCase="'Ausgaben'">
+                <div class="Gesamtpreis">
+                  <span>Gesamtausgaben</span>
+                  <ion-badge *ngIf="sumTotalExpenses">{{ sumTotalExpenses | currency: 'EUR' }}</ion-badge>
+                  <ion-badge *ngIf="!sumTotalExpenses">{{ 0.00 | currency: 'EUR' }}</ion-badge>
+                </div>
+              </div>
 
-            <!-- Ausgaben -->
-            <div *ngSwitchCase="'Ausgaben'">
-              <p>Gesamtausgaben</p>
-              <h6>{{ sumTotalExpenses | currency: 'EUR' }}</h6>
-            </div>
+              <!-- Einkaufsliste -->
+              <div *ngSwitchCase="'Einkaufsliste'">
+                <div class="shopping-list-text">
+                  <span><strong>{{ shoppingProducts.length }}</strong> Produkte auf der Liste.</span>
+                </div>
+              </div>
 
-            <!-- Einkaufsliste -->
-            <div *ngSwitchCase="'Einkaufsliste'">
-              <p>{{ shoppingList.length }} Produkte auf der Liste.</p>
-            </div>
+              <!-- Anlagegüter -->
 
-            <!-- Anlagegüter -->
-            <div *ngSwitchCase="'Anlagegüter'">
-              <p>{{ assetsList.length }} Güter eingetragen.</p>
-            </div>
+              <div *ngSwitchCase="'Anlagegüter'">
+                <div class="asset-text">
+                  <span>{{ assetsList.length }} Güter eingetragen.</span>
+                </div>
+              </div>
 
-            <!-- Standardfall -->
-            <div *ngSwitchDefault>
-              <p>Keine Daten verfügbar.</p>
-            </div>
-          </ng-container>
-        </ion-card-subtitle>
+              <!-- Standardfall -->
+              <div *ngSwitchDefault>
+                <span>Keine Daten verfügbar.</span>
+              </div>
+            </ng-container>
+          </ion-card-subtitle>
+        </div>
       </div>
     </ion-card>
 
-    <div class="feature-select-container" *ngIf="isFounder && canAddFeatures && features.length === 0">
+    <div
+      class="feature-select-container"
+      *ngIf="isFounder && canAddFeatures && features.length === 0"
+    >
       <!-- Hinweis nur anzeigen, wenn keine Features vorhanden sind -->
-      <span>
-        In diese Gruppe wurden noch keine Features hinzugefügt.
-      </span>
+      <span> In diese Gruppe wurden noch keine Features hinzugefügt. </span>
 
       <ion-item>
         <ion-select
@@ -131,12 +147,9 @@
       </ion-item>
 
       <span>
-        Du kannst jetzt welche hinzufügen – später kannst du sie unter
-        "Gruppe bearbeiten" verwalten.
+        Du kannst jetzt welche hinzufügen – später kannst du sie unter "Gruppe
+        bearbeiten" verwalten.
       </span>
     </div>
-
   </div>
 </ion-content>
-
-

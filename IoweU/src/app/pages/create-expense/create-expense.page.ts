@@ -1,7 +1,9 @@
-import {Component, ElementRef, inject, ViewChild} from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
+import {AlertController, ToastController} from "@ionic/angular";
 import { addIcons } from 'ionicons';
 import {
   fastFoodOutline,
@@ -12,8 +14,24 @@ import {
   homeOutline,
   receiptOutline,
   ellipsisHorizontalOutline,
+  addOutline,
+  checkmarkOutline,
+  cameraOutline,
+  imageOutline,
+  heartOutline,
+  schoolOutline,
+  briefcaseOutline,
+  shirtOutline,
+  cashOutline,
+  airplaneOutline,
+  giftOutline,
+  hammerOutline,
+  bulbOutline,
+  musicalNotesOutline,
+  rocketOutline
 } from 'ionicons/icons';
 addIcons({
+  // Bestehende Icons …
   'fast-food-outline': fastFoodOutline,
   'cart-outline': cartOutline,
   'wine-outline': wineOutline,
@@ -22,6 +40,22 @@ addIcons({
   'home-outline': homeOutline,
   'receipt-outline': receiptOutline,
   'ellipsis-horizontal-outline': ellipsisHorizontalOutline,
+  'add-outline': addOutline,
+  'checkmark-outline': checkmarkOutline,
+  'camera-outline': cameraOutline,
+  'image-outline': imageOutline,
+
+  'heart-outline': heartOutline,
+  'school-outline': schoolOutline,
+  'briefcase-outline': briefcaseOutline,
+  'shirt-outline': shirtOutline,
+  'cash-outline': cashOutline,
+  'airplane-outline': airplaneOutline,
+  'gift-outline': giftOutline,
+  'hammer-outline': hammerOutline,
+  'bulb-outline': bulbOutline,
+  'musical-notes-outline': musicalNotesOutline,
+  'rocket-outline': rocketOutline,
 });
 import {
   IonContent,
@@ -38,6 +72,8 @@ import {
   IonNote,
   IonText,
 } from '@ionic/angular/standalone';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 // Import interfaces
 import { Expenses } from 'src/app/services/objects/Expenses';
@@ -50,7 +86,9 @@ import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 import { Groups } from 'src/app/services/objects/Groups';
 import { HostListener } from '@angular/core';
-import {ImageService} from "../../services/image.service";
+import { ImageService } from '../../services/image.service';
+import { CATEGORIES } from 'src/app/services/objects/Categories';
+import { CURRENCIESWITHSYMBOLS } from 'src/app/services/objects/Currencies';
 
 @Component({
   selector: 'app-create-expense',
@@ -73,6 +111,7 @@ import {ImageService} from "../../services/image.service";
     IonBadge,
     IonNote,
     IonText,
+    HttpClientModule,
   ],
 })
 export class CreateExpensePage {
@@ -86,6 +125,12 @@ export class CreateExpensePage {
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
   private imageService = inject(ImageService);
+  private http = inject(HttpClient);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
+
+
+  constructor() {}
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -106,6 +151,8 @@ export class CreateExpensePage {
 
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
+  foreignAmountToPay: { [uid: string]: number } = {};
+  foreignPrice: { [uid: string]: number } = {};
   products: (Products & {})[] = [];
 
   //Validation Bools
@@ -121,48 +168,54 @@ export class CreateExpensePage {
   dropdownOpen: boolean = false;
   selectedCategory: any = null;
 
+  currencyDropdownOpen: boolean = false;
+
   paidByDropdownOpen: boolean = false;
   selectedMember: any = null;
-  selectedCurrency: string = 'EUR'; // Standardwährung
+
+  standardCurrency: string = 'EUR';
+  selectedCurrency: string = this.standardCurrency;
+  exchangeRate: number = 1;
 
   showAddProductButton: { [key: string]: boolean } = {};
   showProductInputFields: { [key: string]: boolean } = {};
 
   invoice: string | ArrayBuffer | null = null;
   uploadInvoice: any;
+
   @ViewChild('fileInput') fileInput!: ElementRef;
+
+  invoiceDropdownOpen: boolean = false;
 
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
     description: '',
     totalAmount: 0,
+    totalAmountInForeignCurrency: 0,
+    exchangeRate: 0,
     paidBy: '',
-    date: new Date().toISOString().split('T')[0],
-    currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'], // Verfügbare Währungen
-    category: '',
+    date: new Date().toISOString(),
+    currency: ['EUR'],
+    category: 'Sonstiges',
     invoice: '',
     repeat: 'nein',
-    splitBy: 'frei',
+    splitBy: 'alle',
     splitType: 'anteile',
     expenseMember: [],
   };
 
-  categories = [
-    { name: 'Lebensmittel', icon: 'fast-food-outline' },
-    { name: 'Einkäufe', icon: 'cart-outline' },
-    { name: 'Restaurant/Bar', icon: 'wine-outline' },
-    { name: 'Transport', icon: 'car-outline' },
-    { name: 'Freizeit', icon: 'game-controller-outline' },
-    { name: 'Wohnen', icon: 'home-outline' },
-    { name: 'Rechnungen', icon: 'receipt-outline' },
-    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' }
-  ];
+  shoppingproducts: any[] = [];
+
+  categories = CATEGORIES;
+
+  currenciesWithSymbols = CURRENCIESWITHSYMBOLS;
 
   async ngOnInit() {
     this.loadingService.show();
 
     try {
       await this.authService.waitForUser();
+
       if (this.authService.currentUser) {
         this.uid = this.authService.currentUser.uid;
         this.user = this.authService.currentUser.username;
@@ -174,56 +227,51 @@ export class CreateExpensePage {
           this.currentGroup = await this.groupService.getGroup();
           if (this.currentGroup === null) {
             this.currentGroup = await this.groupService.getGroupById(groupId);
-            console.log('leere Gruppe, hole gruppe aus der db');
+            console.log('Leere Gruppe, hole Gruppe aus der DB');
           }
 
           if (this.currentGroup) {
             this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = this.currentGroup.groupId || '';
-            console.log("gruppeninfos:", this.currentGroup);
+            console.log('Gruppeninfos:', this.currentGroup);
 
-            if (
-              this.currentGroup.members &&
-              this.currentGroup.members.length > 0
-            ) {
-              this.groupMembers = this.currentGroup.members.map(
-                (member: any) => {
-                  this.memberUsernames.push(member.username || '');
-                  this.memberIds.push(member.memberId || '');
-                  this.memberColors.push(member.color || '');
-                  this.memberRoles.push(member.role || '');
-                  this.memberUids.push(member.uid || '');
+            if (this.currentGroup.members && this.currentGroup.members.length > 0) {
+              this.groupMembers = this.currentGroup.members.map((member: any) => {
+                this.memberUsernames.push(member.username || '');
+                this.memberIds.push(member.memberId || '');
+                this.memberColors.push(member.color || '');
+                this.memberRoles.push(member.role || '');
+                this.memberUids.push(member.uid || '');
 
-                  // Initialisiere Summen- und Zählerwerte für jedes Mitglied
-                  member.sumExpenseAmount = member.sumExpenseAmount || 0;
-                  member.sumExpenseMemberAmount =
-                    member.sumExpenseMemberAmount || 0;
-                  member.countExpenseAmount = member.countExpenseAmount || 0;
-                  member.countExpenseMemberAmount =
-                    member.countExpenseMemberAmount || 0;
+                // Initialwerte für Mitglieder
+                member.sumExpenseAmount = member.sumExpenseAmount || 0;
+                member.sumExpenseMemberAmount = member.sumExpenseMemberAmount || 0;
+                member.countExpenseAmount = member.countExpenseAmount || 0;
+                member.countExpenseMemberAmount = member.countExpenseMemberAmount || 0;
 
-                  return {
-                    ...member,
-                    amount: 0,
-                  };
-                }
-              );
+                return {
+                  ...member,
+                  amount: 0,
+                };
+              });
 
+              // Initialisiere expenseMember für jedes Gruppenmitglied
               this.expense.expenseMember = this.groupMembers.map((member) => ({
                 memberId: member.uid,
                 amountToPay: 0,
+                foreignAmountToPay: 0,
                 split: 1,
-                products: [],
+                products: [], // Leeres Array für Produkte
+                paid: false,
               }));
 
+              // Wer hat bezahlt?
               if (!this.expense.paidBy && this.uid) {
                 this.expense.paidBy = this.uid;
               }
 
               this.selectedMember =
-                this.groupMembers.find(
-                  (member) => member.uid === this.expense.paidBy
-                ) || null;
+                this.groupMembers.find((member) => member.uid === this.expense.paidBy) || null;
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -232,10 +280,68 @@ export class CreateExpensePage {
             this.groupname = 'Unbekannte Gruppe';
           }
         } else {
-          console.error('Kein GroupId für den Benutzer gefunden');
+          console.error('Kein groupId für den Benutzer gefunden');
           this.groupname = 'Unbekannte Gruppe';
         }
+
+        // Überprüfe ob die Produkte vom Warenkorb kommen
+        const navState = this.router.getCurrentNavigation()?.extras.state;
+        if (navState && navState['fromShoppingCart']) {
+          this.shoppingproducts = navState['cartItems'] || [];
+
+          // Produkte den Mitgliedern zuordnen
+          this.shoppingproducts.forEach((shoppingProduct: any) => {
+            // Finde das Mitglied, für das dieses Produkt gekauft wurde
+            const member = this.groupMembers.find((member) => member.uid === shoppingProduct.forMemberId);
+
+            if (member) {
+              const memberExpense = this.expense.expenseMember.find(exp => exp.memberId === member.uid);
+              if (memberExpense) {
+                // Sicherstellen, dass das products-Array existiert
+                if (!memberExpense.products) {
+                  memberExpense.products = []; // Initialisiere das Array, falls es noch nicht existiert
+                }
+
+                // Überprüfe, ob das Produkt bereits existiert und aktualisiere es
+                const existingProduct = memberExpense.products.find(
+                  (prod: Products) => prod.productname === shoppingProduct.productname
+                );
+
+                if (existingProduct) {
+                  // Produkt existiert bereits, also erhöhe die Menge
+                  existingProduct.quantity += shoppingProduct.quantity;
+                  existingProduct.price = shoppingProduct.price;  // Optional: Preis anpassen
+                } else {
+                  // Füge das neue Produkt hinzu
+                  memberExpense.products.push({
+                    productId: shoppingProduct.shoppingProductId,
+                    memberId: member.uid,
+                    productname: shoppingProduct.productname,
+                    quantity: shoppingProduct.quantity,
+                    unit: shoppingProduct.unit,
+                    price: shoppingProduct.price,
+                    foreignPrice: shoppingProduct.foreignPrice
+                  });
+                }
+              }
+            }
+          });
+        }
+
+        console.log('expense.expenseMember nach Warenkorb-Zuweisung:', this.expense.expenseMember);
+
+
+
+        // Gesamtbeträge berechnen
+        this.expense.totalAmount = this.expense.expenseMember.reduce(
+          (sum, m) => sum + (m.amountToPay || 0), 0
+        );
+        this.expense.totalAmountInForeignCurrency = this.expense.expenseMember.reduce(
+          (sum, m) => sum + (m.foreignAmountToPay || 0), 0
+        );
+
       } else {
+        console.error('Kein eingeloggter Benutzer gefunden');
       }
 
       this.iosIcons = this.platform.is('ios');
@@ -245,6 +351,8 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
+
+
 
   // UI Handeling ---------------------------------->
 
@@ -265,29 +373,52 @@ export class CreateExpensePage {
     }
   }
 
-  selectImage() {
-    this.fileInput.nativeElement.click();
-  }
-
-  onFileSelected(event: any) {
+  async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
-        this.invoice = reader.result;
-        if (typeof this.invoice === 'string') {
-          this.uploadInvoice = this.imageService.dataURLtoBlob(this.invoice);
-        }
+      reader.onload = async () => {
+        const imageDataUrl = reader.result as string;
+        const imageBlob = this.imageService.dataURLtoBlob(imageDataUrl);
+
+        // Use the updated uploadImage method with compression
+        const path = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+        const downloadURL = await this.imageService.uploadImage(
+          'expense-invoice',
+          imageBlob,
+          path
+        );
+
+        this.invoice = downloadURL;
+        this.expense.invoice = downloadURL;
+        console.log('Invoice uploaded and available at:', this.invoice);
       };
       reader.readAsDataURL(file);
+    } else {
+      this.expense.invoice = undefined;
     }
   }
 
-  selectCurrency(currency: string) {
-    this.selectedCurrency = currency;
-    this.expense.currency = [currency];
-    this.dropdownOpen = false;
+  async openCamera() {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const image = await Camera.getPhoto({
+          quality: 50,
+          resultType: CameraResultType.DataUrl,
+          source: CameraSource.Camera,
+        });
+
+        if (image && image.dataUrl) {
+          this.expense.invoice = image.dataUrl; // Save the captured image
+        }
+      } else {
+        console.warn('Camera is only available on native platforms.');
+      }
+    } catch (error) {
+      console.error('Error opening camera:', error);
+    }
   }
+
   togglePaidByDropdown(event: Event) {
     this.paidByDropdownOpen = !this.paidByDropdownOpen; // Öffnen/Schließen des Dropdowns
     event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
@@ -301,6 +432,8 @@ export class CreateExpensePage {
 
   selectCategory(category: any, event: Event) {
     this.selectedCategory = category; // Setze die ausgewählte Kategorie
+    this.expense.category = this.selectedCategory.name;
+    console.log(this.expense.category);
     this.dropdownOpen = false; // Schließe das Dropdown
     event.stopPropagation(); // Verhindere, dass das Klick-Event weitergeleitet wird
   }
@@ -398,18 +531,15 @@ export class CreateExpensePage {
       (p) => p.productId !== productToRemove.productId
     );
 
-    // Entferne das Produkt auch aus der Liste des entsprechenden Mitglieds
     for (let memberId in this.productInputs) {
       if (this.productInputs.hasOwnProperty(memberId)) {
         const memberProducts = this.productInputs[memberId].products;
 
-        // Überprüfe, ob das Produkt in der Liste des Mitglieds existiert
         const productIndex = memberProducts.findIndex(
           (p) => p.productId === productToRemove.productId
         );
 
         if (productIndex !== -1) {
-          // Entferne das Produkt aus der Liste des Mitglieds
           memberProducts.splice(productIndex, 1);
 
           // Aktualisiere den Betrag für den Benutzer
@@ -421,20 +551,22 @@ export class CreateExpensePage {
         }
       }
     }
-
-    // Aktualisiere die Gesamtsumme
+    this.updateAmountToPayForProducts();
     this.updateTotals();
   }
 
   //------------------------------------------RECHENFUNKTIONEN-------------------------------------------
 
   private updateTotals() {
-    // Berechnung des Gesamtbetrags
-    const total = this.calculateTotalFromAmountToPay();
+    const total = parseFloat(this.calculateTotalFromAmountToPay().toFixed(2));
+    this.expense.totalAmount = total;
 
-    this.expense.totalAmount = parseFloat(total.toFixed(2));
+    if (this.selectedCurrency !== 'EUR' && this.exchangeRate) {
+      this.expense.totalAmountInForeignCurrency = +(
+        total / this.exchangeRate
+      ).toFixed(2);
+    }
 
-    // Wenn "alle" ausgewählt ist, Betrag gleichmäßig verteilen
     if (this.expense.splitBy === 'alle') {
       this.splitAmountEqually();
     }
@@ -447,35 +579,35 @@ export class CreateExpensePage {
     });
   }
 
-// Berechnet den Gesamtbetrag aus den amountToPay-Werten
+  // Berechnet den Gesamtbetrag aus den amountToPay-Werten
   private calculateTotalFromAmountToPay(): number {
-    return Object.values(this.amountToPay).reduce((sum, amount) => sum + (amount || 0), 0);
+    return Object.values(this.amountToPay).reduce(
+      (sum, amount) => sum + (amount || 0),
+      0
+    );
   }
 
-  private updateTotalAmount() {
-    const newTotalAmount = this.calculateTotalFromAmountToPay();
-
-    if (newTotalAmount !== this.expense.totalAmount) {
-      this.expense.totalAmount = parseFloat(newTotalAmount.toFixed(2));
-    }
-
-    if (this.expense.splitBy === 'alle') {
-      this.splitAmountEqually();
-    }
-  }
-
-// Überprüft, ob der Betrag nach Änderung angepasst werden muss
+  // Überprüft, ob der Betrag nach Änderung angepasst werden muss
   onAmountToPayChange() {
-    if (this.expense.splitType === 'anteile' && this.expense.splitBy === 'frei') {
+    if (
+      this.expense.splitType === 'anteile' &&
+      this.expense.splitBy === 'frei'
+    ) {
+      this.updateForeignAmountToPay();
       this.updateTotals();
     }
   }
 
   onSplitByChange() {
     // Wenn wir von Anteilen auf Prozente wechseln, können wir `splitBy` wieder anpassen
-    if (this.expense.splitBy === 'frei') {
+    if (
+      this.expense.splitBy === 'frei' &&
+      this.expense.splitType === 'anteile'
+    ) {
       this.resetSplitValues();
     } else if (this.expense.splitBy === 'alle') {
+      this.chooseSplitType = true;
+      this.expense.splitBy = 'alle';
       this.splitAmountEqually();
     }
   }
@@ -499,16 +631,16 @@ export class CreateExpensePage {
     }
   }
 
-// Rücksetzung der Produkt-Inputs und Berechnungen
+  // Rücksetzung der Produkt-Inputs und Berechnungen
   private resetProductInputs() {
-    Object.keys(this.showProductInputFields).forEach(uid => {
+    Object.keys(this.showProductInputFields).forEach((uid) => {
       this.showProductInputFields[uid] = false;
     });
     this.productInputs = {};
     this.products = [];
   }
 
-// Fall: Split-Typ 'anteile'
+  // Fall: Split-Typ 'anteile'
   private handleAnteileChange() {
     if (this.expense.splitBy === 'frei') {
       this.onAmountToPayChange();
@@ -519,25 +651,31 @@ export class CreateExpensePage {
 
       });*/
     } else if (this.expense.splitBy === 'alle') {
-
       this.chooseSplitType = true;
       this.expense.splitBy = 'alle';
       this.splitAmountEqually();
-
     }
   }
 
-// Fall: Split-Typ 'prozent'
+  // Fall: Split-Typ 'prozent'
   private handleProzentChange() {
     this.error = '';
     this.expense.splitBy = 'frei';
     this.chooseSplitType = false;
-    this.groupMembers.forEach(member => {
-      this.calculateSplitByPercentage(member.uid, 'percentage');
-    });
+
+    const hasAmounts = this.groupMembers.some(
+      (member) => (this.amountToPay[member.uid] ?? 0) > 0
+    );
+
+    if (hasAmounts) {
+      this.groupMembers.forEach((member) => {
+        this.calculateSplitByPercentage(member.uid, 'amount');
+      });
+    }
+    this.updateForeignAmountToPay();
   }
 
-// Fall: Split-Typ 'produkte'
+  // Fall: Split-Typ 'produkte'
   private handleProdukteChange() {
     this.expense.splitBy = 'frei';
     this.chooseSplitType = false;
@@ -546,40 +684,56 @@ export class CreateExpensePage {
   }
 
   private resetSplitValues() {
-    this.groupMembers.forEach(member => {
+    this.groupMembers.forEach((member) => {
       this.amountToPay[member.uid] = 0;
+      this.foreignAmountToPay[member.uid] = 0;
     });
     //this.expense.totalAmount = 0;
   }
 
-  calculateSplitByPercentage(memberUid: string, changedField: 'percentage' | 'amount') {
+  calculateSplitByPercentage(
+    memberUid: string,
+    changedField: 'percentage' | 'amount'
+  ) {
     const totalAmount = this.expense.totalAmount;
 
+    if (!totalAmount || totalAmount <= 0) {
+      return;
+    }
+
     if (changedField === 'percentage') {
-      const percentage = this.splitValue[memberUid] || 0;
-      const amount = (totalAmount * percentage) / 100;
-      this.amountToPay[memberUid] = parseFloat(amount.toFixed(2));
+      const percentage = this.splitValue[memberUid] ?? 0;
+      const amount = parseFloat(((totalAmount * percentage) / 100).toFixed(2));
+      this.amountToPay[memberUid] = amount;
+      this.foreignAmountToPay[memberUid] =
+        this.selectedCurrency !== 'EUR'
+          ? parseFloat((amount / this.exchangeRate).toFixed(2))
+          : 0;
     } else if (changedField === 'amount') {
-      const amount = this.amountToPay[memberUid] || 0;
-      const percentage = (amount / totalAmount) * 100;
-      this.splitValue[memberUid] = parseFloat(percentage.toFixed(2));
+      const amount = this.amountToPay[memberUid] ?? 0;
+      const percentage = parseFloat(((amount / totalAmount) * 100).toFixed(2));
+      this.splitValue[memberUid] = percentage;
     }
 
     this.validatePercentageSum();
+    this.updateForeignAmountToPay();
   }
 
   private validatePercentageSum() {
     let totalPercentage = 0;
-    this.groupMembers.forEach(member => {
+    this.groupMembers.forEach((member) => {
       totalPercentage += this.splitValue[member.uid] || 0;
     });
 
     const difference = parseFloat((100 - totalPercentage).toFixed(2));
 
     if (difference !== 0) {
-      this.error = difference > 0
-        ? `Es fehlen noch ${difference}% – du kannst den Rest auf die verbleibenden Mitglieder verteilen.`
-        : `Die Summe der Prozentwerte überschreitet 100 %. Sie sind ${Math.abs(difference)}% drüber.`;
+      this.error =
+        difference > 0
+          ? `Es fehlen noch ${difference}% – du kannst den Rest auf die verbleibenden Mitglieder verteilen.`
+          : `Die Summe der Prozentwerte überschreitet 100%. Sie sind ${Math.abs(
+              difference
+            )}% drüber.`;
 
       this.isFormValid = false;
       this.canDistributeRest = difference > 0;
@@ -591,19 +745,33 @@ export class CreateExpensePage {
   }
 
   distributeRemainingPercentage() {
-    const remainingPercentage = 100 - this.groupMembers.reduce((sum, member) => sum + (this.splitValue[member.uid] || 0), 0);
+    const remainingPercentage =
+      100 -
+      this.groupMembers.reduce(
+        (sum, member) => sum + (this.splitValue[member.uid] || 0),
+        0
+      );
 
-    const eligibleMembers = this.groupMembers.filter(member => !this.splitValue[member.uid] || this.splitValue[member.uid] === 0);
+    const eligibleMembers = this.groupMembers.filter(
+      (member) =>
+        !this.splitValue[member.uid] || this.splitValue[member.uid] === 0
+    );
 
     if (eligibleMembers.length > 0) {
       const share = remainingPercentage / eligibleMembers.length;
       eligibleMembers.forEach((member, index) => {
         if (index === eligibleMembers.length - 1) {
-          this.splitValue[member.uid] = 100 - this.groupMembers.reduce((sum, m) => sum + (this.splitValue[m.uid] || 0), 0);
+          this.splitValue[member.uid] =
+            100 -
+            this.groupMembers.reduce(
+              (sum, m) => sum + (this.splitValue[m.uid] || 0),
+              0
+            );
         } else {
           this.splitValue[member.uid] = share;
         }
-        this.amountToPay[member.uid] = (this.expense.totalAmount * this.splitValue[member.uid]) / 100;
+        this.amountToPay[member.uid] =
+          (this.expense.totalAmount * this.splitValue[member.uid]) / 100;
       });
     }
 
@@ -612,19 +780,43 @@ export class CreateExpensePage {
 
   updateAmountToPayForProducts() {
     let totalAmount = 0;
+    let totalAmountForeign = 0;
 
     this.groupMembers.forEach((member) => {
       let memberAmountToPay = 0;
-      const products: Products[] = this.productInputs[member.uid]?.products || [];
+      let memberForeignAmountToPay = 0;
+
+      const products: Products[] =
+        this.productInputs[member.uid]?.products || [];
+
       products.forEach((product) => {
-        memberAmountToPay += product.price;
+        let priceInEuro = product.price || 0;
+        let priceInForeign = product.foreignPrice || 0;
+
+        // Wenn aktuelle Währung nicht EUR ist, rechnen wir um
+        if (this.selectedCurrency !== 'EUR') {
+          priceInEuro = priceInForeign * this.exchangeRate;
+          product.price = priceInEuro; // Speichern des Euro-Werts
+        } else {
+          priceInForeign = priceInEuro / this.exchangeRate;
+          product.foreignPrice = priceInForeign; // Nur zur Anzeige
+        }
+
+        memberAmountToPay += priceInEuro;
+        memberForeignAmountToPay += priceInForeign;
       });
+
       this.amountToPay[member.uid] = memberAmountToPay;
+      this.foreignAmountToPay[member.uid] = memberForeignAmountToPay;
+
       totalAmount += memberAmountToPay;
+      totalAmountForeign += memberForeignAmountToPay;
     });
 
     this.expense.totalAmount = totalAmount;
-    this.updateTotals();
+    this.expense.totalAmountInForeignCurrency = totalAmountForeign;
+
+    this.updateTotals(); // falls du damit z.B. Summary-Werte aktualisierst
   }
 
   onTotalAmountChange() {
@@ -632,38 +824,165 @@ export class CreateExpensePage {
       this.splitAmountEqually();
     }
     if (this.expense.splitType === 'prozent') {
-      this.updatePercentageValues();
+      this.updateAmountToPayFromPercentages();
     }
+  }
+
+  private updateAmountToPayFromPercentages() {
+    this.groupMembers.forEach((member) => {
+      const percentage = this.splitValue[member.uid] || 0;
+      const amount = parseFloat(
+        ((this.expense.totalAmount * percentage) / 100).toFixed(2)
+      );
+      this.amountToPay[member.uid] = amount;
+    });
+    //this.validatePercentageSum();
   }
 
   private updatePercentageValues() {
     this.groupMembers.forEach((member) => {
       const amount = this.amountToPay[member.uid] || 0;
-      const percentage = (amount / this.expense.totalAmount) * 100;
-      this.splitValue[member.uid] = parseFloat(percentage.toFixed(2));
+      const percentage = parseFloat(
+        ((amount / this.expense.totalAmount) * 100).toFixed(2)
+      );
+      this.splitValue[member.uid] = percentage;
     });
 
-    this.validatePercentageSum();
+    //this.validatePercentageSum();
   }
 
   splitAmountEqually() {
-    const totalAmount = this.expense.totalAmount;
-    const numberOfMembers = this.groupMembers.length;
+    const isEuro = this.selectedCurrency === this.standardCurrency;
+    const total = isEuro
+      ? this.expense.totalAmount
+      : this.expense.totalAmountInForeignCurrency !== undefined &&
+        this.exchangeRate !== undefined
+      ? this.expense.totalAmountInForeignCurrency * this.exchangeRate
+      : 0;
 
-    if (numberOfMembers > 0 && totalAmount > 0) {
-      const amountPerMember = (Math.floor((totalAmount / numberOfMembers) * 100) / 100);
-      let distributedTotal = amountPerMember * numberOfMembers;
-      let remainingAmount = totalAmount - distributedTotal;
+    const count = this.groupMembers.length;
 
-      this.groupMembers.forEach((member) => {
-        this.amountToPay[member.uid] = amountPerMember;
+    if (count > 0 && total > 0) {
+      const base = total / count;
+      let rest = total - base * count;
+
+      // Unrund speichern
+      this.groupMembers.forEach((m) => {
+        this.amountToPay[m.uid] = base;
+        if (!isEuro && this.exchangeRate !== undefined) {
+          this.foreignAmountToPay[m.uid] = base / this.exchangeRate;
+        }
       });
 
-      if (remainingAmount > 0) {
-        remainingAmount = parseFloat(remainingAmount.toFixed(2));
-        this.amountToPay[this.expense.paidBy] += remainingAmount; // Paid by member gets the remaining amount
+      // Rest korrekt verteilen (aber noch ungerundet zwischenspeichern)
+      let idx = 0;
+      while (rest > 0.009) {
+        const uid = this.groupMembers[idx].uid;
+        this.amountToPay[uid] += 0.01;
+        if (!isEuro && this.exchangeRate !== undefined) {
+          this.foreignAmountToPay[uid] =
+            this.amountToPay[uid] / this.exchangeRate;
+        }
+        rest -= 0.01;
+        idx = (idx + 1) % count;
       }
     }
+  }
+
+  //-----------------------------------FREMDWÄHRUNG-------------------------------------------------------
+  toggleCurrencyDropdown(event: Event): void {
+    event.stopPropagation();
+    this.currencyDropdownOpen = !this.currencyDropdownOpen;
+  }
+
+  getCurrencySymbol(code: string): string {
+    const currency = this.currenciesWithSymbols.find((c) => c.code === code);
+    return currency ? currency.symbol : code;
+  }
+
+  selectCurrency(newCurrency: string) {
+    this.resetProductInputs();
+    const totalInEuro = this.expense.totalAmount || 0;
+    this.selectedCurrency = newCurrency;
+
+    if (newCurrency === 'EUR') {
+      this.exchangeRate = 1;
+      this.expense.totalAmountInForeignCurrency = totalInEuro;
+      return;
+    }
+
+    const url = `https://api.frankfurter.app/latest?from=${newCurrency}&to=EUR`;
+
+    this.http.get<any>(url).subscribe({
+      next: (data) => {
+        this.exchangeRate = data.rates['EUR'];
+
+        // Berechnung von totalAmountInForeignCurrency und foreignAmountToPay
+        if (totalInEuro > 0 && this.exchangeRate > 0) {
+          this.expense.totalAmountInForeignCurrency = +(
+            totalInEuro / this.exchangeRate
+          ).toFixed(2);
+        }
+
+        console.log(
+          `Wechselkurs geladen: 1 ${newCurrency} = ${this.exchangeRate} EUR`
+        );
+        this.updateForeignAmountToPay();
+      },
+      error: (err) => {
+        console.error('Fehler beim Laden des Wechselkurses:', err);
+        this.exchangeRate = 1;
+        this.expense.totalAmountInForeignCurrency = totalInEuro; // fallback auf EUR
+      },
+    });
+  }
+
+  onForeignAmountChange() {
+    if (
+      this.selectedCurrency !== 'EUR' &&
+      this.expense.totalAmountInForeignCurrency !== undefined &&
+      this.exchangeRate !== undefined
+    ) {
+      this.expense.totalAmount = +(
+        this.expense.totalAmountInForeignCurrency * this.exchangeRate
+      ).toFixed(2);
+
+      // Wenn 'splitBy' 'alle', dann alle Mitgliedsbeträge neu berechnen
+      if (this.expense.splitBy === 'alle') {
+        this.splitAmountEqually();
+        this.updateForeignAmountToPay();
+      }
+
+      if (this.expense.splitType === 'prozent') {
+        this.updateAmountToPayFromPercentages();
+      }
+    }
+  }
+
+  private updateForeignAmountToPay() {
+    this.groupMembers.forEach((member) => {
+      const amountInEuro = this.amountToPay[member.uid] || 0;
+      // Umrechnung in die fremde Währung
+      this.foreignAmountToPay[member.uid] = +(
+        amountInEuro / this.exchangeRate
+      ).toFixed(2);
+    });
+  }
+
+  onForeignAmountInput(memberId: string) {
+    const foreignAmount = this.foreignAmountToPay[memberId] || 0;
+
+    // Umrechnen in EUR und in amountToPay speichern
+    if (this.exchangeRate > 0) {
+      const euroValue = +(foreignAmount * this.exchangeRate).toFixed(2);
+      this.amountToPay[memberId] = euroValue;
+
+      this.updateTotals();
+    } else {
+      this.amountToPay[memberId] = 0;
+      this.foreignAmountToPay[memberId] = 0;
+    }
+    this.onForeignAmountChange();
   }
 
   //---------------------------------------------------------------------------------------------------------------
@@ -728,12 +1047,15 @@ export class CreateExpensePage {
       this.expense.expenseMember = this.groupMembers.map((member) => {
         const uid = member.uid;
         const amount = this.amountToPay[uid] || 0;
+        const foreignAmount = this.foreignAmountToPay[uid] || 0;
         const products = this.productInputs[uid]?.products || [];
 
         return {
           memberId: uid,
           amountToPay: parseFloat(amount.toFixed(2)),
+          foreignAmountToPay: parseFloat(foreignAmount.toFixed(2)),
           split: 1,
+          paid: false,
           products: products.map((p) => ({
             ...p,
             price: Number(p.price),
@@ -742,8 +1064,25 @@ export class CreateExpensePage {
         };
       });
 
-      this.updateTotalAmount();
+      // Berechnung des Gesamtbetrags (in Fremdwährung, falls vorhanden)
+      this.updateTotals();
+
+      // Wenn eine Fremdwährung gewählt wurde, berechne totalAmountInForeignCurrency
+      if (this.selectedCurrency !== this.standardCurrency) {
+        this.expense.totalAmountInForeignCurrency = +(
+          this.expense.totalAmount / this.exchangeRate
+        ).toFixed(2); // Betrag in Fremdwährung
+        this.expense.exchangeRate = this.exchangeRate; // Speichere den Wechselkurs
+      } else {
+        this.expense.totalAmountInForeignCurrency = 0; // Kein Fremdwährungsbetrag, wenn EUR gewählt wurde
+        this.expense.exchangeRate = 1; // EUR hat keinen Wechselkurs
+      }
+
+      // totalAmount muss immer den Betrag in EUR enthalten
       this.expense.totalAmount = Number(this.expense.totalAmount.toFixed(2));
+
+      // Hier wird die ausgewählte Währung in das currency Array gespeichert
+      this.expense.currency = [this.selectedCurrency];
 
       // Wenn Rechnung ausgewählt wurde → hochladen und URL setzen
       if (this.uploadInvoice) {
@@ -764,13 +1103,47 @@ export class CreateExpensePage {
         this.repeating
       );
 
+      await this.presentToast('Ausgabe erfolgreich gespeichert!');
       this.navCtrl.back();
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);
-      alert('Es ist ein Fehler aufgetreten. Bitte versuche es erneut.');
+      await this.presentAlert('Fehler', 'Es ist ein Fehler aufgetreten. Bitte versuche es erneut.');
     } finally {
       this.loadingService.hide();
     }
   }
 
+  removeInvoice() {
+    this.expense.invoice = undefined;
+  }
+  toggleInvoiceDropdown(event: Event): void {
+    event.stopPropagation();
+    this.invoiceDropdownOpen = !this.invoiceDropdownOpen;
+  }
+
+  /** Schließt das Rechnungs-Dropdown, wird auf ion-content (click) ausgelöst */
+  closeInvoiceDropdowns(): void {
+    this.invoiceDropdownOpen = false;
+    this.currencyDropdownOpen = false;
+  }
+
+  async presentAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header: header,
+      message: message,
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
 }

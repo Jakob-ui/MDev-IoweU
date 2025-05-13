@@ -1,7 +1,7 @@
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" scroll="true">
   <div id="container" class="container">
     <h3>Ausgaben bearbeiten</h3>
-    <ion-button id="delete-alert" class="delete-button" color="danger" (click)="confirmDelete()">
+    <ion-button id="delete-alert" class="delete-button" color="danger" (click)="confirmDelete()" [disabled]="deletable">
       Ausgabe löschen
     </ion-button>
     <div class="separator"></div>
@@ -43,6 +43,7 @@
                 class="dropDownFelder"
                 button
                 *ngFor="let category of categories"
+                [ngClass]="{ 'selected': selectedCategory?.name === category.name }"
                 (click)="selectCategory(category, $event)"
               >
                 <ion-icon
@@ -182,11 +183,17 @@
           <span class="input-label">Wiederholung</span>
           <ion-item class="input-item">
             <ion-select [(ngModel)]="expense.repeat" interface="popover" [disabled]="!repeating">
-              <ion-select-option class="custom-select-option" value="nein">nein</ion-select-option>
+              <ion-select-option
+                class="custom-select-option"
+                value="nein"
+                *ngIf="expense.repeat === 'nein'">
+                nein
+              </ion-select-option>
               <ion-select-option class="custom-select-option" value="täglich">täglich</ion-select-option>
               <ion-select-option class="custom-select-option" value="wöchentlich">wöchentlich</ion-select-option>
               <ion-select-option class="custom-select-option" value="monatlich">monatlich</ion-select-option>
             </ion-select>
+
           </ion-item>
         </div>
       </div>

@@ -4,13 +4,20 @@
 
     <h3>Gruppe bearbeiten</h3>
 
-    <div class="image-upload" (click)="selectImage()">
-      <ng-container *ngIf="groupImage; else placeholder">
-        <img [src]="groupImage" alt="Gruppenbild" class="group-image" />
-      </ng-container>
-      <ng-template #placeholder>
-        <div class="upload-placeholder">+</div>
-      </ng-template>
+    <div class="image-wrapper" (click)="selectImage()">
+      <div class="image-upload">
+        <ng-container *ngIf="groupImage; else placeholder">
+          <img [src]="groupImage" alt="Gruppenbild" class="group-image" />
+        </ng-container>
+        <ng-template #placeholder>
+          <div class="upload-placeholder">+</div>
+        </ng-template>
+      </div>
+      <ion-icon
+        *ngIf="groupImage"
+        class="edit-icon"
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-create.svg' : 'assets/icon/ionicons/md-create.svg'">
+      </ion-icon>
     </div>
     <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
 
@@ -21,13 +28,14 @@
           type="text"
           placeholder="Access Code"
           [(ngModel)]="accessCode"
+          readonly
         ></ion-input>
         <ion-icon [src]="'assets/icon/ionicons/qr-code-outline.svg'" (click)="generateQRCode()"></ion-icon>
       </ion-item>
     </div>
 
     <div *ngIf="showQRCode" class="qr-code-wrapper">
-      <qrcode [qrdata]="qrCodeValue" [width]="256"></qrcode>
+      <qrcode [qrdata]="qrCodeValue  || 'default-value'" [width]="256" [errorCorrectionLevel]="'M'" [allowEmptyString]= 'true'></qrcode>
     </div>
 
 
@@ -60,7 +68,13 @@
             </div>
             <span class="member-name">{{ member.username }}</span>
           </div>
-          <ion-button fill="clear" color="danger" (click)="removeMember(member)">X</ion-button>
+          <ion-button
+            *ngIf="userUid === founder || userUid === member.uid"
+            fill="clear"
+            color="danger"
+            (click)="userUid === founder && userUid !== member.uid ? removeMemberFromGroup(member) : leaveGroup()">
+            X
+          </ion-button>
         </ion-item>
       </ion-list>
     </div>
@@ -75,6 +89,7 @@
               {{ feature }}
             </span>
             <ion-icon
+              *ngIf="userUid === founder"
               [src]="isFeatureInDB(feature) ? 'assets/icon/ionicons/md-eye.svg' : 'assets/icon/ionicons/md-eye-off.svg'"
               (click)="toggleFeatureVisibility(feature)"
               class="eye-icon">

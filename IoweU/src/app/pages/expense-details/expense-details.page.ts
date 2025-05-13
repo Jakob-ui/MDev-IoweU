@@ -32,6 +32,7 @@ import { ExpenseService } from 'src/app/services/expense.service';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
+import { CATEGORIES } from 'src/app/services/objects/Categories';
 
 
 addIcons({
@@ -92,6 +93,8 @@ export class ExpenseDetailsPage {
   expensePaidBy: string = '';
   expensePaidByUsername: string = '';
   expenseDate: string = '';
+  expenseCurrency: string = '';
+  expenseCategory: string = '';
   expenseMember: ExpenseMember[] = [];
   expenseMemberIds: string[] = [];
   expenseAmountToPay: number = 0;
@@ -103,6 +106,7 @@ export class ExpenseDetailsPage {
   expenseMemberPaidByUid: string = '';
 
   repeatingExpense: boolean = false;
+  paid: boolean = false;
 
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
@@ -112,45 +116,40 @@ export class ExpenseDetailsPage {
 
   overlayState: 'start' | 'normal' | 'hidden' = 'start';
 
-  categories = [
-    { name: 'Lebensmittel', icon: 'fast-food-outline' },
-    { name: 'Einkäufe', icon: 'cart-outline' },
-    { name: 'Restaurant/Bar', icon: 'wine-outline' },
-    { name: 'Transport', icon: 'car-outline' },
-    { name: 'Freizeit', icon: 'game-controller-outline' },
-    { name: 'Wohnen', icon: 'home-outline' },
-    { name: 'Rechnungen', icon: 'receipt-outline' },
-    { name: 'Sonstiges', icon: 'ellipsis-horizontal-outline' },
-  ];
+  categories = CATEGORIES;
 
   expense: Expenses[] = [
     {
       expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
       description: '',
       totalAmount: 0,
+      totalAmountInForeignCurrency: 0,
       paidBy: '',
       date: new Date().toISOString().split('T')[0],
-      currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
-      category: '', // optional
-      invoice: '', // optional
-      repeat: '', // Wiederholung, falls benötigt
-      splitType: 'prozent', // Kann 'prozent', 'anteile' oder 'produkte' sein
-      splitBy: 'alle', // Kann 'alle' oder 'frei' sein
+      currency: [''],
+      category: '',
+      invoice: '',
+      repeat: '',
+      splitType: 'prozent',
+      splitBy: 'alle',
       expenseMember: [
         {
-          memberId: '', // Leerer String für den Member
-          amountToPay: 0, // Betrag, der zu zahlen ist
-          split: 0, // Optional, je nach Bedarf
+          memberId: '',
+          amountToPay: 0,
+          foreignAmountToPay: 0,
+          split: 0,
+          paid: false,
           products: [
             {
               productId: (
                 Date.now() + Math.floor(Math.random() * 1000)
               ).toString(),
-              memberId: '', // Leerer String für den Member
-              productname: '', // Leerer String für den Produktnamen
-              quantity: 1, // Standardmenge 1
-              unit: '', // Einheit, z.B. "kg", "Stück"
-              price: 0, // Preis des Produkts
+              memberId: '',
+              productname: '',
+              quantity: 1,
+              unit: '',
+              price: 0,
+              foreignPrice: 0,
             },
           ],
         },
@@ -161,8 +160,10 @@ export class ExpenseDetailsPage {
   async ngOnInit() {
     this.loadingService.show();
     try {
+      await this.authService.waitForUser();
+
       // Query-Parameter lesen, um festzustellen, ob es sich um eine wiederkehrende Ausgabe handelt
-      this.activeRoute.queryParams.subscribe(params => {
+      this.activeRoute.queryParams.subscribe((params) => {
         this.repeatingExpense = params['repeating'] === 'true';
       });
 
@@ -208,24 +209,30 @@ export class ExpenseDetailsPage {
             this.expenseTotalAmount = expenseData.totalAmount || 0;
             this.expensePaidBy = expenseData.paidBy || '';
             this.expenseDate = expenseData.date || '';
+            this.expenseCurrency = expenseData.currency[0] || '';
+            this.expenseCategory = expenseData.category || '';
             this.expenseMember = expenseData.expenseMember || [];
-            this.expenseMemberIds = this.expenseMember.map(m => m.memberId || '');
+            this.expenseMemberIds = this.expenseMember.map(
+              (m) => m.memberId || ''
+            );
             this.expenseMemberSplitType = expenseData.splitType || '';
             this.expenseMemberSplitBy = expenseData.splitBy || '';
             this.expenseMemberPaidBy = expenseData.paidBy || '';
 
-            const currentMember = this.expenseMember.find(m => m.memberId === this.uid);
+            const currentMember = this.expenseMember.find(
+              (m) => m.memberId === this.uid
+            );
             this.expenseAmountToPay = currentMember?.amountToPay || 0;
 
             this.expensePaidByUsername = this.getPaidByName(this.expensePaidBy);
 
             console.log('Geladene Expense:', this.expense);
+            this.paid = this.hasUserPaid(this.expense[0]);
           } else {
             console.error('Expense nicht gefunden');
           }
         }
       );
-
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -246,18 +253,46 @@ export class ExpenseDetailsPage {
     return memberEntry?.amountToPay ?? 0;
   }
 
+  getForeignAmountToPayForMember(
+    expense: Partial<Expenses>,
+    memberId: string
+  ): number {
+    if (!expense || !expense.expenseMember) return 0;
+    const memberEntry = expense.expenseMember.find(
+      (m) => m.memberId === memberId
+    );
+    return memberEntry?.foreignAmountToPay ?? 0;
+  }
+
   getAmountClass(expense: Expenses, memberId: string): string {
-    const isPaidByMember = expense.paidBy === memberId;
     const member = expense.expenseMember.find((m) => m.memberId === memberId);
-  
-    if (isPaidByMember) {
-      return 'neutral';
+
+    // Der aktuelle User ist der, der bezahlt hat
+    const currentUserPaid = expense.paidBy === this.uid;
+
+    // Wenn ich selbst bezahlt habe
+    if (currentUserPaid) {
+      if (memberId === this.uid) {
+        return 'neutral'; // ich selbst → neutral
+      }
+
+      if (member && member.amountToPay > 0) {
+        return 'positive'; // andere, die mir etwas schulden → grün
+      }
+
+      return 'neutral'; // andere, die nichts zahlen müssen → grau
     }
-  
-    if (member && member.amountToPay > 0) {
-      return 'negative';
+
+    // Wenn jemand anderes bezahlt hat
+    if (memberId === this.uid) {
+      if (member && member.amountToPay > 0) {
+        return 'negative'; // ich schulde → rot
+      } else {
+        return 'neutral'; // ich schulde nichts → grau
+      }
     }
-  
+
+    // Alle anderen → grau
     return 'neutral';
   }
 
@@ -335,19 +370,32 @@ export class ExpenseDetailsPage {
   }
   editExpense() {
     if (this.expenseId) {
-      this.router.navigate(
-        ['/edit-expense', this.groupId, this.expenseId],
-        {
-          queryParams: {
-            repeating: this.repeatingExpense // true oder false übergeben
-          }
-        }
-      );
+      this.router.navigate(['/edit-expense', this.groupId, this.expenseId], {
+        queryParams: {
+          repeating: this.repeatingExpense,
+          paid: this.paid,
+        },
+      });
     } else {
       console.error('Expense ID not found');
     }
   }
 
+  payExpense() {
+    if (this.expenseId) {
+      this.router.navigate(['/pay-expenses', this.groupId, this.expenseId], {
+        queryParams: {
+          repeating: this.repeatingExpense, // true oder false übergeben
+        },
+      });
+    } else {
+      console.error('Expense ID not found');
+    }
+  }
+
+  requestExpense() {
+    // Hier die Logik für die Anfrage implementieren
+  }
 
   getPaidByName(uid: string): string {
     const memberIndex = this.memberUids.indexOf(uid);
@@ -355,7 +403,6 @@ export class ExpenseDetailsPage {
   }
 
   toggleInvoiceOverlay() {
-
     console.log('Overlay state:', this.overlayState);
 
     // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
@@ -370,5 +417,30 @@ export class ExpenseDetailsPage {
     }
 
     console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
+  }
+
+  getCategoryIcon(categoryName: string): string | undefined {
+    const category = this.categories.find((c) => c.name === categoryName);
+    return category?.icon;
+  }
+
+  goToTransactions() {
+    this.router.navigate(['/transactions', this.groupId]);
+  }
+
+  hasUserPaid(expense: Expenses): boolean {
+    if (expense.paidBy === this.uid) {
+      return false; // Zahler sieht keine Anzeige
+    }
+    const userEntry = expense.expenseMember?.find(
+      (member) => member.memberId === this.uid
+    );
+    return !!userEntry?.paid;
+  }
+
+  hasAnyMemberPaid(expense: Expenses): boolean {
+    return expense.expenseMember
+      .filter((member) => member.memberId !== expense.paidBy)
+      .some((member) => member.paid === true);
   }
 }

@@ -49,14 +49,23 @@ h5 {
   align-items: end;
 }
 
-.left-container h5{
+.reason-container{
   background-color: white;
   border-radius: 50px;
   padding: 5px 10px;
+  margin-bottom: 5px;
+  max-width: 165px;
+}
+
+.reason-container h5{
+  font-size: 14px;
+  color: var(--ion-color-dark);
+  margin-bottom: -2px;
+  text-align: left;
 }
 
 .top-container span{
-  margin-bottom: 13.5px;
+  margin-bottom: 10.5px;
 }
 
 .bottom-container .member-info {

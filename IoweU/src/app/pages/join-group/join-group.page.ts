@@ -16,7 +16,7 @@ import { Auth } from '@angular/fire/auth';
 import { AuthService } from 'src/app/services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { Users } from 'src/app/services/objects/Users';
-import { AlertController } from '@ionic/angular';
+import {AlertController, ToastController} from '@ionic/angular';
 import { PermissionStatus, Camera } from '@capacitor/camera';
 
 @Component({
@@ -41,6 +41,7 @@ export class JoinGroupPage {
   private authService = inject(AuthService);
   private router = inject(Router);
   private alertController = inject(AlertController);
+  private toastController = inject(ToastController);
 
   showScanner: any;
   joinCode: string = '';
@@ -48,7 +49,7 @@ export class JoinGroupPage {
   error: string = '';
   joinFailed: boolean = false;
 
-  private qrCodeScanner: Html5QrcodeScanner | null = null; 
+  private qrCodeScanner: Html5QrcodeScanner | null = null;
   Capacitor: any;
   isSupported: boolean | undefined;
 
@@ -237,7 +238,6 @@ export class JoinGroupPage {
     }
   }
 
-  // Popup-Dialog zur Bestätigung des Beitritts zur Gruppe
   async confirmJoinGroup() {
     this.loadingService.show();
 
@@ -249,15 +249,18 @@ export class JoinGroupPage {
       } else {
         group = await this.groupService.getGroupByGroupId(this.joinCode);
         if (group && group.accessCode) {
-          this.joinCode = group.accessCode; // ⚠️ hier wird der AccessCode gesetzt!
+          this.joinCode = group.accessCode;
         }
+      }
+
+      if (!group) {
+        await this.presentToast('Gruppe konnte nicht geladen werden.');
+        return; // Verhindert die Weiterführung, wenn keine Gruppe gefunden wird
       }
 
       const alert = await this.alertController.create({
         header: 'Gruppe beitreten',
-        message: group
-          ? `Möchtest du wirklich der Gruppe ${group.groupname} beitreten?`
-          : 'Gruppe konnte nicht geladen werden.',
+        message: `Möchtest du wirklich der Gruppe ${group.groupname} beitreten?`,
         buttons: [
           {
             text: 'Abbrechen',
@@ -267,6 +270,7 @@ export class JoinGroupPage {
             text: 'Ja',
             handler: () => {
               this.joinGroup(); // Hier wird der eigentliche Beitritt ausgeführt
+              this.presentToast(`Du bist jetzt Mitglied der Gruppe ${group.groupname}.`); // Toast nach erfolgreichem Beitritt
             },
           },
         ],
@@ -277,8 +281,31 @@ export class JoinGroupPage {
       console.error(err);
       this.error = 'Fehler beim Laden der Gruppe.';
       this.joinFailed = true;
+      await this.presentToast('Fehler beim Laden der Gruppe. Bitte versuche es erneut.');
     } finally {
       this.loadingService.hide();
     }
   }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
+
+
+  async presentAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header: header,
+      message: message,
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+
 }

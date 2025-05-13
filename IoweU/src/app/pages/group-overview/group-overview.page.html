@@ -1,22 +1,12 @@
-<ion-header [translucent]="true" class="header">
-  <div class="backdrop-wrapper">
-    <ion-toolbar>
-      <div class="right-container" slot="end">
-        <div class="user-info" [routerLink]="'/account-settings'">
-          <div class="profile-placeholder"></div>
-          <span class="member-name">{{ username }}</span>
-        </div>
-      </div>
-    </ion-toolbar>
-  </div>
-</ion-header>
 
 <ion-content [fullscreen]="true">
   <div class="page-container">
-    <div class="profile-placeholder"></div>
+    <div class="user-info" [routerLink]="'/account-settings'">
+      <div class="profile-placeholder"></div>
+      <span class="member-name">{{ username }}</span>
+    </div>
 
     <h2>Meine Gruppen</h2>
-
     <div class="menu">
       <div class="menu-text active">
         <span>Meine Gruppen</span>
@@ -33,34 +23,38 @@
 
     <!-- Gruppenliste -->
     <ion-list class="group-list" *ngIf="groups.length > 0">
-      <ion-card
-        class="my-groups"
-        *ngFor="let group of groups"
-        [class.edit-mode]="isEditMode"
-        [draggable]="isEditMode"
-        (click)="!isEditMode && navigateToGroup(group.link)"
-        (mousedown)="onLongPressStart(group)"
-        (mouseup)="onLongPressCancel()"
-        (mouseleave)="onLongPressCancel()"
-        (touchstart)="onLongPressStart(group); onTouchStart($event, group)"
-        (touchend)="onLongPressCancel()"
-        (touchmove)="onTouchMove($event, group)"
-        (dragstart)="onDragStart($event, group)"
-        (dragover)="allowDrop($event)"
-        (drop)="onDrop($event, group)"
-      >
-        <div class="card-content">
-          <ion-card-title class="groupname">{{ group.name }}</ion-card-title>
-          <ion-card-subtitle
-            [ngClass]="{ 'negative': group.myBalance < 0, 'positive': group.myBalance >= 0 }"
-          >
-            <span *ngIf="group.myBalance >= 0">Mein Guthaben:</span>
-            <span *ngIf="group.myBalance < 0">Meine Schulden:</span>
+    <ion-reorder-group
+      [disabled]="!isEditMode"
+      (ionItemReorder)="handleReorder($event)"
+    >
+  <ion-reorder *ngFor="let group of groups">
+    <ion-card
+      class="my-groups"
+      [class.wiggle]="isEditMode"
+      (click)="navigateToGroup(group.link)"
+      (mousedown)="onLongPressStart()"
+      (mouseup)="onLongPressCancel()"
+      (mouseleave)="onLongPressCancel()"
+      (touchstart)="onLongPressStart()"
+      (touchend)="onLongPressCancel()"
+    >
+      <div class="card-content">
+        <ion-card-title class="groupname">{{ group.name }}</ion-card-title>
+        <ion-card-subtitle
+
+        >
+          <span *ngIf="group.myBalance >= 0">Mein Guthaben:</span>
+          <span *ngIf="group.myBalance < 0">Meine Schulden:</span>
+          <ion-badge [ngClass]="{ 'negative': group.myBalance < 0, 'positive': group.myBalance >= 0 }">
             {{ group.myBalance | currency: 'EUR' }}
-          </ion-card-subtitle>
-        </div>
-      </ion-card>
-    </ion-list>
+          </ion-badge>
+        </ion-card-subtitle>
+      </div>
+    </ion-card>
+  </ion-reorder>
+</ion-reorder-group>
+</ion-list>
+
 
     <div class="space"></div>
 

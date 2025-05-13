@@ -15,7 +15,7 @@ import {
 import { OverlayEventDetail } from '@ionic/core/components';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
-import { NavController, Platform } from '@ionic/angular';
+import {NavController, Platform, ToastController} from '@ionic/angular';
 import { AccountService } from 'src/app/services/account.service';
 import { UserService } from 'src/app/services/user.service';
 import { AlertController } from '@ionic/angular';
@@ -52,10 +52,13 @@ export class AccountSettingsPage implements OnInit {
   private userService = inject(UserService);
   private alertController = inject(AlertController);
   private loadingService = inject(LoadingService);
+  private toastController = inject(ToastController);
+
   iosIcons: boolean = false;
 
   displayName: string | null = null;
 
+  uid: string = '';
   name: string = '';
   newname: string = '';
   email: string = '';
@@ -78,25 +81,44 @@ export class AccountSettingsPage implements OnInit {
 
   constructor(private cdRef: ChangeDetectorRef) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadingService.show();
 
-    // Lade den gespeicherten Zustand des Farbmodus-Toggles
     this.colorBlindMode = localStorage.getItem('colorBlindMode') === 'true';
-    this.applyColorBlindMode(this.colorBlindMode); // Wende den Modus an
+    this.applyColorBlindMode(this.colorBlindMode);
 
-    this.iosIcons = this.platform.is('ios');
+    try {
+      await this.authService.waitForUser();
 
-    // Versuche, Daten aus dem lokalen Speicher zu laden
-    this.name = localStorage.getItem('username') || '';
-    this.newname = this.name;
-    this.email = localStorage.getItem('email') || '';
-    this.color = localStorage.getItem('usercolor') || '#ffffff';
+      if (this.authService.currentUser) {
+        this.uid = this.authService.currentUser.uid;
+        this.name = this.authService.currentUser.username;
+        this.newname = this.name;
+        this.email = this.authService.currentUser.email;
+        this.color = this.authService.currentUser.color || '#ffffff';
+        this.iosIcons = this.platform.is('ios');
 
-    // Lade Benutzerdaten aus dem Backend
-    this.loadUserData().finally(() => {
+        // Setze die Farbe im Theme
+        if (this.color) {
+          document.documentElement.style.setProperty(
+            '--user-color',
+            this.color
+          );
+        }
+        console.log('Aktueller Benutzer:', {
+          username: this.authService.currentUser.username,
+          email: this.authService.currentUser.email,
+          color: this.authService.currentUser.color,
+          lastedited: this.authService.currentUser.lastedited,
+        });
+      } else {
+        console.error('User ist nicht eingeloggt.');
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden des Benutzers:', error);
+    } finally {
       this.loadingService.hide();
-    });
+    }
   }
 
   ngAfterViewInit() {
@@ -142,16 +164,31 @@ export class AccountSettingsPage implements OnInit {
   edit(message: string) {
     this.userEditing = true;
     this.changeMessage = message;
-    this.newname = '';
-    console.log(this.userEditing);
+    this.newname = this.name;
   }
+
   cancel() {
     this.userEditing = false;
-    this.newname = localStorage.getItem('username') || '';
+    this.newname = this.name;
   }
-  confirm() {
+
+  async confirm() {
+    if (!this.newname.trim()) {
+      const toast = await this.toastController.create({
+        message: 'Name darf nicht leer sein.',
+        duration: 2000, // verschwindet nach 2 Sekunden
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+      return;
+    }
+
+    this.name = this.newname.trim();
     this.userEditing = false;
   }
+
+
 
   goBack() {
     this.navCtrl.back();
@@ -191,10 +228,6 @@ export class AccountSettingsPage implements OnInit {
         lastedited: new Date().toISOString(),
       });
 
-      localStorage.setItem('username', this.newname);
-      localStorage.setItem('usercolor', this.color);
-      localStorage.setItem('lastedited', new Date().toISOString());
-
       console.log('Änderungen erfolgreich gespeichert.');
 
       this.loadUserData();
@@ -232,6 +265,7 @@ export class AccountSettingsPage implements OnInit {
               {
                 text: 'Löschen',
                 role: 'destructive',
+                cssClass: 'danger-button',
                 handler: () => this.deleteAccount(),
               },
             ],
@@ -275,7 +309,7 @@ export class AccountSettingsPage implements OnInit {
       name: 'email',
       placeholder: 'E-Mail',
       type: 'email',
-      value: localStorage.getItem('email') || '',
+      value: this.authService.currentUser?.email || '',
     },
     {
       name: 'password',

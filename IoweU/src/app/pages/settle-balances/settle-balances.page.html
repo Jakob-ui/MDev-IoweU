@@ -1,0 +1,124 @@
+<ion-header [translucent]="true" class="header">
+  <div class="backdrop-wrapper">
+    <ion-toolbar>
+      <div class="left-container" slot="start">
+        <ion-icon
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+          class="back-button"
+          (click)="goBack()"
+        ></ion-icon>
+      </div>
+    </ion-toolbar>
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="balance-page-container" *ngIf="deptList.length !== 0">
+    <ion-button class="outline-button" expand="block">
+      Beleg hinzufügen
+    </ion-button>
+    <div class="titel">
+      <h4>Großer Gruppenausgleich</h4>
+      <h2>{{ groupname }}</h2>
+    </div>
+
+    <div class="debt-details" *ngFor="let debt of deptList">
+      <div class="transaction-details">
+        <div
+          class="member-info"
+          [ngStyle]="{
+                  'background-color': 'var(--member-color-background-' + debt.from + ')',
+                  'border-color': 'var(--member-color-' + debt.from + ')'
+               }"
+        >
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{
+                'background-color': 'var(--member-color-' + debt.from + ')',
+                'border-color': 'var(--member-color-' + debt.from + ')'
+              }"
+          ></div>
+          <span class="member-name">{{ getMemberNameById(debt.from) }}</span>
+        </div>
+        <ion-badge class="BalancePrice" [ngClass]="getAmountClass(expense[0])"
+          >{{ debt.debt | number: '1.2-2' }}
+        </ion-badge>
+
+        <div
+          class="member-info"
+          [ngStyle]="{
+                  'background-color': 'var(--member-color-background-' + debt.to + ')',
+                  'border-color': 'var(--member-color-' + debt.to + ')'
+               }"
+        >
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{
+                'background-color': 'var(--member-color-' + debt.to + ')',
+                'border-color': 'var(--member-color-' + debt.to + ')'
+              }"
+          ></div>
+          <span class="member-name">{{ getMemberNameById(debt.to) }}</span>
+        </div>
+      </div>
+      <div
+        *ngIf="expense && expense.length > 0"
+        class="toggle-arrow"
+        (click)="showExpenses = !showExpenses"
+      > Zeige RelatedExpenses an
+        <ion-icon
+          [src]="showExpenses ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
+        >
+        </ion-icon>
+      </div>
+
+    <ion-list class="expense-list" *ngIf="expense.length !==0 && showExpenses">
+        <ion-item class="info-item" *ngFor="let expense of expense" (click)="goToExpenseDetails(expense.expenseId)">
+          <div
+            class="profile-placeholder"
+            [ngStyle]="{
+              'background-color': 'var(--member-color-' + expense.paidBy + ')',
+              'border-color': 'var(--member-color-' + expense.paidBy + ')'
+            }"
+          >
+            <span class="username">{{ getFirstLetter(expense.paidBy) }}</span>
+          </div>
+          <h5 class="einzelneAusgabe">{{ expense.description }}</h5>
+          <div class="expense-item">
+            <div class="Ausgabepreis">
+              <h5 class="Gesamtpreis">
+                {{ expense.totalAmount | currency: 'EUR' }}
+              </h5>
+              <div class="amountToPay">
+                <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
+                  {{ getUserAmount(expense) | currency: 'EUR' }}
+                </ion-badge>
+              </div>
+
+
+            </div>
+          </div>
+        </ion-item>
+    </ion-list>
+    </div>
+
+
+
+    <div class="space"></div>
+    <div class="button-container">
+      <ion-button class="main-button" expand="block" (click)="pay()">
+        Bilanzen wurden ausgeglichen
+      </ion-button>
+    </div>
+  </div>
+  <div class="balance-page-container-empty" *ngIf="deptList.length === 0">
+    <div class="nothingToPay">
+      <h2>Alle sind schuldenfrei! <br />🎉</h2>
+    </div>
+    <div class="button-container">
+      <ion-button class="main-button" expand="block" (click)="goBack()">
+        Okay!
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

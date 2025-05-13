@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { GroupService } from 'src/app/services/group.service';
+import { ExpenseService } from 'src/app/services/expense.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { Router } from '@angular/router';
 import {
@@ -72,8 +73,11 @@ export class EditGroupPage implements OnInit {
   private alertController = inject(AlertController);
   private authService = inject(AuthService);
   private imageService = inject(ImageService);
+  private navController = inject(Router);
+  private expenseService = inject(ExpenseService);
 
   @ViewChild('fileInput') fileInput!: ElementRef;
+iosIcons: any;
 
   constructor(private router: Router) {}
 
@@ -142,23 +146,21 @@ export class EditGroupPage implements OnInit {
     }
   }
 
-  removeMember(member: Members) {
-    this.members = this.members.filter((m) => m.uid !== member.uid);
-  }
-
   selectImage() {
     this.fileInput.nativeElement.click();
   }
 
-  onFileSelected(event: any) {
+  async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
+
+
       const reader = new FileReader();
-      reader.onload = () => {
-        this.groupImage = reader.result;
-        if (typeof this.groupImage === 'string') {
-          this.uploadImage = this.imageService.dataURLtoBlob(this.groupImage);
-        }
+      reader.onload = async () => {
+        const imageDataUrl = reader.result as string;
+        this.uploadImage = this.imageService.dataURLtoBlob(imageDataUrl);
+
+        this.groupImage = imageDataUrl;
       };
       reader.readAsDataURL(file);
     }
@@ -188,7 +190,7 @@ export class EditGroupPage implements OnInit {
         header: 'Aktion nicht erlaubt',
         message:
           'Sie sind nicht der Gründer dieser Gruppe und können sie daher nicht löschen.',
-        cssClass: 'custom-alert', // Eigene CSS-Klasse zuweisen
+        cssClass: 'custom-alert-', // Eigene CSS-Klasse zuweisen
         buttons: [
           {
             text: 'OK',
@@ -231,6 +233,11 @@ export class EditGroupPage implements OnInit {
   }
 
   async saveeditedGroup() {
+    if (!this.groupname || this.groupname.trim() === '') {
+      this.presentAlert('Bitte gib einen Gruppennamen ein.');
+      return;
+    }
+
     await this.groupService.updateGroup(
       this.userUid,
       this.groupId,
@@ -240,6 +247,16 @@ export class EditGroupPage implements OnInit {
     );
     this.router.navigate([`/group`, this.groupId]);
   }
+
+  async presentAlert(message: string) {
+    const alert = await this.alertController.create({
+      header: 'Fehler',
+      message,
+      buttons: ['OK'],
+    });
+    await alert.present();
+  }
+
 
   generateQRCode() {
     if (this.accessCode) {
@@ -253,5 +270,172 @@ export class EditGroupPage implements OnInit {
       }
     }
   }
+
+  async removeMemberFromGroup(member: Members) {
+    // Überprüfen, ob der User der Gründer ist
+    if (this.userUid !== this.founder) {
+      const alert = await this.alertController.create({
+        header: 'Aktion nicht erlaubt',
+        message: 'Nur der Gründer kann Mitglieder entfernen.',
+        buttons: ['OK'],
+      });
+      await alert.present();
+      return;
+    }
+
+    // Überprüfe die Balance des Mitglieds
+    const hasUnpaidBalance = await this.expenseService.checkMemberBalance(this.groupId, member.uid);
+    if (hasUnpaidBalance) {
+      const alert = await this.alertController.create({
+        header: 'Mitglied kann nicht entfernt werden',
+        message: `Mitglied ${member.username} hat noch offene Schulden oder Guthaben und kann nicht entfernt werden.`,
+        buttons: ['OK'],
+      });
+      await alert.present();
+      return;
+    }
+
+    // Bestätigung anzeigen, bevor das Mitglied entfernt wird
+    const confirm = await this.alertController.create({
+      header: 'Mitglied entfernen',
+      message: `Möchtest du ${member.username} wirklich aus der Gruppe entfernen?`,
+      buttons: [
+        {
+          text: 'Abbrechen',
+          role: 'cancel',
+        },
+        {
+          text: 'Entfernen',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              // Entferne das Mitglied aus der Gruppe
+              await this.groupService.removeUserFromGroupByUid(this.groupId, member.uid);
+              this.members = this.members.filter(m => m.uid !== member.uid);
+              console.log(`Mitglied ${member.username} entfernt.`);
+            } catch (error) {
+              console.error('Fehler beim Entfernen des Mitglieds:', error);
+              const alert = await this.alertController.create({
+                header: 'Fehler',
+                message: 'Es gab einen Fehler beim Entfernen des Mitglieds.',
+                buttons: ['OK'],
+              });
+              await alert.present();
+            }
+          },
+        },
+      ],
+    });
+
+    await confirm.present();
+  }
+
+
+  async leaveGroup(): Promise<void> {
+    const group = await this.groupService.getGroupById(this.groupId);
+
+    if (!group) {
+      console.error('Gruppe nicht gefunden');
+      return;
+    }
+
+    // Prüfen, ob der User noch offene Salden hat
+    const hasUnpaidBalance = await this.expenseService.checkMemberBalance(this.groupId, this.userUid);
+    if (hasUnpaidBalance) {
+      const alert = await this.alertController.create({
+        header: 'Gruppe kann nicht verlassen werden',
+        message: 'Du hast noch offene Schulden oder Guthaben in dieser Gruppe. Bitte begleiche sie zuerst.',
+        buttons: ['OK'],
+      });
+      await alert.present();
+      return;
+    }
+
+    if (this.userUid === this.founder) {
+      const members = group.members
+        .filter((member: any) => member.uid !== this.userUid)
+        .map((member: any) => ({
+          ...member,
+          role: member.role === 'founder' ? 'founder' : 'member' as 'member' | 'founder',
+        }));
+
+      const alert = await this.alertController.create({
+        header: 'Neuen Gründer festlegen',
+        message: 'Bevor du die Gruppe verlässt, musst du einen neuen Gründer festlegen.',
+        inputs: members.map((member: any) => ({
+          name: 'newFounder',
+          type: 'radio',
+          label: member.username,
+          value: member.uid,
+          checked: false,
+        })),
+        buttons: [
+          {
+            text: 'Abbrechen',
+            role: 'cancel',
+          },
+          {
+            text: 'Bestätigen',
+            handler: async (selectedUid) => {
+              if (selectedUid) {
+                await this.groupService.setNewFounder(this.groupId, this.userUid, selectedUid);
+                await this.groupService.removeUserFromGroupByUid(this.groupId, this.userUid);
+                const alertSuccess = await this.alertController.create({
+                  header: 'Gruppe verlassen',
+                  message: 'Du hast die Gruppe erfolgreich verlassen.',
+                  buttons: ['OK'],
+                });
+                await alertSuccess.present();
+                this.router.navigate(['/group-overview']);
+              }
+            },
+          },
+        ],
+      });
+
+      await alert.present();
+    } else {
+      const confirm = await this.alertController.create({
+        header: 'Gruppe verlassen',
+        message: 'Möchtest du diese Gruppe wirklich verlassen? Du kannst später wieder eingeladen werden.',
+        buttons: [
+          {
+            text: 'Abbrechen',
+            role: 'cancel',
+          },
+          {
+            text: 'Verlassen',
+            role: 'destructive',
+            handler: async () => {
+              try {
+                await this.groupService.removeUserFromGroupByUid(this.groupId, this.userUid);
+
+                const alert = await this.alertController.create({
+                  header: 'Gruppe verlassen',
+                  message: 'Du hast die Gruppe erfolgreich verlassen.',
+                  buttons: ['OK'],
+                });
+                await alert.present();
+
+                this.router.navigate([`/group-overview`]);
+              } catch (error) {
+                console.error('Fehler beim Verlassen der Gruppe:', error);
+                const alertError = await this.alertController.create({
+                  header: 'Fehler',
+                  message: 'Es gab einen Fehler beim Verlassen der Gruppe.',
+                  buttons: ['OK'],
+                });
+                await alertError.present();
+              }
+            },
+          },
+        ],
+      });
+
+      await confirm.present();
+    }
+  }
+
+
 }
 

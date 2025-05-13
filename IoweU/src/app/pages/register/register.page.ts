@@ -9,16 +9,16 @@ import {
   IonItem,
   IonButton,
   IonLabel,
-  IonSpinner,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
+import { LoadingService } from 'src/app/services/loading.service';
+
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
   standalone: true,
   imports: [
-    IonSpinner,
     IonLabel,
     IonButton,
     IonItem,
@@ -30,9 +30,10 @@ import { AuthService } from '../../services/auth.service';
     RouterLink,
   ],
 })
-export class RegisterPage {
+export class RegisterPage implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private loadingService = inject(LoadingService);
   failed: boolean = false;
   registerFailed: boolean = false; // Neue Variable für den Buttonstatus
 
@@ -44,6 +45,7 @@ export class RegisterPage {
   error = '';
   loading: boolean = false;
   timeout: any;
+  videoSource: string = '';
 
   inputChange() {
     this.failed = false;
@@ -77,7 +79,7 @@ export class RegisterPage {
       this.registerFailed = true;
       return;
     }
-    this.loading = true;
+    this.loadingService.show(); // Ladeoverlay anzeigen
     try {
       const usercolor =
         this.color === '' ? this.generateRandomHexColor() : this.color;
@@ -108,7 +110,7 @@ export class RegisterPage {
       }
       this.registerFailed = true;
     } finally {
-      this.loading = false;
+      this.loadingService.hide(); // Ladeoverlay ausblenden
     }
   }
 
@@ -121,5 +123,29 @@ export class RegisterPage {
       console.error('Fehler beim Laden der Daten', error);
       this.loading = false;
     }
+  }
+
+  isDarkMode(): boolean {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  ngOnInit() {
+    // Ladeoverlay beim Seiten-Reload anzeigen
+    this.loadingService.show();
+    setTimeout(() => {
+      this.loadingService.hide();
+    }, 2000); // Beispiel: Ladeoverlay für 2 Sekunden anzeigen
+
+    // Setze die GIF-Quelle basierend auf dem Modus
+    this.videoSource = this.isDarkMode()
+      ? 'assets/gifs/loadingDarkMode.gif'
+      : 'assets/gifs/loadingLightMode.gif';
+
+    // Überwache Änderungen des Farbschemas
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+      this.videoSource = event.matches
+        ? 'assets/gifs/loadingDarkMode.gif'
+        : 'assets/gifs/loadingLightMode.gif';
+    });
   }
 }

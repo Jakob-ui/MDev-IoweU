@@ -9,7 +9,7 @@ import {
   IonCard,
   IonButton,
   IonIcon,
-  IonCheckbox, IonInput, IonDatetime, IonLabel, IonItemOptions, IonItemOption, IonItemSliding
+   IonInput, IonDatetime, IonLabel
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -22,6 +22,7 @@ import { ShoppingProducts } from "../../services/objects/ShoppingProducts";
 import { ShoppinglistService } from "../../services/shoppinglist.service";
 import {FormsModule} from "@angular/forms";
 import { formatDate } from '@angular/common';
+import {AlertController, ToastController} from "@ionic/angular";
 
 @Component({
   selector: 'app-shoppinglist',
@@ -39,14 +40,10 @@ import { formatDate } from '@angular/common';
     IonIcon,
     RouterModule,
     IonButton,
-    IonCheckbox,
     IonInput,
     FormsModule,
     IonDatetime,
     IonLabel,
-    IonItemOptions,
-    IonItemOption,
-    IonItemSliding,
   ],
 })
 export class ShoppinglistPage implements OnInit {
@@ -57,6 +54,8 @@ export class ShoppinglistPage implements OnInit {
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private shoppinglistService = inject(ShoppinglistService);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
 
   uid: string | null = '';
   user: string | null = '';
@@ -64,7 +63,7 @@ export class ShoppinglistPage implements OnInit {
 
   groupname: string = '';
   groupId: string | null = '';
-  groupMembers: Members[] = []; // Verwenden Sie das Members-Interface
+  groupMembers: Members[] = [];
   iosIcons: boolean = false;
 
   forMemberDropdownOpen: boolean = false;
@@ -72,7 +71,7 @@ export class ShoppinglistPage implements OnInit {
 
   showDetails: boolean = false;
 
-
+  shoppingListId: string | null = '';
   shoppingproducts: ShoppingProducts[] = [];
   groupedProducts: { date: string; shoppingproducts: ShoppingProducts[] }[] = [];
 
@@ -82,8 +81,13 @@ export class ShoppinglistPage implements OnInit {
   earliestDueDate: Date = new Date(2025, 2, 20);
   earliestDueDateLabel: string = '';
 
+  showDeleteConfirm: boolean = false;
+  productToDelete: any;
+  touchStartX: number = 0;
 
   addProductOpen = false;
+  animatedItems: { [key: string]: boolean } = {};
+
 
   newProduct = {
     quantity: 1,
@@ -106,11 +110,12 @@ export class ShoppinglistPage implements OnInit {
 
   isDatePickerOpen = false;
 
+  private unsubscribeProductsListener!: () => void;
+
   async ngOnInit() {
     this.loadingService.show();
 
     try {
-      // Benutzer wird gewartet und überprüft
       await this.authService.waitForUser();
 
       if (!this.authService.currentUser) {
@@ -122,19 +127,17 @@ export class ShoppinglistPage implements OnInit {
       this.user = this.authService.currentUser.username;
       this.displayName = this.authService.currentUser.username;
 
-      // Die groupId aus der URL erhalten
-      const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-
-      if (!groupId) {
+      const routeGroupId = this.activeRoute.snapshot.paramMap.get('groupId');
+      if (!routeGroupId) {
         console.error('Keine groupId in Route gefunden.');
         return;
       }
+      this.groupId = routeGroupId;
 
-      this.groupId = groupId;
+      this.shoppingListId = await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId);
+      console.log('shoppingListId:', this.shoppingListId);
 
-      // Hole die Gruppe basierend auf der groupId
-      const currentGroup = await this.groupService.getGroupById(groupId);
-
+      const currentGroup = await this.groupService.getGroupById(this.groupId);
       if (currentGroup) {
         this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
         this.groupMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
@@ -144,15 +147,21 @@ export class ShoppinglistPage implements OnInit {
         this.groupMembers = [];
       }
 
-      this.selectedMember =
-        this.groupMembers.find(
-          (member) => member.uid === this.shoppingproducts[0]?.forMemberId
-        ) ||
-        { uid: this.uid, username: this.displayName || 'Unbekannt' };
+      this.unsubscribeProductsListener = this.shoppinglistService.listenToShoppingProductsChanges(
+        this.groupId,
+        this.shoppingListId,
+        (products) => {
+          this.shoppingproducts = products.filter(p => p.status === 'open');
+          this.groupProductsByDate();
 
-      // Holen der Produkte für diese Gruppe
-      await this.loadShoppingProducts(this.groupId);
-
+          if (!this.selectedMember && this.shoppingproducts.length > 0) {
+            this.selectedMember =
+              this.groupMembers.find(
+                (member) => member.uid === this.shoppingproducts[0]?.forMemberId
+              ) || { uid: this.uid, username: this.displayName || 'Unbekannt' };
+          }
+        }
+      );
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
@@ -160,26 +169,45 @@ export class ShoppinglistPage implements OnInit {
     }
   }
 
-// Methode zum Laden der Produkte aus der Firebase-Datenbank
-  async loadShoppingProducts(groupId: string) {
+
+  ngOnDestroy() {
+    if (this.unsubscribeProductsListener) {
+      this.unsubscribeProductsListener();
+    }
+  }
+
+
+  async loadShoppingProducts() {
     try {
-      this.shoppingproducts = await this.shoppinglistService.getShoppingProducts(groupId); // Hier wird die asynchrone Methode aufgerufen
-      this.groupProductsByDate(); // Produkte nach Datum gruppieren
+
+      if(!this.groupId) {
+        console.error('groupId ist null oder undefined');
+        return;
+      }
+
+      if (!this.shoppingListId) {
+        console.error('shoppingListId ist null oder undefined');
+        return;
+      }
+
+      const allProducts = await this.shoppinglistService.getShoppingProducts(this.groupId, this.shoppingListId);
+      this.shoppingproducts = allProducts.filter(p => p.status === 'open');
+      this.groupProductsByDate();
     } catch (error) {
       console.error('Fehler beim Laden der Produkte:', error);
     }
   }
 
+
+
   async getShoppingProductById(groupId: string, shoppingProductId: string): Promise<ShoppingProducts | null> {
     try {
-      // Stelle sicher, dass eine gültige groupId und shoppingProductId übergeben wurden
       if (!groupId || !shoppingProductId) {
         console.error('Ungültige groupId oder shoppingProductId');
         return null;
       }
 
-      // Rufe das Produkt anhand der groupId und shoppingProductId ab
-      const product = await this.shoppinglistService.getShoppingProductById(groupId, shoppingProductId);
+      const product = await this.shoppinglistService.getShoppingProductById(groupId, shoppingProductId, shoppingProductId);
 
       if (product) {
         console.log('Produkt gefunden:', product);
@@ -227,14 +255,12 @@ export class ShoppinglistPage implements OnInit {
       }
     }
 
-    // Frühestes Fälligkeitsdatum berechnen (außer "Nicht dringend")
     if (validDates.length > 0) {
       this.earliestDueDate = new Date(Math.min(...validDates.map(d => d.getTime())));
     } else {
       this.earliestDueDate = new Date(); // Fallback
     }
 
-    // earliestDueDate Label erzeugen
     this.earliestDueDateLabel = this.formatDateLabel(this.earliestDueDate.toISOString().split('T')[0], today, yesterday, tomorrow);
 
     const sortedDates = Object.keys(grouped).sort((a, b) => {
@@ -250,6 +276,24 @@ export class ShoppinglistPage implements OnInit {
       shoppingproducts: grouped[date].sort((a, b) => new Date(b['date']).getTime() - new Date(a['date']).getTime()),
     }));
   }
+
+  getDateDisplay(date: string): string {
+    if (!date) return '';
+
+    const now = new Date();
+    const dueDate = new Date(date);
+    const inOneYear = new Date(now);
+    inOneYear.setFullYear(now.getFullYear() + 1);
+
+    if (dueDate > inOneYear || date === '9999-12-31') {
+      return 'Nicht dringend';
+    }
+
+    return new Intl.DateTimeFormat('de-AT').format(dueDate);
+  }
+
+
+
 
   formatDateLabel(date: string, today: Date, yesterday: Date, tomorrow: Date): string {
     const dateObj = new Date(date);
@@ -275,7 +319,6 @@ export class ShoppinglistPage implements OnInit {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Wenn "Gestern", "Heute", "Morgen" als Label übergeben wird
     if (typeof date === 'string') {
       const lower = date.toLowerCase();
       if (lower === 'gestern') return true;
@@ -297,12 +340,10 @@ export class ShoppinglistPage implements OnInit {
     return '';
   }
 
-  // Methode, um den Benutzernamen anhand der forMemberId zu finden
   getUsernameById(memberId: string): string {
     const member = this.groupMembers.find(m => m.uid === memberId);
     return member ? member.username : 'Unbekanntes Mitglied';
   }
-
 
   goBack() {
     this.router.navigate(['/group', this.groupId]);
@@ -312,7 +353,6 @@ export class ShoppinglistPage implements OnInit {
 
     console.log('Overlay state:', this.overlayState);
 
-    // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
     if (this.overlayState === 'start') {
       this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
     } else if (this.overlayState === 'normal') {
@@ -323,68 +363,83 @@ export class ShoppinglistPage implements OnInit {
       this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
     }
 
-    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
+    console.log('Overlay state:', this.overlayState);
   }
 
   async toggleDetailsOverlay(shoppingProductId: string) {
     if (!this.groupId) {
       console.error('Group ID ist null oder undefined');
-      alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
+      this.presentAlert('Fehler','Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
-    // Rufe das Produkt aus der Datenquelle anhand der groupId und shoppingProductId ab
-    const selectedShoppingProduct = await this.getShoppingProductById(this.groupId, shoppingProductId);
 
-    if (selectedShoppingProduct) {
-      // Setze das abgerufene Produkt in selectedProduct
-      this.selectedProduct = { ...selectedShoppingProduct }; // Kopie des Produkts, um das Original nicht zu verändern
-    } else {
-      console.error('Produkt konnte nicht geladen werden');
-    }
-
-    // Wechsel des Overlay-Zustands
-    if (this.detailsOverlayState === 'start') {
-      this.detailsOverlayState = 'normal'; // Overlay wird sichtbar und Animation startet
-    } else if (this.detailsOverlayState === 'normal') {
-      this.detailsOverlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
-    } else if (this.detailsOverlayState === 'hidden') {
-      this.detailsOverlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
-    }
-
-    console.log('Details Overlay state:', this.detailsOverlayState); // Debugging-Ausgabe
-  }
-
-
-  // Methode zum Speichern der Produktdetails
-  async saveProductDetails() {
-    if (!this.groupId) {
-      console.error('Group ID ist null oder undefined');
-      alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
+    if (!this.shoppingListId) {
+      console.error('ShoppingList ID ist null oder undefined');
+      this.presentAlert('Fehler', 'Die ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
     try {
-      // Überprüfen, ob das ausgewählte Produkt vorhanden ist
-      if (this.selectedProduct) {
-        // Aufruf der Service-Methode zum Bearbeiten des Produkts
-        await this.shoppinglistService.editShoppingProduct(
-          this.groupId,
-          this.selectedProduct.shoppingProductId,
-          this.selectedProduct // Die Änderungen werden hier gespeichert
-        );
-        console.log('Produktdetails gespeichert:', this.selectedProduct);
 
-        // Overlay nach dem Speichern schließen
-        this.toggleDetailsOverlay(this.selectedProduct.shoppingProductId);
+      const selectedShoppingProduct = await this.shoppinglistService.getShoppingProductById(
+        this.groupId,
+        this.shoppingListId,
+        shoppingProductId
+      );
+
+      if (selectedShoppingProduct) {
+        this.selectedProduct = {...selectedShoppingProduct};
       } else {
-        console.error('Kein Produkt zum Speichern ausgewählt.');
+        console.error('Produkt konnte nicht geladen werden');
+        return;
       }
+
+      if (this.detailsOverlayState === 'start') {
+        this.detailsOverlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+      } else if (this.detailsOverlayState === 'normal') {
+        this.detailsOverlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
+      } else if (this.detailsOverlayState === 'hidden') {
+        this.detailsOverlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
+      }
+
+      console.log('Details Overlay state:', this.detailsOverlayState); // Debugging-Ausgabe
     } catch (error) {
-      console.error('Fehler beim Speichern der Produktdetails:', error);
+      console.error('Fehler beim Laden des Produkts:', error);
     }
   }
 
-  openDatePicker() {
+
+  async saveProductDetails() {
+    if (!this.groupId || !this.shoppingListId) {
+      console.error('Group ID oder ShoppingList ID ist null oder undefined');
+      this.presentAlert('Fehler','Die Gruppen- oder ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
+      return;
+    }
+
+    try {
+      if (this.selectedProduct) {
+
+        await this.shoppinglistService.editShoppingProduct(
+          this.groupId,
+          this.shoppingListId,
+          this.selectedProduct.shoppingProductId,
+          this.selectedProduct
+        );
+        console.log('Produktdetails gespeichert:', this.selectedProduct);
+        await this.presentToast('Produktdetails gespeichert!');
+        this.detailsOverlayState = 'hidden';
+      } else {
+        console.error('Kein Produkt zum Speichern ausgewählt.');
+        this.presentAlert('Fehler','Kein Produkt zum Speichern ausgewählt.');
+      }
+    } catch (error) {
+      console.error('Fehler beim Speichern der Produktdetails:', error);
+      this.presentAlert('Fehler', 'Es gab einen Fehler beim Speichern der Produktdetails. Bitte versuche es erneut.');
+    }
+  }
+
+  openDatePicker(product: any) {
+    this.selectedProduct = product;
     this.isDatePickerOpen = true;
   }
 
@@ -393,19 +448,24 @@ export class ShoppinglistPage implements OnInit {
   }
 
   onDateChange(event: any) {
-    this.newProduct.dueDate = event.detail.value;
-    this.closeDatePicker();
+    const selectedDate = event.detail.value;
+
+    if (this.selectedProduct) {
+      this.selectedProduct.date = selectedDate;
+    }
+
+    this.isDatePickerOpen = false;
   }
 
   toggleForMemberDropdown(event: Event) {
-    this.forMemberDropdownOpen = !this.forMemberDropdownOpen; // Öffnen/Schließen des Dropdowns
-    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
+    this.forMemberDropdownOpen = !this.forMemberDropdownOpen;
+    event.stopPropagation();
   }
   selectMember(member: any, event: Event) {
-    this.newProduct.forMemberId = member.uid; // Setze die UID des ausgewählten Mitglieds
-    this.selectedMember = member; // Speichere das ausgewählte Mitglied
-    this.forMemberDropdownOpen = false; // Schließe das Dropdown
-    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
+    this.newProduct.forMemberId = member.uid;
+    this.selectedMember = member;
+    this.forMemberDropdownOpen = false;
+    event.stopPropagation();
   }
 
 
@@ -423,10 +483,9 @@ export class ShoppinglistPage implements OnInit {
     const trimmedName = this.newProduct.productname?.trim();
 
     if (trimmedName) {
-      // Produktname vorhanden → speichern und Overlay schließen
       this.saveNewProduct();
+      this.presentToast('Produkt wurde erfolgreich hinzugefügt!');
     } else {
-      // Kein Produktname → Overlay einfach schließen
       this.addProductOpen = false;
     }
   }
@@ -434,18 +493,16 @@ export class ShoppinglistPage implements OnInit {
   async saveNewProduct() {
     if (!this.groupId) {
       console.error('Group ID ist null oder undefined');
-      alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
+      this.presentAlert('Fehler','Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
     const trimmedName = this.newProduct.productname?.trim();
-
     if (!trimmedName || !this.uid) {
-      alert('Bitte gib mindestens einen Produktnamen ein.');
+      this.presentAlert('Fehler', 'Bitte gib mindestens einen Produktnamen ein.');
       return;
     }
 
-    // Setze ein extrem weit entferntes Datum, wenn kein Datum gesetzt ist
     const dueDate = this.newProduct.dueDate || '9999-12-31';
 
     const shoppingProductData: ShoppingProducts = {
@@ -453,18 +510,17 @@ export class ShoppinglistPage implements OnInit {
       memberId: this.uid,
       forMemberId: this.newProduct.forMemberId?.trim() || this.uid,
       productname: trimmedName,
-      quantity: this.newProduct.quantity ?? 1, // Default: 1
-      unit: this.newProduct.unit?.trim() || 'Stück', // Default: 'Stück'
+      quantity: this.newProduct.quantity ?? 1,
+      unit: this.newProduct.unit?.trim() || 'Stück',
       status: 'open',
-      date: dueDate // Speichere das weit entfernte Datum
+      date: dueDate
     };
 
     try {
-      await this.shoppinglistService.addShoppingProduct(this.groupId!, 'shoppingListId', shoppingProductData);
+      await this.shoppinglistService.addShoppingProduct(this.groupId!, shoppingProductData);
+      await this.presentToast('Produkt wurde hinzugefügt!');
       console.log('Produkt erfolgreich gespeichert!');
-      this.toggleAddProductOverlay();
-
-      // Reset mit Defaults
+      this.showDetails = false;
       this.newProduct = {
         quantity: 1,
         unit: 'Stück',
@@ -474,22 +530,144 @@ export class ShoppinglistPage implements OnInit {
       };
     } catch (error) {
       console.error('Fehler beim Speichern:', error);
-      alert('Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
+      this.presentAlert('Fehler','Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
     }
   }
 
+
   async deleteProduct(shoppingProductId: string) {
     try {
-      // Lösche das Produkt mit der übergebenen ID
-      await this.shoppinglistService.deleteShoppingProduct(this.groupId!, shoppingProductId);
+      if (!this.shoppingListId) {
+        throw new Error('ShoppingListId ist nicht definiert!');
+      }
+
+      await this.shoppinglistService.deleteShoppingProduct(
+        this.groupId!,
+        this.shoppingListId,  // Hier wird sicher die shoppingListId übergeben
+        shoppingProductId
+      );
       console.log('Produkt gelöscht:', shoppingProductId);
 
-      // Nach dem Löschen die Liste der Produkte neu laden
-      await this.loadShoppingProducts(this.groupId!);
+      await this.loadShoppingProducts();
     } catch (error) {
       console.error('Fehler beim Löschen des Produkts:', error);
     }
   }
 
+  async moveProductToCart(shoppingProductId: string) {
+    const groupId = this.groupId;
+    if (!groupId) {
+      console.error('groupId fehlt');
+      return;
+    }
+
+    try {
+      const shoppingList = await this.shoppinglistService.getShoppingListByGroupId(groupId);
+      if (!shoppingList) {
+        console.error('Keine Einkaufsliste für diese Gruppe gefunden');
+        return;
+      }
+
+      const shoppingListId = shoppingList.shoppinglistId;
+
+      await this.shoppinglistService.moveProductToShoppingCart(groupId, shoppingListId, shoppingProductId);
+      console.log('Produkt verschoben!');
+
+      this.loadShoppingProducts();
+    } catch (error) {
+      console.error('Fehler beim Verschieben:', error);
+    }
+  }
+
+
+
+  onTouchStart(event: TouchEvent) {
+    this.touchStartX = event.changedTouches[0].screenX;
+  }
+
+  onTouchEnd(event: TouchEvent, shoppingProduct: any) {
+    const touchEndX = event.changedTouches[0].screenX;
+    const deltaX = touchEndX - this.touchStartX;
+    const swipeThreshold = 50;
+
+    if (deltaX > swipeThreshold) {
+      (shoppingProduct as any).swiped = 'right';
+
+      setTimeout(() => {
+        this.moveProductToCart(shoppingProduct.shoppingProductId);
+        this.presentToast('Produkt wurde in den Warenkorb verschoben!');
+
+
+        this.shoppingproducts = this.shoppingproducts.filter(
+          (p) => p.shoppingProductId !== shoppingProduct.shoppingProductId
+        );
+
+        this.groupProductsByDate();
+      }, 300);
+
+    } else if (deltaX < -swipeThreshold) {
+      (shoppingProduct as any).swiped = 'left';
+      setTimeout(() => {
+        this.productToDelete = shoppingProduct;
+        this.showDeleteAlert();
+        (shoppingProduct as any).swiped = null;
+      }, 300);
+    }
+  }
+
+  async showDeleteAlert() {
+    const alert = await this.alertController.create({
+      header: 'Bestätigen',
+      message: 'Möchten Sie dieses Produkt wirklich löschen?',
+      buttons: [
+        {
+          text: 'Abbrechen',
+          role: 'cancel',
+          handler: () => {
+            this.showDeleteConfirm = false;
+            this.productToDelete = null;
+
+            if (this.productToDelete && (this.productToDelete as any).swiped) {
+              (this.productToDelete as any).swiped = null;
+            }
+          }
+        },
+        {
+          text: 'Löschen',
+          handler: () => {
+            if (this.productToDelete) {
+              this.deleteProduct(this.productToDelete.shoppingProductId);
+              this.presentToast('Produkt wurde erfolgreich gelöscht!');
+
+              this.showDeleteConfirm = false;
+              this.productToDelete = null;
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async presentAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header: header,
+      message: message,
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
 
 }

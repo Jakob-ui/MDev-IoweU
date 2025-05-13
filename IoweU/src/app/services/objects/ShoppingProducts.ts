@@ -12,4 +12,5 @@ export interface ShoppingProducts {
   unit: string;
   date: string;
   status: string;
+  swiped?: 'left' | 'right';
 }
