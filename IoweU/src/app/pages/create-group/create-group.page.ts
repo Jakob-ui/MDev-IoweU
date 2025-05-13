@@ -21,6 +21,7 @@ import { LoadingService } from 'src/app/services/loading.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
 import { ImageService } from 'src/app/services/image.service';
+import {AlertController, ToastController} from "@ionic/angular";
 
 @Component({
   selector: 'app-create-group',
@@ -49,10 +50,12 @@ export class CreateGroupPage {
   router = inject(Router);
   private userService = inject(UserService);
   private imageService = inject(ImageService);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
 
   groupname: string = '';
   selectedTemplate: string = '';
-  templates: string[] = ['Standard', 'Projekt', 'Reise'];
+  templates: string[] = ['Basic', 'Wohngemeinschaft', 'Reise', 'Projekt'];
   groupImage: string | ArrayBuffer | null = null;
   uploadImage: any;
   showLabel: boolean = true; // Neue Variable zum Steuern der Label-Anzeige
@@ -72,7 +75,7 @@ export class CreateGroupPage {
     0;
     if (!this.groupname || !this.selectedTemplate) {
       console.error('Group name and template are required!');
-      alert('Wähle ein Template aus!');
+      await this.presentAlert('Fehler','Wähle einen Gruppennamen und Template aus!');
       return;
     }
 
@@ -97,12 +100,14 @@ export class CreateGroupPage {
         this.selectedTemplate,
         this.uploadImage
       );
-      console.log('Groups successfully created!');
+      await this.presentToast('Gruppe erfolgreich erstellt!');
+      //this.router.navigate(['group', this.groupId]);
       console.log('Group successfully created!');
     } catch (error) {
       console.error('Error creating group:', error);
+      await this.presentToast('Fehler beim erstellen der Gruppe!');
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
@@ -127,4 +132,25 @@ export class CreateGroupPage {
   onSelectChange() {
     this.showLabel = !this.selectedTemplate;
   }
+
+  async presentAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header: header,
+      message: message,
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
+
 }

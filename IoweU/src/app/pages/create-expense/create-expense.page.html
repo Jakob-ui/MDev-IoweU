@@ -46,6 +46,7 @@
                 class="dropDownFelder"
                 button
                 *ngFor="let category of categories"
+                [ngClass]="{ 'selected': selectedCategory?.name === category.name }"
                 (click)="selectCategory(category, $event)"
               >
                 <ion-icon
@@ -171,6 +172,7 @@
                 class="dropDownFelder"
                 button
                 *ngFor="let currency of currenciesWithSymbols"
+                [ngClass]="{ 'selected': selectedCurrency === currency.code }"
                 (click)="selectCurrency(currency.code)"
               >
                 <ion-label class="currency-symbol">
@@ -653,16 +655,19 @@
   <!-- Datepicker Modal -->
   <ion-datetime
     class="datepicker"
-    presentation="date"
-    [formatOptions]="{
-      month: 'short',
-      year: 'numeric',
-      day: '2-digit'
-    }"
-    *ngIf="isDatePickerOpen"
-    [(ngModel)]="expense.date"
-    (ionChange)="onDateChange($event)"
-    (ionCancel)="closeDatePicker()"
+    presentation="datetime"
+  [formatOptions]="{
+  month: 'short',
+  year: 'numeric',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit'
+  }"
+  *ngIf="isDatePickerOpen"
+  [(ngModel)]="expense.date"
+  (ionChange)="onDateChange($event)"
+  (ionCancel)="closeDatePicker()"
   >
   </ion-datetime>
+
 </ion-content>

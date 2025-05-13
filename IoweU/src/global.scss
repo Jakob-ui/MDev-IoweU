@@ -209,7 +209,7 @@ ion-card-content {
 ion-card {
   font-family: var(--ion-font-family);
   font-weight: 300;
-  background: var(--ion-color-primary);
+  background: var(--ion-color-secondary);
   border-radius: 15px;
   width: 80%;
   max-width: 800px;
@@ -848,9 +848,37 @@ ion-input:focus ~ .ionicon {
   margin-bottom: 10px;
 }
 
+/* Optional: Scrollbar-Styling für Webkit-Browser */
+.custom-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-dropdown::-webkit-scrollbar-thumb {
+  background-color: var(--ion-color-secondary);
+  border-radius: 4px;
+}
+
+.custom-dropdown .selected ion-label {
+  color: var(--ion-color-dark);
+  font-weight: 800;
+}
+
+.custom-dropdown ion-item.selected ion-icon.category-icon {
+  color: var(--ion-color-dark) !important;
+  background-color: var(--ion-color-primary) !important;
+  border-radius: 50px;
+  padding: 5px;
+}
+
+ion-item.dropDownFelder::part(native) {
+  --background: #ffffff;
+  background-color: #ffffff !important;
+
+}
+
 body.color-blind {
-  --ion-color-danger: #ff9900 !important; // Rot → Orange
-  --ion-color-success: #3399ff !important; // Grün → Blau
+  --ion-color-danger: #ffbe60 !important; // Rot → Orange
+  --ion-color-success: #89c5ff !important; // Grün → Blau
 }
 
 @media (max-width: 768px) {
@@ -914,6 +942,7 @@ ion-alert {
 .alert-wrapper.sc-ion-alert-md {
   border-radius: 8px;
 }
+
 
 /* Anpassungen für den Dark Mode */
 @media (prefers-color-scheme: dark) {

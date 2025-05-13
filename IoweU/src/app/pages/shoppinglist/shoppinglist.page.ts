@@ -261,6 +261,24 @@ export class ShoppinglistPage implements OnInit {
     }));
   }
 
+  getDateDisplay(date: string): string {
+    if (!date) return '';
+
+    const now = new Date();
+    const dueDate = new Date(date);
+    const inOneYear = new Date(now);
+    inOneYear.setFullYear(now.getFullYear() + 1);
+
+    if (dueDate > inOneYear || date === '9999-12-31') {
+      return 'Nicht dringend';
+    }
+
+    return new Intl.DateTimeFormat('de-AT').format(dueDate);
+  }
+
+
+
+
   formatDateLabel(date: string, today: Date, yesterday: Date, tomorrow: Date): string {
     const dateObj = new Date(date);
 
@@ -335,13 +353,13 @@ export class ShoppinglistPage implements OnInit {
   async toggleDetailsOverlay(shoppingProductId: string) {
     if (!this.groupId) {
       console.error('Group ID ist null oder undefined');
-      alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
+      this.presentAlert('Fehler','Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
     if (!this.shoppingListId) {
       console.error('ShoppingList ID ist null oder undefined');
-      alert('Die ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
+      this.presentAlert('Fehler', 'Die ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
@@ -378,7 +396,7 @@ export class ShoppinglistPage implements OnInit {
   async saveProductDetails() {
     if (!this.groupId || !this.shoppingListId) {
       console.error('Group ID oder ShoppingList ID ist null oder undefined');
-      alert('Die Gruppen- oder ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
+      this.presentAlert('Fehler','Die Gruppen- oder ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
@@ -392,20 +410,20 @@ export class ShoppinglistPage implements OnInit {
           this.selectedProduct
         );
         console.log('Produktdetails gespeichert:', this.selectedProduct);
-
-        this.toggleDetailsOverlay(this.selectedProduct.shoppingProductId);
+        await this.presentToast('Produktdetails gespeichert!');
+        this.detailsOverlayState = 'hidden';
       } else {
         console.error('Kein Produkt zum Speichern ausgewählt.');
-        alert('Kein Produkt zum Speichern ausgewählt.');
+        this.presentAlert('Fehler','Kein Produkt zum Speichern ausgewählt.');
       }
     } catch (error) {
       console.error('Fehler beim Speichern der Produktdetails:', error);
-      alert('Es gab einen Fehler beim Speichern der Produktdetails. Bitte versuche es erneut.');
+      this.presentAlert('Fehler', 'Es gab einen Fehler beim Speichern der Produktdetails. Bitte versuche es erneut.');
     }
   }
 
-
-  openDatePicker() {
+  openDatePicker(product: any) {
+    this.selectedProduct = product;
     this.isDatePickerOpen = true;
   }
 
@@ -414,8 +432,13 @@ export class ShoppinglistPage implements OnInit {
   }
 
   onDateChange(event: any) {
-    this.newProduct.dueDate = event.detail.value;
-    this.closeDatePicker();
+    const selectedDate = event.detail.value;
+
+    if (this.selectedProduct) {
+      this.selectedProduct.date = selectedDate;
+    }
+
+    this.isDatePickerOpen = false;
   }
 
   toggleForMemberDropdown(event: Event) {
@@ -445,6 +468,7 @@ export class ShoppinglistPage implements OnInit {
 
     if (trimmedName) {
       this.saveNewProduct();
+      this.presentToast('Produkt wurde erfolgreich hinzugefügt!');
     } else {
       this.addProductOpen = false;
     }
@@ -453,14 +477,14 @@ export class ShoppinglistPage implements OnInit {
   async saveNewProduct() {
     if (!this.groupId) {
       console.error('Group ID ist null oder undefined');
-      alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
+      this.presentAlert('Fehler','Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
     const trimmedName = this.newProduct.productname?.trim();
 
     if (!trimmedName || !this.uid) {
-      alert('Bitte gib mindestens einen Produktnamen ein.');
+      this.presentAlert('Fehler', 'Bitte gib mindestens einen Produktnamen ein.');
       return;
     }
 
@@ -491,7 +515,7 @@ export class ShoppinglistPage implements OnInit {
       };
     } catch (error) {
       console.error('Fehler beim Speichern:', error);
-      alert('Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
+      this.presentAlert('Fehler','Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
     }
   }
 
@@ -575,21 +599,6 @@ export class ShoppinglistPage implements OnInit {
     }
   }
 
-
-
-
-
-  async presentToast(message: string) {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 2000,
-      position: 'bottom',
-      cssClass: 'custom-toast',
-    });
-    await toast.present();
-  }
-
-
   async showDeleteAlert() {
     const alert = await this.alertController.create({
       header: 'Bestätigen',
@@ -601,6 +610,10 @@ export class ShoppinglistPage implements OnInit {
           handler: () => {
             this.showDeleteConfirm = false;
             this.productToDelete = null;
+
+            if (this.productToDelete && (this.productToDelete as any).swiped) {
+              (this.productToDelete as any).swiped = null;
+            }
           }
         },
         {
@@ -608,6 +621,8 @@ export class ShoppinglistPage implements OnInit {
           handler: () => {
             if (this.productToDelete) {
               this.deleteProduct(this.productToDelete.shoppingProductId);
+              this.presentToast('Produkt wurde erfolgreich gelöscht!');
+
               this.showDeleteConfirm = false;
               this.productToDelete = null;
             }
@@ -617,6 +632,26 @@ export class ShoppinglistPage implements OnInit {
     });
 
     await alert.present();
+  }
+
+  async presentAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header: header,
+      message: message,
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
   }
 
 }

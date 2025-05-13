@@ -8,13 +8,15 @@ import {
   IonCard,
   IonCardSubtitle,
   IonCardTitle,
-  IonList, IonReorderGroup, IonReorder, 
-  ItemReorderEventDetail} from '@ionic/angular/standalone';
+  IonList, IonReorderGroup, IonReorder,
+  ItemReorderEventDetail, IonBadge
+} from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { GroupService } from 'src/app/services/group.service';
 import { LoadingService } from 'src/app/services/loading.service';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 @Component({
   selector: 'app-group-overview',
@@ -34,6 +36,7 @@ import { LoadingService } from 'src/app/services/loading.service';
     IonCardSubtitle,
     IonCardTitle,
     IonList,
+    IonBadge,
   ],
 })
 export class GroupOverviewPage implements OnInit {
@@ -125,7 +128,7 @@ export class GroupOverviewPage implements OnInit {
                   name: group.groupname,
                   myBalance: myBalance,
                   link: group.groupId,
-                  position: group.position ?? undefined, 
+                  position: group.position ?? undefined,
                 };
               })
               .sort((a, b) => {
@@ -161,10 +164,15 @@ export class GroupOverviewPage implements OnInit {
   }
 
   onLongPressStart() {
-    this.longPressTimeout = setTimeout(() => {
-      this.isEditMode = true;
-    }, 900);
-  }
+  this.longPressTimeout = setTimeout(() => {
+    this.isEditMode = true;
+
+    // Haptisches Feedback auslösen
+    Haptics.impact({
+      style: ImpactStyle.Heavy, // Korrekte Verwendung von ImpactStyle
+    });
+  }, 900);
+}
 
   onLongPressCancel() {
     if (this.longPressTimeout) {

@@ -12,7 +12,7 @@ import {
   IonIcon,
   IonItem,
   IonSelect,
-  IonSelectOption,
+  IonSelectOption, IonBadge,
 } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -45,6 +45,7 @@ import {ShoppingProducts} from "../../services/objects/ShoppingProducts";
     IonItem,
     IonSelect,
     IonSelectOption,
+    IonBadge,
   ],
 })
 export class GroupPage implements OnInit {
@@ -350,13 +351,13 @@ export class GroupPage implements OnInit {
   getFeatureColor(feature: string): string {
     switch (feature) {
       case 'Finanzübersicht':
-        return 'color-blue';
+        return 'color-1';
       case 'Ausgaben':
-        return 'color-red';
+        return 'color-2';
       case 'Einkaufsliste':
-        return 'color-green';
+        return 'color-3';
       case 'Anlagegüter':
-        return 'color-yellow';
+        return 'color-4';
       default:
         return '';
     }

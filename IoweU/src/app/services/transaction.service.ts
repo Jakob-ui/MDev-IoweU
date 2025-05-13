@@ -106,9 +106,16 @@ export class TransactionService {
           } as Transactions;
         });
 
+        // Transaktionen nach Datum sortieren (neuestes zuerst)
+        transactions.sort((a, b) => {
+          const dateA = new Date(a.date).getTime();
+          const dateB = new Date(b.date).getTime();
+          return dateB - dateA;
+        });
+
         // Callback aufrufen, um die Transaktionen zu aktualisieren
         updateTransactionsCallback(transactions);
-        console.log('Echtzeit-Transaktionen:', transactions);
+        console.log('Echtzeit-Transaktionen (nach Datum sortiert):', transactions);
       });
       return unsubscribe;
     } catch (error) {
@@ -116,6 +123,7 @@ export class TransactionService {
       throw new Error('Fehler beim Abrufen der Transaktionen');
     }
   }
+
 
   async deleteTransactionsById(
     groupId: string,
