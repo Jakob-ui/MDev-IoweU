@@ -16,6 +16,7 @@ import {GroupService} from "../../services/group.service";
 import {ShoppinglistService} from "../../services/shoppinglist.service";
 import {Members} from "../../services/objects/Members";
 import {ShoppingProducts} from "../../services/objects/ShoppingProducts";
+import {NavController} from "@ionic/angular";
 
 @Component({
   selector: 'app-shoppingcart',
@@ -32,6 +33,7 @@ export class ShoppingcartPage implements OnInit {
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private shoppinglistService = inject(ShoppinglistService);
+  private navCtrl = inject(NavController);
 
   uid: string | null = '';
   user: string | null = '';
@@ -153,32 +155,6 @@ export class ShoppingcartPage implements OnInit {
       this.groupProductsByDate();
     } catch (error) {
       console.error('Fehler beim Laden der Produkte aus dem Warenkorb:', error);
-    }
-  }
-
-
-
-  async getShoppingProductById(groupId: string, shoppingProductId: string): Promise<ShoppingProducts | null> {
-    try {
-      // Stelle sicher, dass eine gültige groupId und shoppingProductId übergeben wurden
-      if (!groupId || !shoppingProductId) {
-        console.error('Ungültige groupId oder shoppingProductId');
-        return null;
-      }
-
-      // Rufe das Produkt anhand der groupId und shoppingProductId ab
-      const product = await this.shoppinglistService.getShoppingProductById(groupId, shoppingProductId, shoppingProductId);
-
-      if (product) {
-        console.log('Produkt gefunden:', product);
-        return product;
-      } else {
-        console.warn('Kein Produkt mit dieser ID gefunden');
-        return null;
-      }
-    } catch (error) {
-      console.error('Fehler beim Abrufen des Produkts:', error);
-      return null;
     }
   }
 
@@ -358,119 +334,32 @@ export class ShoppingcartPage implements OnInit {
   }
 
 
-  openDatePicker() {
-    this.isDatePickerOpen = true;
-  }
+  getDateDisplay(date: string): string {
+    if (!date) return '';
 
-  closeDatePicker() {
-    this.isDatePickerOpen = false;
-  }
+    const now = new Date();
+    const dueDate = new Date(date);
+    const inOneYear = new Date(now);
+    inOneYear.setFullYear(now.getFullYear() + 1);
 
-  onDateChange(event: any) {
-    this.newProduct.dueDate = event.detail.value;
-    this.closeDatePicker();
-  }
-
-  toggleForMemberDropdown(event: Event) {
-    this.forMemberDropdownOpen = !this.forMemberDropdownOpen; // Öffnen/Schließen des Dropdowns
-    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
-  }
-  selectMember(member: any, event: Event) {
-    this.newProduct.forMemberId = member.uid; // Setze die UID des ausgewählten Mitglieds
-    this.selectedMember = member; // Speichere das ausgewählte Mitglied
-    this.forMemberDropdownOpen = false; // Schließe das Dropdown
-    event.stopPropagation(); // Verhindert, dass das Klick-Event weitergeleitet wird
-  }
-
-
-  toggleChecked(shoppingproduct: ShoppingProducts) {
-    // Hier kannst du die Logik hinzufügen, um den Status des Produktes zu ändern
-    // Zum Beispiel: shoppingproduct.status = 'completed' oder 'pending'
-    console.log('Produkt-Status geändert:', shoppingproduct);
-  }
-
-  toggleAddProductOverlay() {
-    this.addProductOpen = !this.addProductOpen;
-  }
-
-  handleOverlayClick() {
-    const trimmedName = this.newProduct.productname?.trim();
-
-    if (trimmedName) {
-      // Produktname vorhanden → speichern und Overlay schließen
-      this.saveNewProduct();
-    } else {
-      // Kein Produktname → Overlay einfach schließen
-      this.addProductOpen = false;
-    }
-  }
-
-  async saveNewProduct() {
-    if (!this.groupId) {
-      console.error('Group ID ist null oder undefined');
-      alert('Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
-      return;
+    if (dueDate > inOneYear || date === '9999-12-31') {
+      return 'Nicht dringend';
     }
 
-    const trimmedName = this.newProduct.productname?.trim();
-
-    if (!trimmedName || !this.uid) {
-      alert('Bitte gib mindestens einen Produktnamen ein.');
-      return;
-    }
-
-    // Setze ein extrem weit entferntes Datum, wenn kein Datum gesetzt ist
-    const dueDate = this.newProduct.dueDate || '9999-12-31';
-
-    const shoppingProductData: ShoppingProducts = {
-      shoppingProductId: '',
-      memberId: this.uid,
-      forMemberId: this.newProduct.forMemberId?.trim() || this.uid,
-      productname: trimmedName,
-      quantity: this.newProduct.quantity ?? 1, // Default: 1
-      unit: this.newProduct.unit?.trim() || 'Stück', // Default: 'Stück'
-      status: 'open',
-      date: dueDate // Speichere das weit entfernte Datum
-    };
-
-    try {
-      await this.shoppinglistService.addShoppingProduct(this.groupId!, shoppingProductData);
-      console.log('Produkt erfolgreich gespeichert!');
-      this.toggleAddProductOverlay();
-
-      // Reset mit Defaults
-      this.newProduct = {
-        quantity: 1,
-        unit: 'Stück',
-        productname: '',
-        forMemberId: this.uid || '',
-        dueDate: null,
-      };
-    } catch (error) {
-      console.error('Fehler beim Speichern:', error);
-      alert('Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
-    }
+    return new Intl.DateTimeFormat('de-AT').format(dueDate);
   }
 
-  async deleteProduct(shoppingProductId: string) {
-    try {
-      if (!this.shoppingCartId) {
-        throw new Error('ShoppingListId ist nicht definiert!');
+
+  goToCreateExpense() {
+    this.navCtrl.navigateForward(['/create-expense', this.groupId], {
+      state: {
+        fromShoppingCart: true,
+        cartItems: this.shoppingproducts,
+        groupId: this.groupId,
+        userId: this.authService.currentUser?.uid // Übergibt die UID des eingeloggten Users
       }
-
-      // Lösche das Produkt aus der Subcollection `shoppingProducts` der Einkaufsliste
-      await this.shoppinglistService.deleteShoppingProduct(
-        this.groupId!,
-        this.shoppingCartId,  // Hier wird sicher die shoppingListId übergeben
-        shoppingProductId
-      );
-      console.log('Produkt gelöscht:', shoppingProductId);
-
-      // Nach dem Löschen die Liste der Produkte neu laden
-      await this.loadShoppingCartProducts();
-    } catch (error) {
-      console.error('Fehler beim Löschen des Produkts:', error);
-    }
+    });
   }
+
 
 }
