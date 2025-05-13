@@ -27,8 +27,6 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
     IonReorder,
     IonReorderGroup,
     CommonModule,
-    IonHeader,
-    IonToolbar,
     IonContent,
     IonButton,
     RouterModule,

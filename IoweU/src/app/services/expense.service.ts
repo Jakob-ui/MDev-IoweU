@@ -263,7 +263,8 @@ export class ExpenseService {
   ): Promise<void> {
     try {
       if (!paid) {
-        return;
+        console.log('Ausgbabe wurde bereits bezahlt, löschen niht möglich');
+        return;       
       }
       const expenseRef = doc(
         this.firestore,
