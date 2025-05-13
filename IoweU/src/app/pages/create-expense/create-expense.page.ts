@@ -307,49 +307,31 @@ export class CreateExpensePage {
 
 
   async fromShoppingCart() {
-    if (this.shoppingCartId !== null ) {
-      const allProducts = await this.shoppinglistService.getShoppingCartProducts(this.groupId, this.shoppingCartId);
-      console.log('Produkte aus dem Warenkorb:', allProducts);
-
-      if (allProducts && allProducts.length > 0) {
-        const affectedMembersMap: { [uid: string]: ExpenseMember } = {};
-
-        allProducts.forEach((shoppingProduct: any) => {
-          const forUid = shoppingProduct.forMemberId;
-
-          const newProduct: Products = {
-            productId: shoppingProduct.shoppingProductId,
-            memberId: shoppingProduct.forMemberId,
-            productname: shoppingProduct.productname,
-            quantity: shoppingProduct.quantity,
-            unit: shoppingProduct.unit,
-            price: 0,
-            foreignPrice: 0,
-          };
-
-          if (!affectedMembersMap[forUid]) {
-            affectedMembersMap[forUid] = {
-              memberId: forUid,
-              amountToPay: 0,
-              foreignAmountToPay: 0,
-              split: 1,
-              paid: false,
-              products: [],
-            };
-          }
-          affectedMembersMap[forUid].products?.push(newProduct);
-
-
-        });
-
-        this.expense.expenseMember = Object.values(affectedMembersMap);
-        console.log('Betroffene expenseMembers nach Warenkorb-Zuweisung:', this.expense.expenseMember);
-      } else {
-        console.log('Keine Produkte aus dem Warenkorb gefunden');
-      }
-    } else {
+    if (this.shoppingCartId === null) {
       console.error('Keine shoppingCartId übergeben');
+      return;
     }
+
+    const allProducts = await this.shoppinglistService.getShoppingCartProducts(this.groupId, this.shoppingCartId);
+
+    if (allProducts && allProducts.length <= 0) {
+      console.log('Keine Produkte aus dem Warenkorb gefunden');
+      return;
+    }
+
+    this.groupMembers.forEach(member => {
+      const products: any = [];
+
+      allProducts.forEach((shoppingProduct: any) => {
+        if (member.uid !== shoppingProduct.forMemberId) {
+          return;
+        }
+
+        products.push(shoppingProduct);
+      });
+
+      member.products = products;
+    });
   }
 
 
@@ -1041,13 +1023,26 @@ export class CreateExpensePage {
     this.repeating = this.expense.repeat === 'nein';
     this.loadingService.show();
 
+
+    console.log("I am saving now", this.expense.expenseMember, this.groupMembers);
+
     try {
       // Members vorbereiten
       this.expense.expenseMember = this.groupMembers.map((member) => {
         const uid = member.uid;
         const amount = this.amountToPay[uid] || 0;
         const foreignAmount = this.foreignAmountToPay[uid] || 0;
-        const products = this.productInputs[uid]?.products || [];
+        // FIXME:
+        let products = this.productInputs[uid]?.products || [];
+        if (member.products) {
+          products = member.products;
+        }
+        products = products.map((p) => ({
+          ...p,
+          price: Number(p.price || 0),
+          quantity: Number(p.quantity),
+        }));
+        console.log('products', products);
 
         return {
           memberId: uid,
@@ -1055,11 +1050,7 @@ export class CreateExpensePage {
           foreignAmountToPay: parseFloat(foreignAmount.toFixed(2)),
           split: 1,
           paid: false,
-          products: products.map((p) => ({
-            ...p,
-            price: Number(p.price),
-            quantity: Number(p.quantity),
-          })),
+          products: products,
         };
       });
 
