@@ -183,8 +183,8 @@
       </div>
     </div>
 
-    <div class="add-product-overlay" [ngClass]="{ 'open': addProductOpen }" (click)="handleOverlayClick()">
-      <div class="add-product-wrapper" (click)="$event.stopPropagation()">
+    <div class="add-product-overlay">
+      <div class="add-product-wrapper">
 
         <!-- Produktname (immer sichtbar) -->
         <div class="top-container">
@@ -203,9 +203,9 @@
 
         <!-- Button zum Anzeigen der Details -->
         <div class="show-details-button">
-          <span fill="outline" expand="block" (click)="showDetails = !showDetails">
+          <ion-button class="outline-button" (click)="showDetails = !showDetails">
             {{ showDetails ? 'Details ausblenden' : 'Details bearbeiten' }}
-          </span>
+          </ion-button>
         </div>
 
         <!-- Alle weiteren Eingaben (sichtbar nur wenn showDetails true) -->
@@ -335,16 +335,6 @@
         </ion-item>
       </ng-container>
     </ion-list>
-
-    <div class="button-container">
-      <ion-button
-        class="main-button"
-        expand="block"
-        (click)="toggleAddProductOverlay()"
-      >
-        Neues Produkt hinzufügen +
-      </ion-button>
-    </div>
   </div>
 
 

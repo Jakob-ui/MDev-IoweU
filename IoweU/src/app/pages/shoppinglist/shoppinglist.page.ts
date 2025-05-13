@@ -110,11 +110,12 @@ export class ShoppinglistPage implements OnInit {
 
   isDatePickerOpen = false;
 
+  private unsubscribeProductsListener!: () => void;
+
   async ngOnInit() {
     this.loadingService.show();
 
     try {
-
       await this.authService.waitForUser();
 
       if (!this.authService.currentUser) {
@@ -126,17 +127,17 @@ export class ShoppinglistPage implements OnInit {
       this.user = this.authService.currentUser.username;
       this.displayName = this.authService.currentUser.username;
 
-      this.groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-      this.shoppingListId = await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId!);
-      console.log('shoppingListId:', this.shoppingListId);
-
-      if (!this.groupId) {
+      const routeGroupId = this.activeRoute.snapshot.paramMap.get('groupId');
+      if (!routeGroupId) {
         console.error('Keine groupId in Route gefunden.');
         return;
       }
+      this.groupId = routeGroupId;
+
+      this.shoppingListId = await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId);
+      console.log('shoppingListId:', this.shoppingListId);
 
       const currentGroup = await this.groupService.getGroupById(this.groupId);
-
       if (currentGroup) {
         this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
         this.groupMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
@@ -146,20 +147,35 @@ export class ShoppinglistPage implements OnInit {
         this.groupMembers = [];
       }
 
-      this.selectedMember =
-        this.groupMembers.find(
-          (member) => member.uid === this.shoppingproducts[0]?.forMemberId
-        ) ||
-        { uid: this.uid, username: this.displayName || 'Unbekannt' };
+      this.unsubscribeProductsListener = this.shoppinglistService.listenToShoppingProductsChanges(
+        this.groupId,
+        this.shoppingListId,
+        (products) => {
+          this.shoppingproducts = products.filter(p => p.status === 'open');
+          this.groupProductsByDate();
 
-      await this.loadShoppingProducts();
-
+          if (!this.selectedMember && this.shoppingproducts.length > 0) {
+            this.selectedMember =
+              this.groupMembers.find(
+                (member) => member.uid === this.shoppingproducts[0]?.forMemberId
+              ) || { uid: this.uid, username: this.displayName || 'Unbekannt' };
+          }
+        }
+      );
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
       this.loadingService.hide();
     }
   }
+
+
+  ngOnDestroy() {
+    if (this.unsubscribeProductsListener) {
+      this.unsubscribeProductsListener();
+    }
+  }
+
 
   async loadShoppingProducts() {
     try {
@@ -482,7 +498,6 @@ export class ShoppinglistPage implements OnInit {
     }
 
     const trimmedName = this.newProduct.productname?.trim();
-
     if (!trimmedName || !this.uid) {
       this.presentAlert('Fehler', 'Bitte gib mindestens einen Produktnamen ein.');
       return;
@@ -495,17 +510,17 @@ export class ShoppinglistPage implements OnInit {
       memberId: this.uid,
       forMemberId: this.newProduct.forMemberId?.trim() || this.uid,
       productname: trimmedName,
-      quantity: this.newProduct.quantity ?? 1, // Default: 1
-      unit: this.newProduct.unit?.trim() || 'Stück', // Default: 'Stück'
+      quantity: this.newProduct.quantity ?? 1,
+      unit: this.newProduct.unit?.trim() || 'Stück',
       status: 'open',
       date: dueDate
     };
 
     try {
       await this.shoppinglistService.addShoppingProduct(this.groupId!, shoppingProductData);
+      await this.presentToast('Produkt wurde hinzugefügt!');
       console.log('Produkt erfolgreich gespeichert!');
-      this.toggleAddProductOverlay();
-
+      this.showDetails = false;
       this.newProduct = {
         quantity: 1,
         unit: 'Stück',
@@ -518,6 +533,7 @@ export class ShoppinglistPage implements OnInit {
       this.presentAlert('Fehler','Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
     }
   }
+
 
   async deleteProduct(shoppingProductId: string) {
     try {

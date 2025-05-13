@@ -122,8 +122,6 @@ strong {
 }
 
 .add-product-overlay {
-  background: none;
-  display: none;
   justify-content: center;
   align-items: center;
   z-index: 1000;
@@ -139,7 +137,7 @@ strong {
   padding: 5px;
 }
 
-.add-product-overlay.open {
+.add-product-overlay {
   display: flex;
 }
 
@@ -151,30 +149,31 @@ strong {
 
 .add-product-wrapper {
   background: white;
-  padding: 20px;
   border-radius: 12px;
-  width: 90%;
+  width: 80%;
   max-width: 400px;
+  margin-top: 10px;
 }
 
 .show-details-button{
   display: flex;
   justify-content: left;
-  margin-left: 10px;
   margin-top: 5px;
-  margin-bottom: 35px;
   align-items: center;
   background: none;
   border: none;
   padding: 0;
 }
 
-.show-details-button span{
+.show-details-button .outline-button{
   background: none;
-  border-bottom: 1px solid var(--ion-color-dark);
   color: var(--ion-color-dark);
-  font-size: 16px;
+  font-size: 12px;
   cursor: pointer;
+}
+
+ion-button.outline-button::part(native) {
+  padding: 0px 12px;
 }
 
 .input-label{
@@ -196,7 +195,7 @@ strong {
 
 
 .shoppingproduct-item .first-container{
-  width: 50px;
+  width: 70px;
   text-align: right;
 }
 
