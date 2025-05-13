@@ -204,6 +204,8 @@ export class CreateExpensePage {
     expenseMember: [],
   };
 
+  shoppingproducts: any[] = [];
+
   categories = CATEGORIES;
 
   currenciesWithSymbols = CURRENCIESWITHSYMBOLS;
@@ -213,6 +215,7 @@ export class CreateExpensePage {
 
     try {
       await this.authService.waitForUser();
+
       if (this.authService.currentUser) {
         this.uid = this.authService.currentUser.uid;
         this.user = this.authService.currentUser.username;
@@ -224,58 +227,51 @@ export class CreateExpensePage {
           this.currentGroup = await this.groupService.getGroup();
           if (this.currentGroup === null) {
             this.currentGroup = await this.groupService.getGroupById(groupId);
-            console.log('leere Gruppe, hole gruppe aus der db');
+            console.log('Leere Gruppe, hole Gruppe aus der DB');
           }
 
           if (this.currentGroup) {
             this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
             this.groupId = this.currentGroup.groupId || '';
-            console.log('gruppeninfos:', this.currentGroup);
+            console.log('Gruppeninfos:', this.currentGroup);
 
-            if (
-              this.currentGroup.members &&
-              this.currentGroup.members.length > 0
-            ) {
-              this.groupMembers = this.currentGroup.members.map(
-                (member: any) => {
-                  this.memberUsernames.push(member.username || '');
-                  this.memberIds.push(member.memberId || '');
-                  this.memberColors.push(member.color || '');
-                  this.memberRoles.push(member.role || '');
-                  this.memberUids.push(member.uid || '');
+            if (this.currentGroup.members && this.currentGroup.members.length > 0) {
+              this.groupMembers = this.currentGroup.members.map((member: any) => {
+                this.memberUsernames.push(member.username || '');
+                this.memberIds.push(member.memberId || '');
+                this.memberColors.push(member.color || '');
+                this.memberRoles.push(member.role || '');
+                this.memberUids.push(member.uid || '');
 
-                  // Initialisiere Summen- und Zählerwerte für jedes Mitglied
-                  member.sumExpenseAmount = member.sumExpenseAmount || 0;
-                  member.sumExpenseMemberAmount =
-                    member.sumExpenseMemberAmount || 0;
-                  member.countExpenseAmount = member.countExpenseAmount || 0;
-                  member.countExpenseMemberAmount =
-                    member.countExpenseMemberAmount || 0;
+                // Initialwerte für Mitglieder
+                member.sumExpenseAmount = member.sumExpenseAmount || 0;
+                member.sumExpenseMemberAmount = member.sumExpenseMemberAmount || 0;
+                member.countExpenseAmount = member.countExpenseAmount || 0;
+                member.countExpenseMemberAmount = member.countExpenseMemberAmount || 0;
 
-                  return {
-                    ...member,
-                    amount: 0,
-                  };
-                }
-              );
+                return {
+                  ...member,
+                  amount: 0,
+                };
+              });
 
+              // Initialisiere expenseMember für jedes Gruppenmitglied
               this.expense.expenseMember = this.groupMembers.map((member) => ({
                 memberId: member.uid,
                 amountToPay: 0,
                 foreignAmountToPay: 0,
                 split: 1,
-                products: [],
+                products: [], // Leeres Array für Produkte
                 paid: false,
               }));
 
+              // Wer hat bezahlt?
               if (!this.expense.paidBy && this.uid) {
                 this.expense.paidBy = this.uid;
               }
 
               this.selectedMember =
-                this.groupMembers.find(
-                  (member) => member.uid === this.expense.paidBy
-                ) || null;
+                this.groupMembers.find((member) => member.uid === this.expense.paidBy) || null;
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -284,10 +280,68 @@ export class CreateExpensePage {
             this.groupname = 'Unbekannte Gruppe';
           }
         } else {
-          console.error('Kein GroupId für den Benutzer gefunden');
+          console.error('Kein groupId für den Benutzer gefunden');
           this.groupname = 'Unbekannte Gruppe';
         }
+
+        // Überprüfe ob die Produkte vom Warenkorb kommen
+        const navState = this.router.getCurrentNavigation()?.extras.state;
+        if (navState && navState['fromShoppingCart']) {
+          this.shoppingproducts = navState['cartItems'] || [];
+
+          // Produkte den Mitgliedern zuordnen
+          this.shoppingproducts.forEach((shoppingProduct: any) => {
+            // Finde das Mitglied, für das dieses Produkt gekauft wurde
+            const member = this.groupMembers.find((member) => member.uid === shoppingProduct.forMemberId);
+
+            if (member) {
+              const memberExpense = this.expense.expenseMember.find(exp => exp.memberId === member.uid);
+              if (memberExpense) {
+                // Sicherstellen, dass das products-Array existiert
+                if (!memberExpense.products) {
+                  memberExpense.products = []; // Initialisiere das Array, falls es noch nicht existiert
+                }
+
+                // Überprüfe, ob das Produkt bereits existiert und aktualisiere es
+                const existingProduct = memberExpense.products.find(
+                  (prod: Products) => prod.productname === shoppingProduct.productname
+                );
+
+                if (existingProduct) {
+                  // Produkt existiert bereits, also erhöhe die Menge
+                  existingProduct.quantity += shoppingProduct.quantity;
+                  existingProduct.price = shoppingProduct.price;  // Optional: Preis anpassen
+                } else {
+                  // Füge das neue Produkt hinzu
+                  memberExpense.products.push({
+                    productId: shoppingProduct.shoppingProductId,
+                    memberId: member.uid,
+                    productname: shoppingProduct.productname,
+                    quantity: shoppingProduct.quantity,
+                    unit: shoppingProduct.unit,
+                    price: shoppingProduct.price,
+                    foreignPrice: shoppingProduct.foreignPrice
+                  });
+                }
+              }
+            }
+          });
+        }
+
+        console.log('expense.expenseMember nach Warenkorb-Zuweisung:', this.expense.expenseMember);
+
+
+
+        // Gesamtbeträge berechnen
+        this.expense.totalAmount = this.expense.expenseMember.reduce(
+          (sum, m) => sum + (m.amountToPay || 0), 0
+        );
+        this.expense.totalAmountInForeignCurrency = this.expense.expenseMember.reduce(
+          (sum, m) => sum + (m.foreignAmountToPay || 0), 0
+        );
+
       } else {
+        console.error('Kein eingeloggter Benutzer gefunden');
       }
 
       this.iosIcons = this.platform.is('ios');
@@ -297,6 +351,8 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
+
+
 
   // UI Handeling ---------------------------------->
 
