@@ -90,6 +90,7 @@ export class SettleBalancesPage implements OnInit {
   reason: string = '';
 
   repeatingExpense: boolean = false;
+  gruppenausgleich: boolean = false;
 
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
@@ -166,17 +167,36 @@ export class SettleBalancesPage implements OnInit {
         console.error(`Gruppe mit der ID ${this.groupId} nicht gefunden`);
         return;
       }
-      const rawDeptList = await this.transactionService.settleAllDepts(
-        this.groupId
-      );
-      this.deptList = rawDeptList.map(([from, to, debt, relatedExpenses]) => ({
-        from,
-        to,
-        debt,
-        relatedExpenses,
-      }));
-      await this.loadRelatedExpenses();
-      console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
+      if (this.gruppenausgleich){
+        const rawDeptList = await this.transactionService.settleAllDepts(
+          this.groupId
+        );
+        this.deptList = rawDeptList.map(
+          ([from, to, debt, relatedExpenses]) => ({
+            from,
+            to,
+            debt,
+            relatedExpenses,
+          })
+        );
+        await this.loadRelatedExpenses();
+        console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
+      } else {
+        const rawDeptList = await this.transactionService.settleDebtsForID(
+          this.groupId,
+          this.uid,
+        );
+        if(rawDeptList){
+        this.deptList = rawDeptList.map((dept) => ({
+          from: dept.from,
+          to: dept.to,
+          debt: dept.debt,
+          relatedExpenses: [],
+        }));
+        await this.loadRelatedExpenses();
+          console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
+        }
+      }
 
       this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
       this.groupMembers = currentGroup.members || [];
@@ -344,18 +364,29 @@ export class SettleBalancesPage implements OnInit {
             transaction
           );
         }
-        for (const expenseId of debtmember.relatedExpenses) {
-          await this.transactionService.markAllMembersAsPaid(
-            this.groupId,
-            expenseId
-          );
+        if (this.gruppenausgleich){
+          for (const expenseId of debtmember.relatedExpenses) {
+            await this.transactionService.markMembersAsPaid(
+              this.groupId,
+              expenseId
+            );
+          }
+        } else {
+          for (const expenseId of debtmember.relatedExpenses) {
+            await this.transactionService.markMembersAsPaid(
+              this.groupId,
+              expenseId,
+              this.uid ?? undefined
+            );
+          }
         }
-        this.loadingService.hideLittle();
       } catch (error) {
         console.error(
           `Fehler beim Erstellen der Transaktion für ${debtmember.from} -> ${debtmember.to}:`,
           error
         );
+      } finally {
+        this.loadingService.hideLittle();
       }
     }
     // Danach: Nur noch fragen, ob man sie sehen will
