@@ -263,7 +263,7 @@ export class ExpenseService {
   ): Promise<void> {
     try {
       if (paid) {
-        console.log('Ausgbabe wurde bereits bezahlt, löschen niht möglich');
+        console.log('Ausgbabe wurde bereits bezahlt, löschen nicht möglich');
         return;       
       }
       const expenseRef = doc(
@@ -276,6 +276,10 @@ export class ExpenseService {
       const expenseSnapshot = await getDoc(expenseRef);
 
       if (expenseSnapshot.exists()) {
+        //Bilanzen und Mitglieder aktualisieren
+        const expense = expenseSnapshot.data() as Expenses;
+        this.updateMemberSumsOnDeleteExpense(groupId, expense);
+        this.updateBalancesOnDeleteExpense(groupId, expense);
         // Wenn das Dokument in der normalen Ausgaben-Collection existiert, löschen
         await deleteDoc(expenseRef);
         console.log(`Expense mit ID ${expenseId} aus 'expenses' gelöscht.`);
@@ -835,6 +839,15 @@ export class ExpenseService {
       console.error('Error updating balances on new expense:', error);
     }
   }
+
+  async updateBalancesOnExpense(
+    action: 'addition' | 'update' | 'deletion',
+    groupId: string,
+    expense: Expenses,
+    oldExpense?: Expenses
+  )
+{}
+
 
   async updateBalancesOnDeleteExpense(
     groupId: string,
