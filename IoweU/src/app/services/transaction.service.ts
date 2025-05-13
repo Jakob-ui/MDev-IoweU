@@ -18,14 +18,14 @@ import { Expenses } from './objects/Expenses';
 import { GroupService } from './group.service';
 import { AuthService } from './auth.service';
 import { Groups } from './objects/Groups';
+import { ExpenseService } from './expense.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TransactionService {
   private firestore = inject(Firestore);
-  private groupService = inject(GroupService);
-  private authService = inject(AuthService);
+  private expenseService = inject(ExpenseService);
 
   deptList = [{ from: '', to: '', debt: 0 }];
   groupMembers: any[] = [];
@@ -115,7 +115,10 @@ export class TransactionService {
 
         // Callback aufrufen, um die Transaktionen zu aktualisieren
         updateTransactionsCallback(transactions);
-        console.log('Echtzeit-Transaktionen (nach Datum sortiert):', transactions);
+        console.log(
+          'Echtzeit-Transaktionen (nach Datum sortiert):',
+          transactions
+        );
       });
       return unsubscribe;
     } catch (error) {
@@ -123,7 +126,6 @@ export class TransactionService {
       throw new Error('Fehler beim Abrufen der Transaktionen');
     }
   }
-
 
   async deleteTransactionsById(
     groupId: string,
@@ -413,9 +415,10 @@ export class TransactionService {
     }
   }
 
-  async markAllMembersAsPaid(
+  async markMembersAsPaid(
     groupId: string,
-    expenseId: string
+    expenseId: string,
+    uid?: string
   ): Promise<void> {
     try {
       const expenseRef = doc(
@@ -430,22 +433,28 @@ export class TransactionService {
       if (expenseSnapshot.exists()) {
         const expense = expenseSnapshot.data() as Expenses;
 
-        // Aktualisiere das Feld "paid" für alle Mitglieder
-        const updatedExpenseMembers = expense.expenseMember.map((member) => ({
-          ...member,
-          paid: true,
-        }));
+        const updatedExpenseMembers = expense.expenseMember.map((member) => {
+          if (!uid || member.memberId === uid) {
+            return { ...member, paid: true };
+          }
+          return member;
+        });
 
-        // Speichere die aktualisierte Liste zurück in die Datenbank
         await setDoc(
           expenseRef,
           { expenseMember: updatedExpenseMembers },
           { merge: true }
         );
 
-        console.log(
-          `Expense ${expenseId} updated: All members marked as paid.`
-        );
+        if (uid) {
+          console.log(
+            `Expense ${expenseId} updated: Member ${uid} marked as paid.`
+          );
+        } else {
+          console.log(
+            `Expense ${expenseId} updated: All members marked as paid.`
+          );
+        }
       } else {
         console.warn(`Expense with ID ${expenseId} not found.`);
       }
@@ -494,6 +503,52 @@ export class TransactionService {
     }
 
     return filteredExpenses;
+  }
+
+  async settleDebtsForID(
+    groupId: string,
+    id: string
+  ): Promise<{ from: string; to: string; debt: number }[] | null> {
+    try {
+      const balancesRef = collection(
+        this.firestore,
+        'groups',
+        groupId,
+        'balances'
+      );
+      const snapshot = await getDocs(balancesRef);
+
+      const debtList: { from: string; to: string; debt: number }[] = [];
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as Balances;
+        let amount = 0;
+        let otherUserId = '';
+
+        if (data.userAId === id) {
+          amount = data.userACredit - data.userBCredit;
+          otherUserId = data.userBId;
+        } else if (data.userBId === id) {
+          amount = data.userBCredit - data.userACredit;
+          otherUserId = data.userAId;
+        } else {
+          return;
+        }
+
+        if (amount < 0) {
+          debtList.push({
+            from: id,
+            to: otherUserId,
+            debt: -amount,
+          });
+        }
+      });
+
+      return debtList;
+    } catch (error) {
+      console.error('Fehler beim Ermitteln der Schulden:', error);
+      return null;
+    }
   }
 
   async settleAllDepts(groupId: string) {
