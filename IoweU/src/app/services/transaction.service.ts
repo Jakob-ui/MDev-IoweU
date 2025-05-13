@@ -32,6 +32,80 @@ export class TransactionService {
 
   constructor() {}
 
+  async settleDebtWithOneMember(
+    groupId: string,
+    fromUid: string,
+    toUid: string,
+    amount: number,
+    reason: string,
+    relatedExpenseIds: string[]
+  ) {
+    try {
+      const transactionId = doc(
+        collection(this.firestore, 'groups', groupId, 'transactions')
+      ).id;
+      const transactionData: Transactions = {
+        transactionId,
+        from: fromUid,
+        to: toUid,
+        amount: amount,
+        reason: reason,
+        date: new Date().toISOString(),
+        relatedExpenses: [],
+      };
+      const transactionRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'transactions',
+        transactionId
+      );
+      await setDoc(transactionRef, transactionData);
+      await this.updateMemberAmounts(groupId, transactionData, 1);
+      await this.updateMemberBalancesOnTransaction(
+        'addition',
+        groupId,
+        transactionData,
+        transactionId
+      );
+      for (const expenseId of relatedExpenseIds) {
+        console.log('relatedExpenseIds: ', expenseId);
+        await this.markMembersAsPaid(groupId, expenseId, toUid);
+      }
+      console.log('Transaction added:', transactionId);
+    } catch {}
+  }
+
+  async getRelatedExpensesBetweenUsers(
+    groupId: string,
+    fromUid: string,
+    toUid: string
+  ): Promise<string[]> {
+    const balancesRef = collection(
+      this.firestore,
+      'groups',
+      groupId,
+      'balances'
+    );
+    const q = query(
+      balancesRef,
+      where('userAId', 'in', [fromUid, toUid]),
+      where('userBId', 'in', [fromUid, toUid])
+    );
+    const snapshot = await getDocs(q);
+
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data();
+      if (
+        (data['userAId'] === fromUid && data['userBId'] === toUid) ||
+        (data['userAId'] === toUid && data['userBId'] === fromUid)
+      ) {
+        return data['relatedExpenseId'] || [];
+      }
+    }
+    return [];
+  }
+
   async makeTransactionById(
     groupId: string,
     expenseId: string[],
@@ -51,14 +125,14 @@ export class TransactionService {
         date: transaction.date,
         relatedExpenses: expenseId,
       };
-      const expenseRef = doc(
+      const transactionRef = doc(
         this.firestore,
         'groups',
         groupId,
         'transactions',
         transactionId
       );
-      await setDoc(expenseRef, transactionData);
+      await setDoc(transactionRef, transactionData);
 
       //Mitglieder Felder aktualisieren
       await this.updateMemberAmounts(groupId, transaction, 1);
@@ -534,21 +608,21 @@ export class TransactionService {
         let relatedExpenseIds = [];
 
         if (data['userAId'] === id) {
-          amount = data['userACredit'] - data['userBCredit'];
+          amount = data['userBCredit'];
           otherUserId = data['userBId'];
         } else if (data['userBId'] === id) {
-          amount = data['userBCredit'] - data['userACredit'];
+          amount = data['userACredit'];
           otherUserId = data['userAId'];
         } else {
           return;
         }
         relatedExpenseIds = data['relatedExpenseId'] || [];
 
-        if (amount < 0) {
+        if (amount) {
           debtList.push({
             from: id,
             to: otherUserId,
-            debt: -amount,
+            debt: amount,
             relatedExpenses: relatedExpenseIds,
           });
         }
