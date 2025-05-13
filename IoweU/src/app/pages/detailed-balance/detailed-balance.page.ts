@@ -72,6 +72,8 @@ export class DetailedBalancePage implements OnInit {
   myExpenses: number = 0;
   myIncome: number = 0;
 
+  payable: boolean = false;
+
   productToggles: { [expenseId: string]: boolean } = {};
 
   balanceDetails: any = {}; // Balance Details object for storing calculated balance
@@ -117,7 +119,6 @@ export class DetailedBalancePage implements OnInit {
               const currentUserId = this.uid!;
               const selectedMemberId = this.selectedMember?.uid!;
 
-              // ✅ Neue Balance-Funktion: ergibt Saldo aus Sicht des eingeloggten Users
               const saldo = await this.expenseService.getBalanceBetweenUsers(
                 validGroupId,
                 currentUserId,
@@ -150,6 +151,12 @@ export class DetailedBalancePage implements OnInit {
                 expense =>
                   (expense.paidBy === this.selectedMember?.uid)
               );
+
+              if (this.allExpenses.length > 0 || this.myBalance < 0) {
+                this.payable = true;
+              } else {
+                this.payable = false;
+              }
 
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
@@ -221,6 +228,39 @@ export class DetailedBalancePage implements OnInit {
 
   goBack() {
     this.navCtrl.back();
+  }
+  pay() {
+    if (!this.groupId) {
+      console.error('groupId is null or undefined');
+      return;
+    }
+
+    const relatedExpenses = this.allExpenses
+      .filter((expense) => {
+        const member = expense.expenseMember?.find(
+          (m) => m.memberId === this.uid
+        );
+        return member && member.amountToPay > 0 && !member.paid;
+      })
+      .map((expense) => expense.expenseId);
+
+    if (relatedExpenses.length === 0) {
+      console.log('Keine offenen Ausgaben für diesen Nutzer.');
+      return;
+    }
+
+    try {
+        this.transactionService.settleDebtWithOneMember(
+          this.groupId,
+          this.selectedMember?.uid ?? '',
+          this.authService.currentUser?.uid ?? '',
+          this.myBalance,
+          `SchuldenAusgleich mit ${this.username}`,
+          relatedExpenses
+        );
+    } catch {
+      console.log("Error occured, while paying")
+    }
   }
 
   getAmountToPay(expense: any, uid: string | null): number {
