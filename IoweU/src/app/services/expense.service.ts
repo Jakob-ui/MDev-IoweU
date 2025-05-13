@@ -262,7 +262,7 @@ export class ExpenseService {
     paid: boolean
   ): Promise<void> {
     try {
-      if (!paid) {
+      if (paid) {
         console.log('Ausgbabe wurde bereits bezahlt, löschen niht möglich');
         return;       
       }

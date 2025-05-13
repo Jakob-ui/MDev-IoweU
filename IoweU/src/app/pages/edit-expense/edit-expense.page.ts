@@ -849,7 +849,7 @@ export class EditExpensePage {
         console.error('Expense ID ist nicht definiert');
         return;
       }
-
+      console.log("was ist paid status", this.paid)
       // Löschen der Ausgabe aufrufen
       await this.expenseService.deleteExpense(
         this.groupId,

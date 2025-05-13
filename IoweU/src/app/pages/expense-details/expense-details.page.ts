@@ -227,6 +227,7 @@ export class ExpenseDetailsPage {
             this.expensePaidByUsername = this.getPaidByName(this.expensePaidBy);
 
             console.log('Geladene Expense:', this.expense);
+            this.paid = this.hasUserPaid(this.expense[0]);
           } else {
             console.error('Expense nicht gefunden');
           }
@@ -238,7 +239,6 @@ export class ExpenseDetailsPage {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
       this.loadingService.hide();
-
     }
   }
 
@@ -372,7 +372,7 @@ export class ExpenseDetailsPage {
     if (this.expenseId) {
       this.router.navigate(['/edit-expense', this.groupId, this.expenseId], {
         queryParams: {
-          repeating: this.repeatingExpense, // true oder false übergeben
+          repeating: this.repeatingExpense,
           paid: this.paid,
         },
       });
@@ -428,7 +428,6 @@ export class ExpenseDetailsPage {
     this.router.navigate(['/transactions', this.groupId]);
   }
 
-
   hasUserPaid(expense: Expenses): boolean {
     if (expense.paidBy === this.uid) {
       return false; // Zahler sieht keine Anzeige
@@ -439,5 +438,9 @@ export class ExpenseDetailsPage {
     return !!userEntry?.paid;
   }
 
-
+  hasAnyMemberPaid(expense: Expenses): boolean {
+    return expense.expenseMember
+      .filter((member) => member.memberId !== expense.paidBy)
+      .some((member) => member.paid === true);
+  }
 }
