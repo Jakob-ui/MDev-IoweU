@@ -228,21 +228,17 @@ export class SettleBalancesPage implements OnInit {
 
   getPurchasedProductsForMember(memberId: string): Products[] {
     if (!this.expense || this.expense.length === 0) {
-      return []; // Return an empty array if no expense is available
+      return []; 
     }
 
-    // Assuming you are dealing with a single expense for the member
-    const expense = this.expense[0]; // Access the first expense, or adjust based on your use case
+    const expense = this.expense[0]; 
 
-    // Ensure that expenseMember exists
     if (!expense.expenseMember) {
-      return []; // Return empty array if expenseMember is not available
+      return []; 
     }
 
-    // Find the member in the expenseMember array
     const member = expense.expenseMember.find((m) => m.memberId === memberId);
 
-    // If the member is found and they have products, return the products array, otherwise return an empty array
     return member?.products ?? [];
   }
 

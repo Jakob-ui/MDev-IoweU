@@ -28,6 +28,7 @@ export class TransactionService {
   private authService = inject(AuthService);
 
   deptList = [{ from: '', to: '', debt: 0 }];
+  groupMembers: any[] = [];
 
   constructor() {}
 
@@ -521,6 +522,15 @@ export class TransactionService {
 
       // Schulden in deptList speichern
       this.deptList = schulden.map(([from, to, debt]) => ({ from, to, debt }));
+      /*
+      const member : any= this.groupMembers.find((m) => m.uid === member);
+      return member ? member.username : 'Unbekannt';
+      const showNames = this.deptList.map(({ from, to, debt }) => ({
+        from,
+        to,
+        debt,
+      })); 
+      */
       console.log('Dept List:', this.deptList);
 
       // Schuldenverteilung berechnen
