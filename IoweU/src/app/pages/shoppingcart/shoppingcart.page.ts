@@ -351,15 +351,16 @@ export class ShoppingcartPage implements OnInit {
 
 
   goToCreateExpense() {
-    this.navCtrl.navigateForward(['/create-expense', this.groupId], {
-      state: {
-        fromShoppingCart: true,
-        cartItems: this.shoppingproducts,
-        groupId: this.groupId,
-        userId: this.authService.currentUser?.uid // Übergibt die UID des eingeloggten Users
-      }
-    });
+    try {
+      // Navigiere mit queryParams
+      this.router.navigate(['/create-expense', this.groupId], {
+        queryParams: {
+          fromShoppingCart: this.shoppingCartId,
+        },
+      });
+    } finally {
+      this.loadingService.hide();
+    }
   }
-
 
 }

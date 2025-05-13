@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
+import {ShoppinglistService} from "../../services/shoppinglist.service";
 import {AlertController, ToastController} from "@ionic/angular";
 import { addIcons } from 'ionicons';
 import {
@@ -128,6 +129,8 @@ export class CreateExpensePage {
   private http = inject(HttpClient);
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
+  private shoppinglistService = inject(ShoppinglistService);
+
 
 
   constructor() {}
@@ -205,6 +208,7 @@ export class CreateExpensePage {
   };
 
   shoppingproducts: any[] = [];
+  shoppingCartId: string | null = '';
 
   categories = CATEGORIES;
 
@@ -223,9 +227,12 @@ export class CreateExpensePage {
 
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
 
+        this.shoppingCartId = this.activeRoute.snapshot.queryParamMap.get('fromShoppingCart');
+        console.log('ShoppingCartId aus queryParams:', this.shoppingCartId);
+
         if (groupId) {
           this.currentGroup = await this.groupService.getGroup();
-          if (this.currentGroup === null) {
+          if (!this.currentGroup) {
             this.currentGroup = await this.groupService.getGroupById(groupId);
             console.log('Leere Gruppe, hole Gruppe aus der DB');
           }
@@ -243,7 +250,7 @@ export class CreateExpensePage {
                 this.memberRoles.push(member.role || '');
                 this.memberUids.push(member.uid || '');
 
-                // Initialwerte für Mitglieder
+
                 member.sumExpenseAmount = member.sumExpenseAmount || 0;
                 member.sumExpenseMemberAmount = member.sumExpenseMemberAmount || 0;
                 member.countExpenseAmount = member.countExpenseAmount || 0;
@@ -255,17 +262,15 @@ export class CreateExpensePage {
                 };
               });
 
-              // Initialisiere expenseMember für jedes Gruppenmitglied
               this.expense.expenseMember = this.groupMembers.map((member) => ({
                 memberId: member.uid,
                 amountToPay: 0,
                 foreignAmountToPay: 0,
                 split: 1,
-                products: [], // Leeres Array für Produkte
+                products: [],
                 paid: false,
               }));
 
-              // Wer hat bezahlt?
               if (!this.expense.paidBy && this.uid) {
                 this.expense.paidBy = this.uid;
               }
@@ -284,61 +289,9 @@ export class CreateExpensePage {
           this.groupname = 'Unbekannte Gruppe';
         }
 
-        // Überprüfe ob die Produkte vom Warenkorb kommen
-        const navState = this.router.getCurrentNavigation()?.extras.state;
-        if (navState && navState['fromShoppingCart']) {
-          this.shoppingproducts = navState['cartItems'] || [];
-
-          // Produkte den Mitgliedern zuordnen
-          this.shoppingproducts.forEach((shoppingProduct: any) => {
-            // Finde das Mitglied, für das dieses Produkt gekauft wurde
-            const member = this.groupMembers.find((member) => member.uid === shoppingProduct.forMemberId);
-
-            if (member) {
-              const memberExpense = this.expense.expenseMember.find(exp => exp.memberId === member.uid);
-              if (memberExpense) {
-                // Sicherstellen, dass das products-Array existiert
-                if (!memberExpense.products) {
-                  memberExpense.products = []; // Initialisiere das Array, falls es noch nicht existiert
-                }
-
-                // Überprüfe, ob das Produkt bereits existiert und aktualisiere es
-                const existingProduct = memberExpense.products.find(
-                  (prod: Products) => prod.productname === shoppingProduct.productname
-                );
-
-                if (existingProduct) {
-                  // Produkt existiert bereits, also erhöhe die Menge
-                  existingProduct.quantity += shoppingProduct.quantity;
-                  existingProduct.price = shoppingProduct.price;  // Optional: Preis anpassen
-                } else {
-                  // Füge das neue Produkt hinzu
-                  memberExpense.products.push({
-                    productId: shoppingProduct.shoppingProductId,
-                    memberId: member.uid,
-                    productname: shoppingProduct.productname,
-                    quantity: shoppingProduct.quantity,
-                    unit: shoppingProduct.unit,
-                    price: shoppingProduct.price,
-                    foreignPrice: shoppingProduct.foreignPrice
-                  });
-                }
-              }
-            }
-          });
+        if (this.shoppingCartId) {
+          await this.fromShoppingCart();
         }
-
-        console.log('expense.expenseMember nach Warenkorb-Zuweisung:', this.expense.expenseMember);
-
-
-
-        // Gesamtbeträge berechnen
-        this.expense.totalAmount = this.expense.expenseMember.reduce(
-          (sum, m) => sum + (m.amountToPay || 0), 0
-        );
-        this.expense.totalAmountInForeignCurrency = this.expense.expenseMember.reduce(
-          (sum, m) => sum + (m.foreignAmountToPay || 0), 0
-        );
 
       } else {
         console.error('Kein eingeloggter Benutzer gefunden');
@@ -352,6 +305,52 @@ export class CreateExpensePage {
     }
   }
 
+
+  async fromShoppingCart() {
+    if (this.shoppingCartId !== null ) {
+      const allProducts = await this.shoppinglistService.getShoppingCartProducts(this.groupId, this.shoppingCartId);
+      console.log('Produkte aus dem Warenkorb:', allProducts);
+
+      if (allProducts && allProducts.length > 0) {
+        const affectedMembersMap: { [uid: string]: ExpenseMember } = {};
+
+        allProducts.forEach((shoppingProduct: any) => {
+          const forUid = shoppingProduct.forMemberId;
+
+          const newProduct: Products = {
+            productId: shoppingProduct.shoppingProductId,
+            memberId: shoppingProduct.forMemberId,
+            productname: shoppingProduct.productname,
+            quantity: shoppingProduct.quantity,
+            unit: shoppingProduct.unit,
+            price: 0,
+            foreignPrice: 0,
+          };
+
+          if (!affectedMembersMap[forUid]) {
+            affectedMembersMap[forUid] = {
+              memberId: forUid,
+              amountToPay: 0,
+              foreignAmountToPay: 0,
+              split: 1,
+              paid: false,
+              products: [],
+            };
+          }
+          affectedMembersMap[forUid].products?.push(newProduct);
+
+
+        });
+
+        this.expense.expenseMember = Object.values(affectedMembersMap);
+        console.log('Betroffene expenseMembers nach Warenkorb-Zuweisung:', this.expense.expenseMember);
+      } else {
+        console.log('Keine Produkte aus dem Warenkorb gefunden');
+      }
+    } else {
+      console.error('Keine shoppingCartId übergeben');
+    }
+  }
 
 
   // UI Handeling ---------------------------------->
