@@ -498,7 +498,6 @@ export class ShoppinglistPage implements OnInit {
     }
 
     const trimmedName = this.newProduct.productname?.trim();
-
     if (!trimmedName || !this.uid) {
       this.presentAlert('Fehler', 'Bitte gib mindestens einen Produktnamen ein.');
       return;
@@ -511,17 +510,17 @@ export class ShoppinglistPage implements OnInit {
       memberId: this.uid,
       forMemberId: this.newProduct.forMemberId?.trim() || this.uid,
       productname: trimmedName,
-      quantity: this.newProduct.quantity ?? 1, // Default: 1
-      unit: this.newProduct.unit?.trim() || 'Stück', // Default: 'Stück'
+      quantity: this.newProduct.quantity ?? 1,
+      unit: this.newProduct.unit?.trim() || 'Stück',
       status: 'open',
       date: dueDate
     };
 
     try {
       await this.shoppinglistService.addShoppingProduct(this.groupId!, shoppingProductData);
+      await this.presentToast('Produkt wurde hinzugefügt!');
       console.log('Produkt erfolgreich gespeichert!');
-      this.toggleAddProductOverlay();
-
+      this.showDetails = false;
       this.newProduct = {
         quantity: 1,
         unit: 'Stück',
@@ -534,6 +533,7 @@ export class ShoppinglistPage implements OnInit {
       this.presentAlert('Fehler','Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
     }
   }
+
 
   async deleteProduct(shoppingProductId: string) {
     try {
