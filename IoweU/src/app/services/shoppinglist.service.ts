@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import {Firestore, collection, doc, setDoc, deleteDoc, getDoc, getDocs, where, query} from '@angular/fire/firestore';
+import {Firestore, collection, doc, setDoc, deleteDoc, getDoc, getDocs, where, query, onSnapshot,} from '@angular/fire/firestore';
 import { ShoppingProducts } from '../services/objects/ShoppingProducts';
 import { ShoppingCarts } from './objects/ShoppingCarts';
 import { Shoppinglists } from './objects/Shoppinglists';
@@ -337,7 +337,31 @@ export class ShoppinglistService {
     }
   }
 
+  listenToShoppingProductsChanges(
+    groupId: string,
+    shoppingListId: string | null,
+    updateProductsCallback: (products: ShoppingProducts[]) => void
+  ): () => void {
+    if (!shoppingListId) {
+      console.error('ShoppingListId ist null – Listener wird nicht gesetzt.');
+      return () => {}; // Dummy unsubscribe-Funktion
+    }
 
+    const productsRef = collection(
+      this.firestore,
+      'groups',
+      groupId,
+      'shoppingLists',
+      shoppingListId,
+      'shoppingProducts'
+    );
 
+    const unsubscribe = onSnapshot(productsRef, (snapshot) => {
+      const products: ShoppingProducts[] = snapshot.docs.map((doc) => doc.data() as ShoppingProducts);
+      updateProductsCallback(products);
+    });
+
+    return unsubscribe;
+  }
 
 }
