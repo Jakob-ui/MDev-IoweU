@@ -69,9 +69,7 @@ export class TransactionService {
         transactionId
       );
       console.log('Transaction added:', transactionId);
-      for (const id of expenseId) {
-        await this.updateUserStateOnExpense(groupId, id, fromUid, true);
-      }
+      await this.markMembersAsPaid(groupId, expenseId[0], fromUid);
       return transactionData;
     } catch {
       return null;
@@ -489,9 +487,10 @@ export class TransactionService {
       if (expenseSnapshot.exists()) {
         const expense = expenseSnapshot.data() as Expenses;
 
-        // Filtere die Ausgaben, bei denen der Benutzer noch nicht bezahlt hat
+        // Filtere die Ausgaben, bei denen der Benutzer noch nicht bezahlt hat UND amountToPay > 0 ist
         const hasUnpaidMember = expense.expenseMember.some(
-          (member) => member.memberId === uid && !member.paid
+          (member) =>
+            member.memberId === uid && !member.paid && member.amountToPay > 0
         );
 
         if (hasUnpaidMember) {
@@ -508,7 +507,10 @@ export class TransactionService {
   async settleDebtsForID(
     groupId: string,
     id: string
-  ): Promise<{ from: string; to: string; debt: number }[] | null> {
+  ): Promise<
+    | { from: string; to: string; debt: number; relatedExpenses: string[] }[]
+    | null
+  > {
     try {
       const balancesRef = collection(
         this.firestore,
@@ -518,28 +520,36 @@ export class TransactionService {
       );
       const snapshot = await getDocs(balancesRef);
 
-      const debtList: { from: string; to: string; debt: number }[] = [];
+      const debtList: {
+        from: string;
+        to: string;
+        debt: number;
+        relatedExpenses: string[];
+      }[] = [];
 
       snapshot.forEach((docSnap) => {
-        const data = docSnap.data() as Balances;
+        const data = docSnap.data();
         let amount = 0;
         let otherUserId = '';
+        let relatedExpenseIds = [];
 
-        if (data.userAId === id) {
-          amount = data.userACredit - data.userBCredit;
-          otherUserId = data.userBId;
-        } else if (data.userBId === id) {
-          amount = data.userBCredit - data.userACredit;
-          otherUserId = data.userAId;
+        if (data['userAId'] === id) {
+          amount = data['userACredit'] - data['userBCredit'];
+          otherUserId = data['userBId'];
+        } else if (data['userBId'] === id) {
+          amount = data['userBCredit'] - data['userACredit'];
+          otherUserId = data['userAId'];
         } else {
           return;
         }
+        relatedExpenseIds = data['relatedExpenseId'] || [];
 
         if (amount < 0) {
           debtList.push({
             from: id,
             to: otherUserId,
             debt: -amount,
+            relatedExpenses: relatedExpenseIds,
           });
         }
       });

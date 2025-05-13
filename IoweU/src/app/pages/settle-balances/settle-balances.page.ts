@@ -50,7 +50,6 @@ export class SettleBalancesPage implements OnInit {
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
-  private expenseService = inject(ExpenseService);
   private transactionService = inject(TransactionService);
   private alertController = inject(AlertController);
 
@@ -58,7 +57,7 @@ export class SettleBalancesPage implements OnInit {
   iosIcons: boolean = false;
   showExpenses: boolean = false;
 
-  uid: string | null = '';
+  uid: string = '';
   user: string | null = '';
   displayName: string | null = null;
   groupId = this.activeRoute.snapshot.paramMap.get('groupId') || '';
@@ -191,7 +190,7 @@ export class SettleBalancesPage implements OnInit {
           from: dept.from,
           to: dept.to,
           debt: dept.debt,
-          relatedExpenses: [],
+          relatedExpenses: dept.relatedExpenses,
         }));
         await this.loadRelatedExpenses();
           console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
@@ -333,7 +332,7 @@ export class SettleBalancesPage implements OnInit {
         );
 
       console.log('Gefilterte Ausgaben:', filteredExpenses);
-      this.expense = filteredExpenses; // Speichere die gefilterten Ausgaben
+      this.expense = filteredExpenses; 
     } catch (error) {
       console.error('Fehler beim Laden der gefilterten Ausgaben:', error);
     }
@@ -364,6 +363,7 @@ export class SettleBalancesPage implements OnInit {
             transaction
           );
         }
+        console.log("uid", this.uid);
         if (this.gruppenausgleich){
           for (const expenseId of debtmember.relatedExpenses) {
             await this.transactionService.markMembersAsPaid(
@@ -373,11 +373,20 @@ export class SettleBalancesPage implements OnInit {
           }
         } else {
           for (const expenseId of debtmember.relatedExpenses) {
-            await this.transactionService.markMembersAsPaid(
-              this.groupId,
-              expenseId,
-              this.uid ?? undefined
+            // Finde die Expense in der geladenen Liste
+            const expense = this.expense.find((e) => e.expenseId === expenseId);
+            const userEntry = expense?.expenseMember.find(
+              (m) => m.memberId === this.uid
             );
+
+            // Nur wenn noch nicht bezahlt und amountToPay > 0
+            if (userEntry && !userEntry.paid && userEntry.amountToPay > 0) {
+              await this.transactionService.markMembersAsPaid(
+                this.groupId,
+                expenseId,
+                this.uid
+              );
+            }
           }
         }
       } catch (error) {

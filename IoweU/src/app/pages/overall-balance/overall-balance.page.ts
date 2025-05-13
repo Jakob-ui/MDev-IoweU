@@ -2,10 +2,8 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as d3 from 'd3';
 import {
-  IonHeader,
-  IonToolbar,
   IonContent,
-  IonItem, IonList, IonButton, IonIcon, IonLabel, IonBadge,
+  IonItem, IonList, IonButton, IonIcon, IonBadge,
 } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -24,15 +22,12 @@ import { Groups } from '../../services/objects/Groups';
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader,
-    IonToolbar,
     IonContent,
     RouterModule,
     IonItem,
     IonList,
     IonButton,
     IonIcon,
-    IonLabel,
     IonBadge,
   ],
 })
