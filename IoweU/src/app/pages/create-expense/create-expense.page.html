@@ -524,7 +524,7 @@
         </div>
 
         <div
-          *ngIf="showProductInputFields[groupMember.uid]"
+          *ngIf="showProductInputFields[groupMember.uid] && shoppingCartId == null"
           class="product-input-fields"
         >
           <!-- Produktliste und Eingabefelder -->
@@ -602,6 +602,46 @@
               [src]="'assets/icon/ionicons/ios-add.svg'"
             ></ion-icon>
           </div>
+        </div>
+
+        <div
+          class="product-list"
+          *ngIf="productInputs[groupMember.uid]?.products?.length && shoppingCartId != null"
+        >
+          <ul>
+            <li *ngFor="let product of productInputs[groupMember.uid].products">
+              <div class="left-container">
+                <span class="product-quantity">{{ product.quantity }} {{ product.unit }}</span>
+                <span class="product">{{ product.productname }}</span>
+              </div>
+
+              <!-- Preis-Eingabe -->
+              <ion-input
+                *ngIf="selectedCurrency === 'EUR'"
+                type="number"
+                [(ngModel)]="product.price"
+                step="0.01"
+                placeholder="0,00"
+                (ionInput)="updateAmountToPayForProducts()"
+              ></ion-input>
+
+              <!-- Optional: auch für Fremdwährung -->
+              <ion-input
+                *ngIf="selectedCurrency !== 'EUR'"
+                type="number"
+                [(ngModel)]="product.foreignPrice"
+                step="0.01"
+                placeholder="0,00"
+                (ionInput)="updateAmountToPayForProducts()"
+              ></ion-input>
+
+              <ion-icon
+                class="delete-icon"
+                [src]="'assets/icon/ionicons/ios-close.svg'"
+                (click)="removeProduct(product)"
+              ></ion-icon>
+            </li>
+          </ul>
         </div>
       </div>
       <ion-text color="danger" *ngIf="error" class="split-percentage">

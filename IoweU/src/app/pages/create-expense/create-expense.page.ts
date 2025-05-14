@@ -307,31 +307,48 @@ export class CreateExpensePage {
 
 
   async fromShoppingCart() {
-    if (this.shoppingCartId === null) {
+    if (!this.shoppingCartId) {
       console.error('Keine shoppingCartId übergeben');
       return;
     }
 
-    const allProducts = await this.shoppinglistService.getShoppingCartProducts(this.groupId, this.shoppingCartId);
-
-    if (allProducts && allProducts.length <= 0) {
+    const products = await this.shoppinglistService.getShoppingCartProducts(this.groupId, this.shoppingCartId);
+    if (!products?.length) {
       console.log('Keine Produkte aus dem Warenkorb gefunden');
       return;
     }
 
+    this.expense.splitType = 'produkte';
+    this.expense.splitBy = 'frei';
+
+    // Initialisiere productInputs pro Member
     this.groupMembers.forEach(member => {
-      const products: any = [];
+      const memberProducts = products.filter(p => p.forMemberId === member.uid);
 
-      allProducts.forEach((shoppingProduct: any) => {
-        if (member.uid !== shoppingProduct.forMemberId) {
-          return;
-        }
-
-        products.push(shoppingProduct);
-      });
-
-      member.products = products;
+      this.productInputs[member.uid] = {
+        products: memberProducts.map(shoppingProduct => ({
+          productId: shoppingProduct.shoppingProductId,
+          memberId: shoppingProduct.forMemberId,
+          productname: shoppingProduct.productname,
+          quantity: shoppingProduct.quantity,
+          unit: shoppingProduct.unit,
+          price: 0,
+          foreignPrice: 0,
+        })),
+        input: {
+          productId: '',
+          memberId: '',
+          productname: '',
+          quantity: 0,
+          unit: '',
+          price: 0,
+          foreignPrice: 0,
+        },
+      };
     });
+
+
+    console.log('Produktzuweisungen aus Warenkorb:', this.productInputs);
   }
 
 
@@ -662,6 +679,7 @@ export class CreateExpensePage {
     this.chooseSplitType = false;
     this.error = '';
     this.updateAmountToPayForProducts();
+    //this.onAmountToPayChange();
   }
 
   private resetSplitValues() {
