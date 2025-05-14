@@ -1112,6 +1112,10 @@ export class CreateExpensePage {
       );
 
       await this.presentToast('Ausgabe erfolgreich gespeichert!');
+      if (this.shoppingCartId) {
+        await this.shoppinglistService.deleteAllProductsFromShoppingCart(this.groupId, this.shoppingCartId);
+      }
+
       this.navCtrl.back();
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);

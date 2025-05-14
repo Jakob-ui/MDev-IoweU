@@ -83,6 +83,8 @@ export class ShoppingcartPage implements OnInit {
 
   isDatePickerOpen = false;
 
+  private unsubscribeShoppingCart!: () => void;
+
   async ngOnInit() {
     this.loadingService.show();
 
@@ -102,7 +104,7 @@ export class ShoppingcartPage implements OnInit {
       // Die groupId aus der URL erhalten
       this.groupId = this.activeRoute.snapshot.paramMap.get('groupId');
       this.shoppingCartId = await this.shoppinglistService.getShoppingCartIdByGroupId(this.groupId!);
-      console.log('shoppingListId:', this.shoppingCartId);
+      console.log('shoppingCartId:', this.shoppingCartId);
 
       if (!this.groupId) {
         console.error('Keine groupId in Route gefunden.');
@@ -127,8 +129,18 @@ export class ShoppingcartPage implements OnInit {
         ) ||
         { uid: this.uid, username: this.displayName || 'Unbekannt' };
 
-      // Holen der Produkte für diese Gruppe
+      // Hole die Produkte für diese Gruppe
       await this.loadShoppingCartProducts();
+
+      this.unsubscribeShoppingCart = this.shoppinglistService.listenToShoppingCartChanges(
+        this.groupId,
+        this.shoppingCartId,
+        (products) => {
+          this.shoppingproducts = products;
+          this.groupProductsByDate();
+        }
+      );
+
 
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
@@ -137,7 +149,14 @@ export class ShoppingcartPage implements OnInit {
     }
   }
 
-// Methode zum Laden der Produkte aus der Firebase-Datenbank
+  ngOnDestroy() {
+    // Den Listener abbestellen, wenn die Komponente zerstört wird
+    if (this.unsubscribeShoppingCart) {
+      this.unsubscribeShoppingCart();
+    }
+  }
+
+
   async loadShoppingCartProducts() {
     try {
       if (!this.groupId) {

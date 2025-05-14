@@ -337,6 +337,24 @@ export class ShoppinglistService {
     }
   }
 
+  async deleteAllProductsFromShoppingCart(groupId: string, shoppingCartId: string): Promise<void> {
+    try {
+      const productsSnapshot = await getDocs(collection(this.firestore, 'groups', groupId, 'shoppingCart', shoppingCartId, 'shoppingProducts'));
+
+      const deletePromises = productsSnapshot.docs.map(doc => {
+        const productId = doc.id;
+        return deleteDoc(doc.ref); // Lösche jedes Produkt
+      });
+
+      await Promise.all(deletePromises);
+      console.log('Alle Produkte aus dem Warenkorb wurden erfolgreich gelöscht');
+    } catch (error) {
+      console.error('Fehler beim Löschen der Produkte:', error);
+      throw error;
+    }
+  }
+
+
   listenToShoppingProductsChanges(
     groupId: string,
     shoppingListId: string | null,
@@ -363,5 +381,39 @@ export class ShoppinglistService {
 
     return unsubscribe;
   }
+
+  listenToShoppingCartChanges(
+    groupId: string,
+    shoppingCartId: string | null,
+    updateProductsCallback: (products: ShoppingProducts[]) => void
+  ): () => void {
+    if (!shoppingCartId) {
+      console.error('ShoppingCartId ist null – Listener wird nicht gesetzt.');
+      return () => {}; // Dummy unsubscribe-Funktion
+    }
+
+    const productsRef = collection(
+      this.firestore,
+      'groups',
+      groupId,
+      'shoppingCart',
+      shoppingCartId,
+      'shoppingProducts'
+    );
+
+    const unsubscribe = onSnapshot(productsRef, (snapshot) => {
+      const products: ShoppingProducts[] = snapshot.docs.map((doc) => doc.data() as ShoppingProducts);
+
+      // Überprüfen, ob es Produkte gibt, die angezeigt werden müssen
+      if (products.length === 0) {
+        console.log('Der Warenkorb ist leer.');
+      }
+
+      updateProductsCallback(products); // Callback-Funktion aufrufen, um die Produkte zu aktualisieren
+    });
+
+    return unsubscribe;
+  }
+
 
 }
