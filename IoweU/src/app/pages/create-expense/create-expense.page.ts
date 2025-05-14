@@ -1167,7 +1167,16 @@ export class CreateExpensePage {
       );
 
       await this.presentToast('Ausgabe erfolgreich gespeichert!');
-      this.navCtrl.back();
+
+      if (this.shoppingCartId) {
+        await this.shoppinglistService.deleteAllProductsFromShoppingCart(this.groupId, this.shoppingCartId);
+      }
+
+      if(this.shoppingCartId != null){
+        this.navCtrl.back();
+      } else{
+        await this.navCtrl.navigateRoot(['/expense', this.groupId]);
+      }
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);
       await this.presentAlert('Fehler', 'Es ist ein Fehler aufgetreten. Bitte versuche es erneut.');
