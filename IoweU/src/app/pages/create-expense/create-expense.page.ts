@@ -209,6 +209,7 @@ export class CreateExpensePage {
 
   shoppingproducts: any[] = [];
   shoppingCartId: string | null = '';
+  ProduktFromShoppingCart: boolean = false;
 
   categories = CATEGORIES;
 
@@ -318,6 +319,7 @@ export class CreateExpensePage {
       return;
     }
 
+    this.ProduktFromShoppingCart = true;
     this.expense.splitType = 'produkte';
     this.expense.splitBy = 'frei';
 

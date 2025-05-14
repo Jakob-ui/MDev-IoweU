@@ -160,7 +160,10 @@
         <!-- Währungsauswahl -->
         <div class="Währung">
           <span class="input-label">Währung</span>
-          <ion-item class="input-item" (click)="toggleCurrencyDropdown($event)">
+          <ion-item
+            class="input-item"
+            (click)="toggleCurrencyDropdown($event)"
+            [disabled]="ProduktFromShoppingCart">
             <ion-label>
               <div class="selected-currency">{{ selectedCurrency }}</div>
             </ion-label>
@@ -291,7 +294,10 @@
         <div class="wiederholung">
           <span class="input-label">Wiederholung</span>
           <ion-item class="input-item">
-            <ion-select [(ngModel)]="expense.repeat" interface="popover">
+            <ion-select
+              [(ngModel)]="expense.repeat"
+              [disabled]="ProduktFromShoppingCart"
+              interface="popover">
               <ion-select-option class="custom-select-option" value="nein"
                 >nein</ion-select-option
               >
@@ -323,6 +329,7 @@
               interface="popover"
               (ngModelChange)="onSplitTypeChange()"
               ngDefaultControl="anteile"
+              [disabled]="ProduktFromShoppingCart"
             >
               <ion-select-option class="custom-select-option" value="anteile"
                 >Anteile</ion-select-option
@@ -343,12 +350,12 @@
               [(ngModel)]="expense.splitBy"
               (ngModelChange)="onSplitByChange()"
               interface="popover"
-              [disabled]="!chooseSplitType"
+              [disabled]="!chooseSplitType || ProduktFromShoppingCart"
             >
               <ion-select-option
                 class="custom-select-option"
                 value="alle"
-                [disabled]="!chooseSplitType"
+                [disabled]="!chooseSplitType || ProduktFromShoppingCart"
                 >alle</ion-select-option
               >
               <ion-select-option class="custom-select-option" value="frei"
