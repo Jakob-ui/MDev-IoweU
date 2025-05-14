@@ -1081,22 +1081,45 @@ export class CreateExpensePage {
     console.log("I am saving now", this.expense.expenseMember, this.groupMembers);
 
     try {
+      const realMembers = this.groupMembers.filter(m => m.uid !== 'all');
+      const allProducts = this.productInputs['all']?.products || [];
 
-      this.expense.expenseMember = this.groupMembers.map((member) => {
+      this.expense.expenseMember = realMembers.map((member) => {
         const uid = member.uid;
-        const amount = this.amountToPay[uid] || 0;
-        const foreignAmount = this.foreignAmountToPay[uid] || 0;
+
+        let amount = this.amountToPay[uid] || 0;
+        let foreignAmount = this.foreignAmountToPay[uid] || 0;
 
         let products = this.productInputs[uid]?.products || [];
-        if (member.products) {
-          products = member.products;
+
+        if (allProducts.length > 0 && realMembers.length > 0) {
+          allProducts.forEach((p) => {
+            const sharedPrice = (p.price || 0) / realMembers.length;
+            const sharedForeignPrice = (p.foreignPrice || 0) / realMembers.length;
+
+            products.push({
+              productId: p.productId + '-' + uid,
+              memberId: uid,
+              productname: p.productname,
+              quantity: p.quantity,
+              unit: p.unit,
+              price: parseFloat(sharedPrice.toFixed(2)),
+              foreignPrice: parseFloat(sharedForeignPrice.toFixed(2)),
+            });
+
+            amount += sharedPrice;
+            foreignAmount += sharedForeignPrice;
+          });
+
+          this.amountToPay[uid] = parseFloat(amount.toFixed(2));
+          this.foreignAmountToPay[uid] = parseFloat(foreignAmount.toFixed(2));
         }
+
         products = products.map((p) => ({
           ...p,
           price: Number(p.price || 0),
           quantity: Number(p.quantity),
         }));
-        console.log('products', products);
 
         return {
           memberId: uid,
@@ -1104,31 +1127,27 @@ export class CreateExpensePage {
           foreignAmountToPay: parseFloat(foreignAmount.toFixed(2)),
           split: 1,
           paid: false,
-          products: products,
+          products,
         };
       });
 
-      // Berechnung des Gesamtbetrags (in Fremdwährung, falls vorhanden)
       this.updateTotals();
 
-      // Wenn eine Fremdwährung gewählt wurde, berechne totalAmountInForeignCurrency
       if (this.selectedCurrency !== this.standardCurrency) {
         this.expense.totalAmountInForeignCurrency = +(
           this.expense.totalAmount / this.exchangeRate
-        ).toFixed(2); // Betrag in Fremdwährung
-        this.expense.exchangeRate = this.exchangeRate; // Speichere den Wechselkurs
+        ).toFixed(2);
+        this.expense.exchangeRate = this.exchangeRate;
       } else {
-        this.expense.totalAmountInForeignCurrency = 0; // Kein Fremdwährungsbetrag, wenn EUR gewählt wurde
-        this.expense.exchangeRate = 1; // EUR hat keinen Wechselkurs
+        this.expense.totalAmountInForeignCurrency = 0;
+        this.expense.exchangeRate = 1;
       }
 
-      // totalAmount muss immer den Betrag in EUR enthalten
       this.expense.totalAmount = Number(this.expense.totalAmount.toFixed(2));
 
-      // Hier wird die ausgewählte Währung in das currency Array gespeichert
       this.expense.currency = [this.selectedCurrency];
 
-      // Wenn Rechnung ausgewählt wurde → hochladen und URL setzen
+
       if (this.uploadInvoice) {
         const invoicePath = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
         const downloadURL = await this.imageService.uploadImage(
