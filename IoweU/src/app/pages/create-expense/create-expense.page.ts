@@ -323,7 +323,7 @@ export class CreateExpensePage {
     this.expense.splitType = 'produkte';
     this.expense.splitBy = 'frei';
 
-    // Initialisiere productInputs pro Member
+    // 1. Normale Member-Produktzuweisung
     this.groupMembers.forEach(member => {
       const memberProducts = products.filter(p => p.forMemberId === member.uid);
 
@@ -349,9 +349,43 @@ export class CreateExpensePage {
       };
     });
 
+    // 2. Produkte mit forMemberId === 'all'
+    const allProducts = products.filter(p => p.forMemberId === 'all');
+    if (allProducts.length > 0) {
+      const allMemberExists = this.groupMembers.some(m => m.uid === 'all');
+      if (!allMemberExists) {
+        this.groupMembers.push({
+          uid: 'all',
+          username: 'Alle'
+        });
+      }
+
+      this.productInputs['all'] = {
+        products: allProducts.map(shoppingProduct => ({
+          productId: shoppingProduct.shoppingProductId,
+          memberId: shoppingProduct.forMemberId,
+          productname: shoppingProduct.productname,
+          quantity: shoppingProduct.quantity,
+          unit: shoppingProduct.unit,
+          price: 0,
+          foreignPrice: 0,
+        })),
+        input: {
+          productId: '',
+          memberId: '',
+          productname: '',
+          quantity: 0,
+          unit: '',
+          price: 0,
+          foreignPrice: 0,
+        },
+      };
+    }
 
     console.log('Produktzuweisungen aus Warenkorb:', this.productInputs);
   }
+
+
 
 
   // UI Handeling ---------------------------------->
@@ -1047,12 +1081,12 @@ export class CreateExpensePage {
     console.log("I am saving now", this.expense.expenseMember, this.groupMembers);
 
     try {
-      // Members vorbereiten
+
       this.expense.expenseMember = this.groupMembers.map((member) => {
         const uid = member.uid;
         const amount = this.amountToPay[uid] || 0;
         const foreignAmount = this.foreignAmountToPay[uid] || 0;
-        // FIXME:
+
         let products = this.productInputs[uid]?.products || [];
         if (member.products) {
           products = member.products;
@@ -1114,10 +1148,6 @@ export class CreateExpensePage {
       );
 
       await this.presentToast('Ausgabe erfolgreich gespeichert!');
-      if (this.shoppingCartId) {
-        await this.shoppinglistService.deleteAllProductsFromShoppingCart(this.groupId, this.shoppingCartId);
-      }
-
       this.navCtrl.back();
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);
@@ -1126,6 +1156,7 @@ export class CreateExpensePage {
       this.loadingService.hide();
     }
   }
+
 
   removeInvoice() {
     this.expense.invoice = undefined;

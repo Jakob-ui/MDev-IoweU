@@ -131,20 +131,27 @@
               <!-- Dropdown für Mitglieder -->
               <div *ngIf="forMemberDropdownOpen" class="custom-dropdown">
                 <ion-list>
-                  <ion-item class="dropDownFelder" button *ngFor="let groupMember of groupMembers" (click)="selectMember(groupMember, $event)">
+                  <ion-item
+                    class="dropDownFelder"
+                    button
+                    *ngFor="let groupMember of groupMembers"
+                    (click)="groupMember.uid === 'all' ? selectAllMembers($event) : selectMember(groupMember, $event)">
                     <div class="member-info"
+                         [ngClass]="{'all-members-option': groupMember.uid === 'all'}"
                          [ngStyle]="{
-                        'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
-                        'border-color': 'var(--member-color-' + groupMember.uid + ')'
-                      }">
+                           'background-color': groupMember.uid === 'all' ? '#999' : 'var(--member-color-background-' + groupMember.uid + ')',
+                           'border-color': groupMember.uid === 'all' ? '#999' : 'var(--member-color-' + groupMember.uid + ')'
+                         }">
                       <div class="profile-placeholder"
                            [ngStyle]="{
-                          'background-color': 'var(--member-color-' + groupMember.uid + ')',
-                          'border-color': 'var(--member-color-' + groupMember.uid + ')'
-                        }"></div>
+                             'background-color': groupMember.uid === 'all' ? '#999' : 'var(--member-color-' + groupMember.uid + ')',
+                             'border-color': groupMember.uid === 'all' ? '#999' : 'var(--member-color-' + groupMember.uid + ')'
+                           }"></div>
                       <span class="member-name">{{ groupMember.username }}</span>
                     </div>
                   </ion-item>
+
+
                 </ion-list>
               </div>
             </div>

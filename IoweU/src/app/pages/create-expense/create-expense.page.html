@@ -388,7 +388,7 @@
               'border-color': 'var(--member-color-' + groupMember.uid + ')'
             }"
             ></div>
-            <span class="member-name">{{ groupMember.username }}</span>
+            <span class="member-name">{{ groupMember.uid === 'all' ? 'Alle' : groupMember.username }}</span>
           </div>
           <div
             *ngIf="expense.splitType === 'produkte'"

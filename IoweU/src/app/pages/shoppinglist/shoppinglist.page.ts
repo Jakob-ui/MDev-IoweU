@@ -63,11 +63,12 @@ export class ShoppinglistPage implements OnInit {
 
   groupname: string = '';
   groupId: string | null = '';
-  groupMembers: Members[] = [];
+  groupMembers: { uid: string; username: string }[] = [];
   iosIcons: boolean = false;
 
   forMemberDropdownOpen: boolean = false;
   selectedMember: any = this.uid ? { uid: this.uid, username: 'Dein Name' } : null;
+  isForAll: boolean = false;
 
   showDetails: boolean = false;
 
@@ -140,12 +141,19 @@ export class ShoppinglistPage implements OnInit {
       const currentGroup = await this.groupService.getGroupById(this.groupId);
       if (currentGroup) {
         this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-        this.groupMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
+        const originalMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
+        this.groupMembers = [
+          { uid: 'all', username: 'Alle' },
+          ...originalMembers
+        ];
       } else {
         console.warn('Gruppe nicht gefunden');
         this.groupname = 'Unbekannte Gruppe';
-        this.groupMembers = [];
+        this.groupMembers = [
+          { uid: 'all', username: 'Alle' }
+        ];
       }
+
 
       this.unsubscribeProductsListener = this.shoppinglistService.listenToShoppingProductsChanges(
         this.groupId,
@@ -467,6 +475,18 @@ export class ShoppinglistPage implements OnInit {
     this.forMemberDropdownOpen = false;
     event.stopPropagation();
   }
+
+
+  selectAllMembers(event: Event) {
+    event.stopPropagation();
+    this.isForAll = true;
+    this.selectedMember = {
+      uid: 'all',
+      username: 'Alle'
+    };
+    this.forMemberDropdownOpen = false;
+  }
+
 
 
   toggleChecked(shoppingproduct: ShoppingProducts) {

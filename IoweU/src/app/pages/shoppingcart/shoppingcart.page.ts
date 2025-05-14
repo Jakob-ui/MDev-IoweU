@@ -41,7 +41,7 @@ export class ShoppingcartPage implements OnInit {
 
   groupname: string = '';
   groupId: string | null = '';
-  groupMembers: Members[] = []; // Verwenden Sie das Members-Interface
+  groupMembers: { uid: string; username: string }[] = []; // Verwenden Sie das Members-Interface
   iosIcons: boolean = false;
 
   forMemberDropdownOpen: boolean = false;
@@ -111,17 +111,22 @@ export class ShoppingcartPage implements OnInit {
         return;
       }
 
-      // Hole die Gruppe basierend auf der groupId
-      const currentGroup = await this.groupService.getGroupById(this.groupId);
 
+      const currentGroup = await this.groupService.getGroupById(this.groupId);
       if (currentGroup) {
         this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-        this.groupMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
+        const originalMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
+        this.groupMembers = [
+          { uid: 'all', username: 'Alle' },
+          ...originalMembers
+        ];
       } else {
-        console.warn('Gruppe nicht gefunden');
         this.groupname = 'Unbekannte Gruppe';
-        this.groupMembers = [];
+        this.groupMembers = [
+          { uid: 'all', username: 'Alle' }
+        ];
       }
+
 
       this.selectedMember =
         this.groupMembers.find(
