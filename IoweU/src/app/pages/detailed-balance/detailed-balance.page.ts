@@ -139,7 +139,7 @@ export class DetailedBalancePage implements OnInit {
 
               // Ruft updateBalances mit den korrekten Parametern auf
               await this.updateBalances(validGroupId, currentUserId, selectedMemberId);
-              this.allExpenses = await this.expenseService.getExpensesByBalanceEntries(validGroupId, currentUserId, selectedMemberId);
+              this.allExpenses = await this.expenseService.getUnsettledExpensesByBalance(validGroupId, currentUserId, selectedMemberId);
               console.log('All Expenses:', this.allExpenses);
 
               this.paidByCurrentUser = this.allExpenses.filter(

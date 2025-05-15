@@ -1082,45 +1082,47 @@ export class ExpenseService {
     return { myIncome, myExpenses };
   }
 
-  async getExpensesByBalanceEntries(
+  async getUnsettledExpensesByBalance(
     groupId: string,
     currentUserUid: string,
     selectedMemberUid: string
   ): Promise<Expenses[]> {
-    if (!currentUserUid || !selectedMemberUid) return [];
+    const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+    const balanceMembers = [currentUserUid, selectedMemberUid];
+    const q1 = query(
+      balancesRef,
+      where('userAId', 'in', balanceMembers),
+      where('userBId', 'in', balanceMembers)
+    );
+    const relatedBalancesSnapshot = await getDocs(q1);
+    if (relatedBalancesSnapshot.empty) {
+      console.log('Keine Bilanz gefunden.');
+      return [];
+    }
+    const relatedBalance = relatedBalancesSnapshot.docs[0].data() as Balances;
+    const unsettledExpenses: Expenses[] = [];
 
-    const expensesRef = collection(this.firestore, 'groups', groupId, 'expenses');
-    const allExpensesSnap = await getDocs(expensesRef);
-
-    const expenses: Expenses[] = [];
-
-    allExpensesSnap.forEach((docSnap) => {
-      const data = docSnap.data() as Expenses;
-
-      const currentIsMember = data.expenseMember?.some(
-        (member) => member.memberId === currentUserUid && member.amountToPay > 0
-      );
-
-      const selectedIsMember = data.expenseMember?.some(
-        (member) => member.memberId === selectedMemberUid && member.amountToPay > 0
-      );
-
-      const selectedPaid = data.paidBy === selectedMemberUid;
-      const currentPaid = data.paidBy === currentUserUid;
-
-      const isRelevant =
-        (currentIsMember && selectedPaid) || (selectedIsMember && currentPaid);
-
-      const isPaid = data.expenseMember?.some(
-        (member) => member.paid === true
-      );
-
-      if (isRelevant && !isPaid) {
-        expenses.push({ ...data, expenseId: docSnap.id });
+    // Hol dir die Ausgaben, die unter relatedExpensesId aufscheinen
+    for(const expenseId of relatedBalance.relatedExpenseId) {
+      const expenseRef = doc(this.firestore, 'groups', groupId, 'expenses', expenseId);
+      const expenseSnapshot = await getDoc(expenseRef);
+      if (expenseSnapshot.exists()) {
+        const expenseData = expenseSnapshot.data() as Expenses;
+        // Überprüfe für jeden, ob entweder der eingeloggte Benutzer oder der ausgewählte Benutzer seinen Anteil noch nicht bezahlt hat
+        const unpaidByCurrentUser = expenseData.expenseMember.some(
+          (member) => member.memberId === currentUserUid && member.amountToPay > 0 && !member.paid
+        );
+        const unpaidBySelectedMember = expenseData.expenseMember.some(
+          (member) => member.memberId === selectedMemberUid && member.amountToPay > 0 && !member.paid
+        );
+        // Wenn keiner von beiden bezahlt hat, füge die Ausgabe der Liste hinzu
+        if (unpaidByCurrentUser || unpaidBySelectedMember) {
+          unsettledExpenses.push(expenseData);
+        }
       }
-    });
+    }
 
-    return expenses;
+    return unsettledExpenses;
   }
 
 
