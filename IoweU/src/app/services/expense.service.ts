@@ -99,7 +99,7 @@ export class ExpenseService {
         //3. Wenn das Mitglied an der Ausgabe beteiligt war aber sie nicht bezahlt hat, wird sumExpenseMemberAmount um amountToPay erhöht und countExpenseMemberAmount um 1 erhöht.
         //4. sumAmountPaid & countAmountPaid bleiben gleich (werden erst dann aktualisiert wenn das Mitglied einem anderen Mitglied eine Schuld begleicht) => von der for-Schleife weggelassen
 
-        await this.updateMemberSumsOnNewExpense(groupId, expense);
+        //await this.updateMemberSumsOnNewExpense(groupId, expense);
 
         const groupRef = await getDoc(doc(this.firestore, 'groups', groupId));
         const groupData = groupRef.data() as Groups;
@@ -270,7 +270,7 @@ export class ExpenseService {
       if (expenseSnapshot.exists()) {
         //Bilanzen und Mitglieder aktualisieren
         const expense = expenseSnapshot.data() as Expenses;
-        this.updateMemberSumsOnDeleteExpense(groupId, expense);
+        //this.updateMemberSumsOnDeleteExpense(groupId, expense);
         // Wenn das Dokument in der normalen Ausgaben-Collection existiert, löschen
         await deleteDoc(expenseRef);
         console.log(`Expense mit ID ${expenseId} aus 'expenses' gelöscht.`);

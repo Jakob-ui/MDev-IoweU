@@ -104,3 +104,26 @@ h5 {
   margin-left: auto;
 }
 
+@media (prefers-color-scheme: dark) {
+  .date {
+    color: var(--ion-color-light);
+  }
+  .add-product-wrapper{
+    background-color: transparent;
+  }
+  .reason-container h5{
+    color: var(--ion-color-dark) !important;
+  }
+  .transaction-tags{
+    color: var(--ion-color-dark) !important;
+  }
+  ion-input {
+    color: #000 !important;
+  }
+  .show-details-button span {
+    color: #8c8c8c;
+}
+ion-icon{
+  filter: invert(1);
+}
+}

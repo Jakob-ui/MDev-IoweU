@@ -268,7 +268,7 @@ export class CreateExpensePage {
                 foreignAmountToPay: 0,
                 split: 1,
                 products: [],
-                paid: false,
+                paid: member.uid === this.expense.paidBy, // Set paid true for the payer
               }));
 
               if (!this.expense.paidBy && this.uid) {
@@ -1164,9 +1164,6 @@ export class CreateExpensePage {
         this.groupId,
         this.repeating
       );
-
-      await this.presentToast('Ausgabe erfolgreich gespeichert!');
-
       if (this.shoppingCartId) {
         await this.shoppinglistService.deleteAllProductsFromShoppingCart(this.groupId, this.shoppingCartId);
       }
