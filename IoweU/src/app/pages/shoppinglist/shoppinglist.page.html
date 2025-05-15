@@ -313,7 +313,10 @@
 
     <ion-list class="shopping-list">
       <ng-container *ngFor="let group of groupedProducts">
-        <span class="date" [ngClass]="{'past-date': isPast(group.date)}">
+        <span *ngIf="shoppingproducts.length === 0" class="no-products">
+          Keine Produkte in der Shoppingliste
+        </span>
+        <span class="date" [ngClass]="{'past-date': isPast(group.date)}" *ngIf="shoppingproducts.length > 0">
           {{ group.date }}
         </span>
 
