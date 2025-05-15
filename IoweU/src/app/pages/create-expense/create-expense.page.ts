@@ -1165,9 +1165,6 @@ export class CreateExpensePage {
         this.groupId,
         this.repeating
       );
-
-      await this.presentToast('Ausgabe erfolgreich gespeichert!');
-
       if (this.shoppingCartId) {
         await this.shoppinglistService.deleteAllProductsFromShoppingCart(this.groupId, this.shoppingCartId);
       }
