@@ -139,12 +139,15 @@ ion-searchbar {
   flex-direction: row;
   justify-content: right;
   align-items: center;
+  gap: 5px;
 }
 
+/*
 .paid{
   height: 30px;
   width: 30px;
 }
+*/
 
 @media (prefers-color-scheme: dark) {
   .date {
