@@ -1182,6 +1182,7 @@ export class CreateExpensePage {
       await this.presentAlert('Fehler', 'Es ist ein Fehler aufgetreten. Bitte versuche es erneut.');
     } finally {
       this.loadingService.hide();
+      await this.presentToast('Ausgabe erfolgreich gespeichert!');
     }
   }
 

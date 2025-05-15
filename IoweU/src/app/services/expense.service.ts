@@ -788,6 +788,7 @@ export class ExpenseService {
     groupId: string,
     expense: Expenses
   ): Promise<void> {
+    /*
     try {
       const balancesRef = collection(
         this.firestore,
@@ -798,11 +799,10 @@ export class ExpenseService {
 
       for (const member of expense.expenseMember) {
         if (member.memberId !== expense.paidBy) {
-          const creditor = expense.paidBy; // The user who paid
-          const debtor = member.memberId; // The user who owes
+          const creditor = expense.paidBy;
+          const debtor = member.memberId;
           const amount = member.amountToPay;
 
-          // Query for the balance document between the creditor and debtor
           const q = query(
             balancesRef,
             where('userAId', 'in', [creditor, debtor]),
@@ -814,7 +814,6 @@ export class ExpenseService {
             const docRef = snapshot.docs[0].ref;
             const data = snapshot.docs[0].data() as Balances;
 
-            // Determine the direction of the balance and update accordingly
             if (data.userAId === creditor && data.userBId === debtor) {
               await updateDoc(docRef, {
                 userACredit: Number((data.userACredit + amount).toFixed(2)),
@@ -835,18 +834,14 @@ export class ExpenseService {
           }
         }
       }
+      
     } catch (error) {
       console.error('Error updating balances on new expense:', error);
     }
+    */
+    console.log("updated Balances")
+    return;
   }
-
-  async updateBalancesOnExpense(
-    action: 'addition' | 'update' | 'deletion',
-    groupId: string,
-    expense: Expenses,
-    oldExpense?: Expenses
-  )
-{}
 
 
   async updateBalancesOnDeleteExpense(
