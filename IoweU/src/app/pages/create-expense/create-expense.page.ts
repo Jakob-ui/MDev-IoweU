@@ -268,7 +268,7 @@ export class CreateExpensePage {
                 foreignAmountToPay: 0,
                 split: 1,
                 products: [],
-                paid: false,
+                paid: member.uid === this.expense.paidBy, // Set paid true for the payer
               }));
 
               if (!this.expense.paidBy && this.uid) {
