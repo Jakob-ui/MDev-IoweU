@@ -18,7 +18,12 @@
       Beleg hinzufügen
     </ion-button>
     <div class="titel">
-      <h4>Großer Gruppenausgleich</h4>
+      <h4 *ngIf="gruppenausgleich; else meineSchulden">
+        Großer Gruppenausgleich
+      </h4>
+      <ng-template #meineSchulden>
+        <h4>Meine Schulden begleichen</h4>
+      </ng-template>
       <h2>{{ groupname }}</h2>
     </div>
 
@@ -65,15 +70,23 @@
         *ngIf="expense && expense.length > 0"
         class="toggle-arrow"
         (click)="showExpenses = !showExpenses"
-      > Zeige RelatedExpenses an
+      >
+        Zeige RelatedExpenses an
         <ion-icon
           [src]="showExpenses ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
         >
         </ion-icon>
       </div>
 
-    <ion-list class="expense-list" *ngIf="expense.length !==0 && showExpenses">
-        <ion-item class="info-item" *ngFor="let expense of expense" (click)="goToExpenseDetails(expense.expenseId)">
+      <ion-list
+        class="expense-list"
+        *ngIf="expense.length !==0 && showExpenses"
+      >
+        <ion-item
+          class="info-item"
+          *ngFor="let expense of expense"
+          (click)="goToExpenseDetails(expense.expenseId)"
+        >
           <div
             class="profile-placeholder"
             [ngStyle]="{
@@ -94,15 +107,11 @@
                   {{ getUserAmount(expense) | currency: 'EUR' }}
                 </ion-badge>
               </div>
-
-
             </div>
           </div>
         </ion-item>
-    </ion-list>
+      </ion-list>
     </div>
-
-
 
     <div class="space"></div>
     <div class="button-container">
