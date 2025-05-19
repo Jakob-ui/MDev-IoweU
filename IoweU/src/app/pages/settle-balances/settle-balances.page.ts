@@ -88,7 +88,6 @@ export class SettleBalancesPage implements OnInit {
   expenseMemberPaidByUid: string = '';
   reason: string = '';
 
-  repeatingExpense: boolean = false;
   gruppenausgleich: boolean = false;
 
   splitValue: { [uid: string]: number } = {};
@@ -149,7 +148,7 @@ export class SettleBalancesPage implements OnInit {
       await this.authService.waitForUser();
       // Query-Parameter lesen, um festzustellen, ob es sich um eine wiederkehrende Ausgabe handelt
       this.activeRoute.queryParams.subscribe((params) => {
-        this.repeatingExpense = params['repeating'] === 'true';
+        this.gruppenausgleich = params['settlegroup'] === 'true';
       });
 
       if (!this.authService.currentUser) {
@@ -299,23 +298,6 @@ export class SettleBalancesPage implements OnInit {
       return 'negative';
     }
     return 'neutral';
-  }
-
-  toggleInvoiceOverlay() {
-    console.log('Overlay state:', this.overlayState);
-
-    // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
-    if (this.overlayState === 'start') {
-      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
-    } else if (this.overlayState === 'normal') {
-      // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
-      this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
-    } else if (this.overlayState === 'hidden') {
-      // Wenn es im "hidden" Zustand ist, wird es wieder nach oben geschoben
-      this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
-    }
-
-    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 
   async loadRelatedExpenses() {
