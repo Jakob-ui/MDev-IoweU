@@ -178,7 +178,7 @@ export class AccountSettingsPage implements OnInit {
         message: 'Name darf nicht leer sein.',
         duration: 2000, // verschwindet nach 2 Sekunden
         color: 'danger',
-        position: 'top'
+        position: 'top',
       });
       await toast.present();
       return;
@@ -187,8 +187,6 @@ export class AccountSettingsPage implements OnInit {
     this.name = this.newname.trim();
     this.userEditing = false;
   }
-
-
 
   goBack() {
     this.navCtrl.back();
@@ -331,6 +329,23 @@ export class AccountSettingsPage implements OnInit {
       role: 'confirm',
       handler: () => {
         this.saveChanges();
+      },
+    },
+  ];
+
+  public openSupportButtons = [
+    {
+      text: 'Abbrechen',
+      role: 'cancel',
+      handler: () => {
+        console.log('Speichern abgebrochen');
+      },
+    },
+    {
+      text: 'Kontaktieren',
+      role: 'confirm',
+      handler: () => {
+        window.location.href = 'mailto:support@ioweu.eu';
       },
     },
   ];

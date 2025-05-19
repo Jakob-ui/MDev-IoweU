@@ -92,6 +92,20 @@
       Passwort ändern
     </ion-button>
 
+    <ion-button
+    class="outline-button"
+    expand="block"
+    id="support-alert"
+  >
+    Support
+  </ion-button>
+  <ion-alert
+        trigger="support-alert"
+        header="Support kontaktieren"
+        message="Wenn du Probleme entdeckt, oder Feedback für uns hast, dann schreibe uns doch eine Email:"
+        [buttons]="openSupportButtons"
+      ></ion-alert>
+
     <div class="fixed-bottom">
       <ion-button id="delete-alert" class="delete-button" color="danger">
         Konto löschen
