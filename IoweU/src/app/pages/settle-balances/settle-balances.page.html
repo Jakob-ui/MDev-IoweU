@@ -27,7 +27,7 @@
       <h2>{{ groupname }}</h2>
     </div>
 
-    <div class="debt-details" *ngFor="let debt of deptList">
+    <div class="debt-details" *ngFor="let debt of deptList; let i = index">
       <div class="transaction-details">
         <div
           class="member-info"
@@ -69,22 +69,18 @@
       <div
         *ngIf="expense && expense.length > 0"
         class="toggle-arrow"
-        (click)="showExpenses = !showExpenses"
+        (click)="toggleExpenses(i)"
       >
         Zeige RelatedExpenses an
         <ion-icon
-          [src]="showExpenses ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
-        >
-        </ion-icon>
+          [src]="showExpensesMap[i] ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
+        ></ion-icon>
       </div>
 
-      <ion-list
-        class="expense-list"
-        *ngIf="expense.length !==0 && showExpenses"
-      >
+      <ion-list class="expense-list" *ngIf="showExpensesMap[i]">
         <ion-item
           class="info-item"
-          *ngFor="let expense of expense"
+          *ngFor="let expense of getRelatedExpensesForDebt(debt)"
           (click)="goToExpenseDetails(expense.expenseId)"
         >
           <div

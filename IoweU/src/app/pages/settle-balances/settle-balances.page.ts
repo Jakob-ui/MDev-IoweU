@@ -56,6 +56,7 @@ export class SettleBalancesPage implements OnInit {
   groupname: string = '';
   iosIcons: boolean = false;
   showExpenses: boolean = false;
+  showExpensesMap: { [index: number]: boolean } = {};
 
   uid: string = '';
   user: string | null = '';
@@ -165,7 +166,7 @@ export class SettleBalancesPage implements OnInit {
         console.error(`Gruppe mit der ID ${this.groupId} nicht gefunden`);
         return;
       }
-      if (this.gruppenausgleich){
+      if (this.gruppenausgleich) {
         const rawDeptList = await this.transactionService.settleAllDepts(
           this.groupId
         );
@@ -182,16 +183,16 @@ export class SettleBalancesPage implements OnInit {
       } else {
         const rawDeptList = await this.transactionService.settleDebtsForID(
           this.groupId,
-          this.uid,
+          this.uid
         );
-        if(rawDeptList){
-        this.deptList = rawDeptList.map((dept) => ({
-          from: dept.from,
-          to: dept.to,
-          debt: dept.debt,
-          relatedExpenses: dept.relatedExpenses,
-        }));
-        await this.loadRelatedExpenses();
+        if (rawDeptList) {
+          this.deptList = rawDeptList.map((dept) => ({
+            from: dept.from,
+            to: dept.to,
+            debt: dept.debt,
+            relatedExpenses: dept.relatedExpenses,
+          }));
+          await this.loadRelatedExpenses();
           console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
         }
       }
@@ -244,15 +245,27 @@ export class SettleBalancesPage implements OnInit {
     this.visibleProducts[memberName] = !this.visibleProducts[memberName]; // Toggle die Sichtbarkeit der Produkte
   }
 
+  toggleExpenses(index: number) {
+    this.showExpensesMap[index] = !this.showExpensesMap[index];
+  }
+
+  getRelatedExpensesForDebt(debt: { relatedExpenses: string[]; to: string }) {
+    return this.expense.filter(
+      (e) =>
+        debt.relatedExpenses.includes(e.expenseId) &&
+        e.expenseMember.some((member) => member.memberId === debt.to)
+    );
+  }
+
   getPurchasedProductsForMember(memberId: string): Products[] {
     if (!this.expense || this.expense.length === 0) {
-      return []; 
+      return [];
     }
 
-    const expense = this.expense[0]; 
+    const expense = this.expense[0];
 
     if (!expense.expenseMember) {
-      return []; 
+      return [];
     }
 
     const member = expense.expenseMember.find((m) => m.memberId === memberId);
@@ -314,7 +327,7 @@ export class SettleBalancesPage implements OnInit {
         );
 
       console.log('Gefilterte Ausgaben:', filteredExpenses);
-      this.expense = filteredExpenses; 
+      this.expense = filteredExpenses;
     } catch (error) {
       console.error('Fehler beim Laden der gefilterten Ausgaben:', error);
     }
@@ -345,8 +358,8 @@ export class SettleBalancesPage implements OnInit {
             transaction
           );
         }
-        console.log("uid", this.uid);
-        if (this.gruppenausgleich){
+        console.log('uid', this.uid);
+        if (this.gruppenausgleich) {
           for (const expenseId of debtmember.relatedExpenses) {
             await this.transactionService.markMembersAsPaid(
               this.groupId,
