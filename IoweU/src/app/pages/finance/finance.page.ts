@@ -17,8 +17,8 @@ import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
 import { GroupService } from '../../services/group.service';
 import { ExpenseService } from '../../services/expense.service';
-import { QRCodeComponent } from 'angularx-qrcode';
 import { TransactionService } from 'src/app/services/transaction.service';
+import { Groups } from 'src/app/services/objects/Groups';
 
 @Component({
   selector: 'app-finance',
@@ -72,6 +72,7 @@ export class FinancePage implements OnInit {
   memberColors: string[] = [];
   memberRoles: string[] = [];
   memberUids: string[] = [];
+  currentGroup: Groups | null = null;
 
   constructor() {}
 
@@ -103,25 +104,25 @@ export class FinancePage implements OnInit {
 
       const groupId: string = rawGroupId; // jetzt garantiert kein null
 
-      const currentGroup = await this.groupService.getGroupById(groupId);
+      this.currentGroup = await this.groupService.getGroupById(groupId);
 
-      if (!currentGroup) {
+      if (!this.currentGroup) {
         console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
         this.groupname = 'Unbekannte Gruppe';
         return;
       }
 
-      this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-      this.groupId = currentGroup.groupId || '';
+      this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
+      this.groupId = this.currentGroup.groupId || '';
 
-      if (!currentGroup.members || currentGroup.members.length === 0) {
+      if (!this.currentGroup.members || this.currentGroup.members.length === 0) {
         console.error('Keine Mitglieder in der Gruppe gefunden');
         return;
       }
 
       // Gruppenmitglieder laden (außer aktueller User)
       this.groupMembers = await Promise.all(
-        currentGroup.members
+        this.currentGroup.members
           .filter((member: any) => member.uid !== this.uid)
           .map(async (member: any) => {
             // Memberdaten sammeln
@@ -210,7 +211,16 @@ export class FinancePage implements OnInit {
     console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 
-  async goToPayAllExpenses() {
-    this.router.navigate(['/settle-balances', this.groupId]);
+  async goToPayAllExpenses(settlegroup: boolean) {
+    settlegroup
+      ? this.router.navigate([
+        '/settle-balances',
+        this.groupId
+      ], {
+        queryParams: {
+          settlegroup: settlegroup,
+        },
+      })
+      : this.router.navigate(['/settle-balances', this.groupId]);
   }
 }

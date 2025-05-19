@@ -112,9 +112,17 @@
     <ion-button
       class="main-button"
       expand="block"
-      (click)="goToPayAllExpenses()"
+      (click)="goToPayAllExpenses(false)"
     >
       Meine Schulden begleichen
+    </ion-button>
+    <ion-button
+    *ngIf="uid === currentGroup?.founder"
+      class="main-button"
+      expand="block"
+      (click)="goToPayAllExpenses(true)"
+    >
+      Gruppenausgleich
     </ion-button>
   </div>
 </ion-content>
