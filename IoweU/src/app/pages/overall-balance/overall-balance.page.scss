@@ -142,9 +142,20 @@ ion-card {
 
 }
 
-
 @media (prefers-color-scheme: dark) {
-.balance-item h2{
-  color: #2f2f2f !important;
+  .date {
+    color: var(--ion-color-light);
+  }
+  .balance-item h2{
+    color: #2f2f2f !important;
+  }
+  ion-input {
+    color: #000 !important;
+  }
+h5{
+  color: #000 !important;
+}
+p{
+  color: #000 !important;
 }
 }

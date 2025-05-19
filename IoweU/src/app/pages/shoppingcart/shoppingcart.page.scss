@@ -108,7 +108,7 @@ h1{
   line-height: 1;
 }
 
-.input-item, {
+.input-item {
   width: 100%;
 }
 
@@ -259,13 +259,6 @@ strong {
   color: #da2f2f !important;
 }
 
-
-@media (prefers-color-scheme: dark) {
-  .date {
-    color: var(--ion-color-light);
-  }
-}
-
 .profile-placeholder .username{
   color: var(--ion-color-light);
   font-size: 12px;
@@ -285,3 +278,32 @@ form .top-container{
   margin-bottom: 20px;
 }
 
+@media (prefers-color-scheme: dark) {
+  .date {
+    color: var(--ion-color-light);
+  }
+  .add-product-wrapper{
+    background-color: transparent;
+  }
+  ion-input {
+    color: #000 !important;
+  }
+  .show-details-button span {
+    color: #8c8c8c;
+}
+  .first-container{
+  color: #000 !important;
+}
+.selected-forMember{
+  color: #000 !important;
+}
+.forMember{
+  color: #000 !important;
+}
+h5{
+  color: #000 !important;
+}
+p{
+  color: #000 !important;
+}
+}

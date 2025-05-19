@@ -109,7 +109,7 @@ h1{
 }
 
 .input-item,
-.info-wrapper .main-button,{
+.info-wrapper .main-button{
   width: 100%;
 }
 
@@ -325,5 +325,20 @@ form .top-container{
   }
   .show-details-button span {
     color: #8c8c8c;
+}
+  .first-container{
+  color: #000 !important;
+}
+.selected-forMember{
+  color: #000 !important;
+}
+.forMember{
+  color: #000 !important;
+}
+h5{
+  color: #000 !important;
+}
+p{
+  color: #000 !important;
 }
 }
