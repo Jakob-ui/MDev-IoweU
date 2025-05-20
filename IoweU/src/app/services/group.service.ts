@@ -33,6 +33,7 @@ export class GroupService {
   private userService = inject(UserService);
   private imageService = inject(ImageService);
 
+
   currentGroup: Groups | null = null;
   groupCount: number = 0;
 
@@ -685,4 +686,6 @@ export class GroupService {
 
     await setDoc(groupRef, updatedGroupData, { merge: true });
   }
+
+
 }

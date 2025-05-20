@@ -56,13 +56,13 @@ export class AccountSettingsPage implements OnInit {
 
   iosIcons: boolean = false;
 
-  displayName: string | null = null;
-
-  uid: string = '';
+  // Aktueller Nutzername (gespeichert)
   name: string = '';
+  // Eingabefeld für Namen im Bearbeitungsmodus
   newname: string = '';
   email: string = '';
   color: string = '#ffffff';
+
   profileImage: string | ArrayBuffer | null = null;
   changeMessage: string = '';
   userEditing: boolean = false;
@@ -71,13 +71,13 @@ export class AccountSettingsPage implements OnInit {
   emailInput: string = '';
   isLoginVerified: boolean = false;
 
-  originalName: string = '';
-  originalColor: string = '';
-
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false;
   lastedited: string = '';
   colorBlindMode: boolean = false;
+
+  private initialName: string = '';
+  private initialColor: string = '';
 
   constructor(private cdRef: ChangeDetectorRef) {}
 
@@ -91,25 +91,26 @@ export class AccountSettingsPage implements OnInit {
       await this.authService.waitForUser();
 
       if (this.authService.currentUser) {
-        this.uid = this.authService.currentUser.uid;
-        this.name = this.authService.currentUser.username;
+        const user = this.authService.currentUser;
+        this.name = user.username || '';
         this.newname = this.name;
-        this.email = this.authService.currentUser.email;
-        this.color = this.authService.currentUser.color || '#ffffff';
+        this.email = user.email || '';
+        this.color = user.color || '#ffffff';
         this.iosIcons = this.platform.is('ios');
+        this.lastedited = user.lastedited || '';
 
-        // Setze die Farbe im Theme
+        this.initialName = this.name;
+        this.initialColor = this.color;
+
         if (this.color) {
-          document.documentElement.style.setProperty(
-            '--user-color',
-            this.color
-          );
+          document.documentElement.style.setProperty('--user-color', this.color);
         }
+
         console.log('Aktueller Benutzer:', {
-          username: this.authService.currentUser.username,
-          email: this.authService.currentUser.email,
-          color: this.authService.currentUser.color,
-          lastedited: this.authService.currentUser.lastedited,
+          username: user.username,
+          email: user.email,
+          color: user.color,
+          lastedited: user.lastedited,
         });
       } else {
         console.error('User ist nicht eingeloggt.');
@@ -128,37 +129,8 @@ export class AccountSettingsPage implements OnInit {
     });
   }
 
-  async loadUserData() {
-    this.loadingService.show();
-    try {
-      this.originalName = this.authService.currentUser?.username || '';
-      this.color = this.authService.currentUser?.color || '';
-      this.originalColor = this.color;
-
-      if (this.authService.currentUser) {
-        this.name = this.authService.currentUser.username;
-        this.email = this.authService.currentUser.email;
-        this.color = this.authService.currentUser.color;
-        if (this.color) {
-          document.documentElement.style.setProperty(
-            '--user-color',
-            this.color
-          );
-        }
-        this.lastedited = this.authService.currentUser.username;
-        console.log('Benutzerdaten erfolgreich geladen.');
-      } else {
-        console.log('User ist nicht eingeloggt');
-      }
-    } catch (error) {
-      console.error('Fehler beim Laden der Benutzerdaten:', error);
-    } finally {
-      this.loadingService.hide();
-    }
-  }
-
   hasChanges(): boolean {
-    return this.name !== this.originalName || this.color !== this.originalColor;
+    return this.name !== this.initialName || this.color !== this.initialColor;
   }
 
   edit(message: string) {
@@ -176,7 +148,7 @@ export class AccountSettingsPage implements OnInit {
     if (!this.newname.trim()) {
       const toast = await this.toastController.create({
         message: 'Name darf nicht leer sein.',
-        duration: 2000, // verschwindet nach 2 Sekunden
+        duration: 2000,
         color: 'danger',
         position: 'top',
       });
@@ -188,9 +160,53 @@ export class AccountSettingsPage implements OnInit {
     this.userEditing = false;
   }
 
-  goBack() {
-    this.navCtrl.back();
+  async goBack() {
+    if (this.hasChanges()) {
+      const alert = await this.alertController.create({
+        header: 'Ungespeicherte Änderungen',
+        message: 'Du hast Änderungen vorgenommen. Möchtest du ohne Speichern zurückgehen?',
+        buttons: [
+          {
+            text: 'Änderungen speichern',
+            handler: () => {
+              this.handleSaveAndGoBack();
+            },
+          },
+          {
+            text: 'Zurück ohne Speichern',
+            role: 'cancel',
+            handler: () => {
+              this.performGoBack();
+            },
+          },
+        ],
+      });
+
+      await alert.present();
+    } else {
+      this.performGoBack();
+    }
   }
+
+  async handleSaveAndGoBack() {
+    await this.saveChanges();
+    this.performGoBack();
+  }
+
+  performGoBack() {
+    if (this.acc.getShouldReloadGroupOverview()) {
+      this.acc.setShouldReloadGroupOverview(false);
+      this.loadingService.show();
+      setTimeout(() => {
+        this.router.navigateByUrl('/group-overview').then(() => {
+          window.location.reload();
+        });
+      }, 100);
+    } else {
+      this.navCtrl.back();
+    }
+  }
+
 
   proofTime(): boolean {
     const lastedited = localStorage.getItem('lastedited');
@@ -205,8 +221,9 @@ export class AccountSettingsPage implements OnInit {
 
     return differenceInMs > 5 * 60 * 1000;
   }
+
   async saveChanges() {
-    this.loadingService.show(); // Lade-Overlay aktivieren
+    this.loadingService.show();
     try {
       if (!this.proofTime()) {
         const alert = await this.alertController.create({
@@ -221,30 +238,29 @@ export class AccountSettingsPage implements OnInit {
       }
 
       await this.acc.userupdate({
-        username: this.newname,
+        username: this.name,
         color: this.color,
         lastedited: new Date().toISOString(),
       });
 
-      // Lokale Werte aktualisieren, damit die UI sofort die neuen Daten zeigt
-      this.name = this.newname;
-      // Falls du die Theme-Farbe verwendest, aktualisiere auch das CSS-Variable
+      this.initialName = this.name;
+      this.initialColor = this.color;
+
       if (this.color) {
         document.documentElement.style.setProperty('--user-color', this.color);
       }
 
-      // Nach dem erfolgreichen Update auch die Gruppenmitgliederdaten aktualisieren
-      const uid = this.uid;
+      const uid = this.authService.currentUser?.uid;
       if (uid) {
-        await this.acc.updateGroupsWithNewUserData(uid, this.newname, this.color);
+        await this.acc.updateGroupsWithNewUserData(uid, this.name, this.color);
       }
-
+      this.acc.setShouldReloadGroupOverview(true);
       this.presentToast('Accountsettings wurden gespeichert!');
     } catch (e) {
       console.error('Fehler beim Speichern der Änderungen:', e);
       this.presentToast('Fehler beim Speichern der Änderungen!');
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
