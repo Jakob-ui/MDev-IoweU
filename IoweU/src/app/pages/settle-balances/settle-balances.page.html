@@ -13,7 +13,7 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="balance-page-container" *ngIf="deptList.length !== 0">
+  <div class="balance-page-container" *ngIf="hasDebts()">
     <ion-button class="outline-button" expand="block">
       Beleg hinzufügen
     </ion-button>
@@ -116,7 +116,7 @@
       </ion-button>
     </div>
   </div>
-  <div class="balance-page-container-empty" *ngIf="deptList.length === 0">
+  <div class="balance-page-container-empty" *ngIf="!hasDebts()">
     <div class="nothingToPay">
       <h2 *ngIf="gruppenausgleich; else meineSchulden">
         Alle sind schuldenfrei! <br />🎉

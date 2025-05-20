@@ -1,17 +1,12 @@
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import * as admin from "firebase-admin";
 import {logger} from "firebase-functions";
-import * as https from "firebase-functions/v2/https";
-import { onCall } from "firebase-functions/v2/https";
-import * as cors from 'cors';
 import {
   onDocumentWritten,
   Change,
   FirestoreEvent,
   DocumentSnapshot,
 } from "firebase-functions/v2/firestore";
-import firebase from "firebase/compat";
-import functions = firebase.functions;
 
 interface RepeatingExpenses {
   expenseId: string;
@@ -47,8 +42,6 @@ export interface Products {
 
 admin.initializeApp();
 const firestore = admin.firestore();
-const corsHandler = cors({ origin: ['http://localhost:8100'] });
-
 
 // Funktion um alle wiederkehrende Kosten zu behandeln
 export const handlerepeatingExpenses = onSchedule(
@@ -119,7 +112,6 @@ export const handlerepeatingExpenses = onSchedule(
             .collection(`groups/${groupId}/expenses`)
             .doc(expenseId)
             .set(cleanedExpense);
-
 
           // Update the `lastPay` field in the original repeatingExpense
           await snapshotDoc.ref.update({
@@ -225,7 +217,7 @@ export const recalculateGroupBalances = onSchedule(
         });
 
         logger.info(
-          `Balances für Gruppe ${groupId} neu berechnet:
+          `Balances für Gruppe ${groupId} neu berechnet: 
           Total = ${total}, Count = ${count}`
         );
       }
@@ -367,38 +359,4 @@ export const updateBalances = onDocumentWritten(
       console.error("Error updating balances on new expense:", error);
     }
   }
-
 );
-
-const corsHandler = cors({ origin: 'http://localhost:8100' });
-
-export const sendPushNotification = functions.https.onRequest((req, res) => {
-  corsHandler(req, res, async () => {
-    if (req.method === 'OPTIONS') {
-      // Preflight-Anfrage wird durch cors automatisch behandelt
-      return res.status(204).send('');
-    }
-
-    if (req.method !== 'POST') {
-      return res.status(405).send('Method Not Allowed');
-    }
-
-    try {
-      const { toUserId, title, body } = req.body;
-
-      const message = {
-        notification: { title, body },
-        token: toUserId,
-      };
-
-      await admin.messaging().send(message);
-
-      return res.status(200).send('Push Notification gesendet');
-    } catch (error) {
-      console.error('Fehler beim Senden der Benachrichtigung:', error);
-      return res.status(500).send(error.toString());
-    }
-  });
-});
-
-

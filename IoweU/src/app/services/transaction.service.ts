@@ -18,14 +18,7 @@ import {
 import { Balances } from './objects/Balances';
 import { Expenses } from './objects/Expenses';
 import { ExpenseService } from './expense.service';
-
-// Exportiere das Interface, damit es in anderen Komponenten verwendet werden kann
-export interface DebtEntry {
-  from: string;
-  to: string;
-  amount: number; // Beibehalten als 'amount' für Konsistenz
-  relatedExpenses: string[];
-}
+import { DebtEntry } from './objects/DeptEntry';
 
 @Injectable({
   providedIn: 'root',
@@ -34,22 +27,12 @@ export class TransactionService {
   private firestore = inject(Firestore);
   private expenseService = inject(ExpenseService);
 
-  // Diese Eigenschaften sind primär für die Komponente relevant und könnten ggf. entfernt werden,
-  // wenn der Service sie nicht selbst direkt benötigt oder füllt.
-  deptList: DebtEntry[] = []; // Initialisierung als leeres Array, da es nicht mehr die primäre Rolle des Services ist, dies zu halten
+  deptList: DebtEntry[] = [];
   groupMembers: any[] = [];
 
   constructor() {}
 
   // --- GET DATA FROM DATABASE ---
-
-  /**
-   * Holt Transaktionen eines bestimmten Benutzers in Echtzeit.
-   * @param username Der Benutzername des anfragenden Benutzers.
-   * @param groupId Die ID der Gruppe.
-   * @param updateTransactionsCallback Ein Callback, der mit den aktualisierten Transaktionen aufgerufen wird.
-   * @returns Eine Unsubscribe-Funktion, um das Echtzeit-Listening zu beenden.
-   */
   async getTransactionsByName(
     username: string,
     groupId: string,
@@ -99,13 +82,6 @@ export class TransactionService {
     }
   }
 
-  /**
-   * Filtert Ausgaben, die mit den übergebenen IDs in Verbindung stehen und für den angegebenen Benutzer noch offen sind.
-   * @param groupId Die ID der Gruppe.
-   * @param relatedExpenseIds Die Liste der Expense IDs, die gefiltert werden sollen.
-   * @param uid Die User ID, für die die Ausgaben gefiltert werden.
-   * @returns Eine Liste der gefilterten Ausgaben.
-   */
   async getFilteredRelatedExpenses(
     groupId: string,
     relatedExpenseIds: string[],
@@ -149,17 +125,6 @@ export class TransactionService {
     return filteredExpenses;
   }
 
-  // --- TRANSACTIONS CRUD (ANPASSUNGEN FÜR BATCH-FÄHIGKEIT) ---
-
-  /**
-   * Erstellt eine einzelne Transaktion und aktualisiert zugehörige Daten atomar.
-   * Diese Funktion erstellt einen eigenen Batch.
-   * @param groupId Die ID der Gruppe.
-   * @param expenseIds Eine Liste der zugehörigen Expense IDs.
-   * @param fromUid Die UID des Absenders.
-   * @param transaction Die Transaktionsdaten.
-   * @returns Die erstellten Transaktionsdaten oder null bei Fehler.
-   */
   async makeTransactionById(
     groupId: string,
     expenseIds: string[], // Angepasst von `expenseId` zu `expenseIds` (Array)
@@ -242,15 +207,6 @@ export class TransactionService {
     }
   }
 
-  /**
-   * Löscht eine Transaktion und setzt zugehörige Daten atomar zurück.
-   * Diese Funktion erstellt einen eigenen Batch.
-   * @param groupId Die ID der Gruppe.
-   * @param expenseId Die ID der Hauptausgabe, die mit dieser Transaktion verbunden ist (kann auch ein Array sein, je nach deiner Logik).
-   * @param uid Die User ID, deren Zahlstatus zurückgesetzt werden soll.
-   * @param transaction Die Transaktionsdaten.
-   * @param transactionId Die ID der zu löschenden Transaktion.
-   */
   async deleteTransactionsById(
     groupId: string,
     expenseId: string, // Hier ist es eine einzelne ID
@@ -322,25 +278,13 @@ export class TransactionService {
     }
   }
 
-  // --- UPDATE TRANSACTION OR EXPENSE FUNCTIONS (ANGEPASST FÜR BATCH) ---
-
-  /**
-   * Aktualisiert die aggregierten Beträge (countAmountPaid, sumAmountPaid, etc.) für Mitglieder in der Gruppe.
-   * Diese Funktion arbeitet mit einem Firestore WriteBatch für atomare Operationen.
-   * @param batch Der Firestore WriteBatch, zu dem die Operation hinzugefügt werden soll.
-   * @param groupId Die ID der Gruppe.
-   * @param transaction Die Transaktionsdaten (from, to, amount).
-   * @param sign 1 für Addition, -1 für Subtraktion.
-   */
   async updateMemberAmounts(
-    batch: WriteBatch, // Nimmt einen Batch entgegen
+    batch: WriteBatch, 
     groupId: string,
     transaction: { from: string; to: string; amount: number },
     sign: number
   ): Promise<void> {
     const groupRef = doc(this.firestore, 'groups', groupId);
-    // Wichtig: Die aktuellen Gruppendaten müssen aus der Datenbank gelesen werden,
-    // da der Batch nur die auszuführenden Operationen kennt, nicht den aktuellen Zustand.
     const groupSnap = await getDoc(groupRef);
 
     if (groupSnap.exists()) {
@@ -383,14 +327,6 @@ export class TransactionService {
     }
   }
 
-  /**
-   * Aktualisiert die Balances-Dokumente für eine Transaktion innerhalb eines Batches.
-   * @param action 'addition' oder 'deletion'
-   * @param groupId Die ID der Gruppe.
-   * @param currentTransaction Die aktuelle Transaktion.
-   * @param newTransactionId Die ID der Transaktion (falls neu erstellt).
-   * @param batch Der Firestore WriteBatch, zu dem die Operation hinzugefügt werden soll.
-   */
   async updateMemberBalancesOnTransaction(
     action: 'addition' | 'deletion',
     groupId: string,
@@ -490,14 +426,6 @@ export class TransactionService {
     }
   }
 
-  /**
-   * Markiert Mitglieder als bezahlt in einer Ausgabe.
-   * Diese Funktion ist NICHT batch-fähig, da sie direkt setDoc aufruft.
-   * Sie wird von Funktionen außerhalb des Haupt-Ausgleichs-Batches genutzt.
-   * @param groupId Die ID der Gruppe.
-   * @param expenseId Die ID der Ausgabe.
-   * @param uid (Optional) Die UID des spezifischen Mitglieds, das als bezahlt markiert werden soll.
-   */
   async markMembersAsPaid(
     groupId: string,
     expenseId: string,
@@ -546,19 +474,6 @@ export class TransactionService {
     }
   }
 
-  // --- CALCULATE DEBTS FUNCTIONS (ANPASSUNGEN FÜR BATCH) ---
-
-  /**
-   * Führt eine Schuld mit einem Mitglied aus und erstellt einen eigenen Batch.
-   * ACHTUNG: Die Logik hier ist fast identisch mit `makeTransactionById`.
-   * Überlege, ob eine der beiden Funktionen entfernt oder vereinfacht werden kann.
-   * @param groupId Die ID der Gruppe.
-   * @param fromUid Die UID des Zahlenden.
-   * @param toUid Die UID des Empfängers.
-   * @param amount Der zu zahlende Betrag.
-   * @param reason Der Grund der Zahlung.
-   * @param relatedExpenseIds Die zugehörigen Expense IDs.
-   */
   async settleDebtWithOneMember(
     groupId: string,
     fromUid: string,
@@ -636,12 +551,6 @@ export class TransactionService {
     }
   }
 
-  /**
-   * Berechnet die minimalen Ausgleichstransaktionen für eine gesamte Gruppe.
-   * Diese Funktion führt KEINE Datenbankoperationen durch.
-   * @param groupId Die ID der Gruppe.
-   * @returns Eine Liste der zu empfehlenden Ausgleichstransaktionen.
-   */
   async getCalculatedGroupSettlementDebts(
     groupId: string
   ): Promise<DebtEntry[]> {
@@ -694,13 +603,6 @@ export class TransactionService {
     }
   }
 
-  /**
-   * Berechnet die direkten Schulden für eine spezifische UID.
-   * Diese Funktion führt KEINE Datenbankoperationen durch.
-   * @param groupId Die ID der Gruppe.
-   * @param id Die UID des Benutzers, für den die Schulden berechnet werden sollen.
-   * @returns Eine Liste der direkten Schulden des Benutzers.
-   */
   async settleDebtsForID(
     groupId: string,
     id: string
@@ -779,13 +681,6 @@ export class TransactionService {
     }
   }
 
-  /**
-   * Führt die berechneten Ausgleichstransaktionen in der Datenbank aus.
-   * Nutzt einen WriteBatch für atomare Operationen.
-   * @param groupId Die ID der Gruppe.
-   * @param transactionsToExecute Die Liste der zu ausführenden Transaktionen (berechnet von getCalculatedGroupSettlementDebts oder settleDebtsForID).
-   * @param isGroupSettlement Ein Flag, das angibt, ob es sich um einen vollständigen Gruppenausgleich handelt.
-   */
   async executeSettlementTransactions(
     groupId: string,
     transactionsToExecute: DebtEntry[],

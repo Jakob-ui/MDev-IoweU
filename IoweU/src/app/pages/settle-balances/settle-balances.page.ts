@@ -205,6 +205,17 @@ export class SettleBalancesPage implements OnInit {
     this.navCtrl.back();
   }
 
+  hasDebts(): boolean {
+    if(!this.gruppenausgleich){
+    return this.deptList.some(
+      (debt) => debt.from === this.uid && debt.amount > 0
+    );
+    } else if(this.deptList.length > 0){
+      return true;
+    }
+    return false;
+  }
+
   goToExpenseDetails(expenseId: string) {
     this.loadingService.show();
     try {
@@ -246,7 +257,7 @@ export class SettleBalancesPage implements OnInit {
     try {
       await this.transactionService.executeSettlementTransactions(
         this.groupId,
-        this.deptList, 
+        this.deptList,
         this.gruppenausgleich
       );
     } catch (error) {
