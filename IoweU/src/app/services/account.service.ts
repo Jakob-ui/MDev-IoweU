@@ -112,22 +112,13 @@ export class AccountService {
     }
   }
 
-  listenToGroupsWithMembersChanges(
-    updateGroupsCallback: (groups: { id: string; members: any[] }[]) => void
-  ): () => void {
-    const groupsCollection = collection(this.firestore, 'groups');
+  shouldReloadGroupOverview = false;
 
-    const unsubscribe = onSnapshot(groupsCollection, (snapshot) => {
-      const groups = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          members: data['members'] || [],
-        };
-      });
-      updateGroupsCallback(groups);
-    });
+  setShouldReloadGroupOverview(value: boolean) {
+    this.shouldReloadGroupOverview = value;
+  }
 
-    return unsubscribe;
+  getShouldReloadGroupOverview(): boolean {
+    return this.shouldReloadGroupOverview;
   }
 }

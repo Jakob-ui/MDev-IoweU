@@ -42,16 +42,18 @@
         placeholder="Gib einen Namen ein"
         [readonly]="!userEditing"
       ></ion-input>
-      <ion-icon
-        *ngIf="userEditing"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/md-checkmark.svg'"
-        (click)="confirm()"
-      ></ion-icon>
-      <ion-icon
-        *ngIf="userEditing"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-close.svg' : 'assets/icon/ionicons/md-close.svg'"
-        (click)="cancel()"
-      ></ion-icon>
+      <div class="name-buttons">
+        <ion-icon
+          *ngIf="userEditing"
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/md-checkmark.svg'"
+          (click)="confirm()"
+        ></ion-icon>
+        <ion-icon
+          *ngIf="userEditing"
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-close.svg' : 'assets/icon/ionicons/md-close.svg'"
+          (click)="cancel()"
+        ></ion-icon>
+      </div>
       <ion-icon
         class="brush-icon"
         *ngIf="!userEditing"

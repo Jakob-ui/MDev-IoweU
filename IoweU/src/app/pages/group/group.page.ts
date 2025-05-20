@@ -139,7 +139,7 @@ export class GroupPage implements OnInit {
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
-      this.loadingService.hide(); // Lade-Overlay deaktivieren
+      this.loadingService.hide();
     }
   }
 
