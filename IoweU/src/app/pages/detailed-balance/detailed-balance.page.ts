@@ -22,7 +22,9 @@ import { Users } from '../../services/objects/Users';
 import { Balances } from '../../services/objects/Balances';
 
 import { Firestore, collection, query, where, getDocs } from '@angular/fire/firestore';
+import { FunctionsModule } from '@angular/fire/functions';
 import {TransactionService} from "../../services/transaction.service";
+import {PushNotificationService} from "../../services/push-notification.service";
 
 @Component({
   selector: 'app-detailed-balance',
@@ -39,6 +41,7 @@ import {TransactionService} from "../../services/transaction.service";
     IonButton,
     IonIcon,
     RouterLink,
+    FunctionsModule
   ],
 })
 export class DetailedBalancePage implements OnInit {
@@ -52,6 +55,7 @@ export class DetailedBalancePage implements OnInit {
   private loadingService = inject(LoadingService);
   private firestore: Firestore = inject(Firestore);
   private transactionService = inject(TransactionService);
+  private pushNotificationService = inject(PushNotificationService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -270,8 +274,26 @@ export class DetailedBalancePage implements OnInit {
     return memberEntry?.amountToPay || 0;
   }
 
-  requestPayment(){
+  async requestPayment() {
+    try {
+      const toUserId = this.selectedMember?.uid;
+      if (!toUserId) {
+        console.error("Kein Ziel-User ausgewählt!");
+        return;
+      }
+      const myName = this.username;
 
+      await this.pushNotificationService.sendPushNotification(
+        toUserId,
+        'Schuldenanfrage',
+        `${myName} möchte, dass du deine Schulden begleichst.`
+      );
+
+      // Optional: Toast oder Confirmation anzeigen
+      console.log('Push gesendet!');
+    } catch (error) {
+      console.error('Fehler beim Senden der Benachrichtigung:', error);
+    }
   }
 
 }

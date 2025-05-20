@@ -10,6 +10,7 @@ import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
 import { provideMessaging, getMessaging } from '@angular/fire/messaging';
+import {getFunctions, provideFunctions} from "@angular/fire/functions";
 
 setLogLevel('error');
 
@@ -23,5 +24,6 @@ bootstrapApplication(AppComponent, {
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
     provideMessaging(() => getMessaging()),
+    provideFunctions(() => getFunctions()),
   ],
 });

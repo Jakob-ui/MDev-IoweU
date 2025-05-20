@@ -250,7 +250,7 @@ export class AuthService {
       await setDoc(
         userRef,
         { fcmToken: token },
-        { merge: true } // merge, damit andere Felder nicht überschrieben werden
+        { merge: true }
       );
       console.log('FCM-Token erfolgreich gespeichert.');
     } catch (error) {
