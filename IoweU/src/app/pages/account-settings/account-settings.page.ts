@@ -226,15 +226,29 @@ export class AccountSettingsPage implements OnInit {
         lastedited: new Date().toISOString(),
       });
 
-      console.log('Änderungen erfolgreich gespeichert.');
+      // Lokale Werte aktualisieren, damit die UI sofort die neuen Daten zeigt
+      this.name = this.newname;
+      // Falls du die Theme-Farbe verwendest, aktualisiere auch das CSS-Variable
+      if (this.color) {
+        document.documentElement.style.setProperty('--user-color', this.color);
+      }
 
-      this.loadUserData();
+      // Nach dem erfolgreichen Update auch die Gruppenmitgliederdaten aktualisieren
+      const uid = this.uid;
+      if (uid) {
+        await this.acc.updateGroupsWithNewUserData(uid, this.newname, this.color);
+      }
+
+      this.presentToast('Accountsettings wurden gespeichert!');
     } catch (e) {
       console.error('Fehler beim Speichern der Änderungen:', e);
+      this.presentToast('Fehler beim Speichern der Änderungen!');
     } finally {
       this.loadingService.hide(); // Lade-Overlay deaktivieren
     }
   }
+
+
 
   public loginAlertButtons = [
     {
@@ -434,5 +448,15 @@ export class AccountSettingsPage implements OnInit {
     } else {
       document.body.classList.remove('color-blind');
     }
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
   }
 }
