@@ -1,0 +1,98 @@
+.profilepic {
+  width: 60px;
+  height: 60px;
+  border: solid;
+  background-color: white;
+  border-radius: 50%;
+  margin-bottom: 5px;
+}
+
+.fixed-bottom {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.fixed-bottom ion-button {
+  width: 80%;
+  max-width: 400px;
+}
+ion-toggle {
+  --track-background: #848383;
+  --track-background-checked: #dedede;
+}
+
+ion-toggle::part(handle) {
+  background: #ffffff !important;
+}
+
+.user-info-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 120px !important;
+  border-radius: 50px;
+  gap: 10px;
+  background: none !important;
+  border: none !important;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.user-info-top .profile-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--user-color, #1a65eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--ion-color-dark);
+  font-size: 18px;
+  border: 2px solid var(--user-color, #1a65eb);
+}
+
+.user-info-top .user-name-big {
+  margin-top: 5px;
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--ion-color-dark);
+}
+
+.name-buttons{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-item ion-icon{
+  font-size: 23px;
+  padding: 5px;
+  border-radius: 50%;
+  background-color: var(--ion-color-primary);
+}
+
+
+
+@media (prefers-color-scheme: dark) {
+  .farbenblind-label {
+    color: #000;
+  }
+  ion-toggle {
+    --track-background: #989696;
+    --track-background-checked: #3a3a3a;
+  }
+
+  ion-toggle::part(handle) {
+    background: #3a3a3a !important;
+  }
+  .user-name-big {
+    color: #fff !important;
+  }
+}

@@ -35,7 +35,7 @@ export class LoginPage {
     try {
       await this.authService.waitForUser();
 
-      if (this.authService.currentUser) {
+      if (this.authService.currentUser && this.authService.currentUser.username) {
         this.router.navigate(['/group-overview']);
       }
     } catch (error) {
@@ -65,6 +65,32 @@ export class LoginPage {
     } catch (error) {
       console.error('Fehler beim Login:', error);
       this.error = 'Fehler beim Login, bitte versuchen Sie es erneut.';
+      this.loginFailed = true;
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
+  async googleLogin() {
+    try {
+      this.loadingService.show();
+      const userData = await this.authService.googleLogin('', '');
+
+      if (userData && userData.uid) {
+        if (!userData.username || userData.username === 'Unnamed User' || !userData.color || userData.color === '#CCCCCC') {
+          console.log('Google Login: Erster Login oder Profil unvollständig. Weiterleitung zu Profil-Setup.');
+          this.router.navigate(['/profile-setup']);
+        } else {
+          console.log('Google Login erfolgreich. Weiterleitung zu Gruppenübersicht.');
+          this.router.navigate(['/group-overview']);
+        }
+      } else {
+        this.error = 'Google Login fehlgeschlagen: Keine Benutzerdaten erhalten.';
+        this.loginFailed = true;
+      }
+    } catch (error: any) {
+      console.error('Fehler beim Google Login:', error);
+      this.error = error.message || 'Google Login fehlgeschlagen, bitte versuchen Sie es erneut.';
       this.loginFailed = true;
     } finally {
       this.loadingService.hide();

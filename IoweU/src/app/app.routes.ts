@@ -18,11 +18,12 @@ export const routes: Routes = [
       import('./pages/register/register.page').then((m) => m.RegisterPage),
   },
   {
-    path: 'register-with-google',
+    path: 'profile-setup',
     loadComponent: () =>
-      import('./pages/register-with-google/register-with-google.page').then(
-        (m) => m.RegisterWithGooglePage
+      import('./pages/profile-setup/profile-setup.page').then(
+        (m) => m.ProfileSetupPage
       ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'group-overview',
@@ -188,12 +189,5 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'not-found',
-  },
-  {
-    path: 'register-with-google',
-    loadComponent: () =>
-      import('./pages/register-with-google/register-with-google.page').then(
-        (m) => m.RegisterWithGooglePage
-      ),
   },
 ];

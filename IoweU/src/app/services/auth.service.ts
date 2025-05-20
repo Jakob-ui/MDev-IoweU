@@ -9,6 +9,7 @@ import {
   UserCredential,
   GoogleAuthProvider,
   signInWithRedirect,
+  signInWithPopup,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
@@ -151,44 +152,79 @@ export class AuthService {
     return userCredential;
   }
 
-  async registerWithGoogle(additionalData: {
-    username: string;
-    color: string;
-  }): Promise<void> {
+  async googleLogin(
+    username: string,
+    color: string,
+    groupId: string[] = []
+  ): Promise<Users | null> {
     const provider = new GoogleAuthProvider();
-    await signInWithRedirect(this.auth, provider);
-  }
+    try {
+      const result = await signInWithPopup(this.auth, provider);
+      const firebaseUser = result.user;
 
-  async handleGoogleRedirect(additionalData: {
-    username: string;
-    color: string;
-  }): Promise<UserCredential | null> {
-    const { getRedirectResult } = await import('@angular/fire/auth');
-    const result = await getRedirectResult(this.auth);
-    if (result && result.user) {
-      const userRef = doc(this.firestore, 'users', result.user.uid);
-      const userSnap = await getDoc(userRef);
+      if (firebaseUser) {
+        const userDocRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+        const userDocSnap = await getDoc(userDocRef);
 
-      if (!userSnap.exists()) {
-        const userData: Users = {
-          uid: result.user.uid,
-          username: additionalData.username,
-          email: result.user.email || '',
-          color: additionalData.color,
-          lastedited: new Date().toISOString(),
-          groupId: [],
-        };
-        await setDoc(userRef, userData);
-        this.currentUser = userData;
-      } else {
-        this.currentUser = userSnap.data() as Users;
+        let userDataToSave: Users;
+
+        if (!userDocSnap.exists()) {
+          userDataToSave = {
+            uid: firebaseUser.uid,
+            username: username || firebaseUser.displayName || 'Unnamed User',
+            email: firebaseUser.email || '',
+            color: color || '#CCCCCC', 
+            lastedited: new Date().toISOString(),
+            groupId: groupId,
+          };
+          console.log(
+            'Neuer Google-Nutzer: Daten werden in Firestore gespeichert.',
+            userDataToSave
+          );
+
+          const success = await this.saveUserData(
+            firebaseUser.uid,
+            userDataToSave
+          );
+          if (!success) {
+            throw new Error(
+              'Fehler beim Speichern der Benutzerdaten nach dem ersten Google Login.'
+            );
+          }
+          this.currentUser = userDataToSave;
+          this.applyUserColors(this.currentUser.color);
+        } else {
+          const existingUserData = userDocSnap.data() as Users;
+          userDataToSave = {
+            ...existingUserData,
+            lastedited: new Date().toISOString(),
+            username:
+              existingUserData.username ||
+              firebaseUser.displayName ||
+              'Unnamed User',
+            email: existingUserData.email || firebaseUser.email || '',
+          };
+
+          await setDoc(
+            userDocRef,
+            { lastedited: new Date().toISOString() },
+            { merge: true }
+          );
+          console.log('Existierender Google-Nutzer: lastedited aktualisiert.');
+
+          this.currentUser = userDataToSave;
+          this.applyUserColors(this.currentUser.color); 
+        }
+        return userDataToSave;
       }
-      return result;
+      return null;
+    } catch (error: any) {
+      console.error('Fehler beim Google Login:', error);
+      throw error;
     }
-    return null;
   }
 
-  private async saveUserData(uid: string, data: Users): Promise<boolean> {
+  async saveUserData(uid: string, data: Users): Promise<boolean> {
     try {
       const userRef = doc(this.firestore, 'users', uid);
       await setDoc(userRef, data);
