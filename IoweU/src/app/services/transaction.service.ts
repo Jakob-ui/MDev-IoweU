@@ -15,9 +15,6 @@ import {
 } from '@angular/fire/firestore';
 import { Balances } from './objects/Balances';
 import { Expenses } from './objects/Expenses';
-import { GroupService } from './group.service';
-import { AuthService } from './auth.service';
-import { Groups } from './objects/Groups';
 import { ExpenseService } from './expense.service';
 
 @Injectable({
@@ -25,87 +22,97 @@ import { ExpenseService } from './expense.service';
 })
 export class TransactionService {
   private firestore = inject(Firestore);
-  private expenseService = inject(ExpenseService);
 
   deptList = [{ from: '', to: '', debt: 0 }];
   groupMembers: any[] = [];
 
   constructor() {}
 
-  async settleDebtWithOneMember(
+  //Get Data from Database
+  async getTransactionsByName(
+    username: string,
     groupId: string,
-    fromUid: string,
-    toUid: string,
-    amount: number,
-    reason: string,
-    relatedExpenseIds: string[]
-  ) {
+    updateTransactionsCallback: (expenses: Transactions[]) => void
+  ): Promise<() => void> {
     try {
-      const transactionId = doc(
-        collection(this.firestore, 'groups', groupId, 'transactions')
-      ).id;
-      const transactionData: Transactions = {
-        transactionId,
-        from: fromUid,
-        to: toUid,
-        amount: amount,
-        reason: reason,
-        date: new Date().toISOString(),
-        relatedExpenses: [],
-      };
-      const transactionRef = doc(
+      const transactionCollection = collection(
         this.firestore,
         'groups',
         groupId,
-        'transactions',
-        transactionId
+        'transactions'
       );
-      await setDoc(transactionRef, transactionData);
-      await this.updateMemberAmounts(groupId, transactionData, 1);
-      await this.updateMemberBalancesOnTransaction(
-        'addition',
-        groupId,
-        transactionData,
-        transactionId
-      );
-      for (const expenseId of relatedExpenseIds) {
-        console.log('relatedExpenseIds: ', expenseId);
-        await this.markMembersAsPaid(groupId, expenseId, toUid);
-      }
-      console.log('Transaction added:', transactionId);
-    } catch {}
+      const q = query(transactionCollection, where('from', '==', username));
+      const snapshot = await getDocs(q);
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const transactions: Transactions[] = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            from: data['from'],
+            to: data['to'],
+            amount: data['amount'],
+            reason: data['reason'],
+            date: data['date'],
+            relatedExpenses: data['relatedExpenses'],
+          } as Transactions;
+        });
+
+        transactions.sort((a, b) => {
+          const dateA = new Date(a.date).getTime();
+          const dateB = new Date(b.date).getTime();
+          return dateB - dateA;
+        });
+
+        updateTransactionsCallback(transactions);
+        console.log(
+          'Echtzeit-Transaktionen (nach Datum sortiert):',
+          transactions
+        );
+      });
+      return unsubscribe;
+    } catch (error) {
+      console.error('Fehler beim Abrufen der Transaktionen:', error);
+      throw new Error('Fehler beim Abrufen der Transaktionen');
+    }
   }
 
-  async getRelatedExpensesBetweenUsers(
+  async getFilteredRelatedExpenses(
     groupId: string,
-    fromUid: string,
-    toUid: string
-  ): Promise<string[]> {
-    const balancesRef = collection(
-      this.firestore,
-      'groups',
-      groupId,
-      'balances'
-    );
-    const q = query(
-      balancesRef,
-      where('userAId', 'in', [fromUid, toUid]),
-      where('userBId', 'in', [fromUid, toUid])
-    );
-    const snapshot = await getDocs(q);
+    relatedExpenseIds: string[],
+    uid: string
+  ): Promise<Expenses[]> {
+    const filteredExpenses: Expenses[] = [];
 
-    for (const docSnap of snapshot.docs) {
-      const data = docSnap.data();
-      if (
-        (data['userAId'] === fromUid && data['userBId'] === toUid) ||
-        (data['userAId'] === toUid && data['userBId'] === fromUid)
-      ) {
-        return data['relatedExpenseId'] || [];
+    for (const expenseId of relatedExpenseIds) {
+      const expenseRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'expenses',
+        expenseId
+      );
+      const expenseSnapshot = await getDoc(expenseRef);
+
+      if (expenseSnapshot.exists()) {
+        const expense = expenseSnapshot.data() as Expenses;
+
+        // Filtere die Ausgaben, bei denen der Benutzer noch nicht bezahlt hat UND amountToPay > 0 ist
+        const hasUnpaidMember = expense.expenseMember.some(
+          (member) =>
+            member.memberId === uid && !member.paid && member.amountToPay > 0
+        );
+
+        if (hasUnpaidMember) {
+          filteredExpenses.push(expense);
+        }
+      } else {
+        console.warn(`Expense with ID ${expenseId} not found.`);
       }
     }
-    return [];
+    return filteredExpenses;
   }
 
+  //Transactions CRUD
   async makeTransactionById(
     groupId: string,
     expenseId: string[],
@@ -147,55 +154,6 @@ export class TransactionService {
       return transactionData;
     } catch {
       return null;
-    }
-  }
-
-  async getTransactionsByName(
-    username: string,
-    groupId: string,
-    updateTransactionsCallback: (expenses: Transactions[]) => void
-  ): Promise<() => void> {
-    try {
-      const transactionCollection = collection(
-        this.firestore,
-        'groups',
-        groupId,
-        'transactions'
-      );
-      const q = query(transactionCollection, where('from', '==', username));
-      const snapshot = await getDocs(q);
-
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const transactions: Transactions[] = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            from: data['from'],
-            to: data['to'],
-            amount: data['amount'],
-            reason: data['reason'],
-            date: data['date'],
-            relatedExpenses: data['relatedExpenses'],
-          } as Transactions;
-        });
-
-        // Transaktionen nach Datum sortieren (neuestes zuerst)
-        transactions.sort((a, b) => {
-          const dateA = new Date(a.date).getTime();
-          const dateB = new Date(b.date).getTime();
-          return dateB - dateA;
-        });
-
-        // Callback aufrufen, um die Transaktionen zu aktualisieren
-        updateTransactionsCallback(transactions);
-        console.log(
-          'Echtzeit-Transaktionen (nach Datum sortiert):',
-          transactions
-        );
-      });
-      return unsubscribe;
-    } catch (error) {
-      console.error('Fehler beim Abrufen der Transaktionen:', error);
-      throw new Error('Fehler beim Abrufen der Transaktionen');
     }
   }
 
@@ -274,6 +232,7 @@ export class TransactionService {
     }
   }
 
+  //Update Transaction or Expense functions
   async updateMemberAmounts(
     groupId: string,
     transaction: Transactions,
@@ -437,56 +396,6 @@ export class TransactionService {
     }
   }
 
-  async updateUserStateOnExpense(
-    groupId: string,
-    expenseId: string,
-    uid: string,
-    state: boolean
-  ) {
-    try {
-      const expenseRef = doc(
-        this.firestore,
-        'groups',
-        groupId,
-        'expenses',
-        expenseId
-      );
-
-      // Hole die aktuelle Ausgabe aus der Datenbank
-      const snapshot = await getDoc(expenseRef);
-
-      if (snapshot.exists()) {
-        const expense = snapshot.data() as Expenses;
-
-        // Aktualisiere das Feld "paid" für den entsprechenden Member
-        const updatedExpenseMembers = expense.expenseMember.map((member) => {
-          if (member.memberId === uid) {
-            return { ...member, paid: state }; // Füge das Feld "paid" hinzu oder aktualisiere es
-          }
-          return member;
-        });
-
-        // Speichere die aktualisierte Liste zurück in die Datenbank
-        await setDoc(
-          expenseRef,
-          { expenseMember: updatedExpenseMembers },
-          { merge: true }
-        );
-
-        console.log(
-          `Expense ${expenseId} updated for member ${uid} with paid: ${state}`
-        );
-      } else {
-        console.error(`Expense with ID ${expenseId} not found.`);
-      }
-    } catch (error) {
-      console.error(error);
-      throw new Error(
-        `Fehler beim Aktualisieren des Feldes "paid" für Expense ${expenseId}`
-      );
-    }
-  }
-
   async markMembersAsPaid(
     groupId: string,
     expenseId: string,
@@ -541,41 +450,49 @@ export class TransactionService {
     }
   }
 
-  async getFilteredRelatedExpenses(
+  //Calculate Debts functions
+  async settleDebtWithOneMember(
     groupId: string,
-    relatedExpenseIds: string[],
-    uid: string
-  ): Promise<Expenses[]> {
-    const filteredExpenses: Expenses[] = [];
-
-    for (const expenseId of relatedExpenseIds) {
-      const expenseRef = doc(
+    fromUid: string,
+    toUid: string,
+    amount: number,
+    reason: string,
+    relatedExpenseIds: string[]
+  ) {
+    try {
+      const transactionId = doc(
+        collection(this.firestore, 'groups', groupId, 'transactions')
+      ).id;
+      const transactionData: Transactions = {
+        transactionId,
+        from: fromUid,
+        to: toUid,
+        amount: amount,
+        reason: reason,
+        date: new Date().toISOString(),
+        relatedExpenses: [],
+      };
+      const transactionRef = doc(
         this.firestore,
         'groups',
         groupId,
-        'expenses',
-        expenseId
+        'transactions',
+        transactionId
       );
-      const expenseSnapshot = await getDoc(expenseRef);
-
-      if (expenseSnapshot.exists()) {
-        const expense = expenseSnapshot.data() as Expenses;
-
-        // Filtere die Ausgaben, bei denen der Benutzer noch nicht bezahlt hat UND amountToPay > 0 ist
-        const hasUnpaidMember = expense.expenseMember.some(
-          (member) =>
-            member.memberId === uid && !member.paid && member.amountToPay > 0
-        );
-
-        if (hasUnpaidMember) {
-          filteredExpenses.push(expense);
-        }
-      } else {
-        console.warn(`Expense with ID ${expenseId} not found.`);
+      await setDoc(transactionRef, transactionData);
+      await this.updateMemberAmounts(groupId, transactionData, 1);
+      await this.updateMemberBalancesOnTransaction(
+        'addition',
+        groupId,
+        transactionData,
+        transactionId
+      );
+      for (const expenseId of relatedExpenseIds) {
+        console.log('relatedExpenseIds: ', expenseId);
+        await this.markMembersAsPaid(groupId, expenseId, toUid);
       }
-    }
-
-    return filteredExpenses;
+      console.log('Transaction added:', transactionId);
+    } catch {}
   }
 
   async settleDebtsForID(
@@ -669,15 +586,6 @@ export class TransactionService {
 
       // Schulden in deptList speichern
       this.deptList = schulden.map(([from, to, debt]) => ({ from, to, debt }));
-      /*
-      const member : any= this.groupMembers.find((m) => m.uid === member);
-      return member ? member.username : 'Unbekannt';
-      const showNames = this.deptList.map(({ from, to, debt }) => ({
-        from,
-        to,
-        debt,
-      })); 
-      */
       console.log('Dept List:', this.deptList);
 
       // Schuldenverteilung berechnen

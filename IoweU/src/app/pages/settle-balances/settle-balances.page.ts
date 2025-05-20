@@ -71,24 +71,6 @@ export class SettleBalancesPage implements OnInit {
   memberRoles: string[] = [];
   memberUids: string[] = [];
 
-  expenseDescription: string = '';
-  expenseTotalAmount: number = 0;
-  expensePaidBy: string = '';
-  expensePaidByUsername: string = '';
-  expenseDate: string = '';
-  expenseCurrency: string = '';
-  expenseCategory: string = '';
-  expenseMember: ExpenseMember[] = [];
-  expenseMemberIds: string[] = [];
-  expenseAmountToPay: number = 0;
-  expenseMemberProducts: Products[] = [];
-  expenseMemberSplitType: string = '';
-  expenseMemberSplitBy: string = '';
-  expenseMemberPaidBy: string = '';
-  expenseMemberPaidByName: string = '';
-  expenseMemberPaidByUid: string = '';
-  reason: string = '';
-
   gruppenausgleich: boolean = false;
 
   splitValue: { [uid: string]: number } = {};
@@ -99,55 +81,14 @@ export class SettleBalancesPage implements OnInit {
     debt: number;
     relatedExpenses: string[];
   }[] = [{ from: '', to: '', debt: 0, relatedExpenses: [] }];
-  products: Products[] = [];
 
-  visibleProducts: { [key: string]: boolean } = {};
-
-  overlayState: 'start' | 'normal' | 'hidden' = 'start';
-
-  categories = CATEGORIES;
-
-  expense: Expenses[] = [
-    {
-      expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
-      description: '',
-      totalAmount: 0,
-      paidBy: '',
-      date: new Date().toISOString().split('T')[0],
-      currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
-      category: '',
-      invoice: '',
-      repeat: '',
-      splitType: 'prozent',
-      splitBy: 'alle',
-      expenseMember: [
-        {
-          memberId: '',
-          amountToPay: 0,
-          split: 0,
-          paid: false,
-          products: [
-            {
-              productId: (
-                Date.now() + Math.floor(Math.random() * 1000)
-              ).toString(),
-              memberId: '',
-              productname: '',
-              quantity: 1,
-              unit: '',
-              price: 0,
-            },
-          ],
-        },
-      ],
-    },
-  ];
+  expense: Expenses[] = [];
 
   async ngOnInit() {
     this.loadingService.show();
     try {
       await this.authService.waitForUser();
-      // Query-Parameter lesen, um festzustellen, ob es sich um eine wiederkehrende Ausgabe handelt
+
       this.activeRoute.queryParams.subscribe((params) => {
         this.gruppenausgleich = params['settlegroup'] === 'true';
       });
@@ -166,7 +107,17 @@ export class SettleBalancesPage implements OnInit {
         console.error(`Gruppe mit der ID ${this.groupId} nicht gefunden`);
         return;
       }
+      this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+      this.groupMembers = currentGroup.members || [];
+
+      this.memberUsernames = this.groupMembers.map((m) => m.username || '');
+      this.memberIds = this.groupMembers.map((m) => m.memberId || '');
+      this.memberColors = this.groupMembers.map((m) => m.color || '');
+      this.memberRoles = this.groupMembers.map((m) => m.role || '');
+      this.memberUids = this.groupMembers.map((m) => m.uid || '');
+
       if (this.gruppenausgleich) {
+        console.log('führe Gruppenausgleich durch');
         const rawDeptList = await this.transactionService.settleAllDepts(
           this.groupId
         );
@@ -196,16 +147,6 @@ export class SettleBalancesPage implements OnInit {
           console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
         }
       }
-
-      this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-      this.groupMembers = currentGroup.members || [];
-
-      this.memberUsernames = this.groupMembers.map((m) => m.username || '');
-      this.memberIds = this.groupMembers.map((m) => m.memberId || '');
-      this.memberColors = this.groupMembers.map((m) => m.color || '');
-      this.memberRoles = this.groupMembers.map((m) => m.role || '');
-      this.memberUids = this.groupMembers.map((m) => m.uid || '');
-
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
@@ -214,67 +155,10 @@ export class SettleBalancesPage implements OnInit {
     }
   }
 
+  //Hole Daten von Membern oder Expenses
   getMemberNameById(memberId: string): string {
     const member = this.groupMembers.find((m) => m.uid === memberId);
     return member ? member.username : 'Unbekannt';
-  }
-
-  hasProducts(groupMemberId: string): boolean {
-    if (!this.expense || this.expense.length === 0) {
-      return false;
-    }
-
-    for (let expense of this.expense) {
-      const groupMember = expense.expenseMember.find(
-        (member) => member.memberId === groupMemberId
-      );
-
-      if (
-        groupMember &&
-        Array.isArray(groupMember.products) &&
-        groupMember.products.length > 0
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  toggleProducts(memberName: string) {
-    this.visibleProducts[memberName] = !this.visibleProducts[memberName]; // Toggle die Sichtbarkeit der Produkte
-  }
-
-  toggleExpenses(index: number) {
-    this.showExpensesMap[index] = !this.showExpensesMap[index];
-  }
-
-  getRelatedExpensesForDebt(debt: { relatedExpenses: string[]; to: string }) {
-    return this.expense.filter(
-      (e) =>
-        debt.relatedExpenses.includes(e.expenseId) &&
-        e.expenseMember.some((member) => member.memberId === debt.to)
-    );
-  }
-
-  getPurchasedProductsForMember(memberId: string): Products[] {
-    if (!this.expense || this.expense.length === 0) {
-      return [];
-    }
-
-    const expense = this.expense[0];
-
-    if (!expense.expenseMember) {
-      return [];
-    }
-
-    const member = expense.expenseMember.find((m) => m.memberId === memberId);
-
-    return member?.products ?? [];
-  }
-
-  goBack() {
-    this.navCtrl.back();
   }
 
   getFirstLetter(paidBy: string): string {
@@ -296,6 +180,14 @@ export class SettleBalancesPage implements OnInit {
     return userEntry?.amountToPay ?? 0;
   }
 
+  getRelatedExpensesForDebt(debt: { relatedExpenses: string[]; to: string }) {
+    return this.expense.filter(
+      (e) =>
+        debt.relatedExpenses.includes(e.expenseId) &&
+        e.expenseMember.some((member) => member.memberId === debt.to)
+    );
+  }
+
   getAmountClass(expense: Expenses): string {
     if (!expense) {
       return 'neutral';
@@ -313,6 +205,25 @@ export class SettleBalancesPage implements OnInit {
     return 'neutral';
   }
 
+  //UI Controll
+  toggleExpenses(index: number) {
+    this.showExpensesMap[index] = !this.showExpensesMap[index];
+  }
+
+  goBack() {
+    this.navCtrl.back();
+  }
+
+  goToExpenseDetails(expenseId: string) {
+    this.loadingService.show();
+    try {
+      this.router.navigate(['expense-details', this.groupId, expenseId]);
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
+  // Get Data using Service functions
   async loadRelatedExpenses() {
     const relatedExpenseIds = this.deptList.flatMap(
       (debt) => debt.relatedExpenses
@@ -333,6 +244,7 @@ export class SettleBalancesPage implements OnInit {
     }
   }
 
+  //Make Transactions depending on calculated debts
   async pay() {
     this.loadingService.showLittle();
     for (let debtmember of this.deptList) {
@@ -417,15 +329,5 @@ export class SettleBalancesPage implements OnInit {
     });
 
     await alert.present();
-  }
-
-  goToExpenseDetails(expenseId: string) {
-    this.loadingService.show();
-    try {
-      // Hier wird der expenseId der aktuellen Ausgabe übergeben
-      this.router.navigate(['expense-details', this.groupId, expenseId]);
-    } finally {
-      this.loadingService.hide();
-    }
   }
 }
