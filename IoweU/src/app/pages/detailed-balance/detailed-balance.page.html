@@ -175,8 +175,30 @@
     <!-- Button zum Bezahlen der Schulden -->
     <div class="space"></div>
     <div class="button-container">
-      <ion-button class="main-button" expand="block" (click)="pay()" [disabled]="!payable">Schulden begleichen</ion-button>
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="pay()"
+        *ngIf="payable && myBalance < 0">
+        Schulden begleichen
+      </ion-button>
+
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="requestPayment()"
+        *ngIf="payable && myBalance > 0">
+        Schulden anfordern
+      </ion-button>
+
+      <p *ngIf="payable && myBalance === 0">
+        Keine offenen Schulden.
+      </p>
     </div>
+
+
+
+
   </div>
 </ion-content>
 

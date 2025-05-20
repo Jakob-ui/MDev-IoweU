@@ -393,7 +393,7 @@ export class ExpenseDetailsPage {
     }
   }
 
-  requestExpense() {
+  requestPayment() {
     // Hier die Logik für die Anfrage implementieren
   }
 

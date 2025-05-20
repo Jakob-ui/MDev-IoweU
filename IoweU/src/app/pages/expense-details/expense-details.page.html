@@ -195,7 +195,7 @@
       <ion-button
         class="main-button"
         expand="block"
-        (click)="requestExpense()"
+        (click)="requestPayment()"
         *ngIf="!hasUserPaid(expense[0]) && expense[0].paidBy === uid!"
       >
         Schulden anfordern

@@ -270,4 +270,8 @@ export class DetailedBalancePage implements OnInit {
     return memberEntry?.amountToPay || 0;
   }
 
+  requestPayment(){
+
+  }
+
 }

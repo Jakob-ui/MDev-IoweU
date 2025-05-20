@@ -238,4 +238,24 @@ export class AuthService {
       throw new Error('Benutzer konnte nicht vollständig geladen werden.');
     }
   }
+
+  async saveFcmToken(token: string): Promise<void> {
+    if (!this.currentUser?.uid) {
+      console.warn('Kein eingeloggter User zum Speichern des FCM-Tokens.');
+      return;
+    }
+
+    try {
+      const userRef = doc(this.firestore, 'users', this.currentUser.uid);
+      await setDoc(
+        userRef,
+        { fcmToken: token },
+        { merge: true } // merge, damit andere Felder nicht überschrieben werden
+      );
+      console.log('FCM-Token erfolgreich gespeichert.');
+    } catch (error) {
+      console.error('Fehler beim Speichern des FCM-Tokens:', error);
+    }
+  }
+
 }
