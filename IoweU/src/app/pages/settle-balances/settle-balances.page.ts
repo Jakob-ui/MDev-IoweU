@@ -75,10 +75,7 @@ export class SettleBalancesPage implements OnInit {
 
   gruppenausgleich: boolean = false;
 
-  splitValue: { [uid: string]: number } = {};
-  amountToPay: { [uid: string]: number } = {};
   deptList: DebtEntry[] = [];
-
   expense: Expenses[] = [];
 
   async ngOnInit() {
@@ -115,28 +112,21 @@ export class SettleBalancesPage implements OnInit {
 
       if (this.gruppenausgleich) {
         console.log('Berechne Gruppenausgleich...');
-        // Direkt zuweisen, da der Rückgabetyp bereits DebtEntry[] ist
         this.deptList =
           await this.transactionService.getCalculatedGroupSettlementDebts(
             this.groupId
           );
-        console.log(
-          'Berechnete Ausgleichstransaktionen (Gruppenausgleich):',
-          this.deptList
-        );
       } else {
-        console.log('Berechne Einzelausgleich...');
-        // Direkt zuweisen, da der Rückgabetyp bereits DebtEntry[] ist
+        // Wenn gruppenausgleich false ist, ist es automatisch persönlicher Ausgleich
+        console.log('Berechne persönlichen Ausgleich für ' + this.uid + '...');
         this.deptList =
-          (await this.transactionService.settleDebtsForID(
+          await this.transactionService.getCalculatedPersonalSettlementDebts(
             this.groupId,
             this.uid
-          )) || []; // Sicherstellen, dass es nicht null ist
-        console.log(
-          'Berechnete Ausgleichstransaktionen (Einzelausgleich):',
-          this.deptList
-        );
+          );
       }
+
+      console.log('Final berechnete deptList für Anzeige:', this.deptList);
       await this.loadRelatedExpenses();
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -175,7 +165,8 @@ export class SettleBalancesPage implements OnInit {
     return this.expense.filter(
       (e) =>
         debt.relatedExpenses.includes(e.expenseId) &&
-        e.expenseMember.some((member) => member.memberId === debt.to)
+        (e.expenseMember.some((member) => member.memberId === debt.to) ||
+          e.expenseMember.some((member) => member.memberId === debt.from))
     );
   }
 
@@ -206,11 +197,11 @@ export class SettleBalancesPage implements OnInit {
   }
 
   hasDebts(): boolean {
-    if(!this.gruppenausgleich){
-    return this.deptList.some(
-      (debt) => debt.from === this.uid && debt.amount > 0
-    );
-    } else if(this.deptList.length > 0){
+    if (!this.gruppenausgleich) {
+      return this.deptList.some(
+        (debt) => debt.from === this.uid && debt.amount > 0
+      );
+    } else if (this.deptList.length > 0) {
       return true;
     }
     return false;
@@ -235,12 +226,13 @@ export class SettleBalancesPage implements OnInit {
     const relatedExpenseIds = this.deptList.flatMap(
       (debt) => debt.relatedExpenses
     );
+    const uniqueRelatedExpenseIds = [...new Set(relatedExpenseIds)];
 
     try {
       const filteredExpenses =
         await this.transactionService.getFilteredRelatedExpenses(
           this.groupId,
-          relatedExpenseIds,
+          uniqueRelatedExpenseIds,
           this.uid!
         );
 
@@ -255,10 +247,17 @@ export class SettleBalancesPage implements OnInit {
   async pay() {
     this.loadingService.showLittle();
     try {
+      let settlementType: 'group' | 'personal';
+      if (this.gruppenausgleich) {
+        settlementType = 'group';
+      } else {
+        settlementType = 'personal';
+      }
+
       await this.transactionService.executeSettlementTransactions(
         this.groupId,
         this.deptList,
-        this.gruppenausgleich
+        settlementType
       );
     } catch (error) {
       console.error('Fehler beim Ausführen der Zahlung:', error);

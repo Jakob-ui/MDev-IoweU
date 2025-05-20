@@ -89,13 +89,10 @@ export class TransactionService {
   ): Promise<Expenses[]> {
     const filteredExpenses: Expenses[] = [];
 
-    // Vermeide unnötige Abfragen, wenn keine IDs vorhanden sind
     if (!relatedExpenseIds || relatedExpenseIds.length === 0) {
       return [];
     }
 
-    // Firestore `in` Abfragen sind auf 10 IDs beschränkt. Bei mehr muss geloopt werden.
-    // Hier vereinfacht: Jede ID einzeln abfragen. Für Performance: Batches von 10.
     for (const expenseId of relatedExpenseIds) {
       const expenseRef = doc(
         this.firestore,
@@ -109,7 +106,6 @@ export class TransactionService {
       if (expenseSnapshot.exists()) {
         const expense = expenseSnapshot.data() as Expenses;
 
-        // Filtere die Ausgaben, bei denen der Benutzer noch nicht bezahlt hat UND amountToPay > 0 ist
         const hasUnpaidMember = expense.expenseMember.some(
           (member) =>
             member.memberId === uid && !member.paid && member.amountToPay > 0
@@ -127,12 +123,12 @@ export class TransactionService {
 
   async makeTransactionById(
     groupId: string,
-    expenseIds: string[], // Angepasst von `expenseId` zu `expenseIds` (Array)
+    expenseIds: string[],
     fromUid: string,
     transaction: Transactions
   ): Promise<Transactions | null> {
     try {
-      const singleTransactionBatch = writeBatch(this.firestore); // Eigener Batch
+      const singleTransactionBatch = writeBatch(this.firestore);
       const transactionId = doc(
         collection(this.firestore, 'groups', groupId, 'transactions')
       ).id;
@@ -279,7 +275,7 @@ export class TransactionService {
   }
 
   async updateMemberAmounts(
-    batch: WriteBatch, 
+    batch: WriteBatch,
     groupId: string,
     transaction: { from: string; to: string; amount: number },
     sign: number
@@ -569,37 +565,175 @@ export class TransactionService {
         const userBCredit = data['userBCredit'] || 0;
         const relatedExpenseId = data['relatedExpenseId'] || [];
 
-        // Nur wenn es eine tatsächliche Netto-Schuld gibt
-        if (userACredit > userBCredit) {
+        // Hier sammeln wir alle direkten Schulden in beide Richtungen
+        // Diese werden später vom schuldenAusgleichen-Algorithmus verrechnet
+        if (userACredit > 0) {
           initialDebts.push({
             from: userBId,
             to: userAId,
-            amount: userACredit - userBCredit,
+            amount: userACredit,
             relatedExpenses: relatedExpenseId,
           });
-        } else if (userBCredit > userACredit) {
+        }
+        if (userBCredit > 0) {
           initialDebts.push({
             from: userAId,
             to: userBId,
-            amount: userBCredit - userACredit,
+            amount: userBCredit,
             relatedExpenses: relatedExpenseId,
           });
         }
       });
       console.log(
-        'Initial aufbereitete Schulden für Berechnung:',
+        'Initial aufbereitete Schulden für Gruppen-Berechnung:',
         initialDebts
       );
 
+      // Den generischen Schuldenausgleich-Algorithmus auf alle Schulden anwenden
       const calculatedTransactions = this.schuldenAusgleichen(initialDebts);
       console.log(
-        'Berechnete Ausgleichstransaktionen (minimiert):',
+        'Berechnete Ausgleichstransaktionen (minimiert, Gruppe):',
         calculatedTransactions
       );
       return calculatedTransactions;
     } catch (error) {
       console.error('Fehler beim Berechnen der Gruppenschulden:', error);
       throw new Error('Fehler beim Berechnen der Gruppenschulden');
+    }
+  }
+
+  async getCalculatedPersonalSettlementDebts(
+    groupId: string,
+    userId: string
+  ): Promise<DebtEntry[]> {
+    try {
+      // 1. Sammle alle relevanten Balances, die den userId betreffen
+      const balancesRef = collection(
+        this.firestore,
+        'groups',
+        groupId,
+        'balances'
+      );
+      // Hole Balances, wo userId als userAId beteiligt ist
+      const querySnapshotA = await getDocs(
+        query(balancesRef, where('userAId', '==', userId))
+      );
+      // Hole Balances, wo userId als userBId beteiligt ist
+      const querySnapshotB = await getDocs(
+        query(balancesRef, where('userBId', '==', userId))
+      );
+
+      // Kombiniere und dedupliziere die Ergebnisse
+      const relevantBalances = new Map<string, Balances>();
+      querySnapshotA.forEach((doc) =>
+        relevantBalances.set(doc.id, doc.data() as Balances)
+      );
+      querySnapshotB.forEach((doc) =>
+        relevantBalances.set(doc.id, doc.data() as Balances)
+      );
+
+      // 2. Berechne die Netto-Position für den `userId` und alle anderen betroffenen Mitglieder
+      //    unter Berücksichtigung aller bilateralen Schulden.
+      const nettoPositionen: Record<
+        string,
+        { amount: number; expenses: Set<string> }
+      > = {};
+
+      relevantBalances.forEach((balance) => {
+        const u1 = balance.userAId;
+        const u2 = balance.userBId;
+        const credit1 = balance.userACredit || 0;
+        const credit2 = balance.userBCredit || 0;
+        const relatedExpenses = balance.relatedExpenseId || [];
+
+        // Initialisiere Einträge, falls nicht vorhanden
+        nettoPositionen[u1] = nettoPositionen[u1] || {
+          amount: 0,
+          expenses: new Set(),
+        };
+        nettoPositionen[u2] = nettoPositionen[u2] || {
+          amount: 0,
+          expenses: new Set(),
+        };
+
+        // Verrechne die bilateralen Schulden in eine Netto-Position
+        nettoPositionen[u1].amount += credit1 - credit2; // u1 bekommt von u2 (credit1) und schuldet u2 (credit2)
+        nettoPositionen[u2].amount += credit2 - credit1; // u2 bekommt von u1 (credit2) und schuldet u1 (credit1)
+
+        // Füge Expenses hinzu
+        relatedExpenses.forEach((expId) => {
+          nettoPositionen[u1].expenses.add(expId);
+          nettoPositionen[u2].expenses.add(expId);
+        });
+      });
+
+      console.log(
+        'Netto-Positionen aller Beteiligten für persönlichen Ausgleich:',
+        nettoPositionen
+      );
+
+      const userNettoSaldo = nettoPositionen[userId]?.amount || 0;
+
+      // Wenn der User insgesamt Geld bekommen würde oder ausgeglichen ist, braucht er nichts zu zahlen.
+      if (userNettoSaldo >= 0) {
+        console.log(
+          `Benutzer ${userId} hat positive oder ausgeglichene Netto-Position (${userNettoSaldo}). Keine Zahlungen erforderlich.`
+        );
+        return [];
+      }
+
+      // Der Benutzer schuldet Geld (userNettoSaldo ist negativ)
+      // Wir wollen, dass der Benutzer (userId) alle Schulden als `from` Transaktionen zahlt.
+      // Die Gläubiger sind alle anderen mit positiver Netto-Position.
+      const glaeubigerDesUsers = Object.entries(nettoPositionen).filter(
+        ([id, data]) => id !== userId && data.amount > 0
+      );
+
+      // Künstlicher Schuldner-Eintrag für den `userId`
+      let userAsSchuldner: { amount: number; expenses: Set<string> } = {
+        amount: userNettoSaldo, // Negativer Betrag
+        expenses: nettoPositionen[userId]?.expenses || new Set(),
+      };
+
+      const personalOptimizedDebts: DebtEntry[] = [];
+
+      for (const [glaeubigerId, glaeubigerData] of glaeubigerDesUsers) {
+        if (userAsSchuldner.amount >= 0) break; // User hat seine Schulden beglichen
+
+        const betragFuerTransaktion = Math.min(
+          -userAsSchuldner.amount,
+          glaeubigerData.amount
+        );
+
+        if (betragFuerTransaktion > 0) {
+          // Merge Expenses vom User und dem aktuellen Gläubiger
+          const mergedExpenses = new Set<string>();
+          userAsSchuldner.expenses.forEach((exp) => mergedExpenses.add(exp));
+          glaeubigerData.expenses.forEach((exp) => mergedExpenses.add(exp));
+
+          personalOptimizedDebts.push({
+            from: userId,
+            to: glaeubigerId,
+            amount: betragFuerTransaktion,
+            relatedExpenses: Array.from(mergedExpenses),
+          });
+
+          userAsSchuldner.amount += betragFuerTransaktion; // Schuld des Users reduzieren
+          glaeubigerData.amount -= betragFuerTransaktion; // Gutschrift des Gläubigers reduzieren
+        }
+      }
+
+      console.log(
+        'Optimierte persönliche Schulden für ' + userId + ':',
+        personalOptimizedDebts
+      );
+      return personalOptimizedDebts;
+    } catch (error) {
+      console.error(
+        'Fehler beim Berechnen des persönlichen Ausgleichs:',
+        error
+      );
+      throw new Error('Fehler beim Berechnen des persönlichen Ausgleichs');
     }
   }
 
@@ -684,7 +818,7 @@ export class TransactionService {
   async executeSettlementTransactions(
     groupId: string,
     transactionsToExecute: DebtEntry[],
-    isGroupSettlement: boolean
+    settlementType: 'group' | 'personal'
   ): Promise<void> {
     const batch = writeBatch(this.firestore);
 
@@ -716,7 +850,9 @@ export class TransactionService {
           from: trans.from,
           to: trans.to,
           amount: trans.amount,
-          reason: isGroupSettlement ? 'Gruppenausgleich' : 'Einzelausgleich',
+          reason: `Ausgleich (${
+            settlementType === 'group' ? 'Gruppe' : 'Persönlich'
+          })`,
           date: new Date().toISOString(),
           relatedExpenses: trans.relatedExpenses,
         };
@@ -770,7 +906,7 @@ export class TransactionService {
     }
 
     // 4. Balances auf Null setzen (abhängig vom Ausgleichstyp)
-    if (isGroupSettlement) {
+    if (settlementType === 'group') {
       // Bei Gruppenausgleich: Alle Balances auf Null setzen
       allBalanceDocsSnapshot.forEach((docSnap) => {
         batch.update(docSnap.ref, {
@@ -780,7 +916,7 @@ export class TransactionService {
         });
       });
     } else {
-      // Bei Einzelausgleich: Nur die tatsächlich von den Transaktionen betroffenen Balances auf Null setzen
+      // Bei persönlichem Ausgleich: Nur die tatsächlich von den Transaktionen betroffenen Balances auf Null setzen
       for (const balRef of balanceDocRefsToReset) {
         batch.update(balRef, {
           userACredit: 0,
