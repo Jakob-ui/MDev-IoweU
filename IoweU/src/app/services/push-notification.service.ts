@@ -1,14 +1,14 @@
-import { Injectable, inject } from '@angular/core';
-import { Functions, httpsCallable } from '@angular/fire/functions';
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class PushNotificationService {
-  private functions = inject(Functions);
+  private cloudFunctionUrl = 'https://us-central1-ioweu-a74cd.cloudfunctions.net/sendPushNotification';
 
-  async sendPushNotification(toUserId: string | undefined, title: string, body: string) {
-    const sendNotification = httpsCallable(this.functions, 'sendPushNotification');
-    return await sendNotification({ toUserId, title, body });
+  constructor(private http: HttpClient) {}
+
+  sendPushNotification(toUserId: string, title: string, body: string): Promise<any> {
+    const payload = { toUserId, title, body };
+    return this.http.post(this.cloudFunctionUrl, payload).toPromise();
   }
 }

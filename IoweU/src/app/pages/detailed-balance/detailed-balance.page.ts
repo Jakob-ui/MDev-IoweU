@@ -41,7 +41,7 @@ import {PushNotificationService} from "../../services/push-notification.service"
     IonButton,
     IonIcon,
     RouterLink,
-    FunctionsModule
+    FunctionsModule,
   ],
 })
 export class DetailedBalancePage implements OnInit {
@@ -289,11 +289,11 @@ export class DetailedBalancePage implements OnInit {
         `${myName} möchte, dass du deine Schulden begleichst.`
       );
 
-      // Optional: Toast oder Confirmation anzeigen
       console.log('Push gesendet!');
     } catch (error) {
       console.error('Fehler beim Senden der Benachrichtigung:', error);
     }
   }
+
 
 }

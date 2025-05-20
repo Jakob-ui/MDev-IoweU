@@ -11,12 +11,15 @@ import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
 import { provideMessaging, getMessaging } from '@angular/fire/messaging';
 import {getFunctions, provideFunctions} from "@angular/fire/functions";
+import { provideHttpClient } from '@angular/common/http';
+
 
 setLogLevel('error');
 
 bootstrapApplication(AppComponent, {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    provideHttpClient(),
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
@@ -27,3 +30,4 @@ bootstrapApplication(AppComponent, {
     provideFunctions(() => getFunctions()),
   ],
 });
+

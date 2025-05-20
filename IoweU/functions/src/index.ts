@@ -1,12 +1,18 @@
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import * as admin from "firebase-admin";
 import {logger} from "firebase-functions";
+import * as functions from 'firebase-functions';
+import * as cors from 'cors';
+import { onRequest } from 'firebase-functions/v2/https';
+
 import {
   onDocumentWritten,
   Change,
   FirestoreEvent,
   DocumentSnapshot,
 } from "firebase-functions/v2/firestore";
+import firebase from "firebase/compat";
+import functions = firebase.functions;
 
 interface RepeatingExpenses {
   expenseId: string;
@@ -42,6 +48,7 @@ export interface Products {
 
 admin.initializeApp();
 const firestore = admin.firestore();
+const corsHandler = cors({ origin: true });
 
 // Funktion um alle wiederkehrende Kosten zu behandeln
 export const handlerepeatingExpenses = onSchedule(
@@ -217,7 +224,7 @@ export const recalculateGroupBalances = onSchedule(
         });
 
         logger.info(
-          `Balances für Gruppe ${groupId} neu berechnet: 
+          `Balances für Gruppe ${groupId} neu berechnet:
           Total = ${total}, Count = ${count}`
         );
       }
@@ -360,3 +367,32 @@ export const updateBalances = onDocumentWritten(
     }
   }
 );
+
+
+export const sendPushNotification = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method === 'OPTIONS') {
+      return res.status(204).send('');
+    }
+
+    if (req.method !== 'POST') {
+      return res.status(405).send('Method Not Allowed');
+    }
+
+    try {
+      const { toUserId, title, body } = req.body;
+
+      const message = {
+        notification: { title, body },
+        token: toUserId,
+      };
+
+      await admin.messaging().send(message);
+
+      return res.status(200).send('Push Notification gesendet');
+    } catch (error) {
+      console.error('Fehler beim Senden der Benachrichtigung:', error);
+      return res.status(500).send(error.toString());
+    }
+  });
+});
