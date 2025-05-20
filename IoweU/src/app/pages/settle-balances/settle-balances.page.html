@@ -46,7 +46,7 @@
           <span class="member-name">{{ getMemberNameById(debt.from) }}</span>
         </div>
         <ion-badge class="BalancePrice" [ngClass]="getAmountClass(expense[0])"
-          >{{ debt.debt | number: '1.2-2' }}
+          >{{ debt.amount | number: '1.2-2' }}
         </ion-badge>
 
         <div
@@ -118,7 +118,13 @@
   </div>
   <div class="balance-page-container-empty" *ngIf="deptList.length === 0">
     <div class="nothingToPay">
-      <h2>Alle sind schuldenfrei! <br />🎉</h2>
+      <h2 *ngIf="gruppenausgleich; else meineSchulden">
+        Alle sind schuldenfrei! <br />🎉
+      </h2>
+      <ng-template #meineSchulden>
+        <h2>Ich bin schuldenfrei! <br />🎉
+        </h2>
+      </ng-template>
     </div>
     <div class="button-container">
       <ion-button class="main-button" expand="block" (click)="goBack()">

@@ -23,6 +23,8 @@ import { Products } from '../../services/objects/Products';
 import { Expenses } from '../../services/objects/Expenses';
 import { Transactions } from '../../services/objects/Transactions';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
+import { DebtEntry } from 'src/app/services/objects/DeptEntry';
+
 
 @Component({
   selector: 'app-settle-balances',
@@ -75,12 +77,7 @@ export class SettleBalancesPage implements OnInit {
 
   splitValue: { [uid: string]: number } = {};
   amountToPay: { [uid: string]: number } = {};
-  deptList: {
-    from: string;
-    to: string;
-    debt: number;
-    relatedExpenses: string[];
-  }[] = [{ from: '', to: '', debt: 0, relatedExpenses: [] }];
+  deptList: DebtEntry[] = [];
 
   expense: Expenses[] = [];
 
@@ -117,36 +114,30 @@ export class SettleBalancesPage implements OnInit {
       this.memberUids = this.groupMembers.map((m) => m.uid || '');
 
       if (this.gruppenausgleich) {
-        console.log('führe Gruppenausgleich durch');
-        const rawDeptList = await this.transactionService.settleAllDepts(
-          this.groupId
+        console.log('Berechne Gruppenausgleich...');
+        // Direkt zuweisen, da der Rückgabetyp bereits DebtEntry[] ist
+        this.deptList =
+          await this.transactionService.getCalculatedGroupSettlementDebts(
+            this.groupId
+          );
+        console.log(
+          'Berechnete Ausgleichstransaktionen (Gruppenausgleich):',
+          this.deptList
         );
-        this.deptList = rawDeptList.map(
-          ([from, to, debt, relatedExpenses]) => ({
-            from,
-            to,
-            debt,
-            relatedExpenses,
-          })
-        );
-        await this.loadRelatedExpenses();
-        console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
       } else {
-        const rawDeptList = await this.transactionService.settleDebtsForID(
-          this.groupId,
-          this.uid
+        console.log('Berechne Einzelausgleich...');
+        // Direkt zuweisen, da der Rückgabetyp bereits DebtEntry[] ist
+        this.deptList =
+          (await this.transactionService.settleDebtsForID(
+            this.groupId,
+            this.uid
+          )) || []; // Sicherstellen, dass es nicht null ist
+        console.log(
+          'Berechnete Ausgleichstransaktionen (Einzelausgleich):',
+          this.deptList
         );
-        if (rawDeptList) {
-          this.deptList = rawDeptList.map((dept) => ({
-            from: dept.from,
-            to: dept.to,
-            debt: dept.debt,
-            relatedExpenses: dept.relatedExpenses,
-          }));
-          await this.loadRelatedExpenses();
-          console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
-        }
       }
+      await this.loadRelatedExpenses();
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
@@ -180,7 +171,7 @@ export class SettleBalancesPage implements OnInit {
     return userEntry?.amountToPay ?? 0;
   }
 
-  getRelatedExpensesForDebt(debt: { relatedExpenses: string[]; to: string }) {
+  getRelatedExpensesForDebt(debt: DebtEntry) {
     return this.expense.filter(
       (e) =>
         debt.relatedExpenses.includes(e.expenseId) &&
@@ -225,6 +216,11 @@ export class SettleBalancesPage implements OnInit {
 
   // Get Data using Service functions
   async loadRelatedExpenses() {
+    if (!this.deptList || this.deptList.length === 0) {
+      this.expense = [];
+      return;
+    }
+
     const relatedExpenseIds = this.deptList.flatMap(
       (debt) => debt.relatedExpenses
     );
@@ -247,65 +243,23 @@ export class SettleBalancesPage implements OnInit {
   //Make Transactions depending on calculated debts
   async pay() {
     this.loadingService.showLittle();
-    for (let debtmember of this.deptList) {
-      try {
-        const transaction: Transactions = {
-          from: debtmember.from,
-          to: debtmember.to,
-          amount: debtmember.debt,
-          reason: 'Gruppenausgleich',
-          date: new Date().toISOString(),
-          relatedExpenses: debtmember.relatedExpenses,
-        };
-        console.log('transaction', transaction);
-        if (
-          Array.isArray(debtmember.relatedExpenses)
-            ? debtmember.relatedExpenses
-            : [debtmember.relatedExpenses]
-        ) {
-          await this.transactionService.makeTransactionById(
-            this.groupId,
-            debtmember.relatedExpenses,
-            debtmember.from,
-            transaction
-          );
-        }
-        console.log('uid', this.uid);
-        if (this.gruppenausgleich) {
-          for (const expenseId of debtmember.relatedExpenses) {
-            await this.transactionService.markMembersAsPaid(
-              this.groupId,
-              expenseId
-            );
-          }
-        } else {
-          for (const expenseId of debtmember.relatedExpenses) {
-            // Finde die Expense in der geladenen Liste
-            const expense = this.expense.find((e) => e.expenseId === expenseId);
-            const userEntry = expense?.expenseMember.find(
-              (m) => m.memberId === this.uid
-            );
-
-            // Nur wenn noch nicht bezahlt und amountToPay > 0
-            if (userEntry && !userEntry.paid && userEntry.amountToPay > 0) {
-              await this.transactionService.markMembersAsPaid(
-                this.groupId,
-                expenseId,
-                this.uid
-              );
-            }
-          }
-        }
-      } catch (error) {
-        console.error(
-          `Fehler beim Erstellen der Transaktion für ${debtmember.from} -> ${debtmember.to}:`,
-          error
-        );
-      } finally {
-        this.loadingService.hideLittle();
-      }
+    try {
+      await this.transactionService.executeSettlementTransactions(
+        this.groupId,
+        this.deptList, 
+        this.gruppenausgleich
+      );
+    } catch (error) {
+      console.error('Fehler beim Ausführen der Zahlung:', error);
+      const errorAlert = await this.alertController.create({
+        header: 'Fehler',
+        message:
+          'Ein Fehler ist beim Begleichen der Schulden aufgetreten. Bitte versuche es erneut.',
+        buttons: ['OK'],
+      });
+    } finally {
+      this.loadingService.hideLittle();
     }
-    // Danach: Nur noch fragen, ob man sie sehen will
     const alert = await this.alertController.create({
       header: 'Transaktion abgeschlossen',
       message:
