@@ -18,6 +18,13 @@ export const routes: Routes = [
       import('./pages/register/register.page').then((m) => m.RegisterPage),
   },
   {
+    path: 'register-with-google',
+    loadComponent: () =>
+      import('./pages/register-with-google/register-with-google.page').then(
+        (m) => m.RegisterWithGooglePage
+      ),
+  },
+  {
     path: 'group-overview',
     loadComponent: () =>
       import('./pages/group-overview/group-overview.page').then(
@@ -166,9 +173,10 @@ export const routes: Routes = [
   },
   {
     path: 'settle-balances/:groupId',
-    loadComponent: () => import('./pages/settle-balances/settle-balances.page').then(
-      (m) => m.SettleBalancesPage
-    ),
+    loadComponent: () =>
+      import('./pages/settle-balances/settle-balances.page').then(
+        (m) => m.SettleBalancesPage
+      ),
     canActivate: [AuthGuard],
   },
   {
@@ -181,8 +189,11 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'not-found',
   },
-
-
-
-
+  {
+    path: 'register-with-google',
+    loadComponent: () =>
+      import('./pages/register-with-google/register-with-google.page').then(
+        (m) => m.RegisterWithGooglePage
+      ),
+  },
 ];

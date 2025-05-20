@@ -47,6 +47,22 @@ export class RegisterPage implements OnInit {
   timeout: any;
   videoSource: string = '';
 
+  ngOnInit() {
+    // Setze die GIF-Quelle basierend auf dem Modus
+    this.videoSource = this.isDarkMode()
+      ? 'assets/gifs/loadingDarkMode.gif'
+      : 'assets/gifs/loadingLightMode.gif';
+
+    // Überwache Änderungen des Farbschemas
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', (event) => {
+        this.videoSource = event.matches
+          ? 'assets/gifs/loadingDarkMode.gif'
+          : 'assets/gifs/loadingLightMode.gif';
+      });
+  }
+
   inputChange() {
     this.failed = false;
     this.registerFailed = false; // Button zurücksetzen
@@ -126,26 +142,9 @@ export class RegisterPage implements OnInit {
   }
 
   isDarkMode(): boolean {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  }
-
-  ngOnInit() {
-    // Ladeoverlay beim Seiten-Reload anzeigen
-    this.loadingService.show();
-    setTimeout(() => {
-      this.loadingService.hide();
-    }, 2000); // Beispiel: Ladeoverlay für 2 Sekunden anzeigen
-
-    // Setze die GIF-Quelle basierend auf dem Modus
-    this.videoSource = this.isDarkMode()
-      ? 'assets/gifs/loadingDarkMode.gif'
-      : 'assets/gifs/loadingLightMode.gif';
-
-    // Überwache Änderungen des Farbschemas
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
-      this.videoSource = event.matches
-        ? 'assets/gifs/loadingDarkMode.gif'
-        : 'assets/gifs/loadingLightMode.gif';
-    });
+    return (
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    );
   }
 }

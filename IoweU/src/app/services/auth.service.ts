@@ -7,6 +7,8 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   UserCredential,
+  GoogleAuthProvider,
+  signInWithRedirect,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
@@ -66,7 +68,9 @@ export class AuthService {
         });
       } else {
         this.currentUser = null;
-        console.log('Benutzer nicht eingeloggt');
+        if (!window.location.href.includes('google')) {
+          console.log('Benutzer nicht eingeloggt');
+        }
       }
     });
   }
@@ -145,6 +149,43 @@ export class AuthService {
     }
 
     return userCredential;
+  }
+
+  async registerWithGoogle(additionalData: {
+    username: string;
+    color: string;
+  }): Promise<void> {
+    const provider = new GoogleAuthProvider();
+    await signInWithRedirect(this.auth, provider);
+  }
+
+  async handleGoogleRedirect(additionalData: {
+    username: string;
+    color: string;
+  }): Promise<UserCredential | null> {
+    const { getRedirectResult } = await import('@angular/fire/auth');
+    const result = await getRedirectResult(this.auth);
+    if (result && result.user) {
+      const userRef = doc(this.firestore, 'users', result.user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        const userData: Users = {
+          uid: result.user.uid,
+          username: additionalData.username,
+          email: result.user.email || '',
+          color: additionalData.color,
+          lastedited: new Date().toISOString(),
+          groupId: [],
+        };
+        await setDoc(userRef, userData);
+        this.currentUser = userData;
+      } else {
+        this.currentUser = userSnap.data() as Users;
+      }
+      return result;
+    }
+    return null;
   }
 
   private async saveUserData(uid: string, data: Users): Promise<boolean> {
@@ -247,15 +288,10 @@ export class AuthService {
 
     try {
       const userRef = doc(this.firestore, 'users', this.currentUser.uid);
-      await setDoc(
-        userRef,
-        { fcmToken: token },
-        { merge: true }
-      );
+      await setDoc(userRef, { fcmToken: token }, { merge: true });
       console.log('FCM-Token erfolgreich gespeichert.');
     } catch (error) {
       console.error('Fehler beim Speichern des FCM-Tokens:', error);
     }
   }
-
 }

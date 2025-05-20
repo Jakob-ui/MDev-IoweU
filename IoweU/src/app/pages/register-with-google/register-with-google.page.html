@@ -24,43 +24,18 @@
       <ion-label class="label">Profilfarbe wählen:</ion-label>
       <input type="color" [(ngModel)]="color" class="colorinput" />
     </ion-item>
-    <ion-item class="input-item">
-      <ion-input
-        type="Email"
-        placeholder="E-Mail"
-        [(ngModel)]="email"
-        (ngModelChange)="inputChange()"
-      >
-      </ion-input>
-    </ion-item>
-    <ion-item class="input-item">
-      <ion-input
-        type="password"
-        placeholder="Passwort"
-        [(ngModel)]="password"
-        (keyup.enter)="register()"
-        (ngModelChange)="inputChange()"
-      >
-        <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-      </ion-input>
-    </ion-item>
 
-    <ion-button
-      class="main-button"
-      expand="block"
-      (click)="register()"
-      [class.error-button]="registerFailed"
-    >
-      Register
-    </ion-button>
     <ion-button
       class="main-button google"
       expand="block"
-      [routerLink]="'/register-with-google'"
+      (click)="registerWithGoogle()"
     >
       Mit Google registrieren
     </ion-button>
 
+    <ion-button class="main-button" expand="full" [routerLink]="'/login'"
+      >zum Login</ion-button
+    >
     <div class="error-Space">
       <p
         *ngIf="error !== ''"
@@ -70,8 +45,5 @@
         {{error}}
       </p>
     </div>
-    <ion-button class="main-button" expand="full" [routerLink]="'/login'"
-      >zum Login</ion-button
-    >
   </div>
 </ion-content>
