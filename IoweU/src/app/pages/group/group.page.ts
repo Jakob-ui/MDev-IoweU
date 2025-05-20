@@ -274,7 +274,7 @@ export class GroupPage implements OnInit {
   // Funktion zur QR-Code-Generierung und Toggle
   generateQRCode() {
     if (this.accessCode) {
-      this.qrCodeValue = `http://localhost:8100/group/${this.groupId}`;
+      this.qrCodeValue = `https://app.ioweu.eu/group/${this.groupId}`;
       console.log('Generated QR Code URL:', this.qrCodeValue);
     }
   }

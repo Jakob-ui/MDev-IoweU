@@ -208,7 +208,7 @@ export class AuthService {
 
   resetpassword(email: string): Promise<void> {
     return sendPasswordResetEmail(this.auth, email.trim(), {
-      url: 'http://localhost:8100/login',
+      url: 'https://app.ioweu.eu/login',
     });
   }
 
