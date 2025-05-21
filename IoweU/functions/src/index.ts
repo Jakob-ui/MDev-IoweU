@@ -133,7 +133,75 @@ export const handlerepeatingExpenses = onSchedule(
   }
 );
 
-// Funktion um alle UserSummen upzudaten
+// Update der Mitgliedsummen und Bilanzen bei Änderungen in den Transaktionen und Ausgaben:
+
+// 1. Updaten der Mitgliedsummen bei Änderung der Transaktionen
+export const updateGroupSumsOnTransactionChange = onDocumentWritten(
+  "groups/{groupId}/transactions/{transactionId}",
+  async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
+    const groupId = event.params.groupId;
+
+    try {
+      // Neue oder gelöschte Transaktion
+      const newTransaction = event.data?.after?.data();
+      const oldTransaction = event.data?.before?.data();
+      // Referenz zur Gruppe
+      const groupRef = firestore.collection("groups").doc(groupId);
+      const groupSnapshot = await groupRef.get();
+      if (!groupSnapshot.exists) {
+        console.error(`Gruppe mit der ID ${groupId} nicht gefunden.`);
+        return;
+      }
+      const groupData = groupSnapshot.data();
+
+      let groupMembers = groupData?.members || [];
+
+      // Aktualisierung der MemberSums
+      if (newTransaction && !oldTransaction) 
+      {
+        // Neue Transaktion hinzugefügt
+        for (const groupMember of groupMembers) {
+          if (groupMember.memberId === newTransaction.from) // Wenn das Gruppenmitglied überweist
+          {
+            groupMember.sumAmountPaid += newTransaction.amount;
+            groupMember.countAmountPaid += 1;
+          }
+          if (groupMember.memberId === newTransaction.to) // Wenn dem Gruppenmitglied überwiesen wird
+          {
+            groupMember.sumAmountReceived += newTransaction.amount;
+            groupMember.countAmountReceived += 1;
+          }
+        }
+      }
+      else if (!newTransaction && oldTransaction) 
+      {
+        // Transaktion gelöscht
+        for (const groupMember of groupMembers) {
+          if (groupMember.memberId === oldTransaction.from) // Wenn das Gruppenmitglied der überweisende war
+          {
+            groupMember.sumAmountPaid -= oldTransaction.amount;
+            groupMember.countAmountPaid -= 1;
+          }
+          if (groupMember.memberId === oldTransaction.to) // Wenn dem Gruppenmitglied überwiesen wurde
+          {
+            groupMember.sumAmountReceived -= oldTransaction.amount;
+            groupMember.countAmountReceived -= 1;
+          }
+        }
+      } 
+      // Gruppe aktualisieren
+      await groupRef.update({
+        groupMembers
+      });
+
+      console.log(`Summen für Gruppe ${groupId} erfolgreich aktualisiert.`);
+    } catch (error) {
+      console.error("Fehler beim Aktualisieren der Gruppensummen:", error);
+    }
+  }
+);
+
+// 2. Updaten der Gruppensummen sowie Mitgliedsummen bei Änderung der Ausgaben
 export const updateGroupSumsOnExpenseChange = onDocumentWritten(
   "groups/{groupId}/expenses/{expenseId}",
   async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
@@ -159,7 +227,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
       // Aktuelle Summen und Zähler
       let sumTotalExpenses = groupData?.sumTotalExpenses || 0;
       let countTotalExpenses = groupData?.countTotalExpenses || 0;
-      let groupMembers = groupData?.groupMembers || [];
+      let groupMembers = groupData?.members || [];
 
       // Summen und Zähler aktualisieren
       if (newExpense && !oldExpense) {
@@ -275,52 +343,8 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
   }
 );
 
-
-export const recalculateGroupBalances = onSchedule(
-  {
-    schedule: "every day 00:01",
-    timeZone: "Europe/Berlin",
-    region: "europe-west1",
-  },
-  async () => {
-    const groupsRef = firestore.collection("groups");
-
-    try {
-      const groupsSnapshot = await groupsRef.get();
-
-      for (const groupDoc of groupsSnapshot.docs) {
-        const groupId = groupDoc.id;
-        const expensesRef = firestore.collection(`groups/${groupId}/expenses`);
-        const expensesSnapshot = await expensesRef.get();
-
-        let total = 0;
-        let count = 0;
-
-        // Summiere alle Expenses der Gruppe
-        for (const expenseDoc of expensesSnapshot.docs) {
-          const expense = expenseDoc.data();
-          total += expense.totalAmount || 0;
-          count++;
-        }
-
-        // Aktualisiere die Summen in der Gruppe
-        await groupDoc.ref.update({
-          sumTotalExpenses: total,
-          countTotalExpenses: count,
-        });
-
-        logger.info(
-          `Balances für Gruppe ${groupId} neu berechnet:
-          Total = ${total}, Count = ${count}`
-        );
-      }
-    } catch (error) {
-      logger.error("Fehler beim Neuberechnen der Gruppensummen:", error);
-    }
-  }
-);
-
-export const updateBalances = onDocumentWritten(
+// 3. Updaten der Bilanzen bei Änderung der Ausgaben
+export const updateBalancesOnExpenseChange = onDocumentWritten(
   "groups/{groupId}/expenses/{expenseId}",
   async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
     const groupId = event.params.groupId;
@@ -454,6 +478,139 @@ export const updateBalances = onDocumentWritten(
   }
 );
 
+// 4. Updaten der Bilanzen bei Änderung der Transaktionen
+export const updateBalancesOnTransactionChange = onDocumentWritten(
+  "groups/{groupId}/transactions/{transactionId}",
+  async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
+    const groupId = event.params.groupId;
+
+    try 
+    {
+      // Neue oder gelöschte Transaktion
+      const newTransaction = event.data?.after?.data();
+      const oldTransaction = event.data?.before?.data();
+
+      const groupRef = firestore.collection("groups").doc(groupId);
+      const groupSnapshot = await groupRef.get();
+
+      if (!groupSnapshot.exists) {
+        console.error(`Gruppe mit der ID ${groupId} nicht gefunden.`);
+        return;
+      }
+
+      const balancesRef = firestore.collection(`groups/${groupId}/balances`);
+      if (newTransaction && !oldTransaction)
+      {
+        // Neue Transaktion hinzugefügt
+        const creditor = newTransaction.to;
+        const debtor = newTransaction.from;
+        const amount = newTransaction.amount;
+        const relatedBalance = balancesRef.where("userAId", "in", {creditor, debtor}).where("userBId", "in", {creditor, debtor});	
+        const snap = await relatedBalance.get();
+        const docs = snap.docs;
+        if (docs.length > 0) 
+        {
+          const docRef = docs[0].ref;
+          const balanceData = docs[0].data() as any;
+          if (balanceData.userAId === creditor && balanceData.userBId === debtor) // User B überweist dem User A
+          {
+            balanceData.userACredit -= amount;
+            await docRef.update({
+            lastUpdated: new Date().toISOString(),
+            userACredit: balanceData.userACredit,
+          });
+          }
+          else if (balanceData.userAId === debtor && balanceData.userBId === creditor) // User A überweist dem User B
+          {
+            balanceData.userBCredit -= amount;
+            await docRef.update({
+            lastUpdated: new Date().toISOString(),
+            userBCredit: balanceData.userBCredit,
+          });
+          }
+        }
+      }
+      else if (!newTransaction && oldTransaction)
+      {
+        // Transaktion gelöscht
+        const creditor = oldTransaction.to;
+        const debtor = oldTransaction.from;
+        const amount = oldTransaction.amount;
+        const relatedBalance = balancesRef.where("userAId", "in", {creditor, debtor}).where("userBId", "in", {creditor, debtor});	
+        const snap = await relatedBalance.get();
+        const docs = snap.docs;
+        if (docs.length > 0) 
+        {
+          const docRef = docs[0].ref;
+          const balanceData = docs[0].data() as any;
+          if (balanceData.userAId === creditor && balanceData.userBId === debtor) // Die Überweisung vom User B zum User A wird gelöscht
+          {
+            balanceData.userACredit += amount;
+            await docRef.update({
+            lastUpdated: new Date().toISOString(),
+            userACredit: balanceData.userACredit,
+          });
+          }
+          else if (balanceData.userAId === debtor && balanceData.userBId === creditor) // Die Überweisung vom User A zum User B wird gelöscht
+          {
+            balanceData.userBCredit += amount;
+            await docRef.update({
+            lastUpdated: new Date().toISOString(),
+            userBCredit: balanceData.userBCredit,
+          });
+          }
+        }
+      }
+    }
+    catch (error) {
+      console.error("Error updating balances on new transaction:", error);
+    }
+  }
+);
+
+export const recalculateGroupBalances = onSchedule(
+  {
+    schedule: "every day 00:01",
+    timeZone: "Europe/Berlin",
+    region: "europe-west1",
+  },
+  async () => {
+    const groupsRef = firestore.collection("groups");
+
+    try {
+      const groupsSnapshot = await groupsRef.get();
+
+      for (const groupDoc of groupsSnapshot.docs) {
+        const groupId = groupDoc.id;
+        const expensesRef = firestore.collection(`groups/${groupId}/expenses`);
+        const expensesSnapshot = await expensesRef.get();
+
+        let total = 0;
+        let count = 0;
+
+        // Summiere alle Expenses der Gruppe
+        for (const expenseDoc of expensesSnapshot.docs) {
+          const expense = expenseDoc.data();
+          total += expense.totalAmount || 0;
+          count++;
+        }
+
+        // Aktualisiere die Summen in der Gruppe
+        await groupDoc.ref.update({
+          sumTotalExpenses: total,
+          countTotalExpenses: count,
+        });
+
+        logger.info(
+          `Balances für Gruppe ${groupId} neu berechnet:
+          Total = ${total}, Count = ${count}`
+        );
+      }
+    } catch (error) {
+      logger.error("Fehler beim Neuberechnen der Gruppensummen:", error);
+    }
+  }
+);
 
 export const sendPushNotification = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
