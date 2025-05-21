@@ -17,6 +17,7 @@ import { Firestore } from '@angular/fire/firestore';
 import { Groups } from 'src/app/services/objects/Groups';
 import { Router } from '@angular/router';
 import { UserService } from 'src/app/services/user.service';
+import { ShoppinglistService } from 'src/app/services/shoppinglist.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
@@ -49,6 +50,7 @@ export class CreateGroupPage {
   firestore = inject(Firestore);
   router = inject(Router);
   private userService = inject(UserService);
+  private shoppinglistService = inject(ShoppinglistService);
   private imageService = inject(ImageService);
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
@@ -87,7 +89,7 @@ export class CreateGroupPage {
 
     const founder = user.uid;
 
-    this.loadingService.show(); // Lade-Overlay aktivieren
+    this.loadingService.show();
 
     try {
       // Hole das vollständige Benutzerobjekt mit getUserData()
@@ -100,6 +102,12 @@ export class CreateGroupPage {
         this.selectedTemplate,
         this.uploadImage
       );
+
+      const groupId = this.groupService.lastCreatedGroupId;
+      await this.shoppinglistService.createEmptyShoppingList(groupId);
+
+      await this.presentToast('Gruppe erfolgreich erstellt!');
+
       await this.presentToast('Gruppe erfolgreich erstellt!');
       //this.router.navigate(['group', this.groupId]);
       console.log('Group successfully created!');

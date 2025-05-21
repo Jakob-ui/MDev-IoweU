@@ -15,6 +15,7 @@ import {
 import { AuthService } from 'src/app/services/auth.service';
 import { Users } from 'src/app/services/objects/Users';
 import { Router } from '@angular/router';
+import {LoadingService} from "../../services/loading.service";
 
 @Component({
   selector: 'app-profile-setup',
@@ -38,6 +39,7 @@ import { Router } from '@angular/router';
 })
 export class ProfileSetupPage implements OnInit {
   private authService = inject(AuthService);
+  private loadingService = inject(LoadingService);
   private router = inject(Router);
 
   name: string = '';
@@ -81,7 +83,12 @@ export class ProfileSetupPage implements OnInit {
         );
       }
       console.log("updated user")
-      this.router.navigate(['/group-overview']);
+      this.loadingService.show();
+      setTimeout(() => {
+        this.router.navigateByUrl('/group-overview').then(() => {
+          window.location.reload();
+        });
+      }, 100);
     } catch {
       console.log('ein Error ist aufgetreten');
     }

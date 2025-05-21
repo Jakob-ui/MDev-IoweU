@@ -328,11 +328,11 @@
           [class.swipe-right]="shoppingproduct.swiped === 'right'"
           [class.swipe-left]="shoppingproduct.swiped === 'left'">
 
-        <div class="profile-placeholder"
-               [ngStyle]="{
-             'background-color': 'var(--member-color-' + shoppingproduct.memberId + ')',
-             'border-color': 'var(--member-color-' + shoppingproduct.memberId + ')'
-           }">
+          <div class="profile-placeholder"
+                 [ngStyle]="{
+               'background-color': 'var(--member-color-' + shoppingproduct.memberId + ')',
+               'border-color': 'var(--member-color-' + shoppingproduct.memberId + ')'
+             }">
             <span class="username">{{ getFirstLetter(shoppingproduct.memberId) }}</span>
           </div>
 
@@ -341,6 +341,20 @@
             <div class="divider"></div>
             <h5 class="shoppingproduct-name">{{ shoppingproduct.productname }}</h5>
             <span class="forMember">für {{ getUsernameById(shoppingproduct.forMemberId) }}</span>
+          </div>
+
+          <div
+            class="buttons"
+            slot="end"
+            *ngIf="showCheckbox">
+            <ion-icon
+              [src]="iosIcons ? 'assets/icon/ionicons/ios-trash.svg' : 'assets/icon/ionicons/md-trash.svg'"
+              (click)="showDeleteAlert()"
+            ></ion-icon>
+            <div class="divider"></div>
+            <ion-checkbox
+              (ionChange)="onCheckboxChange($event, shoppingproduct.shoppingProductId)">
+            </ion-checkbox>
           </div>
         </ion-item>
       </ng-container>
