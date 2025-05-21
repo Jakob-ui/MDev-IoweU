@@ -91,16 +91,6 @@ export class ExpenseService {
         );
         await setDoc(expenseRef, expense);
 
-        //Felder in der Collection "Members" aktualisieren:
-
-        //Für jedes Mitglied in der Gruppe wird abgefragt:
-        //1. Wenn das Mitglied die Ausgabe bezahlt hat, wird sumExpenseAmount um totalAmount - amountToPay erhöht und countExpenseAmount um 1 erhöht.
-        //2. sumAmountReceived & countAmountReceived bleiben gleich (werden erst dann aktualisiert wenn dem Mitglied ein anderes Mitglied eine Schuld begleicht) => von der for-Schleife weggelassen
-        //3. Wenn das Mitglied an der Ausgabe beteiligt war aber sie nicht bezahlt hat, wird sumExpenseMemberAmount um amountToPay erhöht und countExpenseMemberAmount um 1 erhöht.
-        //4. sumAmountPaid & countAmountPaid bleiben gleich (werden erst dann aktualisiert wenn das Mitglied einem anderen Mitglied eine Schuld begleicht) => von der for-Schleife weggelassen
-
-        //await this.updateMemberSumsOnNewExpense(groupId, expense);
-
         const groupRef = await getDoc(doc(this.firestore, 'groups', groupId));
         const groupData = groupRef.data() as Groups;
         await this.initializeLackingBalances(groupId, groupData.members);
@@ -174,55 +164,6 @@ export class ExpenseService {
         throw new Error(`Expense mit ID ${expenseId} existiert nicht.`);
       }
 
-      const oldExpense = expenseSnapshot.data() as Expenses;
-
-      // Fetch the group data
-      const groupRef = doc(this.firestore, 'groups', groupId);
-      const groupSnapshot = await getDoc(groupRef);
-      if (!groupSnapshot.exists()) {
-        throw new Error(`Gruppe mit ID ${groupId} existiert nicht.`);
-      }
-      const groupData = groupSnapshot.data() as Groups;
-
-      // Update member sums: Remove old values
-      for (const member of groupData.members) {
-        for (const oldMember of oldExpense.expenseMember) {
-          if (oldMember.memberId === member.uid) {
-            if (oldMember.memberId === oldExpense.paidBy) {
-              const amountForOthers =
-                oldExpense.totalAmount - oldMember.amountToPay;
-              member.sumExpenseAmount -= amountForOthers;
-              member.countExpenseAmount -= 1;
-            } else {
-              member.sumExpenseMemberAmount -= oldMember.amountToPay;
-              member.countExpenseMemberAmount -= 1;
-            }
-          }
-        }
-      }
-
-      // Update member sums: Add new values
-      for (const member of groupData.members) {
-        for (const newMember of updatedExpenseMembersData) {
-          if (newMember.memberId === member.uid) {
-            if (newMember.memberId === updatedExpenseData.paidBy) {
-              const amountForOthers =
-                updatedExpenseData.totalAmount - newMember.amountToPay;
-              member.sumExpenseAmount += amountForOthers;
-              member.countExpenseAmount += 1;
-            } else {
-              member.sumExpenseMemberAmount += newMember.amountToPay;
-              member.countExpenseMemberAmount += 1;
-            }
-          }
-        }
-      }
-
-      // Update the group document with updated member data
-      await updateDoc(groupRef, {
-        members: groupData.members,
-      });
-
       // Prepare the updated expense object
       const updatedExpense: Expenses = {
         ...updatedExpenseData,
@@ -268,10 +209,6 @@ export class ExpenseService {
       const expenseSnapshot = await getDoc(expenseRef);
 
       if (expenseSnapshot.exists()) {
-        //Bilanzen und Mitglieder aktualisieren
-        const expense = expenseSnapshot.data() as Expenses;
-        //this.updateMemberSumsOnDeleteExpense(groupId, expense);
-        // Wenn das Dokument in der normalen Ausgaben-Collection existiert, löschen
         await deleteDoc(expenseRef);
         console.log(`Expense mit ID ${expenseId} aus 'expenses' gelöscht.`);
         return;
@@ -528,190 +465,6 @@ export class ExpenseService {
     return { total, count };
   }
 
-  async updateSums(
-    groupId: string,
-    sum: number,
-    count: number,
-    dbSumField: string,
-    dbCountField: string
-  ): Promise<void> {
-    const groupRef = doc(this.firestore, 'groups', groupId);
-    const groupSnapshot = await getDoc(groupRef);
-    if (groupSnapshot.exists()) {
-      const groupData = groupSnapshot.data();
-      const currentSum = groupData?.[dbSumField] || 0;
-      const currentCount = groupData?.[dbCountField] || 0;
-
-      if (currentSum !== sum) {
-        await setDoc(
-          groupRef,
-          { [dbSumField]: sum },
-          { merge: true } // Nur das Feld sumTotalExpenses aktualisieren
-        );
-        console.log('sumTotalExpenses erfolgreich aktualisiert.');
-      } else {
-        console.log('sumTotalExpenses ist bereits aktuell.');
-      }
-
-      if (currentCount !== count) {
-        await setDoc(
-          groupRef,
-          { [dbCountField]: count },
-          { merge: true } // Nur das Feld sumTotalExpenses aktualisieren
-        );
-        console.log('countTotalExpenses erfolgreich aktualisiert.');
-      } else {
-        console.log('countTotalExpenses ist bereits aktuell.');
-      }
-    } else {
-      console.error(`Gruppe mit der ID ${groupId} nicht gefunden.`);
-    }
-  }
-  catch(e: any) {
-    console.error('Fehler beim Synchronisieren von sumTotalExpenses:', e);
-  }
-
-  async updateMemberSumsOnNewExpense(
-    groupId: string,
-    expense: Expenses
-  ): Promise<void> {
-    const groupRef = doc(this.firestore, 'groups', groupId);
-    const groupSnapshot = await getDoc(groupRef);
-    if (!groupSnapshot.exists()) return;
-
-    const groupData = groupSnapshot.data() as Groups;
-    const updatedMembers = [...groupData.members];
-
-    for (const memberData of expense.expenseMember) {
-      const member = updatedMembers.find((m) => m.uid === memberData.memberId);
-      if (!member) continue;
-
-      // Wenn das Mitglied die Ausgabe bezahlt hat
-      if (member.uid === expense.paidBy) {
-        const amountForOthers = expense.totalAmount - memberData.amountToPay;
-
-        member.sumExpenseAmount += amountForOthers;
-        member.countExpenseAmount += 1;
-      } else {
-        // Das Mitglied hat nichts bezahlt, sondern war beteiligt
-        member.sumExpenseMemberAmount += memberData.amountToPay;
-        member.countExpenseMemberAmount += 1;
-      }
-    }
-
-    // Mitglieder updaten
-    await updateDoc(groupRef, {
-      members: updatedMembers,
-    });
-
-    console.log('Mitgliedssummen wurden inkrementell aktualisiert.');
-    console.log('Mitglieder:', updatedMembers);
-  }
-
-  async updateMemberSumsOnDeleteExpense(
-    groupId: string,
-    expense: Expenses
-  ): Promise<void> {
-    const groupRef = doc(this.firestore, 'groups', groupId);
-    const groupSnapshot = await getDoc(groupRef);
-    if (!groupSnapshot.exists()) return;
-
-    const groupData = groupSnapshot.data() as Groups;
-    const updatedMembers = [...groupData.members];
-
-    for (const memberData of expense.expenseMember) {
-      const member = updatedMembers.find((m) => m.uid === memberData.memberId);
-      if (!member) continue;
-
-      // Wenn das Mitglied die Ausgabe bezahlt hat
-      if (member.uid === expense.paidBy) {
-        const amountForOthers = expense.totalAmount - memberData.amountToPay;
-
-        member.sumExpenseAmount = Math.max(
-          0,
-          member.sumExpenseAmount - amountForOthers
-        );
-        member.countExpenseAmount = Math.max(0, member.countExpenseAmount - 1);
-      } else {
-        // Das Mitglied war beteiligt, aber hat nicht bezahlt
-        member.sumExpenseMemberAmount = Math.max(
-          0,
-          member.sumExpenseMemberAmount - memberData.amountToPay
-        );
-        member.countExpenseMemberAmount = Math.max(
-          0,
-          member.countExpenseMemberAmount - 1
-        );
-      }
-    }
-
-    await updateDoc(groupRef, {
-      members: updatedMembers,
-    });
-
-    console.log('Mitgliedssummen nach Löschung einer Ausgabe aktualisiert.');
-  }
-
-  async updateMemberSumsOnPayment(
-    groupId: string,
-    payerId: string,
-    receiverId: string,
-    amount: number
-  ): Promise<void> {
-    const groupRef = doc(this.firestore, 'groups', groupId);
-    const groupSnapshot = await getDoc(groupRef);
-    if (!groupSnapshot.exists()) return;
-
-    const groupData = groupSnapshot.data() as Groups;
-    const updatedMembers = [...groupData.members];
-
-    const payer = updatedMembers.find((m) => m.uid === payerId);
-    const receiver = updatedMembers.find((m) => m.uid === receiverId);
-    if (!payer || !receiver) return;
-
-    payer.sumAmountPaid += amount;
-    payer.countAmountPaid += 1;
-
-    receiver.sumAmountReceived += amount;
-    receiver.countAmountReceived += 1;
-
-    await updateDoc(groupRef, {
-      members: updatedMembers,
-    });
-
-    console.log('Zahlung erfolgreich verbucht.');
-  }
-
-  async updateMemberSumsOnPaymentDelete(
-    groupId: string,
-    payerId: string,
-    receiverId: string,
-    amount: number
-  ): Promise<void> {
-    const groupRef = doc(this.firestore, 'groups', groupId);
-    const groupSnapshot = await getDoc(groupRef);
-    if (!groupSnapshot.exists()) return;
-
-    const groupData = groupSnapshot.data() as Groups;
-    const updatedMembers = [...groupData.members];
-
-    const payer = updatedMembers.find((m) => m.uid === payerId);
-    const receiver = updatedMembers.find((m) => m.uid === receiverId);
-    if (!payer || !receiver) return;
-
-    payer.sumAmountPaid -= amount;
-    payer.countAmountPaid -= 1;
-
-    receiver.sumAmountReceived -= amount;
-    receiver.countAmountReceived -= 1;
-
-    await updateDoc(groupRef, {
-      members: updatedMembers,
-    });
-
-    console.log('Zahlung erfolgreich gelöscht.');
-  }
-
   async initializeLackingBalances(
     groupId: string,
     members: Members[]
@@ -917,7 +670,6 @@ export class ExpenseService {
 
     return unsettledExpenses;
   }
-
 
   async checkMemberBalance(groupId: string, userId: string): Promise<boolean> {
     const groupRef = doc(this.firestore, 'groups', groupId);
