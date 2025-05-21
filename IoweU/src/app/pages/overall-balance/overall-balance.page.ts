@@ -272,7 +272,7 @@ export class OverallBalancePage implements OnInit {
       .data(data_ready)
       .enter()
       .append('polyline')
-      .attr('stroke', 'black')
+      .style('stroke', 'var(--ion-color-dark)')
       .style('fill', 'none')
       .attr('stroke-width', 1)
       .attr('points', (d) => {

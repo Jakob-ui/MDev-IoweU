@@ -46,6 +46,7 @@
   border: solid 2px var(--ion-color-dark);
   border-radius: 16px;
   padding-top: 20px;
+  background-color: white;
 }
 
 .group-list{
@@ -142,6 +143,7 @@ ion-card {
 
 }
 
+
 @media (prefers-color-scheme: dark) {
   .date {
     color: var(--ion-color-light);
@@ -158,4 +160,9 @@ h5{
 p{
   color: #000 !important;
 }
+  .toggle-buttons{
+    background-color: var(--ion-color-dark);
+    border-radius: 50px;
+  }
+
 }
