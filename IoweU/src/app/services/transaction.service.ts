@@ -151,23 +151,6 @@ export class TransactionService {
       );
       singleTransactionBatch.set(transactionRef, transactionData);
 
-      // Aktualisiere Mitglieder-Beträge im Batch
-      await this.updateMemberAmounts(
-        singleTransactionBatch,
-        groupId,
-        transactionData,
-        1
-      );
-
-      // Aktualisiere Balances im Batch
-      await this.updateMemberBalancesOnTransaction(
-        'addition',
-        groupId,
-        transactionData,
-        transactionId,
-        singleTransactionBatch
-      );
-
       // Markiere zugehörige Ausgaben als bezahlt im Batch
       for (const expenseId of expenseIds) {
         // Schleife über alle IDs
@@ -221,23 +204,6 @@ export class TransactionService {
       );
       singleDeleteBatch.delete(transactionCollectionRef);
 
-      // Aktualisiere Mitglieder-Beträge im Batch (negativ)
-      await this.updateMemberAmounts(
-        singleDeleteBatch,
-        groupId,
-        transaction,
-        -1
-      );
-
-      // Aktualisiere Balances im Batch (Deletion)
-      await this.updateMemberBalancesOnTransaction(
-        'deletion',
-        groupId,
-        transaction,
-        transactionId,
-        singleDeleteBatch
-      );
-
       // Setze den "paid" Status in der Expense zurück (im Batch)
       const expenseRef = doc(
         this.firestore,
@@ -271,55 +237,6 @@ export class TransactionService {
         error
       );
       throw new Error(`Could not delete transaction with ID: ${transactionId}`);
-    }
-  }
-
-  async updateMemberAmounts(
-    batch: WriteBatch,
-    groupId: string,
-    transaction: { from: string; to: string; amount: number },
-    sign: number
-  ): Promise<void> {
-    const groupRef = doc(this.firestore, 'groups', groupId);
-    const groupSnap = await getDoc(groupRef);
-
-    if (groupSnap.exists()) {
-      const groupData = groupSnap.data();
-      const members = [...(groupData['members'] || [])]; // Kopie erstellen
-
-      // Update AmountPaid für den "from" Member
-      const memberFromIndex = members.findIndex(
-        (member: any) => member.uid === transaction.from
-      );
-      if (memberFromIndex !== -1) {
-        members[memberFromIndex].countAmountPaid =
-          (members[memberFromIndex].countAmountPaid || 0) + 1 * sign;
-        members[memberFromIndex].sumAmountPaid =
-          (members[memberFromIndex].sumAmountPaid || 0) +
-          transaction.amount * sign;
-      } else {
-        console.warn(`Mitglied From (${transaction.from}) nicht gefunden.`);
-      }
-
-      // Update AmountReceived für den "to" Member
-      const memberToIndex = members.findIndex(
-        (member: any) => member.uid === transaction.to
-      );
-      if (memberToIndex !== -1) {
-        members[memberToIndex].countAmountReceived =
-          (members[memberToIndex].countAmountReceived || 0) + 1 * sign;
-        members[memberToIndex].sumAmountReceived =
-          (members[memberToIndex].sumAmountReceived || 0) +
-          transaction.amount * sign;
-      } else {
-        console.warn(`Mitglied To (${transaction.to}) nicht gefunden.`);
-      }
-
-      batch.update(groupRef, { members: members }); // Update zum Batch hinzufügen
-    } else {
-      console.error(
-        'Gruppe nicht gefunden beim Aktualisieren der Mitgliederbeträge.'
-      );
     }
   }
 
@@ -500,17 +417,6 @@ export class TransactionService {
         transactionId
       );
       sdomBatch.set(transactionRef, transactionData);
-
-      // Aktualisiere Mitglieder-Beträge im Batch
-      await this.updateMemberAmounts(sdomBatch, groupId, transactionData, 1);
-      // Aktualisiere Balances im Batch
-      await this.updateMemberBalancesOnTransaction(
-        'addition',
-        groupId,
-        transactionData,
-        transactionId,
-        sdomBatch
-      );
 
       // Markiere zugehörige Ausgaben als bezahlt (im Batch)
       for (const expenseId of relatedExpenseIds) {
@@ -864,9 +770,6 @@ export class TransactionService {
           transactionId
         );
         batch.set(transactionRef, transactionData);
-
-        // 2. Aktualisiere Member Amounts im Batch
-        await this.updateMemberAmounts(batch, groupId, transactionData, 1);
 
         // 3. Markiere die betroffenen Ausgaben als bezahlt im Batch
         for (const expenseId of trans.relatedExpenses) {
