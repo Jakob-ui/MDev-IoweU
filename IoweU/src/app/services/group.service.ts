@@ -33,6 +33,7 @@ export class GroupService {
   private userService = inject(UserService);
   private imageService = inject(ImageService);
 
+  public lastCreatedGroupId: string = '';
 
   currentGroup: Groups | null = null;
   groupCount: number = 0;
@@ -80,6 +81,8 @@ export class GroupService {
         features: [],
         expenseId: [],
       };
+
+      this.lastCreatedGroupId = newGroup.groupId;
 
       // Features basierend auf dem Template hinzufügen
       if (template === 'Basic') {

@@ -11,6 +11,22 @@ import { Shoppinglists } from './objects/Shoppinglists';
 export class ShoppinglistService {
   private firestore = inject(Firestore);
 
+  async createEmptyShoppingList(groupId: string): Promise<void> {
+    const shoppinglistId = doc(collection(this.firestore, 'groups', groupId, 'shoppingLists')).id;
+    const shoppingList: Shoppinglists = {
+      shoppinglistId,
+      groupId,
+      shoppinglistName: 'Einkaufsliste',
+      shoppingProducts: [],
+    };
+
+    const shoppingListRef = doc(this.firestore, 'groups', groupId, 'shoppingLists', shoppinglistId);
+    await setDoc(shoppingListRef, shoppingList);
+
+    console.log('Leere Einkaufsliste erstellt:', shoppinglistId);
+  }
+
+
   async addShoppingProduct(
     groupId: string,
     productData: ShoppingProducts

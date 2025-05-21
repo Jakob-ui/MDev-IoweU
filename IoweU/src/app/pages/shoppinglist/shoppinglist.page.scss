@@ -312,6 +312,22 @@ form .top-container{
 }
 
 
+.buttons{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  ion-icon{
+    width: 20px;
+    height: 20px;
+  }
+}
+
+ion-checkbox{
+  margin-right: 5px;
+}
+
 
 @media (prefers-color-scheme: dark) {
   .date {

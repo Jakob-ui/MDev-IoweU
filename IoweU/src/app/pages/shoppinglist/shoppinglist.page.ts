@@ -9,7 +9,7 @@ import {
   IonCard,
   IonButton,
   IonIcon,
-   IonInput, IonDatetime, IonLabel
+  IonInput, IonDatetime, IonLabel, IonCheckbox
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -44,6 +44,7 @@ import {AlertController, ToastController} from "@ionic/angular";
     FormsModule,
     IonDatetime,
     IonLabel,
+    IonCheckbox,
   ],
 })
 export class ShoppinglistPage implements OnInit {
@@ -110,6 +111,7 @@ export class ShoppinglistPage implements OnInit {
   };
 
   isDatePickerOpen = false;
+  public showCheckbox: boolean = false;
 
   private unsubscribeProductsListener!: () => void;
 
@@ -154,7 +156,7 @@ export class ShoppinglistPage implements OnInit {
         ];
       }
 
-
+      window.addEventListener('resize', this.updateCheckboxVisibility.bind(this));
       this.unsubscribeProductsListener = this.shoppinglistService.listenToShoppingProductsChanges(
         this.groupId,
         this.shoppingListId,
@@ -179,9 +181,14 @@ export class ShoppinglistPage implements OnInit {
 
 
   ngOnDestroy() {
+    window.removeEventListener('resize', this.updateCheckboxVisibility.bind(this));
     if (this.unsubscribeProductsListener) {
       this.unsubscribeProductsListener();
     }
+  }
+
+  private updateCheckboxVisibility() {
+    this.showCheckbox = window.innerWidth > 600;
   }
 
 
@@ -599,6 +606,11 @@ export class ShoppinglistPage implements OnInit {
     }
   }
 
+  onCheckboxChange(event: any, shoppingProductId: string) {
+    if (event.detail.checked) {
+      this.moveProductToCart(shoppingProductId);
+    }
+  }
 
 
   onTouchStart(event: TouchEvent) {
