@@ -1,41 +1,39 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>profile-setup</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
-  <div class="user-div">
-    <div class="user-info-top">
-      <div class="profile-placeholder"></div>
-      <span class="user-name-big">{{ name }}</span>
+  <div id="container" class="container">
+    <div class="user-div">
+      <div class="user-info-top">
+        <div class="profile-placeholder"></div>
+        <span class="user-name-big">{{ name }}</span>
+      </div>
     </div>
+
+    <h2>Passe deinen Account an</h2>
+
+    <div class="input-container">
+      <ion-item class="input-item">
+        <ion-input type="text" [(ngModel)]="name" name="name"></ion-input>
+      </ion-item>
+
+      <ion-item class="input-item">
+        <ion-label class="label">Profilfarbe:</ion-label>
+        <input type="color" [(ngModel)]="color" class="colorinput" name="color" />
+      </ion-item>
+
+      <ion-item class="input-item">
+        <ion-label class="farbenblind-label">Farbenblind-Modus</ion-label>
+        <ion-toggle
+          slot="end"
+          class="toggle"
+          [checked]="colorBlindMode"
+          name="toggle"
+          (ionChange)="onColorBlindToggle($event)"
+        >
+        </ion-toggle>
+      </ion-item>
+    </div>
+
+    <ion-button class="main-button" expand="block" (click)="saveUserChanges()">
+      Änderungen speichern
+    </ion-button>
   </div>
-
-  <h2>Passe deinen Account an</h2>
-
-  <ion-item class="input-item">
-    <ion-input type="text" [(ngModel)]="name" name="name"></ion-input>
-  </ion-item>
-
-  <ion-item class="input-item">
-    <ion-label class="label">Profilfarbe:</ion-label>
-    <input type="color" [(ngModel)]="color" class="colorinput" name="color" />
-  </ion-item>
-
-  <ion-item class="input-item">
-    <ion-label class="farbenblind-label">Farbenblind-Modus</ion-label>
-    <ion-toggle
-      slot="end"
-      class="toggle"
-      [checked]="colorBlindMode"
-      name="toggle"
-      (ionChange)="onColorBlindToggle($event)"
-    >
-    </ion-toggle>
-  </ion-item>
-
-  <ion-button class="outline-button" expand="block" (click)="saveUserChanges()">
-    Änderungen speichern
-  </ion-button>
 </ion-content>
