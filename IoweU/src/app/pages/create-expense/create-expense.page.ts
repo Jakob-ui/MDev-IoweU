@@ -440,6 +440,7 @@ export class CreateExpensePage {
     if (!target.closest('.paid-by')) {
       this.paidByDropdownOpen = false;
     }
+
   }
 
   async onFileSelected(event: any) {
@@ -1228,7 +1229,7 @@ export class CreateExpensePage {
   }
 
   /** Schließt das Rechnungs-Dropdown, wird auf ion-content (click) ausgelöst */
-  closeInvoiceDropdowns(): void {
+  closeDropdowns(): void {
     this.invoiceDropdownOpen = false;
     this.currencyDropdownOpen = false;
   }
