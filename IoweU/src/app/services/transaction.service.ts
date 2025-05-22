@@ -18,6 +18,7 @@ import { Balances } from './objects/Balances';
 import { Expenses } from './objects/Expenses';
 import { ExpenseService } from './expense.service';
 import { DebtEntry } from './objects/DeptEntry';
+import { merge } from 'd3';
 
 @Injectable({
   providedIn: 'root',
@@ -139,7 +140,8 @@ export class TransactionService {
         amount: transaction.amount,
         reason: transaction.reason,
         date: transaction.date,
-        relatedExpenses: expenseIds, // Nutze das übergebene Array
+        relatedExpenses: expenseIds,
+        isSettlement: transaction.isSettlement,
       };
       const transactionRef = doc(
         this.firestore,
@@ -296,10 +298,10 @@ export class TransactionService {
     toUid: string,
     amount: number,
     reason: string,
-    relatedExpenseIds: string[] // Liste der Expense IDs
+    relatedExpenseIds: string[] 
   ) {
     try {
-      const sdomBatch = writeBatch(this.firestore); 
+      const batch = writeBatch(this.firestore);
       const transactionId = doc(
         collection(this.firestore, 'groups', groupId, 'transactions')
       ).id;
@@ -311,6 +313,7 @@ export class TransactionService {
         reason: reason,
         date: new Date().toISOString(),
         relatedExpenses: relatedExpenseIds,
+        isSettlement: true,
       };
       const transactionRef = doc(
         this.firestore,
@@ -319,7 +322,7 @@ export class TransactionService {
         'transactions',
         transactionId
       );
-      sdomBatch.set(transactionRef, transactionData);
+      batch.set(transactionRef, transactionData);
 
       for (const expenseId of relatedExpenseIds) {
         const expenseRef = doc(
@@ -332,23 +335,49 @@ export class TransactionService {
         const expenseSnapshot = await getDoc(expenseRef);
         if (expenseSnapshot.exists()) {
           const expense = expenseSnapshot.data() as Expenses;
+          
           const updatedExpenseMembers = expense.expenseMember.map((member) => {
-            if (member.memberId === fromUid) {
+            if (member.memberId === fromUid || member.memberId === toUid) {
               return { ...member, paid: true };
             }
             return member;
           });
-          sdomBatch.update(expenseRef, {
-            expenseMember: updatedExpenseMembers,
+          batch.update(expenseRef, {
+            expenseMember: updatedExpenseMembers, merge: true
           });
         }
       }
 
-      await sdomBatch.commit();
-      console.log(
-        'Transaction added (settleDebtWithOneMember):',
-        transactionId
+      const balancesRef = collection(
+        this.firestore,
+        'groups',
+        groupId,
+        'balances'
       );
+      const q1 = query(
+        balancesRef,
+        where('userAId', '==', fromUid),
+        where('userBId', '==', toUid)
+      );
+      const q2 = query(
+        balancesRef,
+        where('userAId', '==', toUid),
+        where('userBId', '==', fromUid)
+      );
+      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+      for (const snap of [snap1, snap2]) {
+        snap.forEach((docSnap) => {
+          batch.update(docSnap.ref, {
+            userACredit: 0,
+            userBCredit: 0,
+            relatedExpenseId: [],
+          });
+        });
+      }
+
+      await batch.commit();
+      console.log('Schulden zwischen', fromUid, 'und', toUid, 'ausgeglichen.');
     } catch (error) {
       console.error('Fehler in settleDebtWithOneMember:', error);
       throw error;
@@ -581,6 +610,7 @@ export class TransactionService {
           })`,
           date: new Date().toISOString(),
           relatedExpenses: trans.relatedExpenses,
+          isSettlement: true,
         };
         const transactionRef = doc(
           this.firestore,

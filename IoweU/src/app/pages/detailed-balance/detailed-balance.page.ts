@@ -286,7 +286,7 @@ export class DetailedBalancePage implements OnInit {
       // Aufruf der spezialisierten Funktion im TransactionService
       await this.transactionService.settleDebtWithOneMember(
         this.groupId,
-        this.uid, 
+        this.uid,
         this.selectedMember.uid,
         amountToPay, 
         `Schuld an ${this.selectedMember.username} beglichen`, 

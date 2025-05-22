@@ -298,7 +298,7 @@ export class CreateExpensePage {
                 foreignAmountToPay: 0,
                 split: 1,
                 products: [],
-                paid: member.uid === this.expense.paidBy, // Set paid true for the payer
+                paid: false,
               }));
 
               if (!this.expense.paidBy && this.uid) {
@@ -1162,7 +1162,7 @@ export class CreateExpensePage {
           amountToPay: parseFloat(amount.toFixed(2)),
           foreignAmountToPay: parseFloat(foreignAmount.toFixed(2)),
           split: 1,
-          paid: false,
+          paid: uid === this.expense.paidBy,
           products,
         };
       });

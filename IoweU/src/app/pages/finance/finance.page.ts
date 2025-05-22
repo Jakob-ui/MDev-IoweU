@@ -92,7 +92,6 @@ export class FinancePage implements OnInit {
       this.uid = currentUser.uid;
       this.user = currentUser.username;
       this.displayName = currentUser.username;
-      console.log('Benutzerdaten:', currentUser);
 
       const rawGroupId = this.activeRoute.snapshot.paramMap.get('groupId');
 
@@ -142,10 +141,7 @@ export class FinancePage implements OnInit {
                 member.uid
               );
 
-              const saldo = amount; // Positiv bedeutet: Ich bekomme Geld
-              console.log(
-                `Saldo zwischen ${this.user} und ${member.username}: ${saldo}`
-              );
+              const saldo = amount;
 
               if (saldo > 0) {
                 this.myIncome += saldo;
@@ -160,11 +156,6 @@ export class FinancePage implements OnInit {
             }
           })
       );
-
-      console.log('Mitglieder geladen:', this.groupMembers);
-      console.log('Mein Saldo:', this.myBalance);
-      console.log('Meine Ausgaben:', this.myExpenses);
-      console.log('Mein Einkommen:', this.myIncome);
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -195,7 +186,6 @@ export class FinancePage implements OnInit {
   }
 
   toggleInfoOverlay() {
-    console.log('Overlay state:', this.overlayState);
 
     // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
     if (this.overlayState === 'start') {
@@ -208,7 +198,6 @@ export class FinancePage implements OnInit {
       this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
     }
 
-    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 
   async goToPayAllExpenses(settlegroup: boolean) {

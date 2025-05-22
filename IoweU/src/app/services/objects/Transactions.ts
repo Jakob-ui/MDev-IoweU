@@ -9,5 +9,6 @@ export interface Transactions {
   reason: string;
   date: string;
   relatedExpenses: string[];
+  isSettlement: boolean;
 }
 

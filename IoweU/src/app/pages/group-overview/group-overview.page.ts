@@ -73,9 +73,6 @@ export class GroupOverviewPage implements OnInit {
       if (this.authService.currentUser) {
         this.username = this.authService.currentUser.username;
         this.iosIcons = this.platform.is('ios');
-        console.log(
-          'Group overview loaded: ' + this.authService.currentUser.username
-        );
 
         const userColor = this.authService.currentUser.color;
         document.documentElement.style.setProperty('--user-color', userColor);

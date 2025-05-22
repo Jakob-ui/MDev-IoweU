@@ -588,6 +588,12 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
       // Neue oder gelöschte Transaktion
       const newTransaction = event.data?.after?.data();
       const oldTransaction = event.data?.before?.data();
+      if (newTransaction && newTransaction.isSettlement) {
+        return; // returne bitte wenn die Transaction teil eines settlements ist um nicht die genullten werte zu überschreiben
+      }
+      if (oldTransaction && oldTransaction.isSettlement) {
+        return; // returne bitte wenn die Transaction teil eines settlements ist um nicht die genullten werte zu überschreiben
+      }
 
       const groupRef = firestore.collection("groups").doc(groupId);
       const groupSnapshot = await groupRef.get();

@@ -368,6 +368,7 @@ export class PayExpensesPage {
         reason: this.expense[0].description,
         date: new Date().toISOString(),
         relatedExpenses: [this.expenseId],
+        isSettlement: false,
       };
 
       try {
