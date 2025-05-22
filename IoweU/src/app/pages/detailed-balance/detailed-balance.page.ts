@@ -160,26 +160,6 @@ export class DetailedBalancePage implements OnInit {
                 currentUserId,
                 selectedMemberId
               );
-              const rawDebts =
-                await this.transactionService.getSettleDebtsForID(
-                  validGroupId,
-                  currentUserId
-                );
-              if (rawDebts) {
-                this.deptList = rawDebts.filter(
-                  (debt) =>
-                    (debt.from === currentUserId &&
-                      debt.to === selectedMemberId) ||
-                    (debt.from === selectedMemberId &&
-                      debt.to === currentUserId)
-                );
-              } else {
-                this.deptList = [];
-              }
-              console.log(
-                'Detaillierte deptList für Anzeige (nur 1:1):',
-                this.deptList
-              );
 
               this.allExpenses =
                 await this.expenseService.getUnsettledExpensesByBalance(

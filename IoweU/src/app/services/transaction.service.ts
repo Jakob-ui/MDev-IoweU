@@ -299,7 +299,7 @@ export class TransactionService {
     relatedExpenseIds: string[] // Liste der Expense IDs
   ) {
     try {
-      const sdomBatch = writeBatch(this.firestore); // Eigener Batch
+      const sdomBatch = writeBatch(this.firestore); 
       const transactionId = doc(
         collection(this.firestore, 'groups', groupId, 'transactions')
       ).id;
@@ -310,7 +310,7 @@ export class TransactionService {
         amount: amount,
         reason: reason,
         date: new Date().toISOString(),
-        relatedExpenses: relatedExpenseIds, // Hier die IDs direkt übergeben
+        relatedExpenses: relatedExpenseIds,
       };
       const transactionRef = doc(
         this.firestore,
@@ -321,7 +321,6 @@ export class TransactionService {
       );
       sdomBatch.set(transactionRef, transactionData);
 
-      // Markiere zugehörige Ausgaben als bezahlt (im Batch)
       for (const expenseId of relatedExpenseIds) {
         const expenseRef = doc(
           this.firestore,
@@ -345,14 +344,14 @@ export class TransactionService {
         }
       }
 
-      await sdomBatch.commit(); // Batch committen
+      await sdomBatch.commit();
       console.log(
         'Transaction added (settleDebtWithOneMember):',
         transactionId
       );
     } catch (error) {
       console.error('Fehler in settleDebtWithOneMember:', error);
-      throw error; // Fehler weiterwerfen
+      throw error;
     }
   }
 
@@ -545,85 +544,6 @@ export class TransactionService {
         error
       );
       throw new Error('Fehler beim Berechnen des persönlichen Ausgleichs');
-    }
-  }
-
-  //Holt sich die Schulden von einer bestimmten Person
-  async getSettleDebtsForID(
-    groupId: string,
-    id: string
-  ): Promise<DebtEntry[] | null> {
-    try {
-      const balancesRef = collection(
-        this.firestore,
-        'groups',
-        groupId,
-        'balances'
-      );
-      const snapshot = await getDocs(balancesRef);
-
-      const debtList: DebtEntry[] = [];
-
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const userACredit = data['userACredit'] || 0;
-        const userBCredit = data['userBCredit'] || 0;
-        const relatedExpenseIds = data['relatedExpenseId'] || [];
-
-        // Fall 1: Angefragter User (id) schuldet userBId
-        if (data['userAId'] === id && userBCredit > userACredit) {
-          const amount = userBCredit - userACredit;
-          if (amount > 0) {
-            debtList.push({
-              from: id, // id schuldet
-              to: data['userBId'], // an userBId
-              amount: amount,
-              relatedExpenses: relatedExpenseIds,
-            });
-          }
-        }
-        // Fall 2: userBId schuldet dem angefragten User (id)
-        else if (data['userAId'] === id && userACredit > userBCredit) {
-          const amount = userACredit - userBCredit;
-          if (amount > 0) {
-            debtList.push({
-              from: data['userBId'], // userBId schuldet
-              to: id, // an id
-              amount: amount,
-              relatedExpenses: relatedExpenseIds,
-            });
-          }
-        }
-        // Fall 3: Angefragter User (id) schuldet userAId
-        else if (data['userBId'] === id && userACredit > userBCredit) {
-          const amount = userACredit - userBCredit;
-          if (amount > 0) {
-            debtList.push({
-              from: id, // id schuldet
-              to: data['userAId'], // an userAId
-              amount: amount,
-              relatedExpenses: relatedExpenseIds,
-            });
-          }
-        }
-        // Fall 4: userAId schuldet dem angefragten User (id)
-        else if (data['userBId'] === id && userBCredit > userACredit) {
-          const amount = userBCredit - userACredit;
-          if (amount > 0) {
-            debtList.push({
-              from: data['userAId'], // userAId schuldet
-              to: id, // an id
-              amount: amount,
-              relatedExpenses: relatedExpenseIds,
-            });
-          }
-        }
-      });
-      console.log('Direkte Schulden für ID:', id, debtList);
-      return debtList;
-    } catch (error) {
-      console.error('Fehler beim Ermitteln der Schulden für ID:', error);
-      return null;
     }
   }
 
