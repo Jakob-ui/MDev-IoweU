@@ -291,29 +291,30 @@
           </ion-item>
         </div>
 
-        <div class="wiederholung">
+        <div class="wiederholung" (click)="toggleRepeatDropdown($event)">
           <span class="input-label">Wiederholung</span>
           <ion-item class="input-item">
-            <ion-select
-              [(ngModel)]="expense.repeat"
-              [disabled]="ProduktFromShoppingCart"
-              interface="popover">
-              <ion-select-option class="custom-select-option" value="nein"
-                >nein</ion-select-option
-              >
-              <ion-select-option class="custom-select-option" value="täglich"
-                >täglich</ion-select-option
-              >
-              <ion-select-option
-                class="custom-select-option"
-                value="wöchentlich"
-                >wöchentlich</ion-select-option
-              >
-              <ion-select-option class="custom-select-option" value="monatlich"
-                >monatlich</ion-select-option
-              >
-            </ion-select>
+            <ion-label>
+              <div class="selected-repeat">
+                {{ getRepeatLabel(expense.repeat) || 'Wiederholung' }}
+              </div>
+            </ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon> <!-- Add arrow icon -->
           </ion-item>
+
+          <div *ngIf="repeatDropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                class="dropDownFelder"
+                button
+                *ngFor="let repeatOption of repeatOptions"
+                [ngClass]="{ 'selected': expense.repeat === repeatOption.value }"
+                (click)="selectRepeat(repeatOption.value, $event)"
+              >
+                <ion-label>{{ repeatOption.label }}</ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
       </div>
     </div>
