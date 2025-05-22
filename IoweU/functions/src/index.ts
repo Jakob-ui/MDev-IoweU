@@ -365,7 +365,9 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
       }
 
       const balancesRef = firestore.collection(`groups/${groupId}/balances`);
-      if (newExpense) {
+      if (newExpense) 
+      {
+        // Ausgabe hinzugefügt
         for (const member of newExpense.expenseMember) {
           if (member.memberId !== newExpense.paidBy) {
             const creditor = newExpense.paidBy;
@@ -428,8 +430,9 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
         }
       }
 
-      // === LÖSCHEN ===
-      if (!newExpense && oldExpense) {
+      if (!newExpense && oldExpense) 
+      {
+        // Ausgabe gelöscht
         for (const member of oldExpense.expenseMember) {
           if (member.memberId !== oldExpense.paidBy) {
             const creditor = oldExpense.paidBy;
@@ -474,11 +477,105 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
           }
         }
       }
-    } catch (error) {
+      if(oldExpense&&newExpense)
+      {
+        //Ausgabe aktualisiert
+
+        // A. Lösche die Daten der alten Ausgabe
+        for (const member of oldExpense.expenseMember) {
+          if (member.memberId !== oldExpense.paidBy) {
+            const creditor = oldExpense.paidBy;
+            const debtor = member.memberId;
+            const amount = member.amountToPay;
+
+            const snap1 = await balancesRef
+              .where("userAId", "==", creditor)
+              .where("userBId", "==", debtor)
+              .get();
+
+            const snap2 = await balancesRef
+              .where("userAId", "==", debtor)
+              .where("userBId", "==", creditor)
+              .get();
+
+            const docs = [...snap1.docs, ...snap2.docs];
+
+            if (docs.length > 0) {
+              const docRef = docs[0].ref;
+              const data = docs[0].data() as any;
+
+              if (data.userAId === creditor && data.userBId === debtor) {
+                await docRef.update({
+                  userACredit: Number((data.userACredit - amount).toFixed(2)),
+                  lastUpdated: new Date().toISOString(),
+                });
+              } else if (data.userAId === debtor && data.userBId === creditor) {
+                await docRef.update({
+                  userBCredit: Number((data.userBCredit - amount).toFixed(2)),
+                  lastUpdated: new Date().toISOString(),
+                });
+              }
+            }
+          }
+        }
+        // B. Füge die Daten der neuen Ausgabe hinzu
+        for (const member of newExpense.expenseMember) {
+          if (member.memberId !== newExpense.paidBy) {
+            const creditor = newExpense.paidBy;
+            const debtor = member.memberId;
+            const amount = member.amountToPay;
+
+            // Richtung 1: creditor → debtor
+            const snap1 = await balancesRef
+              .where("userAId", "==", creditor)
+              .where("userBId", "==", debtor)
+              .get();
+
+            // Richtung 2: debtor → creditor
+            const snap2 = await balancesRef
+              .where("userAId", "==", debtor)
+              .where("userBId", "==", creditor)
+              .get();
+
+            const docs = [...snap1.docs, ...snap2.docs];
+
+            if (docs.length > 0) {
+              const docRef = docs[0].ref;
+              const data = docs[0].data() as any;
+
+              if (data.userAId === creditor && data.userBId === debtor) {
+                await docRef.update({
+                  userACredit: Number((data.userACredit + amount).toFixed(2)),
+                  lastUpdated: new Date().toISOString(),
+                  relatedExpenseId: Array.from(
+                    new Set([
+                      ...(data.relatedExpenseId || []),
+                      newExpense.expenseId,
+                    ])
+                  ),
+                });
+              } else if (data.userAId === debtor && data.userBId === creditor) {
+                await docRef.update({
+                  userBCredit: Number((data.userBCredit + amount).toFixed(2)),
+                  lastUpdated: new Date().toISOString(),
+                  relatedExpenseId: Array.from(
+                    new Set([
+                      ...(data.relatedExpenseId || []),
+                      newExpense.expenseId,
+                    ])
+                  ),
+                });
+              }
+            }
+          }
+      }
+    } 
+  }
+    catch (error) 
+    {
       console.error("Error updating balances on new expense:", error);
     }
-  }
-);
+});
 
 // 4. Updaten der Bilanzen bei Änderung der Transaktionen
 export const updateBalancesOnTransactionChange = onDocumentWritten(
@@ -499,7 +596,7 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
         console.error(`Gruppe mit der ID ${groupId} nicht gefunden.`);
         return;
       }
-
+      console.log("New transaction detected: ", newTransaction);
       const balancesRef = firestore.collection(`groups/${groupId}/balances`);
       if (newTransaction && !oldTransaction)
       {
@@ -507,9 +604,18 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
         const creditor = newTransaction.to;
         const debtor = newTransaction.from;
         const amount = newTransaction.amount;
-        const relatedBalance = balancesRef.where("userAId", "in", {creditor, debtor}).where("userBId", "in", {creditor, debtor});	
-        const snap = await relatedBalance.get();
-        const docs = snap.docs;
+        const snap1 = await balancesRef
+              .where("userAId", "==", creditor)
+              .where("userBId", "==", debtor)
+              .get();
+
+        const snap2 = await balancesRef
+              .where("userAId", "==", debtor)
+              .where("userBId", "==", creditor)
+              .get();
+
+            const docs = [...snap1.docs, ...snap2.docs];
+        console.log("Balance docs: ", docs);
         if (docs.length > 0) 
         {
           const docRef = docs[0].ref;
@@ -522,6 +628,7 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
             lastUpdated: new Date().toISOString(),
             userACredit: balanceData.userACredit,
           });
+          console.log("Case 1 balance data", balanceData);
           }
           else if (balanceData.userAId === debtor && balanceData.userBId === creditor) // User A überweist dem User B
           {
@@ -531,6 +638,7 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
             lastUpdated: new Date().toISOString(),
             userBCredit: balanceData.userBCredit,
           });
+          console.log("Case 2 balance data", balanceData);
           }
         }
       }
@@ -540,9 +648,17 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
         const creditor = oldTransaction.to;
         const debtor = oldTransaction.from;
         const amount = oldTransaction.amount;
-        const relatedBalance = balancesRef.where("userAId", "in", {creditor, debtor}).where("userBId", "in", {creditor, debtor});	
-        const snap = await relatedBalance.get();
-        const docs = snap.docs;
+        const snap1 = await balancesRef
+              .where("userAId", "==", creditor)
+              .where("userBId", "==", debtor)
+              .get();
+
+        const snap2 = await balancesRef
+              .where("userAId", "==", debtor)
+              .where("userBId", "==", creditor)
+              .get();
+
+            const docs = [...snap1.docs, ...snap2.docs];
         if (docs.length > 0) 
         {
           const docRef = docs[0].ref;
