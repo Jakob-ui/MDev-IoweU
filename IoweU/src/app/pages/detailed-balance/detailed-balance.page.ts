@@ -160,10 +160,11 @@ export class DetailedBalancePage implements OnInit {
                 currentUserId,
                 selectedMemberId
               );
-              const rawDebts = await this.transactionService.settleDebtsForID(
-                validGroupId,
-                currentUserId
-              );
+              const rawDebts =
+                await this.transactionService.getSettleDebtsForID(
+                  validGroupId,
+                  currentUserId
+                );
               if (rawDebts) {
                 this.deptList = rawDebts.filter(
                   (debt) =>
@@ -282,8 +283,6 @@ export class DetailedBalancePage implements OnInit {
       return;
     }
 
-    // Wenn der aktuelle User dem selectedMember nichts schuldet, kann er nicht "bezahlen".
-    // Er sollte nur anfragen, wenn der andere schuldet.
     if (this.myBalance >= 0) {
       const alert = await this.alertController.create({
         header: 'Keine Schulden zu begleichen',
@@ -294,13 +293,9 @@ export class DetailedBalancePage implements OnInit {
       return;
     }
 
-    // Der Betrag, den der aktuelle User zahlen muss (negativer Saldo)
-    const amountToPay = Math.abs(this.myBalance); // Betrag ist immer positiv
 
-    // Die `relatedExpenses` sind die IDs der Ausgaben, die zu diesem Saldo führen
-    // Wir können die IDs aus der `deptList` verwenden, die wir zuvor für diese 1:1 Beziehung gefiltert haben.
-    // Oder, falls die `deptList` mehrere Einträge hätte (was bei 1:1 optimiert nicht der Fall sein sollte),
-    // könnten wir sie hier aggregieren. Für einen 1:1-Ausgleich ist es oft nur ein Eintrag.
+    const amountToPay = Math.abs(this.myBalance); 
+
     const relatedExpensesIds = this.deptList.flatMap(
       (debt) => debt.relatedExpenses
     );
@@ -311,11 +306,11 @@ export class DetailedBalancePage implements OnInit {
       // Aufruf der spezialisierten Funktion im TransactionService
       await this.transactionService.settleDebtWithOneMember(
         this.groupId,
-        this.uid, // Der aktuelle User zahlt
-        this.selectedMember.uid, // An das ausgewählte Mitglied
-        amountToPay, // Der Betrag, den der aktuelle User zahlen muss
-        `Schuld an ${this.selectedMember.username} beglichen`, // Grund der Transaktion
-        uniqueRelatedExpensesIds // Alle relevanten Expense IDs
+        this.uid, 
+        this.selectedMember.uid,
+        amountToPay, 
+        `Schuld an ${this.selectedMember.username} beglichen`, 
+        uniqueRelatedExpensesIds
       );
 
       const alert = await this.alertController.create({
@@ -329,13 +324,13 @@ export class DetailedBalancePage implements OnInit {
             text: 'Nein',
             role: 'cancel',
             handler: () => {
-              this.router.navigate(['expense', this.groupId]); // Zurück zur Ausgabenübersicht
+              this.router.navigate(['expense', this.groupId]); 
             },
           },
           {
             text: 'Ja',
             handler: () => {
-              this.router.navigate(['transactions', this.groupId]); // Zu den Transaktionen
+              this.router.navigate(['transactions', this.groupId]);
             },
           },
         ],

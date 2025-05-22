@@ -67,7 +67,7 @@
         </div>
       </div>
       <div
-        *ngIf="expense && expense.length > 0"
+        *ngIf="!gruppenausgleich"
         class="toggle-arrow"
         (click)="toggleExpenses(i)"
       >

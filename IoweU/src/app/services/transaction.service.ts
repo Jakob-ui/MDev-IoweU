@@ -13,7 +13,6 @@ import {
   setDoc,
   where,
   writeBatch,
-  WriteBatch, // Wichtig: Typ für WriteBatch importieren
 } from '@angular/fire/firestore';
 import { Balances } from './objects/Balances';
 import { Expenses } from './objects/Expenses';
@@ -186,15 +185,16 @@ export class TransactionService {
     }
   }
 
+  //Lösche die Transaktion bei einer bestimmten ID
   async deleteTransactionsById(
     groupId: string,
-    expenseId: string, // Hier ist es eine einzelne ID
+    expenseId: string, 
     uid: string,
     transaction: Transactions,
     transactionId: string
   ) {
     try {
-      const singleDeleteBatch = writeBatch(this.firestore); // Eigener Batch
+      const singleDeleteBatch = writeBatch(this.firestore); 
       const transactionCollectionRef = doc(
         this.firestore,
         'groups',
@@ -240,6 +240,7 @@ export class TransactionService {
     }
   }
 
+  //Markiert bestimmte Member als paid
   async markMembersAsPaid(
     groupId: string,
     expenseId: string,
@@ -288,6 +289,7 @@ export class TransactionService {
     }
   }
 
+  //Hier wird nur die Schuld mit einem Bestimmten Mitglied beglichen
   async settleDebtWithOneMember(
     groupId: string,
     fromUid: string,
@@ -354,6 +356,7 @@ export class TransactionService {
     }
   }
 
+  //Hole die Schulden für den großen Gruppenausgleich
   async getCalculatedGroupSettlementDebts(
     groupId: string
   ): Promise<DebtEntry[]> {
@@ -409,6 +412,7 @@ export class TransactionService {
     }
   }
 
+  //Hole die Schulden bei einem Persönlichen Ausgleich mit allen anderen Mitgliedern
   async getCalculatedPersonalSettlementDebts(
     groupId: string,
     userId: string
@@ -544,7 +548,8 @@ export class TransactionService {
     }
   }
 
-  async settleDebtsForID(
+  //Holt sich die Schulden von einer bestimmten Person
+  async getSettleDebtsForID(
     groupId: string,
     id: string
   ): Promise<DebtEntry[] | null> {
@@ -622,6 +627,7 @@ export class TransactionService {
     }
   }
 
+  //Gruppen/Persönlicher Ausgleich
   async executeSettlementTransactions(
     groupId: string,
     transactionsToExecute: DebtEntry[],
@@ -679,7 +685,7 @@ export class TransactionService {
               'expenses',
               expenseId
             );
-            const expenseSnapshot = await getDoc(expenseRef); 
+            const expenseSnapshot = await getDoc(expenseRef);
             if (expenseSnapshot.exists()) {
               const expense = expenseSnapshot.data() as Expenses;
               // ALLE Mitglieder als bezahlt markieren

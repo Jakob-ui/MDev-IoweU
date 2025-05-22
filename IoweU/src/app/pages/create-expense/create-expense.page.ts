@@ -134,7 +134,8 @@ export class CreateExpensePage {
 
 
 
-  constructor() {}
+  constructor() {
+      addIcons({addOutline,checkmarkOutline,cameraOutline,imageOutline,chevronDownOutline});}
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -332,6 +333,12 @@ export class CreateExpensePage {
     } finally {
       this.loadingService.hide();
     }
+
+    // Setze die Standard-Kategorie auf "Sonstige" (oder "Sonstiges" je nach Schreibweise)
+    this.selectedCategory = this.categories.find(cat => cat.name === 'Sonstige' || cat.name === 'Sonstiges');
+    if (this.selectedCategory) {
+      this.expense.category = this.selectedCategory.name;
+    }
   }
 
 
@@ -433,6 +440,7 @@ export class CreateExpensePage {
     if (!target.closest('.paid-by')) {
       this.paidByDropdownOpen = false;
     }
+
   }
 
   async onFileSelected(event: any) {
@@ -444,7 +452,7 @@ export class CreateExpensePage {
         const imageBlob = this.imageService.dataURLtoBlob(imageDataUrl);
 
         // Use the updated uploadImage method with compression
-        const path = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+        const path = `groups/${this.groupId}/invoices/${this.expense.expenseId}.jpg`;
         const downloadURL = await this.imageService.uploadImage(
           'expense-invoice',
           imageBlob,
@@ -1177,7 +1185,7 @@ export class CreateExpensePage {
 
 
       if (this.uploadInvoice) {
-        const invoicePath = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+        const invoicePath = `groups/${this.groupId}/invoices/${this.expense.expenseId}.jpg`;
         const downloadURL = await this.imageService.uploadImage(
           this.expense.expenseId,
           this.uploadInvoice,
@@ -1221,7 +1229,7 @@ export class CreateExpensePage {
   }
 
   /** Schließt das Rechnungs-Dropdown, wird auf ion-content (click) ausgelöst */
-  closeInvoiceDropdowns(): void {
+  closeDropdowns(): void {
     this.invoiceDropdownOpen = false;
     this.currencyDropdownOpen = false;
   }

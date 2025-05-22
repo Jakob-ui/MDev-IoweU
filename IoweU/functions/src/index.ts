@@ -347,7 +347,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
 
 // 3. Updaten der Bilanzen bei Änderung der Ausgaben
 export const updateBalancesOnExpenseChange = onDocumentWritten(
-  "groups/{groupId}/expenses/{expenseId}",
+  "groups/{groupId}/expenses/{expenseId}", 
   async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
     const groupId = event.params.groupId;
 
