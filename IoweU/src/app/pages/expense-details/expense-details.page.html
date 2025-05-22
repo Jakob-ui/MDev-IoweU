@@ -187,7 +187,7 @@
         class="main-button"
         expand="block"
         (click)="payExpense()"
-        *ngIf="!hasUserPaid(expense[0]) && expense[0].paidBy !== uid!"
+        *ngIf="!showNoDebtText(expense[0]) && !hasUserPaid(expense[0]) && expense[0].paidBy !== uid!"
       >
         Schulden begleichen
       </ion-button>
@@ -196,7 +196,7 @@
         class="main-button"
         expand="block"
         (click)="requestPayment()"
-        *ngIf="!hasUserPaid(expense[0]) && expense[0].paidBy === uid!"
+        *ngIf="!showNoDebtText(expense[0]) && !hasUserPaid(expense[0]) && expense[0].paidBy === uid!"
       >
         Schulden anfordern
       </ion-button>
@@ -205,12 +205,14 @@
         class="main-button"
         expand="block"
         (click)="goToTransactions()"
-        *ngIf="hasUserPaid(expense[0])"
+        *ngIf="!showNoDebtText(expense[0]) && hasUserPaid(expense[0])"
       >
         bereits bezahlt
       </ion-button>
 
+      <p *ngIf="showNoDebtText(expense[0])">keine Schulden in dieser Ausgabe</p>
     </div>
+
 
   </div>
 </ion-content>

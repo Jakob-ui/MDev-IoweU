@@ -216,7 +216,7 @@ ion-card {
   height: 120px;
   display: flex;
   --box-shadow: none !important;
-  box-shadow: none !important;
+  box-shadow: 4px 4px 15px rgb(111 111 111 / 24%) !important;
 }
 
 .card-content {
@@ -419,7 +419,7 @@ ion-button.back-button::part(native) {
 }
 
 .divider {
-  width: 2px;
+  width: 1px;
   background-color: var(--ion-color-dark);
   margin-right: 10px;
   margin-left: 10px;
@@ -427,13 +427,13 @@ ion-button.back-button::part(native) {
 }
 
 ion-button.main-button::part(native) {
-  --background: var(--ion-color-primary);
+  --background: var(--ion-color-secondary);
   font-weight: 700;
   padding: 12px 24px;
   text-transform: uppercase;
   border-radius: 50px;
   box-shadow: none !important;
-  border: solid 2px var(--ion-color-dark);
+  border: solid 2px var(--ion-color-primary);
 }
 
 ion-button.outline-button::part(native) {
@@ -489,7 +489,7 @@ ion-item::part(native) {
   font-family: var(--ion-font-family);
   font-weight: 300;
   font-size: 14px;
-  background: var(--ion-color-secondary) !important;
+  //background: var(--ion-color-secondary) !important;
   border-radius: 50px;
   --border-style: none !important;
   border: none !important;
@@ -553,7 +553,7 @@ ion-item.select-interface-option::part(native) {
 }
 
 .info-item {
-  --background: var(--ion-color-primary);
+  --background: var(--ion-color-light);
   margin: 5px 0;
   padding: 8px;
   width: 80%;

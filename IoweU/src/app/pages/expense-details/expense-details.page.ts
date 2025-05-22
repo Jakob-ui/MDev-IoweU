@@ -443,4 +443,11 @@ export class ExpenseDetailsPage {
       .filter((member) => member.memberId !== expense.paidBy)
       .some((member) => member.paid === true);
   }
+
+  showNoDebtText(expense: Expenses): boolean {
+    const member = expense.expenseMember.find(m => m.memberId === this.uid);
+    return !!member && member.amountToPay === 0 && !member.paid && expense.paidBy !== this.uid;
+  }
+
+
 }

@@ -134,7 +134,8 @@ export class CreateExpensePage {
 
 
 
-  constructor() {}
+  constructor() {
+      addIcons({addOutline,checkmarkOutline,cameraOutline,imageOutline,chevronDownOutline});}
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -331,6 +332,12 @@ export class CreateExpensePage {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
       this.loadingService.hide();
+    }
+
+    // Setze die Standard-Kategorie auf "Sonstige" (oder "Sonstiges" je nach Schreibweise)
+    this.selectedCategory = this.categories.find(cat => cat.name === 'Sonstige' || cat.name === 'Sonstiges');
+    if (this.selectedCategory) {
+      this.expense.category = this.selectedCategory.name;
     }
   }
 
