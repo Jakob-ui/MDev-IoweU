@@ -240,105 +240,6 @@ export class TransactionService {
     }
   }
 
-  async updateMemberBalancesOnTransaction(
-    action: 'addition' | 'deletion',
-    groupId: string,
-    currentTransaction: Transactions,
-    newTransactionId: string,
-    batch: WriteBatch // Nimmt einen Batch entgegen
-  ): Promise<void> {
-    currentTransaction.transactionId = newTransactionId; // Sicherstellen, dass die ID gesetzt ist
-
-    const balancesRefCollection = collection(
-      this.firestore,
-      'groups',
-      groupId,
-      'balances'
-    );
-    const balancesQuery = query(
-      balancesRefCollection,
-      where('userAId', 'in', [currentTransaction.from, currentTransaction.to]),
-      where('userBId', 'in', [currentTransaction.from, currentTransaction.to])
-    );
-    const snapshot = await getDocs(balancesQuery);
-
-    if (!snapshot.empty) {
-      const docRef = snapshot.docs[0].ref;
-      const data = snapshot.docs[0].data() as Balances;
-      const relatedTransactions = [...(data.relatedTransactionId || [])]; // Kopie des Arrays
-
-      let newCreditA = data.userACredit;
-      let newCreditB = data.userBCredit;
-      let updatedTransactions: string[] = relatedTransactions;
-      let balanceUpdates: {
-        userACredit?: number;
-        userBCredit?: number;
-        relatedTransactionId?: string[];
-      } = {};
-
-      switch (action) {
-        case 'addition':
-          if (
-            currentTransaction.from === data.userAId &&
-            currentTransaction.to === data.userBId
-          ) {
-            newCreditA = data.userACredit + currentTransaction.amount;
-            updatedTransactions.push(currentTransaction.transactionId);
-            balanceUpdates = {
-              userACredit: newCreditA,
-              relatedTransactionId: updatedTransactions,
-            };
-          } else if (
-            currentTransaction.from === data.userBId &&
-            currentTransaction.to === data.userAId
-          ) {
-            newCreditB = data.userBCredit + currentTransaction.amount;
-            updatedTransactions.push(currentTransaction.transactionId);
-            balanceUpdates = {
-              userBCredit: newCreditB,
-              relatedTransactionId: updatedTransactions,
-            };
-          }
-          break;
-        case 'deletion':
-          if (
-            currentTransaction.from === data.userAId &&
-            currentTransaction.to === data.userBId
-          ) {
-            newCreditA = data.userACredit - currentTransaction.amount;
-            updatedTransactions = relatedTransactions.filter(
-              (id) => id !== currentTransaction.transactionId
-            );
-            balanceUpdates = {
-              userACredit: newCreditA,
-              relatedTransactionId: updatedTransactions,
-            };
-          } else if (
-            currentTransaction.from === data.userBId &&
-            currentTransaction.to === data.userAId
-          ) {
-            newCreditB = data.userBCredit - currentTransaction.amount;
-            updatedTransactions = relatedTransactions.filter(
-              (id) => id !== currentTransaction.transactionId
-            );
-            balanceUpdates = {
-              userBCredit: newCreditB,
-              relatedTransactionId: updatedTransactions,
-            };
-          }
-          break;
-      }
-      batch.update(docRef, balanceUpdates); // Update zum Batch hinzufügen
-      console.log(`Balance für ${docRef.id} im Batch aktualisiert.`);
-    } else {
-      console.error(
-        `Balance between ${currentTransaction.from} and ${currentTransaction.to} doesn't exist.`
-      );
-      // Wenn eine Balance nicht existiert, aber eine Transaktion hinzugefügt/gelöscht werden soll,
-      // könnte das auf einen Datenfehler hindeuten.
-    }
-  }
-
   async markMembersAsPaid(
     groupId: string,
     expenseId: string,
@@ -727,8 +628,6 @@ export class TransactionService {
     settlementType: 'group' | 'personal'
   ): Promise<void> {
     const batch = writeBatch(this.firestore);
-
-    // Alle Balances-Dokumente vorab laden, um die Referenzen zu haben
     const allBalanceDocsSnapshot = await getDocs(
       collection(this.firestore, 'groups', groupId, 'balances')
     );
@@ -740,10 +639,10 @@ export class TransactionService {
       const userAId = data['userAId'];
       const userBId = data['userBId'];
       relevantBalanceDocs.set(`${userAId}_${userBId}`, docSnap);
-      relevantBalanceDocs.set(`${userBId}_${userAId}`, docSnap); // Unter beiden Schlüsseln speichern
+      relevantBalanceDocs.set(`${userBId}_${userAId}`, docSnap);
     });
 
-    const balanceDocRefsToReset: Set<any> = new Set(); // Set für eindeutige Balance-Refs, die auf 0 gesetzt werden
+    const balanceDocRefsToReset: Set<any> = new Set();
 
     // 1. Erstelle neue Transaktionsdokumente und füge zugehörige Updates zum Batch hinzu
     for (const trans of transactionsToExecute) {
@@ -771,28 +670,53 @@ export class TransactionService {
         );
         batch.set(transactionRef, transactionData);
 
-        // 3. Markiere die betroffenen Ausgaben als bezahlt im Batch
-        for (const expenseId of trans.relatedExpenses) {
-          const expenseRef = doc(
-            this.firestore,
-            'groups',
-            groupId,
-            'expenses',
-            expenseId
-          );
-          const expenseSnapshot = await getDoc(expenseRef); // Aktuelle Daten holen
-          if (expenseSnapshot.exists()) {
-            const expense = expenseSnapshot.data() as Expenses;
-            const updatedExpenseMembers = expense.expenseMember.map(
-              (member) => {
-                // Markiere den User, der die Schuld begleicht, als bezahlt. Das ist `trans.from`.
-                if (member.memberId === trans.from) {
-                  return { ...member, paid: true };
-                }
-                return member;
-              }
+        if (settlementType === 'group') {
+          for (const expenseId of trans.relatedExpenses) {
+            const expenseRef = doc(
+              this.firestore,
+              'groups',
+              groupId,
+              'expenses',
+              expenseId
             );
-            batch.update(expenseRef, { expenseMember: updatedExpenseMembers });
+            const expenseSnapshot = await getDoc(expenseRef); 
+            if (expenseSnapshot.exists()) {
+              const expense = expenseSnapshot.data() as Expenses;
+              // ALLE Mitglieder als bezahlt markieren
+              const updatedExpenseMembers = expense.expenseMember.map(
+                (member) => ({ ...member, paid: true })
+              );
+              batch.update(expenseRef, {
+                expenseMember: updatedExpenseMembers,
+              });
+            }
+          }
+        } else {
+          // 3. Markiere die betroffenen Ausgaben als bezahlt im Batch
+          for (const expenseId of trans.relatedExpenses) {
+            const expenseRef = doc(
+              this.firestore,
+              'groups',
+              groupId,
+              'expenses',
+              expenseId
+            );
+            const expenseSnapshot = await getDoc(expenseRef); // Aktuelle Daten holen
+            if (expenseSnapshot.exists()) {
+              const expense = expenseSnapshot.data() as Expenses;
+              const updatedExpenseMembers = expense.expenseMember.map(
+                (member) => {
+                  // Markiere den User, der die Schuld begleicht, als bezahlt. Das ist `trans.from`.
+                  if (member.memberId === trans.from) {
+                    return { ...member, paid: true };
+                  }
+                  return member;
+                }
+              );
+              batch.update(expenseRef, {
+                expenseMember: updatedExpenseMembers,
+              });
+            }
           }
         }
 
@@ -835,12 +759,7 @@ export class TransactionService {
     );
   }
 
-  /**
-   * Private Hilfsfunktion: Berechnet die minimalen Ausgleichstransaktionen aus einer Liste von Schulden.
-   * Diese Funktion ist das Herzstück des Algorithmus und führt KEINE Datenbankoperationen durch.
-   * @param initialDebts Die initiale Liste der Schulden.
-   * @returns Eine Liste der optimierten Transaktionen.
-   */
+  //Smarte Schuldenausgleichsberechnung
   private schuldenAusgleichen(initialDebts: DebtEntry[]): DebtEntry[] {
     const nettoSchulden: Record<
       string,

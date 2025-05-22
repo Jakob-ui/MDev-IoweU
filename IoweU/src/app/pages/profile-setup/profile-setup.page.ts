@@ -3,9 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgModel } from '@angular/forms';
 import {
   IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
   IonItem,
   IonToggle,
   IonLabel,
@@ -30,9 +27,6 @@ import {LoadingService} from "../../services/loading.service";
     IonToggle,
     IonItem,
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
     CommonModule,
     FormsModule,
   ],
