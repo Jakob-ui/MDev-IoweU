@@ -727,8 +727,6 @@ export class TransactionService {
     settlementType: 'group' | 'personal'
   ): Promise<void> {
     const batch = writeBatch(this.firestore);
-
-    // Alle Balances-Dokumente vorab laden, um die Referenzen zu haben
     const allBalanceDocsSnapshot = await getDocs(
       collection(this.firestore, 'groups', groupId, 'balances')
     );
@@ -740,10 +738,10 @@ export class TransactionService {
       const userAId = data['userAId'];
       const userBId = data['userBId'];
       relevantBalanceDocs.set(`${userAId}_${userBId}`, docSnap);
-      relevantBalanceDocs.set(`${userBId}_${userAId}`, docSnap); // Unter beiden Schlüsseln speichern
+      relevantBalanceDocs.set(`${userBId}_${userAId}`, docSnap);
     });
 
-    const balanceDocRefsToReset: Set<any> = new Set(); // Set für eindeutige Balance-Refs, die auf 0 gesetzt werden
+    const balanceDocRefsToReset: Set<any> = new Set();
 
     // 1. Erstelle neue Transaktionsdokumente und füge zugehörige Updates zum Batch hinzu
     for (const trans of transactionsToExecute) {
@@ -771,28 +769,53 @@ export class TransactionService {
         );
         batch.set(transactionRef, transactionData);
 
-        // 3. Markiere die betroffenen Ausgaben als bezahlt im Batch
-        for (const expenseId of trans.relatedExpenses) {
-          const expenseRef = doc(
-            this.firestore,
-            'groups',
-            groupId,
-            'expenses',
-            expenseId
-          );
-          const expenseSnapshot = await getDoc(expenseRef); // Aktuelle Daten holen
-          if (expenseSnapshot.exists()) {
-            const expense = expenseSnapshot.data() as Expenses;
-            const updatedExpenseMembers = expense.expenseMember.map(
-              (member) => {
-                // Markiere den User, der die Schuld begleicht, als bezahlt. Das ist `trans.from`.
-                if (member.memberId === trans.from) {
-                  return { ...member, paid: true };
-                }
-                return member;
-              }
+        if (settlementType === 'group') {
+          for (const expenseId of trans.relatedExpenses) {
+            const expenseRef = doc(
+              this.firestore,
+              'groups',
+              groupId,
+              'expenses',
+              expenseId
             );
-            batch.update(expenseRef, { expenseMember: updatedExpenseMembers });
+            const expenseSnapshot = await getDoc(expenseRef); 
+            if (expenseSnapshot.exists()) {
+              const expense = expenseSnapshot.data() as Expenses;
+              // ALLE Mitglieder als bezahlt markieren
+              const updatedExpenseMembers = expense.expenseMember.map(
+                (member) => ({ ...member, paid: true })
+              );
+              batch.update(expenseRef, {
+                expenseMember: updatedExpenseMembers,
+              });
+            }
+          }
+        } else {
+          // 3. Markiere die betroffenen Ausgaben als bezahlt im Batch
+          for (const expenseId of trans.relatedExpenses) {
+            const expenseRef = doc(
+              this.firestore,
+              'groups',
+              groupId,
+              'expenses',
+              expenseId
+            );
+            const expenseSnapshot = await getDoc(expenseRef); // Aktuelle Daten holen
+            if (expenseSnapshot.exists()) {
+              const expense = expenseSnapshot.data() as Expenses;
+              const updatedExpenseMembers = expense.expenseMember.map(
+                (member) => {
+                  // Markiere den User, der die Schuld begleicht, als bezahlt. Das ist `trans.from`.
+                  if (member.memberId === trans.from) {
+                    return { ...member, paid: true };
+                  }
+                  return member;
+                }
+              );
+              batch.update(expenseRef, {
+                expenseMember: updatedExpenseMembers,
+              });
+            }
           }
         }
 
@@ -835,12 +858,7 @@ export class TransactionService {
     );
   }
 
-  /**
-   * Private Hilfsfunktion: Berechnet die minimalen Ausgleichstransaktionen aus einer Liste von Schulden.
-   * Diese Funktion ist das Herzstück des Algorithmus und führt KEINE Datenbankoperationen durch.
-   * @param initialDebts Die initiale Liste der Schulden.
-   * @returns Eine Liste der optimierten Transaktionen.
-   */
+  //Smarte Schuldenausgleichsberechnung
   private schuldenAusgleichen(initialDebts: DebtEntry[]): DebtEntry[] {
     const nettoSchulden: Record<
       string,
