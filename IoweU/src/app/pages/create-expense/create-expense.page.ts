@@ -29,7 +29,8 @@ import {
   hammerOutline,
   bulbOutline,
   musicalNotesOutline,
-  rocketOutline
+  rocketOutline,
+  chevronDownOutline
 } from 'ionicons/icons';
 addIcons({
   // Bestehende Icons …
@@ -57,6 +58,7 @@ addIcons({
   'bulb-outline': bulbOutline,
   'musical-notes-outline': musicalNotesOutline,
   'rocket-outline': rocketOutline,
+  'chevron-down-outline': chevronDownOutline,
 });
 import {
   IonContent,
@@ -132,7 +134,8 @@ export class CreateExpensePage {
 
 
 
-  constructor() {}
+  constructor() {
+      addIcons({addOutline,checkmarkOutline,cameraOutline,imageOutline,chevronDownOutline});}
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -188,6 +191,33 @@ export class CreateExpensePage {
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   invoiceDropdownOpen: boolean = false;
+  repeatDropdownOpen: boolean = false;
+
+  repeatOptions = [
+    { value: 'nein', label: 'nein' },
+    { value: 'täglich', label: 'täglich' },
+    { value: 'wöchentlich', label: 'wöchentlich' },
+    { value: 'monatlich', label: 'monatlich' },
+  ];
+
+  toggleRepeatDropdown(event: Event) {
+    event.stopPropagation();
+    this.repeatDropdownOpen = !this.repeatDropdownOpen;
+  }
+
+  selectRepeat(value: string, event: Event) {
+    event.stopPropagation();
+    this.expense.repeat = value;
+    this.repeatDropdownOpen = false;
+  }
+
+  getRepeatLabel(value: string): string | undefined {
+    return this.repeatOptions.find(option => option.value === value)?.label;
+  }
+
+  closeRepeatDropdowns() {
+    this.repeatDropdownOpen = false;
+  }
 
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
@@ -302,6 +332,12 @@ export class CreateExpensePage {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
       this.loadingService.hide();
+    }
+
+    // Setze die Standard-Kategorie auf "Sonstige" (oder "Sonstiges" je nach Schreibweise)
+    this.selectedCategory = this.categories.find(cat => cat.name === 'Sonstige' || cat.name === 'Sonstiges');
+    if (this.selectedCategory) {
+      this.expense.category = this.selectedCategory.name;
     }
   }
 

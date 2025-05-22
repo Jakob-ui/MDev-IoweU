@@ -161,12 +161,12 @@ export const updateGroupSumsOnTransactionChange = onDocumentWritten(
       {
         // Neue Transaktion hinzugefügt
         for (const groupMember of groupMembers) {
-          if (groupMember.memberId === newTransaction.from) // Wenn das Gruppenmitglied überweist
+          if (groupMember.uid === newTransaction.from) // Wenn das Gruppenmitglied überweist
           {
             groupMember.sumAmountPaid += newTransaction.amount;
             groupMember.countAmountPaid += 1;
           }
-          if (groupMember.memberId === newTransaction.to) // Wenn dem Gruppenmitglied überwiesen wird
+          if (groupMember.uid === newTransaction.to) // Wenn dem Gruppenmitglied überwiesen wird
           {
             groupMember.sumAmountReceived += newTransaction.amount;
             groupMember.countAmountReceived += 1;
@@ -177,12 +177,12 @@ export const updateGroupSumsOnTransactionChange = onDocumentWritten(
       {
         // Transaktion gelöscht
         for (const groupMember of groupMembers) {
-          if (groupMember.memberId === oldTransaction.from) // Wenn das Gruppenmitglied der überweisende war
+          if (groupMember.uid === oldTransaction.from) // Wenn das Gruppenmitglied der überweisende war
           {
             groupMember.sumAmountPaid -= oldTransaction.amount;
             groupMember.countAmountPaid -= 1;
           }
-          if (groupMember.memberId === oldTransaction.to) // Wenn dem Gruppenmitglied überwiesen wurde
+          if (groupMember.uid === oldTransaction.to) // Wenn dem Gruppenmitglied überwiesen wurde
           {
             groupMember.sumAmountReceived -= oldTransaction.amount;
             groupMember.countAmountReceived -= 1;
@@ -191,7 +191,7 @@ export const updateGroupSumsOnTransactionChange = onDocumentWritten(
       } 
       // Gruppe aktualisieren
       await groupRef.update({
-        groupMembers
+        members: groupMembers
       });
 
       console.log(`Summen für Gruppe ${groupId} erfolgreich aktualisiert.`);
@@ -210,6 +210,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
     try {
       // Neue oder aktualisierte Ausgabe
       const newExpense = event.data?.after?.data();
+      console.log("New Expense data: ", newExpense);
       // Gelöschte Ausgabe
       const oldExpense = event.data?.before?.data();
 
@@ -228,6 +229,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
       let sumTotalExpenses = groupData?.sumTotalExpenses || 0;
       let countTotalExpenses = groupData?.countTotalExpenses || 0;
       let groupMembers = groupData?.members || [];
+      console.log("Group Members: ", groupMembers);
 
       // Summen und Zähler aktualisieren
       if (newExpense && !oldExpense) {
@@ -239,9 +241,9 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
         {
           for(const expenseMember of newExpense.expenseMember)
           {
-            if(groupMember.memberId === expenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
+            if(groupMember.uid === expenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
             {
-              if(groupMember.memberId == newExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat
+              if(groupMember.uid == newExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat
               {
                 groupMember.sumExpenseAmount += newExpense.totalAmount;
                 groupMember.sumExpenseMemberAmount += expenseMember.amountToPay;
@@ -264,9 +266,9 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
         {
           for(const expenseMember of oldExpense.expenseMember)
           {
-            if(groupMember.memberId === expenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
+            if(groupMember.uid === expenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
             {
-              if(groupMember.memberId == oldExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat
+              if(groupMember.uid == oldExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat
               {
                 groupMember.sumExpenseAmount -= oldExpense.totalAmount;
                 groupMember.sumExpenseMemberAmount -= expenseMember.amountToPay;
@@ -290,9 +292,9 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
         {
           for(const oldExpenseMember of oldExpense.expenseMember) 
           {
-            if(groupMember.memberId === oldExpenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
+            if(groupMember.uid === oldExpenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
             {
-              if(groupMember.memberId == oldExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat
+              if(groupMember.uid == oldExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat
               {
                 groupMember.sumExpenseAmount -= oldExpense.totalAmount;
                 groupMember.sumExpenseMemberAmount -= oldExpenseMember.amountToPay;
@@ -311,9 +313,9 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
         {
           for(const newExpenseMember of newExpense.expenseMember) 
           {
-            if(groupMember.memberId === newExpenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
+            if(groupMember.uid === newExpenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
             {
-              if(groupMember.memberId == newExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat
+              if(groupMember.uid == newExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat              firebase --version
               {
                 groupMember.sumExpenseAmount += newExpense.totalAmount;
                 groupMember.sumExpenseMemberAmount += newExpenseMember.amountToPay;
@@ -515,6 +517,7 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
           if (balanceData.userAId === creditor && balanceData.userBId === debtor) // User B überweist dem User A
           {
             balanceData.userACredit -= amount;
+            balanceData.relatedTransactionId.push(newTransaction.transactionId);
             await docRef.update({
             lastUpdated: new Date().toISOString(),
             userACredit: balanceData.userACredit,
@@ -523,6 +526,7 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
           else if (balanceData.userAId === debtor && balanceData.userBId === creditor) // User A überweist dem User B
           {
             balanceData.userBCredit -= amount;
+            balanceData.relatedTransactionId.push(newTransaction.transactionId);
             await docRef.update({
             lastUpdated: new Date().toISOString(),
             userBCredit: balanceData.userBCredit,
