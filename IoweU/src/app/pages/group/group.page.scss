@@ -167,10 +167,11 @@ ion-card {
   max-width: 800px;
   height: 120px;
   display: flex;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.17) !important;
+  box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.1) !important;
   padding: 0;
   position: relative;
   overflow: hidden;
+  margin-bottom: 20px;
 }
 
 .notavailableFeatures{
@@ -212,7 +213,7 @@ ion-card {
   backdrop-filter: blur(4px) saturate(100%);
   -webkit-backdrop-filter: blur(4px) saturate(100%);
   border-radius: 15px;
-  border: 3px solid rgb(255, 255, 255);
+  border: 0px solid rgb(255, 255, 255);
   width: 100%;
   height: 100%;
   display: flex;
