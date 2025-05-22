@@ -442,8 +442,6 @@ export class TransactionService {
         relevantBalances.set(doc.id, doc.data() as Balances)
       );
 
-      // 2. Berechne die Netto-Position für den `userId` und alle anderen betroffenen Mitglieder
-      //    unter Berücksichtigung aller bilateralen Schulden.
       const nettoPositionen: Record<
         string,
         { amount: number; expenses: Set<string> }
@@ -492,9 +490,6 @@ export class TransactionService {
         return [];
       }
 
-      // Der Benutzer schuldet Geld (userNettoSaldo ist negativ)
-      // Wir wollen, dass der Benutzer (userId) alle Schulden als `from` Transaktionen zahlt.
-      // Die Gläubiger sind alle anderen mit positiver Netto-Position.
       const glaeubigerDesUsers = Object.entries(nettoPositionen).filter(
         ([id, data]) => id !== userId && data.amount > 0
       );
