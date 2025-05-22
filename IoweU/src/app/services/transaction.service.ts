@@ -13,7 +13,6 @@ import {
   setDoc,
   where,
   writeBatch,
-  WriteBatch, // Wichtig: Typ für WriteBatch importieren
 } from '@angular/fire/firestore';
 import { Balances } from './objects/Balances';
 import { Expenses } from './objects/Expenses';
@@ -628,7 +627,7 @@ export class TransactionService {
     }
   }
 
-  //Gruppenausgleich
+  //Gruppen/Persönlicher Ausgleich
   async executeSettlementTransactions(
     groupId: string,
     transactionsToExecute: DebtEntry[],

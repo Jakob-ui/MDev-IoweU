@@ -452,7 +452,7 @@ export class CreateExpensePage {
         const imageBlob = this.imageService.dataURLtoBlob(imageDataUrl);
 
         // Use the updated uploadImage method with compression
-        const path = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+        const path = `groups/${this.groupId}/invoices/${this.expense.expenseId}.jpg`;
         const downloadURL = await this.imageService.uploadImage(
           'expense-invoice',
           imageBlob,
@@ -1185,7 +1185,7 @@ export class CreateExpensePage {
 
 
       if (this.uploadInvoice) {
-        const invoicePath = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+        const invoicePath = `groups/${this.groupId}/invoices/${this.expense.expenseId}.jpg`;
         const downloadURL = await this.imageService.uploadImage(
           this.expense.expenseId,
           this.uploadInvoice,

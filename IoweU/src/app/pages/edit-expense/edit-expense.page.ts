@@ -1056,7 +1056,7 @@ export class EditExpensePage {
         this.expense.currency = [this.selectedCurrency];
 
         if (this.uploadInvoice) {
-          const invoicePath = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+          const invoicePath = `groups/${this.groupId}/invoices/${this.expense.expenseId}.jpg`;
           const downloadURL = await this.imageService.uploadImage(
             this.expense.expenseId,
             this.uploadInvoice,
