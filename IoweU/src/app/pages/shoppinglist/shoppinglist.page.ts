@@ -550,7 +550,7 @@ export class ShoppinglistPage implements OnInit {
       this.showDetails = false;
       this.newProduct = {
         quantity: 1,
-        unit: 'Stück',
+        unit: 'Mal',
         productname: '',
         forMemberId: this.uid || '',
         dueDate: null,
