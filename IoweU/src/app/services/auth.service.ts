@@ -152,6 +152,21 @@ export class AuthService {
     return userCredential;
   }
 
+  async googleLoginWithRedirect(
+    username: string,
+    color: string,
+    groupId: string[] = []
+  ): Promise<Users | null> {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithRedirect(this.auth, provider);
+      return null;
+    } catch (error: any) {
+      console.error('Fehler beim Google Login:', error);
+      throw error;
+    }
+  }
+
   async googleLogin(
     username: string,
     color: string,
