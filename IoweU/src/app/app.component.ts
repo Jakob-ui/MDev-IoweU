@@ -5,6 +5,7 @@ import { LoadingService } from './services/loading.service';
 import { Messaging, getToken, onMessage } from '@angular/fire/messaging';
 import { environment } from '../environments/environment';
 import { AuthService } from './services/auth.service';
+import { PushNotificationService } from './services/push-notification.service';
 
 @Component({
   selector: 'app-root',
@@ -19,8 +20,7 @@ export class AppComponent implements OnInit {
 
   constructor(
     private loadingService: LoadingService,
-    private messaging: Messaging,
-    private authService: AuthService
+    private pushNotificationService: PushNotificationService
   ) {}
 
   isDarkMode(): boolean {
@@ -52,8 +52,17 @@ export class AppComponent implements OnInit {
       });
 
     await this.registerServiceWorker();
-    await this.requestPermissionAndGetToken();
-    this.listenToMessages();
+   // Push Notifications initialisieren
+    await this.pushNotificationService.init();
+
+    // Auf eingehende Push-Nachrichten reagieren
+    if (this.pushNotificationService.currentMessage) {
+      this.pushNotificationService.currentMessage.subscribe((payload: { notification: { title: any; }; }) => {
+        if (payload) {
+          alert(`Push Nachricht: ${payload.notification?.title ?? 'Neue Nachricht'}`);
+        }
+      });
+    }
   }
 
   private async registerServiceWorker() {
@@ -69,33 +78,5 @@ export class AppComponent implements OnInit {
     }
   }
 
-
-  private async requestPermissionAndGetToken() {
-    try {
-      await this.authService.waitForUser();
-
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        const token = await getToken(this.messaging, {
-          vapidKey: environment.firebase.vapidKey,
-        });
-        console.log('FCM Token:', token);
-        localStorage.setItem('fcm_token', token);
-
-        // Token im AuthService speichern
-        await this.authService.saveFcmToken(token);
-      } else {
-        console.log('Notification permission denied');
-      }
-    } catch (error) {
-      console.error('Error requesting notification permission or getting token', error);
-    }
-  }
-
-  private listenToMessages() {
-    onMessage(this.messaging, (payload) => {
-      console.log('Message received: ', payload);
-      alert(`Push Nachricht: ${payload.notification?.title ?? 'Neue Nachricht'}`);
-    });
-  }
+ 
 }
