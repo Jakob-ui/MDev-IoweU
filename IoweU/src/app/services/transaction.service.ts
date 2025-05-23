@@ -704,13 +704,13 @@ export class TransactionService {
       }
     }
 
-    await batch.commit(); // Alle gesammelten Operationen atomar ausführen
+    await batch.commit();
     console.log(
       'Schuldenausgleichstransaktionen erfolgreich ausgeführt und Member Amounts aktualisiert.'
     );
   }
 
-  //Smarte Schuldenausgleichsberechnung
+  //Smarte SchuldenausgleichsBERECHNUNG
   private schuldenAusgleichen(initialDebts: DebtEntry[]): DebtEntry[] {
     const nettoSchulden: Record<
       string,
