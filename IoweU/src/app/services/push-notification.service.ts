@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
+
 @Injectable({ providedIn: 'root' })
 export class PushNotificationService {
   private cloudFunctionUrl = 'https://us-central1-ioweu-a74cd.cloudfunctions.net/sendPushNotification';
