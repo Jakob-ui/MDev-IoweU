@@ -18,15 +18,12 @@ import { ExpenseService } from '../../services/expense.service';
 import { GroupService } from '../../services/group.service';
 import { Members } from '../../services/objects/Members';
 import { Balances } from '../../services/objects/Balances';
-
+import { doc, getDoc } from 'firebase/firestore';
 import {
   Firestore,
   collection,
   query,
   where,
-  getDocs,
-  getDoc,
-  doc,
 } from '@angular/fire/firestore';
 import { FunctionsModule } from '@angular/fire/functions';
 import { TransactionService } from '../../services/transaction.service';
@@ -90,7 +87,8 @@ export class DetailedBalancePage implements OnInit {
 
   balanceDetails: any = {};
   deptList: DebtEntry[] = [];
-  constructor() {}
+  constructor(
+  ) {}
 
   async ngOnInit() {
     this.loadingService.show();
@@ -178,7 +176,7 @@ export class DetailedBalancePage implements OnInit {
                 (expense) => expense.paidBy === this.selectedMember?.uid
               );
 
-              this.payable = this.myBalance < 0;
+              this.payable = this.myBalance !== 0;
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -341,7 +339,7 @@ export class DetailedBalancePage implements OnInit {
     return memberEntry?.amountToPay || 0;
   }
 
-    async getFcmTokenByUid(uid: string): Promise<string | null> {
+  async getFcmTokenByUid(uid: string): Promise<string | null> {
     try {
       const userDocRef = doc(this.firestore, 'users', uid);
       const userDocSnap = await getDoc(userDocRef);
@@ -385,31 +383,33 @@ export class DetailedBalancePage implements OnInit {
       }
 
 
-    const userDocRef = doc(this.firestore, 'users', toUserId);
-    const userDocSnap = await getDoc(userDocRef);
 
-    if (!userDocSnap.exists()) {
-      console.error('Empfänger wurde in der Users-Collection nicht gefunden.');
-      return;
-    }
+      // ✅ FCM-Token aus der Firestore "users"-Collection holen
+      const userDocRef = doc(this.firestore, 'users', toUserId);
+      const userDocSnap = await getDoc(userDocRef);
 
-    const userData = userDocSnap.data();
-    const toFcmToken = await this.getFcmTokenByUid(toUserId);
+      if (!userDocSnap.exists()) {
+        console.error('Empfänger wurde in der Users-Collection nicht gefunden.');
+        return;
+      }
 
-    if (!toFcmToken) {
-      console.error('Empfänger hat kein FCM-Token gespeichert.');
-      return;
-    }
+      const userData = userDocSnap.data();
+      const toFcmToken = await this.getFcmTokenByUid(toUserId);
 
-    // 📲 Push Notification senden (an Token, nicht UID!)
-    console.log('Wird an diesen FCM Token gesendet:', toFcmToken);
+      if (!toFcmToken) {
+        console.error('Empfänger hat kein FCM-Token gespeichert.');
+        return;
+      }
 
-    // 📲 Push Notification senden (an Token, nicht UID!)
-    await this.pushNotificationService.sendPushNotification(
-      toFcmToken,
-      'Schuldenanfrage',
-      `${myName} möchte, dass du deine Schulden begleichst.`
-    );
+      // 📲 Push Notification senden (an Token, nicht UID!)
+      console.log('Wird an diesen FCM Token gesendet:', toFcmToken);
+
+      // 📲 Push Notification senden (an Token, nicht UID!)
+      await this.pushNotificationService.sendPushNotification(
+        toFcmToken,
+        'Schuldenanfrage',
+        `${myName} möchte, dass du deine Schulden begleichst.`
+      );
 
       const successAlert = await this.alertController.create({
         header: 'Anfrage gesendet',
