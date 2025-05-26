@@ -427,7 +427,6 @@ export class ShoppinglistService {
     }
   }
 
-
   listenToShoppingProductsChanges(
     groupId: string,
     shoppingListId: string | null,
@@ -435,7 +434,7 @@ export class ShoppinglistService {
   ): () => void {
     if (!shoppingListId) {
       console.error('ShoppingListId ist null – Listener wird nicht gesetzt.');
-      return () => {}; // Dummy unsubscribe-Funktion
+      return () => {};
     }
 
     const productsRef = collection(
@@ -454,6 +453,7 @@ export class ShoppinglistService {
 
     return unsubscribe;
   }
+
 
   listenToShoppingCartChanges(
     groupId: string,

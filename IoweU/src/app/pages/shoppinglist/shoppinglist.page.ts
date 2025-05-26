@@ -122,26 +122,19 @@ export class ShoppinglistPage implements OnInit {
     this.loadingService.show();
 
     try {
+      // User und Group initialisieren (wie von dir schon implementiert)
       await this.authService.waitForUser();
-
-      if (!this.authService.currentUser) {
-        console.error('Kein Benutzer eingeloggt.');
-        return;
-      }
+      if (!this.authService.currentUser) return;
 
       this.uid = this.authService.currentUser.uid;
       this.user = this.authService.currentUser.username;
       this.displayName = this.authService.currentUser.username;
 
       const routeGroupId = this.activeRoute.snapshot.paramMap.get('groupId');
-      if (!routeGroupId) {
-        console.error('Keine groupId in Route gefunden.');
-        return;
-      }
+      if (!routeGroupId) return;
       this.groupId = routeGroupId;
 
       this.shoppingListId = await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId);
-      console.log('shoppingListId:', this.shoppingListId);
 
       const currentGroup = await this.groupService.getGroupById(this.groupId);
       if (currentGroup) {
@@ -168,10 +161,9 @@ export class ShoppinglistPage implements OnInit {
           this.groupProductsByDate();
 
           if (!this.selectedMember && this.shoppingproducts.length > 0) {
-            this.selectedMember =
-              this.groupMembers.find(
-                (member) => member.uid === this.shoppingproducts[0]?.forMemberId
-              ) || { uid: this.uid, username: this.displayName || 'Unbekannt' };
+            this.selectedMember = this.groupMembers.find(
+              (member) => member.uid === this.shoppingproducts[0]?.forMemberId
+            ) || { uid: this.uid, username: this.displayName || 'Unbekannt' };
           }
         }
       );
@@ -429,32 +421,29 @@ export class ShoppinglistPage implements OnInit {
 
   async saveProductDetails() {
     if (!this.groupId || !this.shoppingListId) {
-      console.error('Group ID oder ShoppingList ID ist null oder undefined');
       this.presentAlert('Fehler','Die Gruppen- oder ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
-    try {
-      if (this.selectedProduct) {
+    if (!this.selectedProduct) {
+      this.presentAlert('Fehler','Kein Produkt zum Speichern ausgewählt.');
+      return;
+    }
 
-        await this.shoppinglistService.editShoppingProduct(
-          this.groupId,
-          this.shoppingListId,
-          this.selectedProduct.shoppingProductId,
-          this.selectedProduct
-        );
-        console.log('Produktdetails gespeichert:', this.selectedProduct);
-        await this.presentToast('Produktdetails gespeichert!');
-        this.detailsOverlayState = 'hidden';
-      } else {
-        console.error('Kein Produkt zum Speichern ausgewählt.');
-        this.presentAlert('Fehler','Kein Produkt zum Speichern ausgewählt.');
-      }
+    try {
+      await this.shoppinglistService.editShoppingProduct(
+        this.groupId,
+        this.shoppingListId,
+        this.selectedProduct.shoppingProductId,
+        this.selectedProduct
+      );
+      await this.presentToast('Produktdetails gespeichert!');
+      this.detailsOverlayState = 'hidden';
     } catch (error) {
-      console.error('Fehler beim Speichern der Produktdetails:', error);
       this.presentAlert('Fehler', 'Es gab einen Fehler beim Speichern der Produktdetails. Bitte versuche es erneut.');
     }
   }
+
 
   openDatePicker(product: any) {
     this.selectedProduct = product;
@@ -486,10 +475,27 @@ export class ShoppinglistPage implements OnInit {
     event.stopPropagation();
   }
 
+  editSelectedMember(member: any, event: Event) {
+    event.stopPropagation();
+    this.selectedProduct.forMemberId = member.uid; // <--- das fehlte!
+    this.selectedMember = member;
+    this.forMemberDropdownOpen = false;
+  }
+
 
   selectAllMembers(event: Event) {
     event.stopPropagation();
     this.isForAll = true;
+    this.selectedMember = {
+      uid: 'all',
+      username: 'Alle'
+    };
+    this.forMemberDropdownOpen = false;
+  }
+
+  editSelectedAllMembers(event: Event) {
+    event.stopPropagation();
+    this.selectedProduct.forMemberId = 'all'; // <--- das fehlte!
     this.selectedMember = {
       uid: 'all',
       username: 'Alle'

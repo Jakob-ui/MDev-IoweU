@@ -135,7 +135,7 @@
                     class="dropDownFelder"
                     button
                     *ngFor="let groupMember of groupMembers"
-                    (click)="groupMember.uid === 'all' ? selectAllMembers($event) : selectMember(groupMember, $event)">
+                    (click)="groupMember.uid === 'all' ? editSelectedAllMembers($event) : editSelectedMember(groupMember, $event)">
                     <div class="member-info"
                          [ngClass]="{'all-members-option': groupMember.uid === 'all'}"
                          [ngStyle]="{
