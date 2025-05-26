@@ -9,7 +9,7 @@ import { Firestore, setDoc, doc, getDoc } from '@angular/fire/firestore';
 @Injectable({ providedIn: 'root' })
 export class PushNotificationService {
   private firestore = inject(Firestore);
-  private cloudFunctionUrl = 'https://us-central1-ioweu-a74cd.cloudfunctions.net/sendPushNotification';
+  private cloudFunctionUrl = 'https://sendpushnotification-4nzswiab5a-uc.a.run.app';
 
   // Observable für eingehende Nachrichten
   private messageSource = new BehaviorSubject<any>(null);
@@ -83,6 +83,10 @@ export class PushNotificationService {
       console.error('Fehler beim Abrufen des FCM-Tokens:', error);
       return null;
     }
+  }
+
+  async getFcmTokenByMembers() {
+
   }
 
 }
