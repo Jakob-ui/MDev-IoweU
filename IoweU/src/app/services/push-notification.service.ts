@@ -78,9 +78,17 @@ export class PushNotificationService {
       PushNotifications.addListener('registration', async (token: Token) => {
         console.log('Native Push Token:', token.value);
         localStorage.setItem('fcm_token', token.value);
+
         // Plattform bestimmen (android / ios)
-        const platform = Capacitor.getPlatform(); // "android" oder "ios"
-        await this.authService.saveFcmToken(token.value, platform);
+        let platform = Capacitor.getPlatform();
+
+        // Nur erlaubte Plattformen akzeptieren, sonst fallback auf 'web'
+        const allowedPlatforms = ['web', 'android', 'ios'] as const;
+        if (!allowedPlatforms.includes(platform as any)) {
+          platform = 'web';
+        }
+
+        await this.authService.saveFcmToken(token.value, platform as 'web' | 'android' | 'ios');
       });
 
       PushNotifications.addListener('registrationError', (error) => {
