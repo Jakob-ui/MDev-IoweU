@@ -338,12 +338,29 @@ export class AuthService {
     const userDocRef = doc(this.firestore, 'users', uid);
 
     try {
-      await setDoc(userDocRef, {
-        fcmTokens: arrayUnion(token),
-      }, { merge: true });
-      console.log(`FCM Token gespeichert (${platform}):`, token);
+      const userDocSnap = await getDoc(userDocRef);
+      let tokens: string[] = [];
+      if (userDocSnap.exists()) {
+        const data = userDocSnap.data();
+        tokens = data?.['fcmTokens'] ?? [];
+
+      }
+
+      if (!tokens.includes(token)) {
+        await setDoc(
+          userDocRef,
+          {
+            fcmTokens: arrayUnion(token),
+          },
+          { merge: true }
+        );
+        console.log(`FCM Token gespeichert (${platform}):`, token);
+      } else {
+        console.log(`Token (${platform}) bereits vorhanden:`, token);
+      }
     } catch (error) {
       console.error('Fehler beim Speichern des FCM-Tokens:', error);
     }
   }
+
 }
