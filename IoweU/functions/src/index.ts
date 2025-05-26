@@ -135,6 +135,7 @@ export const handlerepeatingExpenses = onSchedule(
 // Update der Mitgliedsummen und Bilanzen bei Änderungen in den Transaktionen und Ausgaben:
 
 // 1. Updaten der Mitgliedsummen bei Änderung der Transaktionen
+/*
 export const updateGroupSumsOnTransactionChange = onDocumentWritten(
   "groups/{groupId}/transactions/{transactionId}",
   async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
@@ -199,6 +200,7 @@ export const updateGroupSumsOnTransactionChange = onDocumentWritten(
     }
   }
 );
+*/
 
 // 2. Updaten der Gruppensummen sowie Mitgliedsummen bei Änderung der Ausgaben
 export const updateGroupSumsOnExpenseChange = onDocumentWritten(
@@ -577,6 +579,7 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
   });
 
 // 4. Updaten der Bilanzen bei Änderung der Transaktionen
+/*
 export const updateBalancesOnTransactionChange = onDocumentWritten(
   "groups/{groupId}/transactions/{transactionId}",
   async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
@@ -692,7 +695,7 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
     }
   }
 );
-
+*/
 export const recalculateGroupBalances = onSchedule(
   {
     schedule: "every day 00:01",
