@@ -373,11 +373,10 @@ export class PayExpensesPage {
 
       try {
         // Transaktion durchführen
-        await this.transactionService.makeTransactionById(
-          this.groupId,
-          [this.expenseId],
+        await this.transactionService.settleDebtByExpense(
           this.authService.currentUser.uid,
-          trans
+          this.groupId,
+          this.expenseId,
         );
         // Erfolgreicher Abschluss der Transaktion
         await this.presentToast('Deine Schulden wurden erfolgreich bezahlt!');

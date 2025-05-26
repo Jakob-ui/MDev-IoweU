@@ -35,6 +35,8 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
     IonCardTitle,
     IonList,
     IonBadge,
+    IonToolbar,
+    IonHeader
   ],
 })
 export class GroupOverviewPage implements OnInit {
@@ -166,7 +168,7 @@ export class GroupOverviewPage implements OnInit {
     Haptics.impact({
       style: ImpactStyle.Heavy, // Korrekte Verwendung von ImpactStyle
     });
-  }, 900);
+  }, 1500);
 }
 
   onLongPressCancel() {

@@ -18,6 +18,7 @@ import { Balances } from './objects/Balances';
 import { Expenses } from './objects/Expenses';
 import { ExpenseService } from './expense.service';
 import { DebtEntry } from './objects/DeptEntry';
+import { updateDoc } from 'firebase/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -787,5 +788,148 @@ export class TransactionService {
       }
     }
     return ausgleichTransaktionen;
+  }
+
+  // Die Schuld pro einzelne AUsgabe begleichen
+  async settleDebtByExpense(settlerId: string, groupId: string, expenseId: string): Promise<void>
+  {
+    try
+    {
+      // 1. Hol dir die Expense-Daten als Expenses Objekt
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      const expenseRef = doc(groupRef, 'expenses', expenseId);
+      const expenseSnapshot = await getDoc(expenseRef);
+      if (!expenseSnapshot.exists()) {
+        throw new Error(`Expense with ID ${expenseId} does not exist.`);
+      }
+      const expenseData = expenseSnapshot.data() as Expenses;
+      // 2.1. Überprüfe, ob der Betrag der überwiesen wird nicht höher ist als die Bilanz zwischen dem Settler und dem Ausgaben-Payer
+      const settlerExpenseMember = expenseData.expenseMember.find(
+        (member) => member.memberId === settlerId
+      );
+      if (!settlerExpenseMember) {
+        throw new Error(`Settler with ID ${settlerId} is not part of the expense.`);
+      }
+      const balancesRef = collection(this.firestore, `groups/${groupId}/balances`);
+      const payerId = expenseData.paidBy;	
+      const q1 = query(
+  balancesRef,
+  where('userAId', '==', settlerId),
+  where('userBId', '==', payerId)
+);
+const q2 = query(
+  balancesRef,
+  where('userAId', '==', payerId),
+  where('userBId', '==', settlerId)
+);
+
+const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+let balanceDoc = null;
+let balanceData = null;
+
+if (!snap1.empty) {
+  balanceDoc = snap1.docs[0];
+  balanceData = balanceDoc.data() as Balances;
+} else if (!snap2.empty) {
+  balanceDoc = snap2.docs[0];
+  balanceData = balanceDoc.data() as Balances;
+} else {
+  throw new Error(`No balance found between ${settlerId} and ${payerId}.`);
+}
+
+      console.log(`Balance between ${settlerId} and ${payerId}:`, balanceData);
+      const balance = Math.abs(balanceData.userACredit - balanceData.userBCredit)
+      if(balance < settlerExpenseMember.amountToPay) 
+      {
+        throw new Error(`Amount ${settlerExpenseMember.amountToPay} exceeds ${balance}, the balance between ${settlerId} and ${payerId}. Settle your balance with this user instead.`);
+      }
+      else 
+      {
+        // 2.2. Wenn der Betrag in Ordnung ist, dann erstelle die Transaktion
+        const transactionId = doc(
+          collection(groupRef, 'transactions')
+        ).id;
+        const transactionData: Transactions = {
+          transactionId,
+          from: settlerId,
+          to: expenseData.paidBy,
+          amount: settlerExpenseMember.amountToPay,
+          reason: `Schuldenbegleichung für Expense ${expenseId}`,
+          date: new Date().toISOString(),
+          relatedExpenses: [expenseId],
+          isSettlement: true,
+        };
+        const transactionRef = doc(
+          groupRef,
+          'transactions',
+          transactionId
+        );
+        await setDoc(transactionRef, transactionData);
+        // 3. Markiere die Expense als bezahlt für den Settler
+        const updatedExpenseMembers = expenseData.expenseMember.map((member) => {
+          if (member.memberId === settlerId) {
+            return { ...member, paid: true };
+          }
+          return member;
+        });
+        await setDoc(expenseRef, { expenseMember: updatedExpenseMembers }, { merge: true });
+        console.log(`Debt settled for ${settlerId} on expense ${expenseId} with amount ${settlerExpenseMember.amountToPay}.`);
+        // 4. Update die Member Sums bei den betroffenen Benutzern
+        const groupDoc = await getDoc(groupRef);	
+        if (!groupDoc.exists()) {
+          throw new Error(`Group with ID ${groupId} does not exist.`);
+        }
+        const groupData = groupDoc.data();
+        const settlerMember = groupData['members'].find(
+          (member: any) => member.uid === settlerId
+        );
+        const payerMember = groupData['members'].find(
+          (member: any) => member.uid === payerId
+        );
+        if (settlerMember && payerMember) 
+        {
+          settlerMember.sumAmountPaid += settlerExpenseMember.amountToPay;
+          settlerMember.countAmountPaid += 1;
+          payerMember.sumAmountReceived += settlerExpenseMember.amountToPay;
+          payerMember.countAmountReceived += 1; 
+          groupData['members'] = groupData['members'].map((member: any) => {
+            if (member.uid === settlerId) {
+              return settlerMember;
+            } else if (member.uid === payerId) {
+              return payerMember;
+            }
+            return member;
+          });
+          await updateDoc(groupRef, {
+            members: groupData['members'],
+          });
+          console.log(`Updated member sums for ${settlerId} and ${payerId}.`);
+        }
+        // 5. Dekrementiere den UserCredit des Payers in dem zugehörigen Balance-Dokument UND entferne die Expense ID aus dem Balance-Dokument 
+        if(balanceData.userAId == payerId && balanceData.userBId == settlerId) 
+        {
+          await updateDoc(balanceDoc.ref, {
+            userACredit: balanceData.userACredit - settlerExpenseMember.amountToPay,
+            relatedExpenseId: balanceData.relatedExpenseId.filter((id: string) => id !== expenseId),
+          });
+          console.log(`UserB pays, UserA receives. Balance is now ${Math.abs(balanceData.userACredit - balanceData.userBCredit)}`);
+          console.log('Updating balance document at path:', balanceDoc.ref.path);
+        }
+        else if(balanceData.userAId == settlerId && balanceData.userBId == payerId) 
+        {
+          await updateDoc(balanceDoc.ref, {
+            userBCredit: balanceData.userBCredit - settlerExpenseMember.amountToPay,
+            relatedExpenseId: balanceData.relatedExpenseId.filter((id: string) => id !== expenseId),
+          });
+          console.log(`UserA pays, UserB receives. Balance is now ${Math.abs(balanceData.userACredit - balanceData.userBCredit)}`);
+          console.log('Updating balance document at path:', balanceDoc.ref.path);
+        }
+      }
+    }
+    catch (error) {
+      console.error('Fehler in settleDebtByExpense:', error);
+      throw error;
+    }
   }
 }
