@@ -27,7 +27,7 @@ export class PushNotificationService {
 
   // Methode, um eine Push-Nachricht aktiv zu senden via Cloud Function
   sendPushNotification(toFcmToken: string, title: string, body: string): Promise<any> {
-    const payload = { token: toFcmToken, title, body };
+    const payload = { toFcmToken, title, body };
     return this.http.post(this.cloudFunctionUrl, payload).toPromise();
   }
 
