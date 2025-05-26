@@ -44,15 +44,36 @@
     (click)="toggleQRCodeOverlay()"
   >
     <div class="qr-code-wrapper" (click)="$event.stopPropagation()">
-      <h5>Scannen um Gruppe beizutreten.</h5>
-      <qrcode
-        [qrdata]="qrCodeValue  || 'default-value'"
-        [width]="256"
-        [errorCorrectionLevel]="'M'"
-        [allowEmptyString]="true"
-      ></qrcode>
-      <h5>Code zum Beitreten:</h5>
-      <h5 class="access-code">{{ accessCode }}</h5>
+      <div class="qr-code-content">
+        <h5>Scannen um Gruppe beizutreten.</h5>
+        <qrcode class="QR-Code"
+          [qrdata]="qrCodeValue  || 'default-value'"
+          [width]="256"
+          [errorCorrectionLevel]="'M'"
+          [allowEmptyString]="true"
+        ></qrcode>
+        <h5>Code zum Beitreten:</h5>
+
+        <div class="access-code-actions">
+          <!-- Kopieren -->
+          <ion-icon
+            name="copy-outline"
+            class="edit-button"
+            (click)="copyAccessCode($event)"
+            title="Code kopieren"
+          ></ion-icon>
+
+          <h5 class="access-code">{{ accessCode }}</h5>
+          <!-- WhatsApp teilen -->
+          <ion-icon
+            name="logo-whatsapp"
+            class="edit-button"
+            (click)="shareViaWhatsApp($event)"
+            title="Code per WhatsApp teilen"
+          ></ion-icon>
+        </div>
+
+      </div>
     </div>
   </div>
   <div class="page-container">

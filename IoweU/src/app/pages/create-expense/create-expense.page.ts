@@ -135,7 +135,8 @@ export class CreateExpensePage {
 
 
   constructor() {
-      addIcons({addOutline,checkmarkOutline,cameraOutline,imageOutline,chevronDownOutline});}
+      addIcons({addOutline,checkmarkOutline,cameraOutline,imageOutline,chevronDownOutline});
+  }
 
   groupname: string = '';
   iosIcons: boolean = false;

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Platform } from '@ionic/angular';
+import {Platform, ToastController} from '@ionic/angular';
 import { NavController } from '@ionic/angular';
 import {
   IonHeader,
@@ -24,6 +24,14 @@ import { FormsModule } from '@angular/forms';
 import { Members } from 'src/app/services/objects/Members';
 import {ShoppinglistService} from "../../services/shoppinglist.service";
 import {ShoppingProducts} from "../../services/objects/ShoppingProducts";
+import { addIcons } from 'ionicons';
+import { copyOutline, logoWhatsapp } from 'ionicons/icons';
+
+addIcons({
+  'copy-outline': copyOutline,
+  'logo-whatsapp': logoWhatsapp
+});
+
 
 @Component({
   selector: 'app-group',
@@ -57,6 +65,7 @@ export class GroupPage implements OnInit {
   private groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
   private shoppinglistService = inject(ShoppinglistService);
+  private toastController = inject(ToastController);
 
   iosIcons: boolean = false;
 
@@ -361,5 +370,33 @@ export class GroupPage implements OnInit {
       default:
         return '';
     }
+  }
+
+  copyAccessCode(event: Event): void {
+    event.stopPropagation();
+    navigator.clipboard.writeText(this.accessCode).then(async () => {
+      console.log('Access-Code wurde kopiert:', this.accessCode);
+      await this.presentToast('Accesscode wurde kopiert!');
+    }).catch(err => {
+      console.error('Fehler beim Kopieren:', err);
+    });
+  }
+
+  shareViaWhatsApp(event: Event): void {
+    event.stopPropagation();
+    const text = `Hier ist mein Gruppen-Code für die App: ${this.accessCode}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  }
+
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
   }
 }
