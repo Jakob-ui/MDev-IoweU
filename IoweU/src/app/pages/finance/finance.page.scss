@@ -76,12 +76,7 @@ h1{
   color: #2c2c2c;
 }
 
-@media (prefers-color-scheme: dark) {
-  .info-wrapper {
-  background: var(--ion-color-dark);
-  color: #e0e2e5;
-}
-}
+
 
 .info-wrapper h5 {
   font-size: 20px;
@@ -122,7 +117,14 @@ strong {
   font-weight: 600;
 }
 @media (prefers-color-scheme: dark) {
+    .info-wrapper {
+  background: var(--ion-color-dark);
+  color: #e0e2e5;
+}
   ion-icon.info-button {
     color: #000;
+  }
+  .info-overlay.slideUp{
+    background-color: #000;
   }
 }
