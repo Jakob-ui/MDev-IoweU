@@ -62,6 +62,8 @@ export class FinancePage implements OnInit {
   myExpenses: number = 0;
   myIncome: number = 0;
 
+  animatedBalance: number = 0; // <--- NEU: Für die animierte Anzeige
+
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   groupMembers: any[] = [];
@@ -142,15 +144,12 @@ export class FinancePage implements OnInit {
                 this.uid,
                 member.uid
               );
-
               const saldo = amount;
-
               if (saldo > 0) {
                 this.myIncome += saldo;
               } else {
                 this.myExpenses += Math.abs(saldo);
               }
-
               return {
                 ...member,
                 amount: saldo,
@@ -159,6 +158,9 @@ export class FinancePage implements OnInit {
           })
       );
       this.isLoadingMembers = false; // <--- Setze Loading-Flag auf false
+
+      // Starte die Animation, sobald die Daten geladen sind
+      this.animateBalance();
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -171,6 +173,35 @@ export class FinancePage implements OnInit {
 
   get myBalance(): number {
     return this.myIncome - this.myExpenses;
+  }
+
+  animateBalance() {
+    // Stoppe ggf. laufende Animationen
+    if ((this as any)._balanceInterval) {
+      clearInterval((this as any)._balanceInterval);
+    }
+    const target = this.myBalance;
+    const duration = 800; // ms
+    const steps = 40;
+    const stepTime = duration / steps;
+    const start = 0;
+    let current = start;
+    let step = (target - start) / steps;
+    let count = 0;
+
+    this.animatedBalance = start;
+
+    (this as any)._balanceInterval = setInterval(() => {
+      count++;
+      current += step;
+      // Bei letzter Iteration auf exakten Zielwert setzen
+      if (count >= steps) {
+        this.animatedBalance = target;
+        clearInterval((this as any)._balanceInterval);
+      } else {
+        this.animatedBalance = Math.round(current);
+      }
+    }, stepTime);
   }
 
   async logout() {

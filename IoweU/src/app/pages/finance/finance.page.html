@@ -64,7 +64,7 @@
       class="finance-card"
       [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }">
       <div class="card-content-finance">
-        <h2>{{ myBalance | currency: 'EUR' }}</h2>
+        <h2>{{ animatedBalance | currency: 'EUR' }}</h2>
         <p>
           {{ myBalance < 0 ? 'Schulden' : 'Guthaben' }}
         </p>
