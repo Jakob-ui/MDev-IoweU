@@ -25,6 +25,8 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
+  doc,
 } from '@angular/fire/firestore';
 import { FunctionsModule } from '@angular/fire/functions';
 import { TransactionService } from '../../services/transaction.service';
@@ -339,6 +341,23 @@ export class DetailedBalancePage implements OnInit {
     return memberEntry?.amountToPay || 0;
   }
 
+    async getFcmTokenByUid(uid: string): Promise<string | null> {
+    try {
+      const userDocRef = doc(this.firestore, 'users', uid);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        return userData['fcmToken'] || null;
+      } else {
+        console.error('Benutzer nicht gefunden:', uid);
+        return null;
+      }
+    } catch (error) {
+      console.error('Fehler beim Abrufen des FCM-Tokens:', error);
+      return null;
+    }
+  }
+
   async requestPayment() {
     if (!this.groupId || !this.uid || !this.selectedMember?.uid) {
       console.error(
@@ -365,11 +384,32 @@ export class DetailedBalancePage implements OnInit {
         return;
       }
 
-      await this.pushNotificationService.sendPushNotification(
-        toUserId,
-        'Schuldenanfrage',
-        `${myName} möchte, dass du deine Schulden begleichst.`
-      );
+
+    const userDocRef = doc(this.firestore, 'users', toUserId);
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (!userDocSnap.exists()) {
+      console.error('Empfänger wurde in der Users-Collection nicht gefunden.');
+      return;
+    }
+
+    const userData = userDocSnap.data();
+    const toFcmToken = await this.getFcmTokenByUid(toUserId);
+
+    if (!toFcmToken) {
+      console.error('Empfänger hat kein FCM-Token gespeichert.');
+      return;
+    }
+
+    // 📲 Push Notification senden (an Token, nicht UID!)
+    console.log('Wird an diesen FCM Token gesendet:', toFcmToken);
+
+    // 📲 Push Notification senden (an Token, nicht UID!)
+    await this.pushNotificationService.sendPushNotification(
+      toFcmToken,
+      'Schuldenanfrage',
+      `${myName} möchte, dass du deine Schulden begleichst.`
+    );
 
       const successAlert = await this.alertController.create({
         header: 'Anfrage gesendet',
