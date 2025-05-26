@@ -748,22 +748,23 @@ export const sendPushNotification = functions.https.onRequest((req, res) => {
     }
 
     try {
-      const {toUserId, title, body, toFcmToken} = req.body;
+      const { token, title, body } = req.body;
 
-      if (!toFcmToken) {
+      if (!token) {
         return res.status(400).send("FCM Token fehlt im Body!");
       }
 
       const message = {
-        notification: {title, body},
-        token: toFcmToken,
+        notification: { title, body },
+        token: token,
       };
-      console.log('FCM-Message wird gesendet an:', message.token);
+
+      console.log('📨 FCM-Message wird gesendet an:', token);
       await admin.messaging().send(message);
 
       return res.status(200).send("Push Notification gesendet");
-    } catch (error : any) {
-      console.error("Fehler beim Senden der Benachrichtigung:", error);
+    } catch (error: any) {
+      console.error("❌ Fehler beim Senden der Benachrichtigung:", error);
       return res.status(500).send(error.toString());
     }
   });
