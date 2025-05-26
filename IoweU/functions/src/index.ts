@@ -737,7 +737,7 @@ export const recalculateGroupBalances = onSchedule(
   }
 );
 
-export const sendPushNotification = functions.https.onRequest((req, res) => {
+export const sendPushNotification = onRequest((req, res) => {
   corsHandler(req, res, async () => {
     if (req.method === "OPTIONS") {
       return res.status(204).send("");
@@ -759,12 +759,12 @@ export const sendPushNotification = functions.https.onRequest((req, res) => {
         token: toFcmToken,
       };
 
-      console.log('FCM-Message wird gesendet an:', message.token);
+      logger.info("FCM-Message wird gesendet an:", message.token);
       await admin.messaging().send(message);
 
       return res.status(200).json({ success: true, message: "Push Notification gesendet" });
     } catch (error: any) {
-      console.error("Fehler beim Senden der Benachrichtigung:", error);
+      logger.error("Fehler beim Senden der Benachrichtigung:", error);
       return res.status(500).json({ error: error.toString() });
     }
   });
