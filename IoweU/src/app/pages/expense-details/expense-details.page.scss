@@ -203,7 +203,10 @@
     background: #ffffff !important; /* Weißer Hintergrund für die Box */
     color: var(--ion-color-dark) !important; /* Dunkle Schriftfarbe */
   }
-
+  .category-lbl, .date , .no-debt-text{
+    color: #ffffff !important;
+    background-color: transparent !important;
+  }
   .payed-by-lbl {
     margin-bottom: 5px;
     background-color: #121212 !important;
@@ -213,4 +216,5 @@
   .member-name {
     background: none !important;
   }
+
 }

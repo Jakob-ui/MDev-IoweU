@@ -9,8 +9,7 @@ import {
   IonBadge,
   IonCard,
   IonIcon,
-  IonButton,
-} from '@ionic/angular/standalone';
+  IonButton, IonSpinner } from '@ionic/angular/standalone';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NavController, Platform } from '@ionic/angular';
@@ -25,7 +24,7 @@ import { Groups } from 'src/app/services/objects/Groups';
   templateUrl: './finance.page.html',
   styleUrls: ['./finance.page.scss'],
   standalone: true,
-  imports: [
+  imports: [IonSpinner, 
     CommonModule,
     IonHeader,
     IonToolbar,
@@ -63,6 +62,8 @@ export class FinancePage implements OnInit {
   myExpenses: number = 0;
   myIncome: number = 0;
 
+  animatedBalance: number = 0; // <--- NEU: Für die animierte Anzeige
+
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   groupMembers: any[] = [];
@@ -73,6 +74,8 @@ export class FinancePage implements OnInit {
   memberRoles: string[] = [];
   memberUids: string[] = [];
   currentGroup: Groups | null = null;
+
+  isLoadingMembers: boolean = false; // <--- NEU: Loading-Flag für Mitgliederliste
 
   constructor() {}
 
@@ -120,6 +123,7 @@ export class FinancePage implements OnInit {
       }
 
       // Gruppenmitglieder laden (außer aktueller User)
+      this.isLoadingMembers = true; // <--- Setze Loading-Flag auf true
       this.groupMembers = await Promise.all(
         this.currentGroup.members
           .filter((member: any) => member.uid !== this.uid)
@@ -140,15 +144,12 @@ export class FinancePage implements OnInit {
                 this.uid,
                 member.uid
               );
-
               const saldo = amount;
-
               if (saldo > 0) {
                 this.myIncome += saldo;
               } else {
                 this.myExpenses += Math.abs(saldo);
               }
-
               return {
                 ...member,
                 amount: saldo,
@@ -156,10 +157,15 @@ export class FinancePage implements OnInit {
             }
           })
       );
+      this.isLoadingMembers = false; // <--- Setze Loading-Flag auf false
+
+      // Starte die Animation, sobald die Daten geladen sind
+      this.animateBalance();
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
+      this.isLoadingMembers = false; // <--- Fehlerfall: Loading-Flag zurücksetzen
     } finally {
       this.loadingService.hide();
     }
@@ -167,6 +173,35 @@ export class FinancePage implements OnInit {
 
   get myBalance(): number {
     return this.myIncome - this.myExpenses;
+  }
+
+  animateBalance() {
+    // Stoppe ggf. laufende Animationen
+    if ((this as any)._balanceInterval) {
+      clearInterval((this as any)._balanceInterval);
+    }
+    const target = this.myBalance;
+    const duration = 800; // ms
+    const steps = 40;
+    const stepTime = duration / steps;
+    const start = 0;
+    let current = start;
+    let step = (target - start) / steps;
+    let count = 0;
+
+    this.animatedBalance = start;
+
+    (this as any)._balanceInterval = setInterval(() => {
+      count++;
+      current += step;
+      // Bei letzter Iteration auf exakten Zielwert setzen
+      if (count >= steps) {
+        this.animatedBalance = target;
+        clearInterval((this as any)._balanceInterval);
+      } else {
+        this.animatedBalance = Math.round(current);
+      }
+    }, stepTime);
   }
 
   async logout() {
@@ -189,7 +224,7 @@ export class FinancePage implements OnInit {
 
     // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
     if (this.overlayState === 'start') {
-      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+      this.overlayState = 'normal'; // Overlay wird sichtbar and Animation startet
     } else if (this.overlayState === 'normal') {
       // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
       this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand

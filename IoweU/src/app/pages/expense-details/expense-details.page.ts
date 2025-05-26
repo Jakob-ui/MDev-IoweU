@@ -26,12 +26,13 @@ import {
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
 import { Members } from 'src/app/services/objects/Members';
-import { NavController, Platform } from '@ionic/angular';
+import {AlertController, NavController, Platform} from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
+import { PushNotificationService } from '../../services/push-notification.service';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
 
 
@@ -71,6 +72,8 @@ export class ExpenseDetailsPage {
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
+  private pushNotificationService = inject(PushNotificationService);
+  private alertController = inject(AlertController);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -393,8 +396,65 @@ export class ExpenseDetailsPage {
     }
   }
 
-  requestPayment() {
-    // Hier die Logik für die Anfrage implementieren
+  async requestPayment() {
+    if (!this.groupId || !this.uid) {
+      console.error('Fehlende groupId oder aktuelle UID.');
+      return;
+    }
+
+    // Stelle sicher, dass die Ausgabe geladen ist
+    const expenseData = this.expense[0];
+    if (!expenseData) {
+      console.error('Keine Ausgabe geladen.');
+      return;
+    }
+
+    try {
+      const myName = this.user || 'Jemand';
+
+      // Alle Mitglieder filtern, die noch nicht bezahlt haben (und nicht der Zahler sind)
+      const unpaidMembers = expenseData.expenseMember.filter(
+        (member) => member.paid === false && member.memberId !== expenseData.paidBy
+      );
+
+      if (unpaidMembers.length === 0) {
+        const alert = await this.alertController.create({
+          header: 'Keine offenen Schulden',
+          message: 'Alle Mitglieder haben ihre Anteile bereits bezahlt.',
+          buttons: ['OK'],
+        });
+        await alert.present();
+        return;
+      }
+
+      // Push Notifications an alle noch nicht zahlenden Mitglieder senden
+      for (const member of unpaidMembers) {
+        // member.memberId = UID des Mitglieds
+        await this.pushNotificationService.sendToUser(
+          member.memberId,
+          `Schuldenanfrage von ${myName}`,
+          `${myName} möchte, dass du deine Schulden für die Ausgabe "${expenseData.description}" begleichst.`
+        );
+      }
+
+      const successAlert = await this.alertController.create({
+        header: 'Anfrage gesendet',
+        message: `Zahlungsanfragen wurden an alle Mitglieder gesendet, die noch nicht bezahlt haben.`,
+        buttons: ['OK'],
+      });
+      await successAlert.present();
+
+      console.log('Push Notifications an alle offenen Mitglieder gesendet!');
+
+    } catch (error) {
+      console.error('Fehler beim Senden der Benachrichtigungen:', error);
+      const errorAlert = await this.alertController.create({
+        header: 'Fehler',
+        message: 'Fehler beim Senden der Benachrichtigungen. Bitte versuche es erneut.',
+        buttons: ['OK'],
+      });
+      await errorAlert.present();
+    }
   }
 
   getPaidByName(uid: string): string {

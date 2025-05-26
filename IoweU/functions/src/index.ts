@@ -11,7 +11,6 @@ import {
   FirestoreEvent,
   DocumentSnapshot,
 } from "firebase-functions/v2/firestore";
-import { group } from "console";
 
 interface RepeatingExpenses {
   expenseId: string;
@@ -157,7 +156,7 @@ export const updateGroupSumsOnTransactionChange = onDocumentWritten(
       let groupMembers = groupData?.members || [];
 
       // Aktualisierung der MemberSums
-      if (newTransaction && !oldTransaction) 
+      if (newTransaction && !oldTransaction)
       {
         // Neue Transaktion hinzugefügt
         for (const groupMember of groupMembers) {
@@ -173,7 +172,7 @@ export const updateGroupSumsOnTransactionChange = onDocumentWritten(
           }
         }
       }
-      else if (!newTransaction && oldTransaction) 
+      else if (!newTransaction && oldTransaction)
       {
         // Transaktion gelöscht
         for (const groupMember of groupMembers) {
@@ -188,7 +187,7 @@ export const updateGroupSumsOnTransactionChange = onDocumentWritten(
             groupMember.countAmountReceived -= 1;
           }
         }
-      } 
+      }
       // Gruppe aktualisieren
       await groupRef.update({
         members: groupMembers
@@ -237,7 +236,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
         sumTotalExpenses += newExpense.totalAmount || 0;
         countTotalExpenses += 1;
         // MemberSums bei neuer Ausgabe aktualisieren
-        for(const groupMember of groupMembers) 
+        for(const groupMember of groupMembers)
         {
           for(const expenseMember of newExpense.expenseMember)
           {
@@ -262,7 +261,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
         sumTotalExpenses -= oldExpense.totalAmount || 0;
         countTotalExpenses -= 1;
         // MemberSums bei gelöschter Ausgabe aktualisieren
-        for(const groupMember of groupMembers) 
+        for(const groupMember of groupMembers)
         {
           for(const expenseMember of oldExpense.expenseMember)
           {
@@ -285,12 +284,12 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
       } else if (newExpense && oldExpense) {
         // Ausgabe aktualisiert
         sumTotalExpenses += newExpense.totalAmount - oldExpense.totalAmount;
-          // MemberSums bei aktualisierter Ausgabe aktualisieren:
+        // MemberSums bei aktualisierter Ausgabe aktualisieren:
 
-          // A. Lösche die Daten der alten Ausgabe
+        // A. Lösche die Daten der alten Ausgabe
         for(const groupMember of groupMembers)
         {
-          for(const oldExpenseMember of oldExpense.expenseMember) 
+          for(const oldExpenseMember of oldExpense.expenseMember)
           {
             if(groupMember.uid === oldExpenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
             {
@@ -311,7 +310,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
         // B. Füge die Daten der neuen Ausgabe hinzu
         for(const groupMember of groupMembers)
         {
-          for(const newExpenseMember of newExpense.expenseMember) 
+          for(const newExpenseMember of newExpense.expenseMember)
           {
             if(groupMember.uid === newExpenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
             {
@@ -347,7 +346,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
 
 // 3. Updaten der Bilanzen bei Änderung der Ausgaben
 export const updateBalancesOnExpenseChange = onDocumentWritten(
-  "groups/{groupId}/expenses/{expenseId}", 
+  "groups/{groupId}/expenses/{expenseId}",
   async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
     const groupId = event.params.groupId;
 
@@ -365,7 +364,7 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
       }
 
       const balancesRef = firestore.collection(`groups/${groupId}/balances`);
-      if (newExpense) 
+      if (newExpense)
       {
         // Ausgabe hinzugefügt
         for (const member of newExpense.expenseMember) {
@@ -430,7 +429,7 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
         }
       }
 
-      if (!newExpense && oldExpense) 
+      if (!newExpense && oldExpense)
       {
         // Ausgabe gelöscht
         for (const member of oldExpense.expenseMember) {
@@ -568,14 +567,14 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
               }
             }
           }
+        }
       }
-    } 
-  }
-    catch (error) 
+    }
+    catch (error)
     {
       console.error("Error updating balances on new expense:", error);
     }
-});
+  });
 
 // 4. Updaten der Bilanzen bei Änderung der Transaktionen
 export const updateBalancesOnTransactionChange = onDocumentWritten(
@@ -583,7 +582,7 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
   async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
     const groupId = event.params.groupId;
 
-    try 
+    try
     {
       // Neue oder gelöschte Transaktion
       const newTransaction = event.data?.after?.data();
@@ -611,18 +610,18 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
         const debtor = newTransaction.from;
         const amount = newTransaction.amount;
         const snap1 = await balancesRef
-              .where("userAId", "==", creditor)
-              .where("userBId", "==", debtor)
-              .get();
+          .where("userAId", "==", creditor)
+          .where("userBId", "==", debtor)
+          .get();
 
         const snap2 = await balancesRef
-              .where("userAId", "==", debtor)
-              .where("userBId", "==", creditor)
-              .get();
+          .where("userAId", "==", debtor)
+          .where("userBId", "==", creditor)
+          .get();
 
-            const docs = [...snap1.docs, ...snap2.docs];
+        const docs = [...snap1.docs, ...snap2.docs];
         console.log("Balance docs: ", docs);
-        if (docs.length > 0) 
+        if (docs.length > 0)
         {
           const docRef = docs[0].ref;
           const balanceData = docs[0].data() as any;
@@ -631,20 +630,20 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
             balanceData.userACredit -= amount;
             balanceData.relatedTransactionId.push(newTransaction.transactionId);
             await docRef.update({
-            lastUpdated: new Date().toISOString(),
-            userACredit: balanceData.userACredit,
-          });
-          console.log("Case 1 balance data", balanceData);
+              lastUpdated: new Date().toISOString(),
+              userACredit: balanceData.userACredit,
+            });
+            console.log("Case 1 balance data", balanceData);
           }
           else if (balanceData.userAId === debtor && balanceData.userBId === creditor) // User A überweist dem User B
           {
             balanceData.userBCredit -= amount;
             balanceData.relatedTransactionId.push(newTransaction.transactionId);
             await docRef.update({
-            lastUpdated: new Date().toISOString(),
-            userBCredit: balanceData.userBCredit,
-          });
-          console.log("Case 2 balance data", balanceData);
+              lastUpdated: new Date().toISOString(),
+              userBCredit: balanceData.userBCredit,
+            });
+            console.log("Case 2 balance data", balanceData);
           }
         }
       }
@@ -655,17 +654,17 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
         const debtor = oldTransaction.from;
         const amount = oldTransaction.amount;
         const snap1 = await balancesRef
-              .where("userAId", "==", creditor)
-              .where("userBId", "==", debtor)
-              .get();
+          .where("userAId", "==", creditor)
+          .where("userBId", "==", debtor)
+          .get();
 
         const snap2 = await balancesRef
-              .where("userAId", "==", debtor)
-              .where("userBId", "==", creditor)
-              .get();
+          .where("userAId", "==", debtor)
+          .where("userBId", "==", creditor)
+          .get();
 
-            const docs = [...snap1.docs, ...snap2.docs];
-        if (docs.length > 0) 
+        const docs = [...snap1.docs, ...snap2.docs];
+        if (docs.length > 0)
         {
           const docRef = docs[0].ref;
           const balanceData = docs[0].data() as any;
@@ -673,17 +672,17 @@ export const updateBalancesOnTransactionChange = onDocumentWritten(
           {
             balanceData.userACredit += amount;
             await docRef.update({
-            lastUpdated: new Date().toISOString(),
-            userACredit: balanceData.userACredit,
-          });
+              lastUpdated: new Date().toISOString(),
+              userACredit: balanceData.userACredit,
+            });
           }
           else if (balanceData.userAId === debtor && balanceData.userBId === creditor) // Die Überweisung vom User A zum User B wird gelöscht
           {
             balanceData.userBCredit += amount;
             await docRef.update({
-            lastUpdated: new Date().toISOString(),
-            userBCredit: balanceData.userBCredit,
-          });
+              lastUpdated: new Date().toISOString(),
+              userBCredit: balanceData.userBCredit,
+            });
           }
         }
       }
@@ -738,30 +737,36 @@ export const recalculateGroupBalances = onSchedule(
   }
 );
 
-export const sendPushNotification = functions.https.onRequest((req, res) => {
+export const sendPushNotification = onRequest((req, res) => {
   corsHandler(req, res, async () => {
     if (req.method === "OPTIONS") {
       return res.status(204).send("");
     }
 
     if (req.method !== "POST") {
-      return res.status(405).send("Method Not Allowed");
+      return res.status(405).json({ error: "Method Not Allowed" });
     }
 
     try {
-      const {toUserId, title, body} = req.body;
+      const { toUserId, title, body, toFcmToken } = req.body;
+
+      if (!toFcmToken) {
+        return res.status(400).json({ error: "FCM Token fehlt im Body!" });
+      }
 
       const message = {
-        notification: {title, body},
-        token: toUserId,
+        notification: { title, body },
+        token: toFcmToken,
       };
 
+      logger.info("FCM-Message wird gesendet an:", message.token);
       await admin.messaging().send(message);
 
-      return res.status(200).send("Push Notification gesendet");
-    } catch (error : any) {
-      console.error("Fehler beim Senden der Benachrichtigung:", error);
-      return res.status(500).send(error.toString());
+      return res.status(200).json({ success: true, message: "Push Notification gesendet" });
+    } catch (error: any) {
+      logger.error("Fehler beim Senden der Benachrichtigung:", error);
+      return res.status(500).json({ error: error.toString() });
     }
   });
 });
+

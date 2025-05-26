@@ -18,13 +18,11 @@ import { ExpenseService } from '../../services/expense.service';
 import { GroupService } from '../../services/group.service';
 import { Members } from '../../services/objects/Members';
 import { Balances } from '../../services/objects/Balances';
-
 import {
   Firestore,
   collection,
   query,
   where,
-  getDocs,
 } from '@angular/fire/firestore';
 import { FunctionsModule } from '@angular/fire/functions';
 import { TransactionService } from '../../services/transaction.service';
@@ -88,7 +86,8 @@ export class DetailedBalancePage implements OnInit {
 
   balanceDetails: any = {};
   deptList: DebtEntry[] = [];
-  constructor() {}
+  constructor(
+  ) {}
 
   async ngOnInit() {
     this.loadingService.show();
@@ -176,7 +175,7 @@ export class DetailedBalancePage implements OnInit {
                 (expense) => expense.paidBy === this.selectedMember?.uid
               );
 
-              this.payable = this.myBalance < 0;
+              this.payable = this.myBalance !== 0;
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -274,7 +273,7 @@ export class DetailedBalancePage implements OnInit {
     }
 
 
-    const amountToPay = Math.abs(this.myBalance); 
+    const amountToPay = Math.abs(this.myBalance);
 
     const relatedExpensesIds = this.deptList.flatMap(
       (debt) => debt.relatedExpenses
@@ -288,8 +287,8 @@ export class DetailedBalancePage implements OnInit {
         this.groupId,
         this.uid,
         this.selectedMember.uid,
-        amountToPay, 
-        `Schuld an ${this.selectedMember.username} beglichen`, 
+        amountToPay,
+        `Schuld an ${this.selectedMember.username} beglichen`,
         uniqueRelatedExpensesIds
       );
 
@@ -304,7 +303,7 @@ export class DetailedBalancePage implements OnInit {
             text: 'Nein',
             role: 'cancel',
             handler: () => {
-              this.router.navigate(['expense', this.groupId]); 
+              this.router.navigate(['expense', this.groupId]);
             },
           },
           {
@@ -339,6 +338,8 @@ export class DetailedBalancePage implements OnInit {
     return memberEntry?.amountToPay || 0;
   }
 
+
+
   async requestPayment() {
     if (!this.groupId || !this.uid || !this.selectedMember?.uid) {
       console.error(
@@ -346,15 +347,11 @@ export class DetailedBalancePage implements OnInit {
       );
       return;
     }
+
     try {
-      const toUserId = this.selectedMember?.uid;
-      if (!toUserId) {
-        console.error('Kein Ziel-User ausgewählt!');
-        return;
-      }
+      const toUserId = this.selectedMember.uid;
       const myName = this.username;
 
-      // Stelle sicher, dass du nur eine Anfrage sendest, wenn das selectedMember dir etwas schuldet (myBalance > 0)
       if (this.myBalance <= 0) {
         const alert = await this.alertController.create({
           header: 'Keine Anfrage möglich',
@@ -365,9 +362,10 @@ export class DetailedBalancePage implements OnInit {
         return;
       }
 
-      await this.pushNotificationService.sendPushNotification(
+      // 📲 Push Notification an ALLE Geräte des Empfängers senden (neue Methode im Service)
+      await this.pushNotificationService.sendToUser(
         toUserId,
-        'Schuldenanfrage',
+        `Schuldenanfrage von ${myName}`,
         `${myName} möchte, dass du deine Schulden begleichst.`
       );
 
@@ -379,6 +377,7 @@ export class DetailedBalancePage implements OnInit {
       await successAlert.present();
 
       console.log('Push gesendet!');
+
     } catch (error) {
       console.error('Fehler beim Senden der Benachrichtigung:', error);
       const errorAlert = await this.alertController.create({
@@ -390,4 +389,6 @@ export class DetailedBalancePage implements OnInit {
       await errorAlert.present();
     }
   }
+
+
 }
