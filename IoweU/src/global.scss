@@ -645,7 +645,7 @@ ion-item.select-interface-option::part(native) {
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding-top: calc(env(safe-area-inset-top) + 50px) !important;
+  //padding-top: calc(env(safe-area-inset-top) + 50px) !important;
 }
 
 .page-container {
