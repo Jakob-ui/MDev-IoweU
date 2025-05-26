@@ -363,22 +363,9 @@ export class DetailedBalancePage implements OnInit {
         return;
       }
 
-      // 📥 FCM Token des Empfängers holen
-      const toFcmToken = await this.pushNotificationService.getFcmTokenByUid(toUserId);
-      if (!toFcmToken) {
-        console.error('Kein FCM-Token für den Ziel-User gefunden.');
-        const alert = await this.alertController.create({
-          header: 'Fehler',
-          message: `Es konnte kein Gerät für ${this.selectedMember.username} gefunden werden, um die Benachrichtigung zu senden.`,
-          buttons: ['OK'],
-        });
-        await alert.present();
-        return;
-      }
-
-      // 📲 Push Notification senden
-      await this.pushNotificationService.sendPushNotification(
-        toFcmToken,
+      // 📲 Push Notification an ALLE Geräte des Empfängers senden (neue Methode im Service)
+      await this.pushNotificationService.sendToUser(
+        toUserId,
         `Schuldenanfrage von ${myName}`,
         `${myName} möchte, dass du deine Schulden begleichst.`
       );
@@ -391,6 +378,7 @@ export class DetailedBalancePage implements OnInit {
       await successAlert.present();
 
       console.log('Push gesendet!');
+
     } catch (error) {
       console.error('Fehler beim Senden der Benachrichtigung:', error);
       const errorAlert = await this.alertController.create({
@@ -402,5 +390,6 @@ export class DetailedBalancePage implements OnInit {
       await errorAlert.present();
     }
   }
+
 
 }
