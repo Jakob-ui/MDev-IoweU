@@ -16,7 +16,7 @@ import {GroupService} from "../../services/group.service";
 import {ShoppinglistService} from "../../services/shoppinglist.service";
 import {Members} from "../../services/objects/Members";
 import {ShoppingProducts} from "../../services/objects/ShoppingProducts";
-import {NavController} from "@ionic/angular";
+import {AlertController, NavController, ToastController} from "@ionic/angular";
 
 @Component({
   selector: 'app-shoppingcart',
@@ -34,6 +34,8 @@ export class ShoppingcartPage implements OnInit {
   private groupService = inject(GroupService);
   private shoppinglistService = inject(ShoppinglistService);
   private navCtrl = inject(NavController);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
 
   uid: string | null = '';
   user: string | null = '';
@@ -59,6 +61,10 @@ export class ShoppingcartPage implements OnInit {
   earliestDueDate: Date = new Date(2025, 2, 20);
   earliestDueDateLabel: string = '';
 
+  showDeleteConfirm: boolean = false;
+  productToDelete: any;
+  touchStartX: number = 0;
+  touchStartTime: number = 0;
 
   addProductOpen = false;
 
@@ -385,6 +391,136 @@ export class ShoppingcartPage implements OnInit {
     } finally {
       this.loadingService.hide();
     }
+  }
+
+  async deleteProductForShoppingCart(shoppingProductId: string) {
+    try {
+      if (!this.shoppingCartId) {
+        throw new Error('ShoppingListId ist nicht definiert!');
+      }
+
+      await this.shoppinglistService.deleteShoppingProduct(
+        this.groupId!,
+        this.shoppingCartId,  // Hier wird sicher die shoppingListId übergeben
+        shoppingProductId
+      );
+      console.log('Produkt gelöscht:', shoppingProductId);
+
+      await this.loadShoppingCartProducts();
+    } catch (error) {
+      console.error('Fehler beim Löschen des Produkts:', error);
+    }
+  }
+
+  onTouchStart(event: TouchEvent) {
+    this.touchStartX = event.changedTouches[0].screenX;
+    this.touchStartTime = Date.now(); // Zeit des Touch-Starts merken
+  }
+
+  onTouchEnd(event: TouchEvent, shoppingProduct: any) {
+    const touchEndX = event.changedTouches[0].screenX;
+    const deltaX = touchEndX - this.touchStartX;
+    const swipeDuration = Date.now() - this.touchStartTime;
+    const swipeThreshold = 100; // Mindestdistanz in px
+    const maxSwipeTime = 500; // maximale Dauer für "echten" Swipe in ms
+
+    // Abbrechen, wenn der Wisch zu langsam oder zu kurz war
+    if (Math.abs(deltaX) < swipeThreshold || swipeDuration > maxSwipeTime) {
+      return;
+    }
+
+    if (deltaX > 0) {
+      // Swipe nach rechts
+      (shoppingProduct as any).swiped = 'right';
+
+      setTimeout(() => {
+        this.moveProductToList(shoppingProduct.shoppingProductId);
+        this.presentToast('Produkt wurde zurück in die Einkaufsliste verschoben!');
+        this.shoppingproducts = this.shoppingproducts.filter(
+          (p) => p.shoppingProductId !== shoppingProduct.shoppingProductId
+        );
+        this.groupProductsByDate();
+      }, 300);
+    } else {
+      // Swipe nach links
+      (shoppingProduct as any).swiped = 'left';
+
+      setTimeout(() => {
+        this.productToDelete = shoppingProduct;
+        this.showDeleteAlert();
+        (shoppingProduct as any).swiped = null;
+      }, 300);
+    }
+  }
+
+  async moveProductToList(shoppingProductId: string) {
+    const groupId = this.groupId;
+    if (!groupId) {
+      console.error('groupId fehlt');
+      return;
+    }
+
+    try {
+      const shoppingCart = await this.shoppinglistService.getShoppingCartByGroupId(groupId);
+      if (!shoppingCart) {
+        console.error('Keine Einkaufsliste für diese Gruppe gefunden');
+        return;
+      }
+
+      const shoppingCartId = shoppingCart.shoppingcartId;
+
+      await this.shoppinglistService.moveProductBackToShoppingList(groupId, shoppingCartId, shoppingProductId);
+      console.log('Produkt verschoben!');
+
+      this.loadShoppingCartProducts();
+    } catch (error) {
+      console.error('Fehler beim Verschieben:', error);
+    }
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
+
+  async showDeleteAlert() {
+    const alert = await this.alertController.create({
+      header: 'Bestätigen',
+      message: 'Möchten Sie dieses Produkt wirklich löschen?',
+      buttons: [
+        {
+          text: 'Abbrechen',
+          role: 'cancel',
+          handler: () => {
+            this.showDeleteConfirm = false;
+            this.productToDelete = null;
+
+            if (this.productToDelete && (this.productToDelete as any).swiped) {
+              (this.productToDelete as any).swiped = null;
+            }
+          }
+        },
+        {
+          text: 'Löschen',
+          handler: () => {
+            if (this.productToDelete) {
+              this.deleteProductForShoppingCart(this.productToDelete.shoppingProductId);
+              this.presentToast('Produkt wurde erfolgreich gelöscht!');
+
+              this.showDeleteConfirm = false;
+              this.productToDelete = null;
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
 }

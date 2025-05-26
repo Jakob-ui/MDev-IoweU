@@ -177,6 +177,18 @@ strong {
   margin-left: 10px;
 }
 
+.shoppinglist-item {
+  transition: transform 0.3s ease;
+}
+
+.shoppinglist-item.swipe-right {
+  transform: translateX(80px); // Slide nach rechts
+}
+
+.shoppinglist-item.swipe-left {
+  transform: translateX(-80px); // Slide nach links
+}
+
 .shoppingproduct-item .first-container{
   width: 50px;
   text-align: right;
@@ -265,7 +277,7 @@ strong {
   font-weight: 300;
 }
 
-.shoppingplist-item{
+.shoppinglist-item{
   display: flex !important;
   justify-content: center !important;
   width: 80%;

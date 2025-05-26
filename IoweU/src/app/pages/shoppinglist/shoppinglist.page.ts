@@ -86,6 +86,9 @@ export class ShoppinglistPage implements OnInit {
   showDeleteConfirm: boolean = false;
   productToDelete: any;
   touchStartX: number = 0;
+  touchStartTime: number = 0;
+
+  inputVisible = true;
 
   addProductOpen = false;
   animatedItems: { [key: string]: boolean } = {};
@@ -545,9 +548,8 @@ export class ShoppinglistPage implements OnInit {
 
     try {
       await this.shoppinglistService.addShoppingProduct(this.groupId!, shoppingProductData);
-      await this.presentToast('Produkt wurde hinzugefügt!');
-      console.log('Produkt erfolgreich gespeichert!');
-      this.showDetails = false;
+
+      // Felder zurücksetzen
       this.newProduct = {
         quantity: 1,
         unit: 'Mal',
@@ -555,6 +557,17 @@ export class ShoppinglistPage implements OnInit {
         forMemberId: this.uid || '',
         dueDate: null,
       };
+
+      await this.presentToast('Produkt wurde hinzugefügt!');
+      console.log('Produkt erfolgreich gespeichert!');
+      this.showDetails = false;
+
+      // Sichtbarkeit kurz deaktivieren, um Input zurückzusetzen
+      this.inputVisible = false;
+      setTimeout(() => {
+        this.inputVisible = true;
+      }, 0);
+
     } catch (error) {
       console.error('Fehler beim Speichern:', error);
       this.presentAlert('Fehler','Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
@@ -615,30 +628,37 @@ export class ShoppinglistPage implements OnInit {
 
   onTouchStart(event: TouchEvent) {
     this.touchStartX = event.changedTouches[0].screenX;
+    this.touchStartTime = Date.now(); // Zeit des Touch-Starts merken
   }
 
   onTouchEnd(event: TouchEvent, shoppingProduct: any) {
     const touchEndX = event.changedTouches[0].screenX;
     const deltaX = touchEndX - this.touchStartX;
-    const swipeThreshold = 50;
+    const swipeDuration = Date.now() - this.touchStartTime;
+    const swipeThreshold = 100; // Mindestdistanz in px
+    const maxSwipeTime = 500; // maximale Dauer für "echten" Swipe in ms
 
-    if (deltaX > swipeThreshold) {
+    // Abbrechen, wenn der Wisch zu langsam oder zu kurz war
+    if (Math.abs(deltaX) < swipeThreshold || swipeDuration > maxSwipeTime) {
+      return;
+    }
+
+    if (deltaX > 0) {
+      // Swipe nach rechts
       (shoppingProduct as any).swiped = 'right';
 
       setTimeout(() => {
         this.moveProductToCart(shoppingProduct.shoppingProductId);
         this.presentToast('Produkt wurde in den Warenkorb verschoben!');
-
-
         this.shoppingproducts = this.shoppingproducts.filter(
           (p) => p.shoppingProductId !== shoppingProduct.shoppingProductId
         );
-
         this.groupProductsByDate();
       }, 300);
-
-    } else if (deltaX < -swipeThreshold) {
+    } else {
+      // Swipe nach links
       (shoppingProduct as any).swiped = 'left';
+
       setTimeout(() => {
         this.productToDelete = shoppingProduct;
         this.showDeleteAlert();

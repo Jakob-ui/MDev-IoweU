@@ -157,8 +157,12 @@
     <ion-list class="shopping-list">
       <ng-container *ngFor="let group of groupedProducts">
         <ion-item
-          class="shoppingplist-item"
-          *ngFor="let shoppingproduct of group.shoppingproducts">
+          class="shoppinglist-item"
+          *ngFor="let shoppingproduct of group.shoppingproducts"
+          (touchstart)="onTouchStart($event)"
+          (touchend)="onTouchEnd($event, shoppingproduct)"
+          [class.swipe-right]="shoppingproduct.swiped === 'right'"
+          [class.swipe-left]="shoppingproduct.swiped === 'left'">
 
           <div class="profile-placeholder"
                [ngStyle]="{
