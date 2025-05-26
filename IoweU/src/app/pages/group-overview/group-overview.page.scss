@@ -3,12 +3,13 @@
   max-width: 100%;
   padding: 16px; // Optional für Abstand zum Rand
   box-sizing: border-box;
-  margin-top: 50px;
+  margin-top: 0;
 }
 
 .user-info {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   height: 40px;
   border-radius: 100px;
   gap: 10px;
@@ -16,7 +17,11 @@
   border: 3px solid var(--user-color, #1a65eb);
   padding: 7px 14px 7px 10px;
   margin-bottom: 20px;
+  max-width: 50%;
+  margin-left: auto;
+  margin-right: auto;  
 }
+
 
 .user-info .profile-placeholder {
   width: 25px;
@@ -62,7 +67,7 @@ ion-card-subtitle{
   padding-left: 2px;
 }
 
-ion-card-subtitle span, {
+ion-card-subtitle span {
   font-size: 16px;
   font-weight: 500;
 }
