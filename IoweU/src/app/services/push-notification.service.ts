@@ -80,7 +80,7 @@ export class PushNotificationService {
         localStorage.setItem('fcm_token', token.value);
         // Plattform bestimmen (android / ios)
         const platform = Capacitor.getPlatform(); // "android" oder "ios"
-        await this.authService.saveFcmToken(token.value, platform);
+        await this.authService.saveFcmToken(token.value, platform as 'android' | 'ios' | 'web' | undefined);
       });
 
       PushNotifications.addListener('registrationError', (error) => {
