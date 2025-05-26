@@ -379,7 +379,7 @@ export class DetailedBalancePage implements OnInit {
       // 📲 Push Notification senden
       await this.pushNotificationService.sendPushNotification(
         toFcmToken,
-        'Schuldenanfrage',
+        `Schuldenanfrage von ${myName}`,
         `${myName} möchte, dass du deine Schulden begleichst.`
       );
 
