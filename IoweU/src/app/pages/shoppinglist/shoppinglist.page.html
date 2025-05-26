@@ -135,7 +135,7 @@
                     class="dropDownFelder"
                     button
                     *ngFor="let groupMember of groupMembers"
-                    (click)="groupMember.uid === 'all' ? selectAllMembers($event) : selectMember(groupMember, $event)">
+                    (click)="groupMember.uid === 'all' ? editSelectedAllMembers($event) : editSelectedMember(groupMember, $event)">
                     <div class="member-info"
                          [ngClass]="{'all-members-option': groupMember.uid === 'all'}"
                          [ngStyle]="{
@@ -198,13 +198,21 @@
           <div class="input-container">
             <span class="input-label">Produktname</span>
             <ion-item>
-              <ion-input type="text" [(ngModel)]="newProduct.productname"></ion-input>
+              <ng-container *ngIf="inputVisible">
+                <ion-input
+                  type="text"
+                  [(ngModel)]="newProduct.productname"
+                  placeholder="Produktname"
+                ></ion-input>
+              </ng-container>
+
               <ion-icon
                 class="edit-button"
                 (click)="saveNewProduct()"
                 [src]="'assets/icon/ionicons/ios-add.svg'"
               ></ion-icon>
             </ion-item>
+
           </div>
         </div>
 
@@ -321,7 +329,7 @@
         </span>
 
         <ion-item
-          class="shoppingplist-item"
+          class="shoppinglist-item"
           *ngFor="let shoppingproduct of group.shoppingproducts"
           (touchstart)="onTouchStart($event)"
           (touchend)="onTouchEnd($event, shoppingproduct)"
