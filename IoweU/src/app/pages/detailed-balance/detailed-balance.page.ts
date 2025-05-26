@@ -18,7 +18,6 @@ import { ExpenseService } from '../../services/expense.service';
 import { GroupService } from '../../services/group.service';
 import { Members } from '../../services/objects/Members';
 import { Balances } from '../../services/objects/Balances';
-import { doc, getDoc } from 'firebase/firestore';
 import {
   Firestore,
   collection,

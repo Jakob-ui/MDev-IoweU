@@ -112,7 +112,6 @@ export class PushNotificationService {
   listenToMessages() {
     onMessage(this.messaging, (payload) => {
       console.log('Web Message received: ', payload);
-      alert(`Push Nachricht: ${payload.notification?.title ?? 'Neue Nachricht'}`);
       this.messageSource.next(payload);
     });
   }

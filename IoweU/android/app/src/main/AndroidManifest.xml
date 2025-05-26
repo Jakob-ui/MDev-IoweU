@@ -36,7 +36,7 @@
 
       <meta-data
         android:name="com.google.firebase.messaging.default_notification_icon"
-        android:resource="@mipmap/ic_launcher" />
+        android:resource="@mipmap/IoweU-Logo.svg" />
     </application>
 
     <!-- Permissions -->
