@@ -6,8 +6,15 @@
   margin-top: 0;
 }
 
-.user-info {
+ion-toolbar{
   display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.user-info {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   height: 40px;
@@ -17,9 +24,9 @@
   border: 3px solid var(--user-color, #1a65eb);
   padding: 7px 14px 7px 10px;
   margin-bottom: 20px;
-  max-width: 50%;
+  //max-width: 50%;
   margin-left: auto;
-  margin-right: auto;  
+  margin-right: auto;
 }
 
 
