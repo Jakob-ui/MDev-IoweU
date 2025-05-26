@@ -176,7 +176,7 @@ export class DetailedBalancePage implements OnInit {
                 (expense) => expense.paidBy === this.selectedMember?.uid
               );
 
-              this.payable = this.myBalance !== 0;  
+              this.payable = this.myBalance !== 0;
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -274,7 +274,7 @@ export class DetailedBalancePage implements OnInit {
     }
 
 
-    const amountToPay = Math.abs(this.myBalance); 
+    const amountToPay = Math.abs(this.myBalance);
 
     const relatedExpensesIds = this.deptList.flatMap(
       (debt) => debt.relatedExpenses
@@ -288,8 +288,8 @@ export class DetailedBalancePage implements OnInit {
         this.groupId,
         this.uid,
         this.selectedMember.uid,
-        amountToPay, 
-        `Schuld an ${this.selectedMember.username} beglichen`, 
+        amountToPay,
+        `Schuld an ${this.selectedMember.username} beglichen`,
         uniqueRelatedExpensesIds
       );
 
@@ -304,7 +304,7 @@ export class DetailedBalancePage implements OnInit {
             text: 'Nein',
             role: 'cancel',
             handler: () => {
-              this.router.navigate(['expense', this.groupId]); 
+              this.router.navigate(['expense', this.groupId]);
             },
           },
           {
@@ -382,9 +382,7 @@ export class DetailedBalancePage implements OnInit {
         return;
       }
 
-  
-      
-   // ✅ FCM-Token aus der Firestore "users"-Collection holen
+
     const userDocRef = doc(this.firestore, 'users', toUserId);
     const userDocSnap = await getDoc(userDocRef);
 
@@ -402,7 +400,7 @@ export class DetailedBalancePage implements OnInit {
     }
 
     // 📲 Push Notification senden (an Token, nicht UID!)
-    console.log('Wird an diesen FCM Token gesendet:', toFcmToken); 
+    console.log('Wird an diesen FCM Token gesendet:', toFcmToken);
 
     // 📲 Push Notification senden (an Token, nicht UID!)
     await this.pushNotificationService.sendPushNotification(
