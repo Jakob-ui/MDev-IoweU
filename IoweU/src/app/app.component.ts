@@ -6,12 +6,14 @@ import { Messaging, getToken, onMessage } from '@angular/fire/messaging';
 import { environment } from '../environments/environment';
 import { AuthService } from './services/auth.service';
 import { PushNotificationService } from './services/push-notification.service';
+import {Platform} from "@ionic/angular";
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   imports: [IonApp, IonRouterOutlet, CommonModule],
+  standalone: true
 })
 export class AppComponent implements OnInit {
   loading: boolean = false;
@@ -20,8 +22,15 @@ export class AppComponent implements OnInit {
 
   constructor(
     private loadingService: LoadingService,
-    private pushNotificationService: PushNotificationService
-  ) {}
+    private pushNotificationService: PushNotificationService,
+    private platform: Platform,
+  ) {
+    this.platform.ready().then(() => {
+      this.pushNotificationService.initPush();
+    }).catch(e => {
+      console.log('error fcm: ', e);
+    });
+  }
 
   isDarkMode(): boolean {
     return (
@@ -51,31 +60,7 @@ export class AppComponent implements OnInit {
           : 'assets/gifs/loadingLightMode.gif';
       });
 
-    await this.registerServiceWorker();
-   // Push Notifications initialisieren
-    await this.pushNotificationService.init();
-
-    // Auf eingehende Push-Nachrichten reagieren
-    if (this.pushNotificationService.currentMessage) {
-      this.pushNotificationService.currentMessage.subscribe((payload: { notification: { title: any; }; }) => {
-        if (payload) {
-          alert(`Push Nachricht: ${payload.notification?.title ?? 'Neue Nachricht'}`);
-        }
-      });
-    }
   }
 
-  private async registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
-        console.log('Service Worker registriert:', registration);
-      } catch (err) {
-        console.error('Fehler bei der Registrierung des Service Workers:', err);
-      }
-    } else {
-      console.warn('Service Worker werden von diesem Browser nicht unterstützt.');
-    }
-  }
 
 }
