@@ -339,22 +339,7 @@ export class DetailedBalancePage implements OnInit {
     return memberEntry?.amountToPay || 0;
   }
 
-  async getFcmTokenByUid(uid: string): Promise<string | null> {
-    try {
-      const userDocRef = doc(this.firestore, 'users', uid);
-      const userDocSnap = await getDoc(userDocRef);
-      if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
-        return userData['fcmToken'] || null;
-      } else {
-        console.error('Benutzer nicht gefunden:', uid);
-        return null;
-      }
-    } catch (error) {
-      console.error('Fehler beim Abrufen des FCM-Tokens:', error);
-      return null;
-    }
-  }
+
 
   async requestPayment() {
     if (!this.groupId || !this.uid || !this.selectedMember?.uid) {
@@ -363,15 +348,11 @@ export class DetailedBalancePage implements OnInit {
       );
       return;
     }
+
     try {
-      const toUserId = this.selectedMember?.uid;
-      if (!toUserId) {
-        console.error('Kein Ziel-User ausgewählt!');
-        return;
-      }
+      const toUserId = this.selectedMember.uid;
       const myName = this.username;
 
-      // Stelle sicher, dass du nur eine Anfrage sendest, wenn das selectedMember dir etwas schuldet (myBalance > 0)
       if (this.myBalance <= 0) {
         const alert = await this.alertController.create({
           header: 'Keine Anfrage möglich',
@@ -382,29 +363,20 @@ export class DetailedBalancePage implements OnInit {
         return;
       }
 
-
-
-      // ✅ FCM-Token aus der Firestore "users"-Collection holen
-      const userDocRef = doc(this.firestore, 'users', toUserId);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (!userDocSnap.exists()) {
-        console.error('Empfänger wurde in der Users-Collection nicht gefunden.');
-        return;
-      }
-
-      const userData = userDocSnap.data();
-      const toFcmToken = await this.getFcmTokenByUid(toUserId);
-
+      // 📥 FCM Token des Empfängers holen
+      const toFcmToken = await this.pushNotificationService.getFcmTokenByUid(toUserId);
       if (!toFcmToken) {
-        console.error('Empfänger hat kein FCM-Token gespeichert.');
+        console.error('Kein FCM-Token für den Ziel-User gefunden.');
+        const alert = await this.alertController.create({
+          header: 'Fehler',
+          message: `Es konnte kein Gerät für ${this.selectedMember.username} gefunden werden, um die Benachrichtigung zu senden.`,
+          buttons: ['OK'],
+        });
+        await alert.present();
         return;
       }
 
-      // 📲 Push Notification senden (an Token, nicht UID!)
-      console.log('Wird an diesen FCM Token gesendet:', toFcmToken);
-
-      // 📲 Push Notification senden (an Token, nicht UID!)
+      // 📲 Push Notification senden
       await this.pushNotificationService.sendPushNotification(
         toFcmToken,
         'Schuldenanfrage',
@@ -430,4 +402,5 @@ export class DetailedBalancePage implements OnInit {
       await errorAlert.present();
     }
   }
+
 }
