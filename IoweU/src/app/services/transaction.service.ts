@@ -18,7 +18,6 @@ import { Balances } from './objects/Balances';
 import { Expenses } from './objects/Expenses';
 import { ExpenseService } from './expense.service';
 import { DebtEntry } from './objects/DeptEntry';
-import { merge } from 'd3';
 
 @Injectable({
   providedIn: 'root',
