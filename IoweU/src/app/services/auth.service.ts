@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Firestore, setDoc, doc, getDoc } from '@angular/fire/firestore';
+import { Firestore, setDoc, doc, getDoc, arrayUnion } from '@angular/fire/firestore';
 import {
   Auth,
   browserLocalPersistence,
@@ -188,7 +188,7 @@ export class AuthService {
             uid: firebaseUser.uid,
             username: username || firebaseUser.displayName || 'Unnamed User',
             email: firebaseUser.email || '',
-            color: color || '#CCCCCC', 
+            color: color || '#CCCCCC',
             lastedited: new Date().toISOString(),
             groupId: groupId,
           };
@@ -228,7 +228,7 @@ export class AuthService {
           console.log('Existierender Google-Nutzer: lastedited aktualisiert.');
 
           this.currentUser = userDataToSave;
-          this.applyUserColors(this.currentUser.color); 
+          this.applyUserColors(this.currentUser.color);
         }
         return userDataToSave;
       }
@@ -331,16 +331,17 @@ export class AuthService {
     }
   }
 
-  async saveFcmToken(token: string): Promise<void> {
-    if (!this.currentUser?.uid) {
-      console.warn('Kein eingeloggter User zum Speichern des FCM-Tokens.');
-      return;
-    }
+  async saveFcmToken(token: string, platform: 'web' | 'android' | 'ios' = 'web') {
+    const uid = this.currentUser?.uid;
+    if (!uid || !token) return;
+
+    const userDocRef = doc(this.firestore, 'users', uid);
 
     try {
-      const userRef = doc(this.firestore, 'users', this.currentUser.uid);
-      await setDoc(userRef, { fcmToken: token }, { merge: true });
-      console.log('FCM-Token erfolgreich gespeichert.');
+      await setDoc(userDocRef, {
+        fcmTokens: arrayUnion(token),
+      }, { merge: true });
+      console.log(`FCM Token gespeichert (${platform}):`, token);
     } catch (error) {
       console.error('Fehler beim Speichern des FCM-Tokens:', error);
     }
