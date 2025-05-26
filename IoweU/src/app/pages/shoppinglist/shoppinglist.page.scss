@@ -181,15 +181,15 @@ ion-button.outline-button::part(native) {
   margin-left: 10px;
 }
 
-.shoppingplist-item {
+.shoppinglist-item {
   transition: transform 0.3s ease;
 }
 
-.shoppingplist-item.swipe-right {
+.shoppinglist-item.swipe-right {
   transform: translateX(80px); // Slide nach rechts
 }
 
-.shoppingplist-item.swipe-left {
+.shoppinglist-item.swipe-left {
   transform: translateX(-80px); // Slide nach links
 }
 
@@ -288,7 +288,7 @@ ion-button.outline-button::part(native) {
   font-weight: 300;
 }
 
-.shoppingplist-item{
+.shoppinglist-item{
   display: flex !important;
   justify-content: center !important;
   width: 80%;

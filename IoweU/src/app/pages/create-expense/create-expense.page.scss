@@ -2,7 +2,7 @@
   width: 95%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 10px;
+  padding: 10px 10px 40px;
 }
 
 .section {
@@ -176,7 +176,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-right: 5%;
+  margin-right: 10px;
 }
 
 
@@ -290,7 +290,6 @@ ion-input::part(native) {
 
 .right-container .percent-input {
   text-align: right !important;
-  margin-right: 30px !important;
 }
 
 .Kategorie {
@@ -546,7 +545,7 @@ ion-item.dropDownFelder::part(native) {
 
 .input-wrapper.auto-width {
   width: auto;
-  min-width: 80px; /* optional, falls sehr kleine Eingaben */
+  min-width: 80px !important;
 }
 
 #input-wrapper-percent ion-input {

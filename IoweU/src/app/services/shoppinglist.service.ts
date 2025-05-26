@@ -231,6 +231,63 @@ export class ShoppinglistService {
     }
   }
 
+  async moveProductBackToShoppingList(groupId: string, shoppingCartId: string, shoppingProductId: string): Promise<void> {
+    try {
+      // 1. Produkt aus dem Warenkorb holen
+      const productRef = doc(this.firestore, 'groups', groupId, 'shoppingCart', shoppingCartId, 'shoppingProducts', shoppingProductId);
+      const productSnapshot = await getDoc(productRef);
+
+      if (!productSnapshot.exists()) {
+        throw new Error('Produkt nicht gefunden');
+      }
+
+      const productData = productSnapshot.data() as ShoppingProducts;
+
+      // 2. Status auf "open" setzen
+      const updatedProduct: ShoppingProducts = {
+        ...productData,
+        status: 'open',
+      };
+
+      // 3. Einkaufslisten-Dokument holen oder erstellen
+      let shoppingList: Shoppinglists | null = await this.getShoppingListByGroupId(groupId);
+      let shoppinglistId: string;
+
+      if (!shoppingList) {
+        shoppinglistId = doc(collection(this.firestore, 'groups', groupId, 'shoppingLists')).id;
+
+        shoppingList = {
+          shoppinglistId,
+          groupId,
+          shoppinglistName: 'Einkaufsliste',
+          shoppingProducts: []
+        };
+
+
+        await setDoc(doc(this.firestore, 'groups', groupId, 'shoppingLists', shoppinglistId), shoppingList);
+        console.log('Neue Einkaufsliste erstellt:', shoppinglistId);
+      } else {
+        shoppinglistId = shoppingList.shoppinglistId;
+      }
+
+      // 4. Produkt in die Einkaufsliste verschieben
+      const newProductRef = doc(collection(this.firestore, 'groups', groupId, 'shoppingLists', shoppinglistId, 'shoppingProducts'));
+      await setDoc(newProductRef, {
+        ...updatedProduct,
+        shoppingProductId: newProductRef.id,
+      });
+
+      // 5. Produkt aus dem Warenkorb löschen
+      await deleteDoc(productRef);
+
+      console.log('Produkt erfolgreich zurück in die Einkaufsliste verschoben');
+    } catch (error) {
+      console.error('Fehler beim Zurückverschieben:', error);
+      throw error;
+    }
+  }
+
+
   async getShoppingProductById(
     groupId: string,
     shoppingListId: string,
@@ -370,7 +427,6 @@ export class ShoppinglistService {
     }
   }
 
-
   listenToShoppingProductsChanges(
     groupId: string,
     shoppingListId: string | null,
@@ -378,7 +434,7 @@ export class ShoppinglistService {
   ): () => void {
     if (!shoppingListId) {
       console.error('ShoppingListId ist null – Listener wird nicht gesetzt.');
-      return () => {}; // Dummy unsubscribe-Funktion
+      return () => {};
     }
 
     const productsRef = collection(
@@ -397,6 +453,7 @@ export class ShoppinglistService {
 
     return unsubscribe;
   }
+
 
   listenToShoppingCartChanges(
     groupId: string,
