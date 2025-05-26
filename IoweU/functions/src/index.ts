@@ -749,17 +749,13 @@ export const sendPushNotification = functions.https.onRequest((req, res) => {
     }
 
     try {
-      const {toUserId, title, body, toFcmToken} = req.body;
-
-        if (!toFcmToken) {
-        return res.status(400).send("FCM Token fehlt im Body!");
-      }
+      const {toUserId, title, body} = req.body;
 
       const message = {
         notification: {title, body},
-        token: toFcmToken,
+        token: toUserId,
       };
-      console.log('FCM-Message wird gesendet an:', message.token);
+
       await admin.messaging().send(message);
 
       return res.status(200).send("Push Notification gesendet");
