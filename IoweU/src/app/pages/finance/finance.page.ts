@@ -9,8 +9,7 @@ import {
   IonBadge,
   IonCard,
   IonIcon,
-  IonButton,
-} from '@ionic/angular/standalone';
+  IonButton, IonSpinner } from '@ionic/angular/standalone';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NavController, Platform } from '@ionic/angular';
@@ -25,7 +24,7 @@ import { Groups } from 'src/app/services/objects/Groups';
   templateUrl: './finance.page.html',
   styleUrls: ['./finance.page.scss'],
   standalone: true,
-  imports: [
+  imports: [IonSpinner, 
     CommonModule,
     IonHeader,
     IonToolbar,
@@ -74,6 +73,8 @@ export class FinancePage implements OnInit {
   memberUids: string[] = [];
   currentGroup: Groups | null = null;
 
+  isLoadingMembers: boolean = false; // <--- NEU: Loading-Flag für Mitgliederliste
+
   constructor() {}
 
   async ngOnInit() {
@@ -120,6 +121,7 @@ export class FinancePage implements OnInit {
       }
 
       // Gruppenmitglieder laden (außer aktueller User)
+      this.isLoadingMembers = true; // <--- Setze Loading-Flag auf true
       this.groupMembers = await Promise.all(
         this.currentGroup.members
           .filter((member: any) => member.uid !== this.uid)
@@ -156,10 +158,12 @@ export class FinancePage implements OnInit {
             }
           })
       );
+      this.isLoadingMembers = false; // <--- Setze Loading-Flag auf false
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
+      this.isLoadingMembers = false; // <--- Fehlerfall: Loading-Flag zurücksetzen
     } finally {
       this.loadingService.hide();
     }
@@ -189,7 +193,7 @@ export class FinancePage implements OnInit {
 
     // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
     if (this.overlayState === 'start') {
-      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+      this.overlayState = 'normal'; // Overlay wird sichtbar and Animation startet
     } else if (this.overlayState === 'normal') {
       // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
       this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
