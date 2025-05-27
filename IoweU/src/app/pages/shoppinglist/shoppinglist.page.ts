@@ -93,6 +93,7 @@ export class ShoppinglistPage implements OnInit {
   addProductOpen = false;
   animatedItems: { [key: string]: boolean } = {};
 
+  animatedCount: number = 0; // Animierte Produktanzahl
 
   newProduct = {
     quantity: 1,
@@ -159,6 +160,7 @@ export class ShoppinglistPage implements OnInit {
         (products) => {
           this.shoppingproducts = products.filter(p => p.status === 'open');
           this.groupProductsByDate();
+          this.animateCount(this.shoppingproducts.length); // Animation triggern
 
           if (!this.selectedMember && this.shoppingproducts.length > 0) {
             this.selectedMember = this.groupMembers.find(
@@ -203,6 +205,7 @@ export class ShoppinglistPage implements OnInit {
       const allProducts = await this.shoppinglistService.getShoppingProducts(this.groupId, this.shoppingListId);
       this.shoppingproducts = allProducts.filter(p => p.status === 'open');
       this.groupProductsByDate();
+      this.animateCount(this.shoppingproducts.length); // Animation triggern
     } catch (error) {
       console.error('Fehler beim Laden der Produkte:', error);
     }
@@ -731,6 +734,29 @@ export class ShoppinglistPage implements OnInit {
       cssClass: 'custom-toast',
     });
     await toast.present();
+  }
+
+  // Animiert die Produktanzahl von aktuellem Wert zu neuem Wert
+  animateCount(target: number) {
+    const duration = 400; // ms
+    const frameRate = 30; // fps
+    const steps = Math.max(1, Math.round(duration / (1000 / frameRate)));
+    const start = this.animatedCount;
+    const diff = target - start;
+    if (diff === 0) return;
+    let currentStep = 0;
+
+    const stepFn = () => {
+      currentStep++;
+      this.animatedCount = Math.round(start + (diff * currentStep) / steps);
+      if (currentStep < steps) {
+        setTimeout(stepFn, 1000 / frameRate);
+      } else {
+        this.animatedCount = target;
+      }
+    };
+
+    stepFn();
   }
 
 }

@@ -91,6 +91,8 @@ export class ShoppingcartPage implements OnInit {
 
   private unsubscribeShoppingCart!: () => void;
 
+  animatedCount: number = 0; // Animierte Produktanzahl
+
   async ngOnInit() {
     this.loadingService.show();
 
@@ -149,6 +151,7 @@ export class ShoppingcartPage implements OnInit {
         (products) => {
           this.shoppingproducts = products;
           this.groupProductsByDate();
+          this.animateCount(this.shoppingproducts.length); // Animation triggern
         }
       );
 
@@ -183,6 +186,7 @@ export class ShoppingcartPage implements OnInit {
       const allProducts = await this.shoppinglistService.getShoppingCartProducts(this.groupId, this.shoppingCartId);
       this.shoppingproducts = allProducts.filter(p => p.status === 'im Warenkorb');
       this.groupProductsByDate();
+      this.animateCount(this.shoppingproducts.length); // Animation triggern
     } catch (error) {
       console.error('Fehler beim Laden der Produkte aus dem Warenkorb:', error);
     }
@@ -527,6 +531,29 @@ export class ShoppingcartPage implements OnInit {
     });
 
     await alert.present();
+  }
+
+  // Animiert die Produktanzahl von aktuellem Wert zu neuem Wert
+  animateCount(target: number) {
+    const duration = 400; // ms
+    const frameRate = 30; // fps
+    const steps = Math.max(1, Math.round(duration / (1000 / frameRate)));
+    const start = this.animatedCount;
+    const diff = target - start;
+    if (diff === 0) return;
+    let currentStep = 0;
+
+    const stepFn = () => {
+      currentStep++;
+      this.animatedCount = Math.round(start + (diff * currentStep) / steps);
+      if (currentStep < steps) {
+        setTimeout(stepFn, 1000 / frameRate);
+      } else {
+        this.animatedCount = target;
+      }
+    };
+
+    stepFn();
   }
 
 }
