@@ -14,6 +14,7 @@ import {
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
 import { Router } from '@angular/router';
+import { PushNotificationService } from './push-notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -143,7 +144,7 @@ export class AuthService {
         userCredential.user.uid,
         userData
       );
-
+      
       if (!success) {
         throw new Error('Fehler beim Speichern der Benutzerdaten.');
       }
@@ -343,7 +344,6 @@ export class AuthService {
       if (userDocSnap.exists()) {
         const data = userDocSnap.data();
         tokens = data?.['fcmTokens'] ?? [];
-
       }
 
       if (!tokens.includes(token)) {
