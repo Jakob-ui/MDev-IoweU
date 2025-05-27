@@ -217,9 +217,13 @@ export class FinancePage implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/group', this.groupId]);
+    if (this.overlayState === 'normal') {
+      this.overlayState = 'hidden'; // Optional: Overlay schließen
+      this.router.navigate(['/finance', this.groupId]);
+    } else {
+      this.router.navigate(['/group', this.groupId]);
+    }
   }
-
   toggleInfoOverlay() {
 
     // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen

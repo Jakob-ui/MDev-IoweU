@@ -299,8 +299,14 @@ export class ShoppingcartPage implements OnInit {
 
 
   goBack() {
-    this.router.navigate(['/group', this.groupId]);
+    if (this.overlayState === 'normal') {
+      this.overlayState = 'hidden'; // Optional: Overlay schließen
+      this.router.navigate(['/shoppincart', this.groupId]);
+    } else {
+      this.router.navigate(['/group', this.groupId]);
+    }
   }
+
 
   toggleInfoOverlay() {
 
