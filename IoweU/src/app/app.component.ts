@@ -5,12 +5,14 @@ import { LoadingService } from './services/loading.service';
 import { PushNotificationService } from './services/push-notification.service';
 import { NetworkService } from './services/network.service';
 import { Router } from '@angular/router';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   imports: [IonApp, IonRouterOutlet, CommonModule],
+  standalone: true
 })
 export class AppComponent implements OnInit {
   loading: boolean = false;
@@ -20,8 +22,9 @@ export class AppComponent implements OnInit {
   constructor(
     private loadingService: LoadingService,
     private pushNotificationService: PushNotificationService,
-    private networkService: NetworkService, 
-    private router: Router
+    private networkService: NetworkService,
+    private router: Router,
+    private authService: AuthService
   ) {
     this.networkService.isOnline$.subscribe((online) => {
       if (!online) {
@@ -59,8 +62,17 @@ export class AppComponent implements OnInit {
       });
 
     await this.registerServiceWorker();
+
     // Push Notifications initialisieren
-    await this.pushNotificationService.init();
+
+    await this.authService.waitForUser();
+    if (!this.authService.currentUser) {
+      console.warn('User not authenticated, skipping push notification initialization');
+      return;
+    } else {
+      //await this.pushNotificationService.init(this.authService.currentUser);
+    }
+
 
     // Auf eingehende Push-Nachrichten reagieren
     if (this.pushNotificationService.currentMessage) {

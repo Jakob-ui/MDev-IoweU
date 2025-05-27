@@ -3,9 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Messaging, getToken, onMessage } from '@angular/fire/messaging';
 import { environment } from 'src/environments/environment';
 import { BehaviorSubject } from 'rxjs';
-import { AuthService } from '../services/auth.service';
 import { Firestore, doc, getDoc, setDoc, arrayUnion } from '@angular/fire/firestore';
 import { Capacitor } from '@capacitor/core';
+import { Users } from './objects/Users';
 
 // Capacitor Push Notifications
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
@@ -23,25 +23,23 @@ export class PushNotificationService {
   constructor(
     private http: HttpClient,
     private messaging: Messaging,
-    private authService: AuthService
   ) {}
 
-  async init() {
-    await this.authService.waitForUser();
-
+  async init(user: Users): Promise<void> {
     if (this.isNativeApp()) {
-      await this.initNativePush();
+      await this.initNativePush(user);
     } else {
-      await this.initWebPush();
+      await this.initWebPush(user);
     }
   }
+
 
   private isNativeApp(): boolean {
     return Capacitor.isNativePlatform();
   }
 
   // Web Push initialisieren
-  private async initWebPush() {
+  private async initWebPush(user: Users) {
     try {
       const permission = await Notification.requestPermission();
       console.log("permission", permission);
@@ -52,8 +50,7 @@ export class PushNotificationService {
         console.log('Web FCM Token:', this.token);
         if (this.token) {
           localStorage.setItem('fcm_token', this.token);
-          // Web-Plattform als Metadaten mitgeben (optional)
-          await this.authService.saveFcmToken(this.token, 'web');
+          await this.saveFcmToken(user, this.token, 'web');
         }
         this.listenToMessages();
       } else {
@@ -65,7 +62,7 @@ export class PushNotificationService {
   }
 
   // Native Push initialisieren (Android/iOS)
-  private async initNativePush() {
+  private async initNativePush(user: Users) {
     try {
       // Android 13+ Permission abfragen
       if (Capacitor.getPlatform() === 'android') {
@@ -91,7 +88,7 @@ export class PushNotificationService {
           platform = 'web';
         }
 
-        await this.authService.saveFcmToken(token.value, platform as 'web' | 'android' | 'ios');
+        await this.saveFcmToken(user, token.value, platform as 'web' | 'android' | 'ios');
       });
 
       PushNotifications.addListener('registrationError', (error) => {
@@ -109,6 +106,37 @@ export class PushNotificationService {
       });
     } catch (error) {
       console.error('Native Push init error:', error);
+    }
+  }
+
+  async saveFcmToken(user: Users, token: string, platform: 'web' | 'android' | 'ios' = 'web') {
+    const uid = user?.uid;
+    if (!uid || !token) return;
+
+    const userDocRef = doc(this.firestore, 'users', uid);
+
+    try {
+      const userDocSnap = await getDoc(userDocRef);
+      let tokens: string[] = [];
+      if (userDocSnap.exists()) {
+        const data = userDocSnap.data();
+        tokens = data?.['fcmTokens'] ?? [];
+      }
+
+      if (!tokens.includes(token)) {
+        await setDoc(
+          userDocRef,
+          {
+            fcmTokens: arrayUnion(token),
+          },
+          { merge: true }
+        );
+        console.log(`FCM Token gespeichert (${platform}):`, token);
+      } else {
+        console.log(`Token (${platform}) bereits vorhanden:`, token);
+      }
+    } catch (error) {
+      console.error('Fehler beim Speichern des FCM-Tokens:', error);
     }
   }
 

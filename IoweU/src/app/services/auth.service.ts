@@ -9,7 +9,7 @@ import {
   UserCredential,
   GoogleAuthProvider,
   signInWithRedirect,
-  signInWithPopup,
+  signInWithPopup, reload,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
@@ -24,6 +24,7 @@ export class AuthService {
   private firestore = inject(Firestore);
   private groupService = inject(GroupService);
   private router = inject(Router);
+  private pushNotificationService = inject(PushNotificationService);
   currentUser: Users | null = null;
   colorBlindMode: boolean = false;
 
@@ -58,7 +59,7 @@ export class AuthService {
               'Benutzer eingeloggt und in Datenbank geladen',
               this.currentUser
             );
-
+            this.pushNotificationService.init(this.currentUser as Users);
             // Farben anwenden
             this.applyUserColors(this.currentUser.color);
           } else {
@@ -144,7 +145,7 @@ export class AuthService {
         userCredential.user.uid,
         userData
       );
-      
+
       if (!success) {
         throw new Error('Fehler beim Speichern der Benutzerdaten.');
       }
@@ -244,6 +245,7 @@ export class AuthService {
     try {
       const userRef = doc(this.firestore, 'users', uid);
       await setDoc(userRef, data);
+      //this.pushNotificationService.init(this.currentUser as Users);
       console.log('Benutzerdaten erfolgreich gespeichert:', uid);
       return true;
     } catch (e) {
@@ -262,6 +264,7 @@ export class AuthService {
           password.trim()
         ).then(() => {
           console.log('Benutzer erfolgreich eingeloggt.');
+          //this.pushNotificationService.init(this.currentUser as Users);
         });
       })
       .catch((error) => {
@@ -332,35 +335,6 @@ export class AuthService {
     }
   }
 
-  async saveFcmToken(token: string, platform: 'web' | 'android' | 'ios' = 'web') {
-    const uid = this.currentUser?.uid;
-    if (!uid || !token) return;
 
-    const userDocRef = doc(this.firestore, 'users', uid);
-
-    try {
-      const userDocSnap = await getDoc(userDocRef);
-      let tokens: string[] = [];
-      if (userDocSnap.exists()) {
-        const data = userDocSnap.data();
-        tokens = data?.['fcmTokens'] ?? [];
-      }
-
-      if (!tokens.includes(token)) {
-        await setDoc(
-          userDocRef,
-          {
-            fcmTokens: arrayUnion(token),
-          },
-          { merge: true }
-        );
-        console.log(`FCM Token gespeichert (${platform}):`, token);
-      } else {
-        console.log(`Token (${platform}) bereits vorhanden:`, token);
-      }
-    } catch (error) {
-      console.error('Fehler beim Speichern des FCM-Tokens:', error);
-    }
-  }
 
 }
