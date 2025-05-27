@@ -707,7 +707,9 @@ width: auto;
   gap: 10px;
   width: 100%;
 }
-
+.pfeilicon{
+  font-size: 14px;
+}
 
 
 @media (prefers-color-scheme: dark) {
@@ -745,5 +747,8 @@ width: auto;
       color: #ffffff;
     }
   }
+}
+.pfeilicon{
+  color: gray;
 }
 }
