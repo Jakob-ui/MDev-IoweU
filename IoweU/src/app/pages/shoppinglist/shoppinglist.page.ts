@@ -356,7 +356,12 @@ export class ShoppinglistPage implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/group', this.groupId]);
+    if (this.overlayState === 'normal') {
+      this.overlayState = 'hidden'; // Optional: Overlay schließen
+      this.router.navigate(['/shoppinglist', this.groupId]);
+    } else {
+      this.router.navigate(['/group', this.groupId]);
+    }
   }
 
   toggleInfoOverlay() {
