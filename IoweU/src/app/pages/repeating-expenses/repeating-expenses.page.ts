@@ -183,6 +183,14 @@ export class RepeatingExpensesPage implements OnInit {
     }
   }
 
+  getFirstLetter(paidBy: string): string {
+    const member = this.groupMembers.find((m) => m.uid === paidBy);
+    if (member && member.username && member.username.length > 0) {
+      return member.username.charAt(0).toUpperCase();
+    }
+    return '';
+  }
+
   goBack() {
     this.router.navigate(['/expense', this.groupId]);
   }
