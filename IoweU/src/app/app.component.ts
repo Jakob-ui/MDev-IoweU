@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { LoadingService } from './services/loading.service';
+import { PushNotificationService } from './services/push-notification.service';
+import { NetworkService } from './services/network.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -12,9 +15,20 @@ import { LoadingService } from './services/loading.service';
 export class AppComponent implements OnInit {
   loading: boolean = false;
   littleloading: boolean = false;
-  videoSource: string = ''; // Dynamische Videoquelle
+  videoSource: string = '';
 
-  constructor(private LoadingService: LoadingService) {}
+  constructor(
+    private loadingService: LoadingService,
+    private pushNotificationService: PushNotificationService,
+    private networkService: NetworkService, 
+    private router: Router
+  ) {
+    this.networkService.isOnline$.subscribe((online) => {
+      if (!online) {
+        this.router.navigate(['/no-connection']);
+      }
+    });
+  }
 
   isDarkMode(): boolean {
     return (
@@ -23,23 +37,19 @@ export class AppComponent implements OnInit {
     );
   }
 
-  ngOnInit() {
-    // Setze die GIF-Quelle basierend auf dem Modus
+  async ngOnInit() {
     this.videoSource = this.isDarkMode()
       ? 'assets/videos/loadingDarkMode.gif'
       : 'assets/videos/loadingLightMode.gif';
 
-    // Abonniere den Zustand des Lade-Overlays
-    this.LoadingService.loading$.subscribe((isLoading) => {
+    this.loadingService.loading$.subscribe((isLoading) => {
       this.loading = isLoading;
     });
 
-    // Abonniere den Zustand des kleinen Lade-Overlays
-    this.LoadingService.littleLoading$.subscribe((isLittleLoading) => {
+    this.loadingService.littleLoading$.subscribe((isLittleLoading) => {
       this.littleloading = isLittleLoading;
     });
 
-    // Überwache Änderungen des Farbschemas
     window
       .matchMedia('(prefers-color-scheme: dark)')
       .addEventListener('change', (event) => {
@@ -47,5 +57,33 @@ export class AppComponent implements OnInit {
           ? 'assets/gifs/loadingDarkMode.gif'
           : 'assets/gifs/loadingLightMode.gif';
       });
+
+    await this.registerServiceWorker();
+    // Push Notifications initialisieren
+    await this.pushNotificationService.init();
+
+    // Auf eingehende Push-Nachrichten reagieren
+    if (this.pushNotificationService.currentMessage) {
+      this.pushNotificationService.currentMessage.subscribe((payload: { notification: { title: any; }; }) => {
+        if (payload) {
+          alert(`Push Nachricht: ${payload.notification?.title ?? 'Neue Nachricht'}`);
+        }
+      });
+    }
   }
+
+  private async registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+        console.log('Service Worker registriert:', registration);
+      } catch (err) {
+        console.error('Fehler bei der Registrierung des Service Workers:', err);
+      }
+    } else {
+      console.warn('Service Worker werden von diesem Browser nicht unterstützt.');
+    }
+  }
+
+
 }

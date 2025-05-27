@@ -13,16 +13,21 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="balance-page-container" *ngIf="deptList.length !== 0">
+  <div class="balance-page-container" *ngIf="hasDebts()">
     <ion-button class="outline-button" expand="block">
       Beleg hinzufügen
     </ion-button>
     <div class="titel">
-      <h4>Großer Gruppenausgleich</h4>
+      <h4 *ngIf="gruppenausgleich; else meineSchulden">
+        Großer Gruppenausgleich
+      </h4>
+      <ng-template #meineSchulden>
+        <h4>Meine Schulden begleichen</h4>
+      </ng-template>
       <h2>{{ groupname }}</h2>
     </div>
 
-    <div class="debt-details" *ngFor="let debt of deptList">
+    <div class="debt-details" *ngFor="let debt of deptList; let i = index">
       <div class="transaction-details">
         <div
           class="member-info"
@@ -41,7 +46,7 @@
           <span class="member-name">{{ getMemberNameById(debt.from) }}</span>
         </div>
         <ion-badge class="BalancePrice" [ngClass]="getAmountClass(expense[0])"
-          >{{ debt.debt | number: '1.2-2' }}
+          >{{ debt.amount | number: '1.2-2' }}
         </ion-badge>
 
         <div
@@ -62,18 +67,22 @@
         </div>
       </div>
       <div
-        *ngIf="expense && expense.length > 0"
+        *ngIf="!gruppenausgleich"
         class="toggle-arrow"
-        (click)="showExpenses = !showExpenses"
-      > Zeige RelatedExpenses an
+        (click)="toggleExpenses(i)"
+      >
+        Zeige RelatedExpenses an
         <ion-icon
-          [src]="showExpenses ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
-        >
-        </ion-icon>
+          [src]="showExpensesMap[i] ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'"
+        ></ion-icon>
       </div>
 
-    <ion-list class="expense-list" *ngIf="expense.length !==0 && showExpenses">
-        <ion-item class="info-item" *ngFor="let expense of expense" (click)="goToExpenseDetails(expense.expenseId)">
+      <ion-list class="expense-list" *ngIf="showExpensesMap[i]">
+        <ion-item
+          class="info-item"
+          *ngFor="let expense of getRelatedExpensesForDebt(debt)"
+          (click)="goToExpenseDetails(expense.expenseId)"
+        >
           <div
             class="profile-placeholder"
             [ngStyle]="{
@@ -94,15 +103,11 @@
                   {{ getUserAmount(expense) | currency: 'EUR' }}
                 </ion-badge>
               </div>
-
-
             </div>
           </div>
         </ion-item>
-    </ion-list>
+      </ion-list>
     </div>
-
-
 
     <div class="space"></div>
     <div class="button-container">
@@ -111,9 +116,15 @@
       </ion-button>
     </div>
   </div>
-  <div class="balance-page-container-empty" *ngIf="deptList.length === 0">
+  <div class="balance-page-container-empty" *ngIf="!hasDebts()">
     <div class="nothingToPay">
-      <h2>Alle sind schuldenfrei! <br />🎉</h2>
+      <h2 *ngIf="gruppenausgleich; else meineSchulden">
+        Alle sind schuldenfrei! <br />🎉
+      </h2>
+      <ng-template #meineSchulden>
+        <h2>Ich bin schuldenfrei! <br />🎉
+        </h2>
+      </ng-template>
     </div>
     <div class="button-container">
       <ion-button class="main-button" expand="block" (click)="goBack()">

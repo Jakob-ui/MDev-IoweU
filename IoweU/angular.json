@@ -33,8 +33,14 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "input": "src",
+                "glob": "firebase-messaging-sw.js",
+                "output": "."
               }
             ],
+
             "styles": ["src/global.scss", "src/theme/variables.scss"],
             "scripts": [],
             "browser": "src/main.ts"

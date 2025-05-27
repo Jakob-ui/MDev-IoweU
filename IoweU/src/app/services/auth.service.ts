@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Firestore, setDoc, doc, getDoc } from '@angular/fire/firestore';
+import { Firestore, setDoc, doc, getDoc, arrayUnion } from '@angular/fire/firestore';
 import {
   Auth,
   browserLocalPersistence,
@@ -7,6 +7,9 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   UserCredential,
+  GoogleAuthProvider,
+  signInWithRedirect,
+  signInWithPopup,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
@@ -66,7 +69,9 @@ export class AuthService {
         });
       } else {
         this.currentUser = null;
-        console.log('Benutzer nicht eingeloggt');
+        if (!window.location.href.includes('google')) {
+          console.log('Benutzer nicht eingeloggt');
+        }
       }
     });
   }
@@ -147,7 +152,94 @@ export class AuthService {
     return userCredential;
   }
 
-  private async saveUserData(uid: string, data: Users): Promise<boolean> {
+  async googleLoginWithRedirect(
+    username: string,
+    color: string,
+    groupId: string[] = []
+  ): Promise<Users | null> {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithRedirect(this.auth, provider);
+      return null;
+    } catch (error: any) {
+      console.error('Fehler beim Google Login:', error);
+      throw error;
+    }
+  }
+
+  async googleLogin(
+    username: string,
+    color: string,
+    groupId: string[] = []
+  ): Promise<Users | null> {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(this.auth, provider);
+      const firebaseUser = result.user;
+
+      if (firebaseUser) {
+        const userDocRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+        const userDocSnap = await getDoc(userDocRef);
+
+        let userDataToSave: Users;
+
+        if (!userDocSnap.exists()) {
+          userDataToSave = {
+            uid: firebaseUser.uid,
+            username: username || firebaseUser.displayName || 'Unnamed User',
+            email: firebaseUser.email || '',
+            color: color || '#CCCCCC',
+            lastedited: new Date().toISOString(),
+            groupId: groupId,
+          };
+          console.log(
+            'Neuer Google-Nutzer: Daten werden in Firestore gespeichert.',
+            userDataToSave
+          );
+
+          const success = await this.saveUserData(
+            firebaseUser.uid,
+            userDataToSave
+          );
+          if (!success) {
+            throw new Error(
+              'Fehler beim Speichern der Benutzerdaten nach dem ersten Google Login.'
+            );
+          }
+          this.currentUser = userDataToSave;
+          this.applyUserColors(this.currentUser.color);
+        } else {
+          const existingUserData = userDocSnap.data() as Users;
+          userDataToSave = {
+            ...existingUserData,
+            lastedited: new Date().toISOString(),
+            username:
+              existingUserData.username ||
+              firebaseUser.displayName ||
+              'Unnamed User',
+            email: existingUserData.email || firebaseUser.email || '',
+          };
+
+          await setDoc(
+            userDocRef,
+            { lastedited: new Date().toISOString() },
+            { merge: true }
+          );
+          console.log('Existierender Google-Nutzer: lastedited aktualisiert.');
+
+          this.currentUser = userDataToSave;
+          this.applyUserColors(this.currentUser.color);
+        }
+        return userDataToSave;
+      }
+      return null;
+    } catch (error: any) {
+      console.error('Fehler beim Google Login:', error);
+      throw error;
+    }
+  }
+
+  async saveUserData(uid: string, data: Users): Promise<boolean> {
     try {
       const userRef = doc(this.firestore, 'users', uid);
       await setDoc(userRef, data);
@@ -208,7 +300,7 @@ export class AuthService {
 
   resetpassword(email: string): Promise<void> {
     return sendPasswordResetEmail(this.auth, email.trim(), {
-      url: 'http://localhost:8100/login',
+      url: 'https://app.ioweu.eu/login',
     });
   }
 
@@ -238,4 +330,37 @@ export class AuthService {
       throw new Error('Benutzer konnte nicht vollständig geladen werden.');
     }
   }
+
+  async saveFcmToken(token: string, platform: 'web' | 'android' | 'ios' = 'web') {
+    const uid = this.currentUser?.uid;
+    if (!uid || !token) return;
+
+    const userDocRef = doc(this.firestore, 'users', uid);
+
+    try {
+      const userDocSnap = await getDoc(userDocRef);
+      let tokens: string[] = [];
+      if (userDocSnap.exists()) {
+        const data = userDocSnap.data();
+        tokens = data?.['fcmTokens'] ?? [];
+
+      }
+
+      if (!tokens.includes(token)) {
+        await setDoc(
+          userDocRef,
+          {
+            fcmTokens: arrayUnion(token),
+          },
+          { merge: true }
+        );
+        console.log(`FCM Token gespeichert (${platform}):`, token);
+      } else {
+        console.log(`Token (${platform}) bereits vorhanden:`, token);
+      }
+    } catch (error) {
+      console.error('Fehler beim Speichern des FCM-Tokens:', error);
+    }
+  }
+
 }

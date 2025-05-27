@@ -69,7 +69,7 @@ node_modules/
 .dataconnect
 
 # Capacitor native platforms
-android/
+#android/
 ios/
 IoweU/src/environments/
 IoweU/src/environments/environment.prod.ts

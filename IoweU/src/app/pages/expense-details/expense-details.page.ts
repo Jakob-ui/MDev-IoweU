@@ -26,12 +26,13 @@ import {
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Products } from 'src/app/services/objects/Products';
 import { Members } from 'src/app/services/objects/Members';
-import { NavController, Platform } from '@ionic/angular';
+import {AlertController, NavController, Platform} from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
+import { PushNotificationService } from '../../services/push-notification.service';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
 
 
@@ -71,6 +72,8 @@ export class ExpenseDetailsPage {
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
+  private pushNotificationService = inject(PushNotificationService);
+  private alertController = inject(AlertController);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -393,9 +396,70 @@ export class ExpenseDetailsPage {
     }
   }
 
-  requestExpense() {
-    // Hier die Logik für die Anfrage implementieren
+  async requestPayment() {
+    if (!this.groupId || !this.uid) {
+      console.error('Fehlende groupId oder aktuelle UID.');
+      return;
+    }
+
+    const expenseData = this.expense[0];
+    if (!expenseData) {
+      console.error('Keine Ausgabe geladen.');
+      return;
+    }
+
+    try {
+      const myName = this.user || 'Jemand';
+
+      // Filtere Mitglieder:
+      // - die nicht bezahlt haben
+      // - die nicht selbst der Zahler sind
+      // - deren Anteil > 0 ist
+      const unpaidMembers = expenseData.expenseMember.filter(
+        (member) =>
+          !member.paid && member.memberId !== expenseData.paidBy &&
+          member.amountToPay > 0
+      );
+
+      if (unpaidMembers.length === 0) {
+        const alert = await this.alertController.create({
+          header: 'Keine offenen Schulden',
+          message: 'Alle Mitglieder haben ihre Anteile bereits bezahlt oder müssen nichts zahlen.',
+          buttons: ['OK'],
+        });
+        await alert.present();
+        return;
+      }
+
+      // Sende Push-Benachrichtigungen
+      for (const member of unpaidMembers) {
+        await this.pushNotificationService.sendToUser(
+          member.memberId,
+          `ZAHLUNGSAUFFORDERUNG von ${myName}`,
+          `${myName} möchte, dass du deine Schulden für die Ausgabe "${expenseData.description}" in Höhe von ${this.amountToPay} € in der Gruppe "${this.groupname}" begleichst.`
+        );
+      }
+
+      const successAlert = await this.alertController.create({
+        header: 'Anfrage gesendet',
+        message: 'Zahlungsanfragen wurden an alle Mitglieder gesendet, die noch nicht bezahlt haben.',
+        buttons: ['OK'],
+      });
+      await successAlert.present();
+
+      console.log('Push Notifications an folgende Mitglieder gesendet:', unpaidMembers.map(m => m.memberId));
+
+    } catch (error) {
+      console.error('Fehler beim Senden der Benachrichtigungen:', error);
+      const errorAlert = await this.alertController.create({
+        header: 'Fehler',
+        message: 'Fehler beim Senden der Benachrichtigungen. Bitte versuche es erneut.',
+        buttons: ['OK'],
+      });
+      await errorAlert.present();
+    }
   }
+
 
   getPaidByName(uid: string): string {
     const memberIndex = this.memberUids.indexOf(uid);
@@ -441,6 +505,13 @@ export class ExpenseDetailsPage {
   hasAnyMemberPaid(expense: Expenses): boolean {
     return expense.expenseMember
       .filter((member) => member.memberId !== expense.paidBy)
-      .some((member) => member.paid === true);
+      .some((member) => member.paid);
   }
+
+  showNoDebtText(expense: Expenses): boolean {
+    const member = expense.expenseMember.find(m => m.memberId === this.uid);
+    return !!member && member.amountToPay === 0 && !member.paid && expense.paidBy !== this.uid;
+  }
+
+
 }

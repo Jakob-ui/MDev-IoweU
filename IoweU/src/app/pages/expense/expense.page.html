@@ -118,16 +118,16 @@
               </h5>
               <div class="amountToPay">
                 <ng-container *ngIf="expense.paidBy !== uid && getUserAmount(expense) !== 0">
-                  <ion-icon
+                  <span
                     class="paid"
-                    *ngIf="!hasUserPaid(expense)"
-                    [src]="'assets/icon/ionicons/ios-close.svg'">
-                  </ion-icon>
-                  <ion-icon
+                    *ngIf="!hasUserPaid(expense)">
+                    offen
+                  </span>
+                  <span
                     class="paid"
-                    *ngIf="hasUserPaid(expense)"
-                    [src]="'assets/icon/ionicons/ios-checkmark.svg'">
-                  </ion-icon>
+                    *ngIf="hasUserPaid(expense)">
+                    bezahlt
+                  </span>
                 </ng-container>
 
                 <ion-badge class="Preis" [ngClass]="getAmountClass(expense)">
@@ -159,7 +159,7 @@
         expand="block"
         (click)="goToCreateExpense()"
       >
-        Neue Ausgabe hinzufügen +
+        Neue Ausgabe hinzufügen
       </ion-button>
     </div>
   </div>

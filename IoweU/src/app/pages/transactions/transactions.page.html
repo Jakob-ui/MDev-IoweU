@@ -29,7 +29,7 @@
       class="finance-card"
       [ngClass]="{ 'negative': myBalance < 0, 'positive': myBalance >= 0 }">
       <div class="card-content-finance">
-        <h2>{{ myBalance | currency: 'EUR' }}</h2>
+        <h2>{{ animatedBalance | currency: 'EUR' }}</h2>
         <p>
           {{ myBalance < 0 ? 'Schulden' : 'Guthaben' }} | seit dem {{
             lastTransactionDate | date: 'dd.MM.yyyy' }}
@@ -54,9 +54,9 @@
             <div class="reason-container">
               <h5 slot="start">{{ transaction.reason }}</h5>
             </div>
-            <span slot="start">{{ getTransactionImpact(transaction).status || '' }}</span>
+            <span class="transaction-tags" slot="start">{{ getTransactionImpact(transaction).status || '' }}</span>
           </div>
-          <span slot="end">{{ transaction.date | date: 'dd.MM.yyyy' }}</span>
+          <span class="transaction-tags" slot="end">{{ transaction.date | date: 'dd.MM.yyyy' }}</span>
         </div>
         <div class="bottom-container">
           <div class="member-info"

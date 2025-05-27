@@ -42,16 +42,18 @@
         placeholder="Gib einen Namen ein"
         [readonly]="!userEditing"
       ></ion-input>
-      <ion-icon
-        *ngIf="userEditing"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/md-checkmark.svg'"
-        (click)="confirm()"
-      ></ion-icon>
-      <ion-icon
-        *ngIf="userEditing"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-close.svg' : 'assets/icon/ionicons/md-close.svg'"
-        (click)="cancel()"
-      ></ion-icon>
+      <div class="name-buttons">
+        <ion-icon
+          *ngIf="userEditing"
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-checkmark.svg' : 'assets/icon/ionicons/md-checkmark.svg'"
+          (click)="confirm()"
+        ></ion-icon>
+        <ion-icon
+          *ngIf="userEditing"
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-close.svg' : 'assets/icon/ionicons/md-close.svg'"
+          (click)="cancel()"
+        ></ion-icon>
+      </div>
       <ion-icon
         class="brush-icon"
         *ngIf="!userEditing"
@@ -92,34 +94,49 @@
       Passwort ändern
     </ion-button>
 
-    <div class="fixed-bottom">
-      <ion-button id="delete-alert" class="delete-button" color="danger">
-        Konto löschen
-      </ion-button>
-
-      <ion-alert
-        trigger="delete-alert"
-        header="Einloggen erforderlich"
-        message="Bitte logge dich erneut ein, um deine Identität zu bestätigen und dein Konto zu löschen."
-        [buttons]="loginAlertButtons"
-        [inputs]="alertInputs"
-      ></ion-alert>
-
       <ion-button
-        id="save-alert"
-        class="main-button save-button"
-        expand="block"
-        [disabled]="!hasChanges() || userEditing"
-      >
-        Änderungen speichern
-      </ion-button>
-      <ion-alert
-        trigger="save-alert"
-        header="Änderungen speichern"
-        message="Sie können nur einmal monatlich den Namen, die E-Mail oder andere Einstellungen ändern. Möchten Sie die Änderungen speichern?"
-        [buttons]="saveAlertButtons"
-        (didDismiss)="setResult($event)"
-      ></ion-alert>
-    </div>
+      class="outline-button"
+      expand="block"
+      id="support-alert"
+    >
+      Support
+    </ion-button>
+    <ion-alert
+      trigger="support-alert"
+      header="Support kontaktieren"
+      message="Wenn du Probleme entdeckt, oder Feedback für uns hast, dann schreibe uns doch eine Email:"
+      [buttons]="openSupportButtons"
+    ></ion-alert>
+
+
+    <ion-button id="delete-alert" class="delete-button" color="danger">
+      Konto löschen
+    </ion-button>
+
+    <ion-alert
+      trigger="delete-alert"
+      header="Einloggen erforderlich"
+      message="Bitte logge dich erneut ein, um deine Identität zu bestätigen und dein Konto zu löschen."
+      [buttons]="loginAlertButtons"
+      [inputs]="alertInputs"
+    ></ion-alert>
+
+     <div class="button-container">
+        <ion-button
+          id="save-alert"
+          class="main-button save-button"
+          expand="block"
+          [disabled]="!hasChanges() || userEditing"
+        >
+          Änderungen speichern
+        </ion-button>
+        <ion-alert
+          trigger="save-alert"
+          header="Änderungen speichern"
+          message="Möchten Sie die Änderungen speichern?"
+          [buttons]="saveAlertButtons"
+          (didDismiss)="setResult($event)"
+        ></ion-alert>
+     </div>
   </div>
 </ion-content>

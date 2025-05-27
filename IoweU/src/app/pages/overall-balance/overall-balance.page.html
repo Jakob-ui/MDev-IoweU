@@ -1,10 +1,17 @@
+<ion-header translucent="true" class="header">
+  <div class="backdrop-wrapper">
+    <ion-toolbar>
+      <div class="user-info" [routerLink]="'/account-settings'">
+        <div class="profile-placeholder"></div>
+        <span class="member-name">{{ username }}</span>
+      </div>
+    </ion-toolbar>
+  </div>
+</ion-header>
+
 
 <ion-content [fullscreen]="true">
   <div class="page-container">
-    <div class="user-info" [routerLink]="'/account-settings'">
-      <div class="profile-placeholder"></div>
-      <span class="member-name">{{ username }}</span>
-    </div>
 
     <h2>Meine Gesamtbilanz</h2>
 
@@ -19,7 +26,7 @@
     </div>
     <span class="input-label">Meine Ausgaben</span>
     <ion-item class="balance-item">
-      <h2>{{ myExpenseSum }} €</h2>
+      <h2>{{ animatedExpenseSum | currency: 'EUR' }}</h2>
     </ion-item>
 
     <div class="my-expenses">

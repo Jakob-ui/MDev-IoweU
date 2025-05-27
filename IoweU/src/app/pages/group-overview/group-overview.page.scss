@@ -1,26 +1,46 @@
 .page-container {
   width: 100%;
   max-width: 100%;
-  padding: 16px; // Optional für Abstand zum Rand
+  padding: 0 16px 16px;
   box-sizing: border-box;
-  margin-top: 50px;
+  margin-top: 0;
+}
+
+.backdrop-wrapper{
+  height: 150px !important;
+}
+
+ion-header ion-toolbar:first-of-type{
+  padding-top: 125px !important;
+}
+
+ion-toolbar{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .user-info {
   display: inline-flex;
   align-items: center;
-  height: 60px;
+  justify-content: center;
+  height: 40px;
   border-radius: 100px;
-  gap: 20px;
+  gap: 10px;
   background: var(--user-color-background, rgba(218, 218, 218, 0.84));
   border: 3px solid var(--user-color, #1a65eb);
-  padding: 10px 20px 10px 10px;
+  padding: 7px 14px 7px 10px;
   margin-bottom: 20px;
+  //max-width: 50%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
+
 .user-info .profile-placeholder {
-  width: 40px;
-  height: 40px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
   background: var(--user-color, #1a65eb);
   display: flex;
@@ -49,6 +69,7 @@
   text-align: center;
   padding: 20px;
   box-sizing: border-box;
+  margin-bottom: 30px;
 }
 
 ion-card-subtitle{
@@ -61,7 +82,7 @@ ion-card-subtitle{
   padding-left: 2px;
 }
 
-ion-card-subtitle span, {
+ion-card-subtitle span {
   font-size: 16px;
   font-weight: 500;
 }
@@ -71,6 +92,7 @@ ion-badge{
   font-weight: bold;
   padding: 5px 10px;
   border-radius: 50px;
+  --background-color: white !important;
 }
 
 .card-content {

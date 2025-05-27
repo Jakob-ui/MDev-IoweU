@@ -11,18 +11,23 @@ import {
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { NavController, Platform } from '@ionic/angular';
+import { AlertController, NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
 import { Expenses } from '../../services/objects/Expenses';
-import { Products } from '../../services/objects/Products';
 import { ExpenseService } from '../../services/expense.service';
 import { GroupService } from '../../services/group.service';
 import { Members } from '../../services/objects/Members';
-import { Users } from '../../services/objects/Users';
 import { Balances } from '../../services/objects/Balances';
-
-import { Firestore, collection, query, where, getDocs } from '@angular/fire/firestore';
-import {TransactionService} from "../../services/transaction.service";
+import {
+  Firestore,
+  collection,
+  query,
+  where,
+} from '@angular/fire/firestore';
+import { FunctionsModule } from '@angular/fire/functions';
+import { TransactionService } from '../../services/transaction.service';
+import { PushNotificationService } from '../../services/push-notification.service';
+import { DebtEntry } from 'src/app/services/objects/DeptEntry';
 
 @Component({
   selector: 'app-detailed-balance',
@@ -39,6 +44,7 @@ import {TransactionService} from "../../services/transaction.service";
     IonButton,
     IonIcon,
     RouterLink,
+    FunctionsModule,
   ],
 })
 export class DetailedBalancePage implements OnInit {
@@ -52,6 +58,8 @@ export class DetailedBalancePage implements OnInit {
   private loadingService = inject(LoadingService);
   private firestore: Firestore = inject(Firestore);
   private transactionService = inject(TransactionService);
+  private pushNotificationService = inject(PushNotificationService);
+  private alertController = inject(AlertController);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -76,13 +84,10 @@ export class DetailedBalancePage implements OnInit {
 
   productToggles: { [expenseId: string]: boolean } = {};
 
-  balanceDetails: any = {}; // Balance Details object for storing calculated balance
-  deptList: {
-    from: string;
-    to: string;
-    debt: number;
-    relatedExpenses: string[];
-  }[] = [{ from: '', to: '', debt: 0, relatedExpenses: [] }];
+  balanceDetails: any = {};
+
+  private unsubscribeBalance: (() => void) | null = null;
+
   constructor() {}
 
   async ngOnInit() {
@@ -102,7 +107,9 @@ export class DetailedBalancePage implements OnInit {
         const validSelectedMember = selectedMember ?? '';
 
         if (validGroupId && validSelectedMember) {
-          const currentGroup = await this.groupService.getGroupById(validGroupId);
+          const currentGroup = await this.groupService.getGroupById(
+            validGroupId
+          );
 
           if (currentGroup) {
             this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
@@ -110,7 +117,17 @@ export class DetailedBalancePage implements OnInit {
 
             if (currentGroup.members && currentGroup.members.length > 0) {
               this.groupMembers = currentGroup.members;
-              this.selectedMember = this.groupMembers.find((m) => m.uid === validSelectedMember) ?? null;
+              this.selectedMember =
+                this.groupMembers.find((m) => m.uid === validSelectedMember) ??
+                null;
+
+              if (!this.selectedMember) {
+                console.error(
+                  `Mitglied mit UID ${selectedMember} nicht gefunden.`
+                );
+                this.loadingService.hide();
+                return;
+              }
 
               console.log('Selected Member:', this.selectedMember);
               console.log('Current User UID:', this.uid);
@@ -119,50 +136,58 @@ export class DetailedBalancePage implements OnInit {
               const currentUserId = this.uid!;
               const selectedMemberId = this.selectedMember?.uid!;
 
-              const saldo = await this.expenseService.getBalanceBetweenUsers(
+              this.unsubscribeBalance =
+                this.expenseService.getBalanceBetweenUsersRealtime(
+                  validGroupId,
+                  currentUserId,
+                  selectedMemberId,
+                  (saldo) => {
+                    this.balanceDetails = {
+                      from: this.username,
+                      to: this.selectedMember?.username,
+                      balance: saldo,
+                    };
+                    console.log(
+                      `Saldo zwischen ${this.username} und ${this.selectedMember?.username}: ${saldo}`
+                    );
+                    console.log('Balance Details:', this.balanceDetails);
+                  }
+                );
+
+              
+
+              console.log('Balance Details:', this.balanceDetails);
+
+              // Ruft updateBalances mit den korrekten Parametern auf
+              await this.updateBalances(
                 validGroupId,
                 currentUserId,
                 selectedMemberId
               );
 
-              console.log(
-                `Saldo zwischen ${this.username} und ${this.selectedMember?.username}: ${saldo}`
-              );
-
-              this.balanceDetails = {
-                from: this.username,
-                to: this.selectedMember?.username,
-                balance: saldo
-              };
-
-              console.log('Balance Details:', this.balanceDetails);
-
-              // Ruft updateBalances mit den korrekten Parametern auf
-              await this.updateBalances(validGroupId, currentUserId, selectedMemberId);
-              this.allExpenses = await this.expenseService.getExpensesByBalanceEntries(validGroupId, currentUserId, selectedMemberId);
-              console.log('All Expenses:', this.allExpenses);
+              this.allExpenses =
+                await this.expenseService.getUnsettledExpensesByBalance(
+                  validGroupId,
+                  currentUserId,
+                  selectedMemberId
+                );
+              console.log('All Expenses (unsettled 1:1):', this.allExpenses);
 
               this.paidByCurrentUser = this.allExpenses.filter(
-                expense =>
-                  (expense.paidBy === this.uid)
+                (expense) => expense.paidBy === this.uid
               );
-
               this.paidBySelectedMember = this.allExpenses.filter(
-                expense =>
-                  (expense.paidBy === this.selectedMember?.uid)
+                (expense) => expense.paidBy === this.selectedMember?.uid
               );
 
-              if (this.allExpenses.length > 0 || this.myBalance < 0) {
-                this.payable = true;
-              } else {
-                this.payable = false;
-              }
-
+              this.payable = this.myBalance !== 0;
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
           } else {
-            console.error('Gruppe mit der ID ' + validGroupId + ' nicht gefunden');
+            console.error(
+              'Gruppe mit der ID ' + validGroupId + ' nicht gefunden'
+            );
             this.groupname = 'Unbekannte Gruppe';
           }
         } else {
@@ -180,23 +205,36 @@ export class DetailedBalancePage implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    if (this.unsubscribeBalance) {
+      this.unsubscribeBalance();
+    }
+  }
 
   get myBalance(): number {
     return this.balanceDetails.balance || 0;
   }
 
-  async updateBalances(groupId: string, currentUserId: string, selectedMemberId: string) {
+  async updateBalances(
+    groupId: string,
+    currentUserId: string,
+    selectedMemberId: string
+  ) {
     try {
-      const balance = await this.expenseService.getUserBalance(groupId, currentUserId, selectedMemberId);
+      const balance = await this.expenseService.getUserBalance(
+        groupId,
+        currentUserId,
+        selectedMemberId
+      );
 
-      console.log("Balance:", balance);  // Überprüfe, was zurückgegeben wird
+      console.log('Balance:', balance); // Überprüfe, was zurückgegeben wird
 
       // Setze die Werte für myIncome und myExpenses
       this.myIncome = balance.myIncome;
       this.myExpenses = balance.myExpenses;
 
-      console.log("myIncome:", this.myIncome);  // Überprüfe den Wert von myIncome
-      console.log("myExpenses:", this.myExpenses);  // Überprüfe den Wert von myExpenses
+      console.log('myIncome:', this.myIncome); // Überprüfe den Wert von myIncome
+      console.log('myExpenses:', this.myExpenses); // Überprüfe den Wert von myExpenses
     } catch (error) {
       console.error('Fehler beim Laden der Bilanz:', error);
     }
@@ -210,7 +248,6 @@ export class DetailedBalancePage implements OnInit {
     this.showExpensesFromSelectedMember = !this.showExpensesFromSelectedMember;
   }
 
-
   toggleProducts(expenseId: string) {
     this.productToggles[expenseId] = !this.productToggles[expenseId];
   }
@@ -220,54 +257,140 @@ export class DetailedBalancePage implements OnInit {
     return member?.products || [];
   }
 
-
   isProductsVisible(expenseId: string): boolean {
     return this.productToggles[expenseId];
   }
 
-
   goBack() {
     this.navCtrl.back();
   }
-  pay() {
-    if (!this.groupId) {
-      console.error('groupId is null or undefined');
+
+  async pay() {
+    if (!this.groupId || !this.uid || !this.selectedMember?.uid) {
+      console.error(
+        'Fehlende groupId, aktuelle UID oder ausgewählte Mitglieder-UID.'
+      );
       return;
     }
 
-    const relatedExpenses = this.allExpenses
-      .filter((expense) => {
-        const member = expense.expenseMember?.find(
-          (m) => m.memberId === this.uid
-        );
-        return member && member.amountToPay > 0 && !member.paid;
-      })
-      .map((expense) => expense.expenseId);
-
-    if (relatedExpenses.length === 0) {
-      console.log('Keine offenen Ausgaben für diesen Nutzer.');
+    if (this.myBalance >= 0) {
+      const alert = await this.alertController.create({
+        header: 'Keine Schulden zu begleichen',
+        message: `${this.selectedMember.username} schuldet Ihnen Geld, oder die Bilanz ist ausgeglichen. Sie können keine Zahlung an ${this.selectedMember.username} tätigen.`,
+        buttons: ['OK'],
+      });
+      await alert.present();
       return;
     }
 
+    const amountToPay = Math.abs(this.myBalance);
+
+    this.loadingService.show();
     try {
-        this.transactionService.settleDebtWithOneMember(
-          this.groupId,
-          this.selectedMember?.uid ?? '',
-          this.authService.currentUser?.uid ?? '',
-          this.myBalance,
-          `SchuldenAusgleich mit ${this.username}`,
-          relatedExpenses
-        );
-    } catch {
-      console.log("Error occured, while paying")
+      // Aufruf der spezialisierten Funktion im TransactionService
+      await this.transactionService.settleDebtWithOneMember(
+        this.groupId,
+        this.uid,
+        this.selectedMember.uid,
+        amountToPay,
+        `Schuld an ${this.selectedMember.username} beglichen`,
+        this.allExpenses,
+      );
+
+      const alert = await this.alertController.create({
+        header: 'Transaktion abgeschlossen',
+        message:
+          'Deine Schulden wurden erfolgreich an ' +
+          this.selectedMember.username +
+          ' bezahlt. Möchtest du dir die Transaktion ansehen?',
+        buttons: [
+          {
+            text: 'Nein',
+            role: 'cancel',
+            handler: () => {
+              this.router.navigate(['expense', this.groupId]);
+            },
+          },
+          {
+            text: 'Ja',
+            handler: () => {
+              this.router.navigate(['transactions', this.groupId]);
+            },
+          },
+        ],
+      });
+      await alert.present();
+    } catch (error) {
+      console.error('Fehler beim Ausführen der Zahlung:', error);
+      const errorAlert = await this.alertController.create({
+        header: 'Fehler',
+        message:
+          'Ein Fehler ist beim Begleichen der Schulden aufgetreten. Bitte versuche es erneut.',
+        buttons: ['OK'],
+      });
+      await errorAlert.present();
+    } finally {
+      this.loadingService.hide();
     }
   }
 
   getAmountToPay(expense: any, uid: string | null): number {
     if (!uid || !expense || !expense.expenseMember) return 0;
 
-    const memberEntry = expense.expenseMember.find((m: any) => m.memberId === uid);
+    const memberEntry = expense.expenseMember.find(
+      (m: any) => m.memberId === uid
+    );
     return memberEntry?.amountToPay || 0;
   }
 
+  async requestPayment() {
+    if (!this.groupId || !this.uid || !this.selectedMember?.uid) {
+      console.error(
+        'Fehlende groupId, aktuelle UID oder ausgewählte Mitglieder-UID.'
+      );
+      return;
+    }
+
+    try {
+      const toUserId = this.selectedMember.uid;
+      const myName = this.username;
+
+      if (this.myBalance <= 0) {
+        const alert = await this.alertController.create({
+          header: 'Keine Anfrage möglich',
+          message: `Sie schulden ${this.selectedMember.username} Geld, oder die Bilanz ist ausgeglichen. Sie können keine Zahlung anfordern.`,
+          buttons: ['OK'],
+        });
+        await alert.present();
+        return;
+      }
+
+      // 📲 Push Notification an ALLE Geräte des Empfängers senden (neue Methode im Service)
+      await this.pushNotificationService.sendToUser(
+        toUserId,
+        `ZAHLUNGSAUFFORDERUNG von ${myName}`,
+        `${myName} möchte, dass du deine Schulden in Höhe von ${this.myBalance.toFixed(
+          2
+        )} € in der Gruppe "${this.groupname}" begleichst.`
+      );
+
+      const successAlert = await this.alertController.create({
+        header: 'Anfrage gesendet',
+        message: `Eine Zahlungsanfrage wurde an ${this.selectedMember.username} gesendet.`,
+        buttons: ['OK'],
+      });
+      await successAlert.present();
+
+      console.log('Push gesendet!');
+    } catch (error) {
+      console.error('Fehler beim Senden der Benachrichtigung:', error);
+      const errorAlert = await this.alertController.create({
+        header: 'Fehler',
+        message:
+          'Fehler beim Senden der Benachrichtigung. Bitte versuche es erneut.',
+        buttons: ['OK'],
+      });
+      await errorAlert.present();
+    }
+  }
 }

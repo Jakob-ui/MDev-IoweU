@@ -23,6 +23,8 @@ import { Products } from '../../services/objects/Products';
 import { Expenses } from '../../services/objects/Expenses';
 import { Transactions } from '../../services/objects/Transactions';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
+import { DebtEntry } from 'src/app/services/objects/DeptEntry';
+
 
 @Component({
   selector: 'app-settle-balances',
@@ -56,6 +58,7 @@ export class SettleBalancesPage implements OnInit {
   groupname: string = '';
   iosIcons: boolean = false;
   showExpenses: boolean = false;
+  showExpensesMap: { [index: number]: boolean } = {};
 
   uid: string = '';
   user: string | null = '';
@@ -70,86 +73,18 @@ export class SettleBalancesPage implements OnInit {
   memberRoles: string[] = [];
   memberUids: string[] = [];
 
-  expenseDescription: string = '';
-  expenseTotalAmount: number = 0;
-  expensePaidBy: string = '';
-  expensePaidByUsername: string = '';
-  expenseDate: string = '';
-  expenseCurrency: string = '';
-  expenseCategory: string = '';
-  expenseMember: ExpenseMember[] = [];
-  expenseMemberIds: string[] = [];
-  expenseAmountToPay: number = 0;
-  expenseMemberProducts: Products[] = [];
-  expenseMemberSplitType: string = '';
-  expenseMemberSplitBy: string = '';
-  expenseMemberPaidBy: string = '';
-  expenseMemberPaidByName: string = '';
-  expenseMemberPaidByUid: string = '';
-  reason: string = '';
-
-  repeatingExpense: boolean = false;
   gruppenausgleich: boolean = false;
 
-  splitValue: { [uid: string]: number } = {};
-  amountToPay: { [uid: string]: number } = {};
-  deptList: {
-    from: string;
-    to: string;
-    debt: number;
-    relatedExpenses: string[];
-  }[] = [{ from: '', to: '', debt: 0, relatedExpenses: [] }];
-  products: Products[] = [];
-
-  visibleProducts: { [key: string]: boolean } = {};
-
-  overlayState: 'start' | 'normal' | 'hidden' = 'start';
-
-  categories = CATEGORIES;
-
-  expense: Expenses[] = [
-    {
-      expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
-      description: '',
-      totalAmount: 0,
-      paidBy: '',
-      date: new Date().toISOString().split('T')[0],
-      currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
-      category: '',
-      invoice: '',
-      repeat: '',
-      splitType: 'prozent',
-      splitBy: 'alle',
-      expenseMember: [
-        {
-          memberId: '',
-          amountToPay: 0,
-          split: 0,
-          paid: false,
-          products: [
-            {
-              productId: (
-                Date.now() + Math.floor(Math.random() * 1000)
-              ).toString(),
-              memberId: '',
-              productname: '',
-              quantity: 1,
-              unit: '',
-              price: 0,
-            },
-          ],
-        },
-      ],
-    },
-  ];
+  deptList: DebtEntry[] = [];
+  expense: Expenses[] = [];
 
   async ngOnInit() {
     this.loadingService.show();
     try {
       await this.authService.waitForUser();
-      // Query-Parameter lesen, um festzustellen, ob es sich um eine wiederkehrende Ausgabe handelt
+
       this.activeRoute.queryParams.subscribe((params) => {
-        this.repeatingExpense = params['repeating'] === 'true';
+        this.gruppenausgleich = params['settlegroup'] === 'true';
       });
 
       if (!this.authService.currentUser) {
@@ -166,37 +101,6 @@ export class SettleBalancesPage implements OnInit {
         console.error(`Gruppe mit der ID ${this.groupId} nicht gefunden`);
         return;
       }
-      if (this.gruppenausgleich){
-        const rawDeptList = await this.transactionService.settleAllDepts(
-          this.groupId
-        );
-        this.deptList = rawDeptList.map(
-          ([from, to, debt, relatedExpenses]) => ({
-            from,
-            to,
-            debt,
-            relatedExpenses,
-          })
-        );
-        await this.loadRelatedExpenses();
-        console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
-      } else {
-        const rawDeptList = await this.transactionService.settleDebtsForID(
-          this.groupId,
-          this.uid,
-        );
-        if(rawDeptList){
-        this.deptList = rawDeptList.map((dept) => ({
-          from: dept.from,
-          to: dept.to,
-          debt: dept.debt,
-          relatedExpenses: dept.relatedExpenses,
-        }));
-        await this.loadRelatedExpenses();
-          console.log('Berechnete Ausgleichstransaktionen:', this.deptList);
-        }
-      }
-
       this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
       this.groupMembers = currentGroup.members || [];
 
@@ -206,6 +110,24 @@ export class SettleBalancesPage implements OnInit {
       this.memberRoles = this.groupMembers.map((m) => m.role || '');
       this.memberUids = this.groupMembers.map((m) => m.uid || '');
 
+      if (this.gruppenausgleich) {
+        console.log('Berechne Gruppenausgleich...');
+        this.deptList =
+          await this.transactionService.getCalculatedGroupSettlementDebts(
+            this.groupId
+          );
+      } else {
+        // Wenn gruppenausgleich false ist, ist es automatisch persönlicher Ausgleich
+        console.log('Berechne persönlichen Ausgleich für ' + this.uid + '...');
+        this.deptList =
+          await this.transactionService.getCalculatedPersonalSettlementDebts(
+            this.groupId,
+            this.uid
+          );
+      }
+
+      console.log('Final berechnete deptList für Anzeige:', this.deptList);
+      await this.loadRelatedExpenses();
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
@@ -214,55 +136,10 @@ export class SettleBalancesPage implements OnInit {
     }
   }
 
+  //Hole Daten von Membern oder Expenses
   getMemberNameById(memberId: string): string {
     const member = this.groupMembers.find((m) => m.uid === memberId);
     return member ? member.username : 'Unbekannt';
-  }
-
-  hasProducts(groupMemberId: string): boolean {
-    if (!this.expense || this.expense.length === 0) {
-      return false;
-    }
-
-    for (let expense of this.expense) {
-      const groupMember = expense.expenseMember.find(
-        (member) => member.memberId === groupMemberId
-      );
-
-      if (
-        groupMember &&
-        Array.isArray(groupMember.products) &&
-        groupMember.products.length > 0
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  toggleProducts(memberName: string) {
-    this.visibleProducts[memberName] = !this.visibleProducts[memberName]; // Toggle die Sichtbarkeit der Produkte
-  }
-
-  getPurchasedProductsForMember(memberId: string): Products[] {
-    if (!this.expense || this.expense.length === 0) {
-      return []; 
-    }
-
-    const expense = this.expense[0]; 
-
-    if (!expense.expenseMember) {
-      return []; 
-    }
-
-    const member = expense.expenseMember.find((m) => m.memberId === memberId);
-
-    return member?.products ?? [];
-  }
-
-  goBack() {
-    this.navCtrl.back();
   }
 
   getFirstLetter(paidBy: string): string {
@@ -284,6 +161,15 @@ export class SettleBalancesPage implements OnInit {
     return userEntry?.amountToPay ?? 0;
   }
 
+  getRelatedExpensesForDebt(debt: DebtEntry) {
+    return this.expense.filter(
+      (e) =>
+        debt.relatedExpenses.includes(e.expenseId) &&
+        (e.expenseMember.some((member) => member.memberId === debt.to) ||
+          e.expenseMember.some((member) => member.memberId === debt.from))
+    );
+  }
+
   getAmountClass(expense: Expenses): string {
     if (!expense) {
       return 'neutral';
@@ -301,104 +187,89 @@ export class SettleBalancesPage implements OnInit {
     return 'neutral';
   }
 
-  toggleInvoiceOverlay() {
-    console.log('Overlay state:', this.overlayState);
-
-    // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
-    if (this.overlayState === 'start') {
-      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
-    } else if (this.overlayState === 'normal') {
-      // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
-      this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
-    } else if (this.overlayState === 'hidden') {
-      // Wenn es im "hidden" Zustand ist, wird es wieder nach oben geschoben
-      this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
-    }
-
-    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
+  //UI Controll
+  toggleExpenses(index: number) {
+    this.showExpensesMap[index] = !this.showExpensesMap[index];
   }
 
+  goBack() {
+    this.navCtrl.back();
+  }
+
+  hasDebts(): boolean {
+    if (!this.gruppenausgleich) {
+      return this.deptList.some(
+        (debt) => debt.from === this.uid && debt.amount > 0
+      );
+    } else if (this.deptList.length > 0) {
+      return true;
+    }
+    return false;
+  }
+
+  goToExpenseDetails(expenseId: string) {
+    this.loadingService.show();
+    try {
+      this.router.navigate(['expense-details', this.groupId, expenseId]);
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
+  // Get Data using Service functions
   async loadRelatedExpenses() {
+    if (!this.deptList || this.deptList.length === 0) {
+      this.expense = [];
+      return;
+    }
+
     const relatedExpenseIds = this.deptList.flatMap(
       (debt) => debt.relatedExpenses
     );
+    const uniqueRelatedExpenseIds = [...new Set(relatedExpenseIds)];
 
     try {
       const filteredExpenses =
         await this.transactionService.getFilteredRelatedExpenses(
           this.groupId,
-          relatedExpenseIds,
+          uniqueRelatedExpenseIds,
           this.uid!
         );
 
       console.log('Gefilterte Ausgaben:', filteredExpenses);
-      this.expense = filteredExpenses; 
+      this.expense = filteredExpenses;
     } catch (error) {
       console.error('Fehler beim Laden der gefilterten Ausgaben:', error);
     }
   }
 
+  //Make Transactions depending on calculated debts
   async pay() {
     this.loadingService.showLittle();
-    for (let debtmember of this.deptList) {
-      try {
-        const transaction: Transactions = {
-          from: debtmember.from,
-          to: debtmember.to,
-          amount: debtmember.debt,
-          reason: 'Gruppenausgleich',
-          date: new Date().toISOString(),
-          relatedExpenses: debtmember.relatedExpenses,
-        };
-        console.log('transaction', transaction);
-        if (
-          Array.isArray(debtmember.relatedExpenses)
-            ? debtmember.relatedExpenses
-            : [debtmember.relatedExpenses]
-        ) {
-          await this.transactionService.makeTransactionById(
-            this.groupId,
-            debtmember.relatedExpenses,
-            debtmember.from,
-            transaction
-          );
-        }
-        console.log("uid", this.uid);
-        if (this.gruppenausgleich){
-          for (const expenseId of debtmember.relatedExpenses) {
-            await this.transactionService.markMembersAsPaid(
-              this.groupId,
-              expenseId
-            );
-          }
-        } else {
-          for (const expenseId of debtmember.relatedExpenses) {
-            // Finde die Expense in der geladenen Liste
-            const expense = this.expense.find((e) => e.expenseId === expenseId);
-            const userEntry = expense?.expenseMember.find(
-              (m) => m.memberId === this.uid
-            );
-
-            // Nur wenn noch nicht bezahlt und amountToPay > 0
-            if (userEntry && !userEntry.paid && userEntry.amountToPay > 0) {
-              await this.transactionService.markMembersAsPaid(
-                this.groupId,
-                expenseId,
-                this.uid
-              );
-            }
-          }
-        }
-      } catch (error) {
-        console.error(
-          `Fehler beim Erstellen der Transaktion für ${debtmember.from} -> ${debtmember.to}:`,
-          error
-        );
-      } finally {
-        this.loadingService.hideLittle();
+    try {
+      let settlementType: 'group' | 'personal';
+      if (this.gruppenausgleich) {
+        settlementType = 'group';
+      } else {
+        settlementType = 'personal';
       }
+
+      await this.transactionService.executeSettlementTransactions(
+        this.groupId,
+        this.deptList,
+        settlementType
+      );
+    } catch (error) {
+      console.error('Fehler beim Ausführen der Zahlung:', error);
+      const errorAlert = await this.alertController.create({
+        header: 'Fehler',
+        message:
+          'Ein Fehler ist beim Begleichen der Schulden aufgetreten. Bitte versuche es erneut.',
+        buttons: ['OK'],
+      });
+    } finally {
+      this.loadingService.hideLittle();
     }
-    // Danach: Nur noch fragen, ob man sie sehen will
     const alert = await this.alertController.create({
       header: 'Transaktion abgeschlossen',
       message:
@@ -422,15 +293,5 @@ export class SettleBalancesPage implements OnInit {
     });
 
     await alert.present();
-  }
-
-  goToExpenseDetails(expenseId: string) {
-    this.loadingService.show();
-    try {
-      // Hier wird der expenseId der aktuellen Ausgabe übergeben
-      this.router.navigate(['expense-details', this.groupId, expenseId]);
-    } finally {
-      this.loadingService.hide();
-    }
   }
 }

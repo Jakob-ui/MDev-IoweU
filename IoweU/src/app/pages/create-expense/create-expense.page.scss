@@ -2,7 +2,7 @@
   width: 95%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 10px;
+  padding: 40px 10px 40px;
 }
 
 .section {
@@ -176,7 +176,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-right: 5%;
+  margin-right: 10px;
 }
 
 
@@ -290,7 +290,6 @@ ion-input::part(native) {
 
 .right-container .percent-input {
   text-align: right !important;
-  margin-right: 30px !important;
 }
 
 .Kategorie {
@@ -336,8 +335,6 @@ ion-input::part(native) {
   top: 100%;
   margin-top: -20px;
   left: -50px;
-  padding-top: 15%;
-  padding-bottom: 15%;
   border-radius: 10px;
   background-color: #ffffff;
 
@@ -457,8 +454,6 @@ ion-item.dropDownFelder::part(native) {
     max-width: 200%;
     top: 100%;
     left: 0;
-    padding-top: 15%;
-    padding-bottom: 15%;
     border-radius: 10px;
     background-color: #ffffff;
   }
@@ -550,7 +545,7 @@ ion-item.dropDownFelder::part(native) {
 
 .input-wrapper.auto-width {
   width: auto;
-  min-width: 80px; /* optional, falls sehr kleine Eingaben */
+  min-width: 80px !important;
 }
 
 #input-wrapper-percent ion-input {
@@ -567,7 +562,7 @@ ion-input {
 }
 
 .percent-symbol {
-  margin-right: 5px;
+  margin-right: 10px;
   font-size: 14px;
   color: #666;
 }
@@ -712,7 +707,9 @@ width: auto;
   gap: 10px;
   width: 100%;
 }
-
+.pfeilicon{
+  font-size: 14px;
+}
 
 
 @media (prefers-color-scheme: dark) {
@@ -751,4 +748,15 @@ width: auto;
     }
   }
 }
+.pfeilicon{
+  color: gray;
 }
+
+.custom-dropdown .selected ion-label {
+  color: #fff;
+  font-weight: 900;
+}
+
+}
+
+

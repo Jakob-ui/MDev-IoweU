@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
+import {ShoppinglistService} from "../../services/shoppinglist.service";
 import {AlertController, ToastController} from "@ionic/angular";
 import { addIcons } from 'ionicons';
 import {
@@ -28,8 +29,8 @@ import {
   hammerOutline,
   bulbOutline,
   musicalNotesOutline,
-  rocketOutline
-} from 'ionicons/icons';
+  rocketOutline,
+ caretDownOutline } from 'ionicons/icons';
 addIcons({
   // Bestehende Icons …
   'fast-food-outline': fastFoodOutline,
@@ -56,6 +57,7 @@ addIcons({
   'bulb-outline': bulbOutline,
   'musical-notes-outline': musicalNotesOutline,
   'rocket-outline': rocketOutline,
+  'caret-down-outline': caretDownOutline,
 });
 import {
   IonContent,
@@ -81,7 +83,6 @@ import { Products } from 'src/app/services/objects/Products';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ExpenseService } from 'src/app/services/expense.service';
-import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
 import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
 import { Groups } from 'src/app/services/objects/Groups';
@@ -89,6 +90,7 @@ import { HostListener } from '@angular/core';
 import { ImageService } from '../../services/image.service';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
 import { CURRENCIESWITHSYMBOLS } from 'src/app/services/objects/Currencies';
+import {PushNotificationService} from "../../services/push-notification.service";
 
 @Component({
   selector: 'app-create-expense',
@@ -128,9 +130,14 @@ export class CreateExpensePage {
   private http = inject(HttpClient);
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
+  private shoppinglistService = inject(ShoppinglistService);
+  private pushNotificationService = inject(PushNotificationService);
 
 
-  constructor() {}
+
+  constructor() {
+      addIcons({addOutline,checkmarkOutline,cameraOutline,imageOutline,caretDownOutline});
+  }
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -186,6 +193,33 @@ export class CreateExpensePage {
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   invoiceDropdownOpen: boolean = false;
+  repeatDropdownOpen: boolean = false;
+
+  repeatOptions = [
+    { value: 'nein', label: 'nein' },
+    { value: 'täglich', label: 'täglich' },
+    { value: 'wöchentlich', label: 'wöchentlich' },
+    { value: 'monatlich', label: 'monatlich' },
+  ];
+
+  toggleRepeatDropdown(event: Event) {
+    event.stopPropagation();
+    this.repeatDropdownOpen = !this.repeatDropdownOpen;
+  }
+
+  selectRepeat(value: string, event: Event) {
+    event.stopPropagation();
+    this.expense.repeat = value;
+    this.repeatDropdownOpen = false;
+  }
+
+  getRepeatLabel(value: string): string | undefined {
+    return this.repeatOptions.find(option => option.value === value)?.label;
+  }
+
+  closeRepeatDropdowns() {
+    this.repeatDropdownOpen = false;
+  }
 
   expense: Expenses = {
     expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
@@ -205,6 +239,8 @@ export class CreateExpensePage {
   };
 
   shoppingproducts: any[] = [];
+  shoppingCartId: string | null = '';
+  ProduktFromShoppingCart: boolean = false;
 
   categories = CATEGORIES;
 
@@ -223,9 +259,12 @@ export class CreateExpensePage {
 
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
 
+        this.shoppingCartId = this.activeRoute.snapshot.queryParamMap.get('fromShoppingCart');
+        console.log('ShoppingCartId aus queryParams:', this.shoppingCartId);
+
         if (groupId) {
           this.currentGroup = await this.groupService.getGroup();
-          if (this.currentGroup === null) {
+          if (!this.currentGroup) {
             this.currentGroup = await this.groupService.getGroupById(groupId);
             console.log('Leere Gruppe, hole Gruppe aus der DB');
           }
@@ -243,7 +282,7 @@ export class CreateExpensePage {
                 this.memberRoles.push(member.role || '');
                 this.memberUids.push(member.uid || '');
 
-                // Initialwerte für Mitglieder
+
                 member.sumExpenseAmount = member.sumExpenseAmount || 0;
                 member.sumExpenseMemberAmount = member.sumExpenseMemberAmount || 0;
                 member.countExpenseAmount = member.countExpenseAmount || 0;
@@ -255,17 +294,15 @@ export class CreateExpensePage {
                 };
               });
 
-              // Initialisiere expenseMember für jedes Gruppenmitglied
               this.expense.expenseMember = this.groupMembers.map((member) => ({
                 memberId: member.uid,
                 amountToPay: 0,
                 foreignAmountToPay: 0,
                 split: 1,
-                products: [], // Leeres Array für Produkte
+                products: [],
                 paid: false,
               }));
 
-              // Wer hat bezahlt?
               if (!this.expense.paidBy && this.uid) {
                 this.expense.paidBy = this.uid;
               }
@@ -284,61 +321,9 @@ export class CreateExpensePage {
           this.groupname = 'Unbekannte Gruppe';
         }
 
-        // Überprüfe ob die Produkte vom Warenkorb kommen
-        const navState = this.router.getCurrentNavigation()?.extras.state;
-        if (navState && navState['fromShoppingCart']) {
-          this.shoppingproducts = navState['cartItems'] || [];
-
-          // Produkte den Mitgliedern zuordnen
-          this.shoppingproducts.forEach((shoppingProduct: any) => {
-            // Finde das Mitglied, für das dieses Produkt gekauft wurde
-            const member = this.groupMembers.find((member) => member.uid === shoppingProduct.forMemberId);
-
-            if (member) {
-              const memberExpense = this.expense.expenseMember.find(exp => exp.memberId === member.uid);
-              if (memberExpense) {
-                // Sicherstellen, dass das products-Array existiert
-                if (!memberExpense.products) {
-                  memberExpense.products = []; // Initialisiere das Array, falls es noch nicht existiert
-                }
-
-                // Überprüfe, ob das Produkt bereits existiert und aktualisiere es
-                const existingProduct = memberExpense.products.find(
-                  (prod: Products) => prod.productname === shoppingProduct.productname
-                );
-
-                if (existingProduct) {
-                  // Produkt existiert bereits, also erhöhe die Menge
-                  existingProduct.quantity += shoppingProduct.quantity;
-                  existingProduct.price = shoppingProduct.price;  // Optional: Preis anpassen
-                } else {
-                  // Füge das neue Produkt hinzu
-                  memberExpense.products.push({
-                    productId: shoppingProduct.shoppingProductId,
-                    memberId: member.uid,
-                    productname: shoppingProduct.productname,
-                    quantity: shoppingProduct.quantity,
-                    unit: shoppingProduct.unit,
-                    price: shoppingProduct.price,
-                    foreignPrice: shoppingProduct.foreignPrice
-                  });
-                }
-              }
-            }
-          });
+        if (this.shoppingCartId) {
+          await this.fromShoppingCart();
         }
-
-        console.log('expense.expenseMember nach Warenkorb-Zuweisung:', this.expense.expenseMember);
-
-
-
-        // Gesamtbeträge berechnen
-        this.expense.totalAmount = this.expense.expenseMember.reduce(
-          (sum, m) => sum + (m.amountToPay || 0), 0
-        );
-        this.expense.totalAmountInForeignCurrency = this.expense.expenseMember.reduce(
-          (sum, m) => sum + (m.foreignAmountToPay || 0), 0
-        );
 
       } else {
         console.error('Kein eingeloggter Benutzer gefunden');
@@ -350,7 +335,93 @@ export class CreateExpensePage {
     } finally {
       this.loadingService.hide();
     }
+
+    // Setze die Standard-Kategorie auf "Sonstige" (oder "Sonstiges" je nach Schreibweise)
+    this.selectedCategory = this.categories.find(cat => cat.name === 'Sonstige' || cat.name === 'Sonstiges');
+    if (this.selectedCategory) {
+      this.expense.category = this.selectedCategory.name;
+    }
   }
+
+
+  async fromShoppingCart() {
+    if (!this.shoppingCartId) {
+      console.error('Keine shoppingCartId übergeben');
+      return;
+    }
+
+    const products = await this.shoppinglistService.getShoppingCartProducts(this.groupId, this.shoppingCartId);
+    if (!products?.length) {
+      console.log('Keine Produkte aus dem Warenkorb gefunden');
+      return;
+    }
+
+    this.ProduktFromShoppingCart = true;
+    this.expense.splitType = 'produkte';
+    this.expense.splitBy = 'frei';
+
+    // 1. Normale Member-Produktzuweisung
+    this.groupMembers.forEach(member => {
+      const memberProducts = products.filter(p => p.forMemberId === member.uid);
+
+      this.productInputs[member.uid] = {
+        products: memberProducts.map(shoppingProduct => ({
+          productId: shoppingProduct.shoppingProductId,
+          memberId: shoppingProduct.forMemberId,
+          productname: shoppingProduct.productname,
+          quantity: shoppingProduct.quantity,
+          unit: shoppingProduct.unit,
+          price: 0,
+          foreignPrice: 0,
+        })),
+        input: {
+          productId: '',
+          memberId: '',
+          productname: '',
+          quantity: 0,
+          unit: '',
+          price: 0,
+          foreignPrice: 0,
+        },
+      };
+    });
+
+    // 2. Produkte mit forMemberId === 'all'
+    const allProducts = products.filter(p => p.forMemberId === 'all');
+    if (allProducts.length > 0) {
+      const allMemberExists = this.groupMembers.some(m => m.uid === 'all');
+      if (!allMemberExists) {
+        this.groupMembers.push({
+          uid: 'all',
+          username: 'Alle'
+        });
+      }
+
+      this.productInputs['all'] = {
+        products: allProducts.map(shoppingProduct => ({
+          productId: shoppingProduct.shoppingProductId,
+          memberId: shoppingProduct.forMemberId,
+          productname: shoppingProduct.productname,
+          quantity: shoppingProduct.quantity,
+          unit: shoppingProduct.unit,
+          price: 0,
+          foreignPrice: 0,
+        })),
+        input: {
+          productId: '',
+          memberId: '',
+          productname: '',
+          quantity: 0,
+          unit: '',
+          price: 0,
+          foreignPrice: 0,
+        },
+      };
+    }
+
+    console.log('Produktzuweisungen aus Warenkorb:', this.productInputs);
+  }
+
 
 
 
@@ -371,6 +442,7 @@ export class CreateExpensePage {
     if (!target.closest('.paid-by')) {
       this.paidByDropdownOpen = false;
     }
+
   }
 
   async onFileSelected(event: any) {
@@ -382,7 +454,7 @@ export class CreateExpensePage {
         const imageBlob = this.imageService.dataURLtoBlob(imageDataUrl);
 
         // Use the updated uploadImage method with compression
-        const path = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+        const path = `groups/${this.groupId}/invoices/${this.expense.expenseId}.jpg`;
         const downloadURL = await this.imageService.uploadImage(
           'expense-invoice',
           imageBlob,
@@ -681,6 +753,7 @@ export class CreateExpensePage {
     this.chooseSplitType = false;
     this.error = '';
     this.updateAmountToPayForProducts();
+    //this.onAmountToPayChange();
   }
 
   private resetSplitValues() {
@@ -1042,51 +1115,79 @@ export class CreateExpensePage {
     this.repeating = this.expense.repeat === 'nein';
     this.loadingService.show();
 
+
+    console.log("I am saving now", this.expense.expenseMember, this.groupMembers);
+
     try {
-      // Members vorbereiten
-      this.expense.expenseMember = this.groupMembers.map((member) => {
+      const realMembers = this.groupMembers.filter(m => m.uid !== 'all');
+      const allProducts = this.productInputs['all']?.products || [];
+
+      this.expense.expenseMember = realMembers.map((member) => {
         const uid = member.uid;
-        const amount = this.amountToPay[uid] || 0;
-        const foreignAmount = this.foreignAmountToPay[uid] || 0;
-        const products = this.productInputs[uid]?.products || [];
+
+        let amount = this.amountToPay[uid] || 0;
+        let foreignAmount = this.foreignAmountToPay[uid] || 0;
+
+        let products = this.productInputs[uid]?.products || [];
+
+        if (allProducts.length > 0 && realMembers.length > 0) {
+          allProducts.forEach((p) => {
+            const sharedPrice = (p.price || 0) / realMembers.length;
+            const sharedForeignPrice = (p.foreignPrice || 0) / realMembers.length;
+
+            products.push({
+              productId: p.productId + '-' + uid,
+              memberId: uid,
+              productname: p.productname,
+              quantity: p.quantity,
+              unit: p.unit,
+              price: parseFloat(sharedPrice.toFixed(2)),
+              foreignPrice: parseFloat(sharedForeignPrice.toFixed(2)),
+            });
+
+            amount += sharedPrice;
+            foreignAmount += sharedForeignPrice;
+          });
+
+          this.amountToPay[uid] = parseFloat(amount.toFixed(2));
+          this.foreignAmountToPay[uid] = parseFloat(foreignAmount.toFixed(2));
+        }
+
+        products = products.map((p) => ({
+          ...p,
+          price: Number(p.price || 0),
+          quantity: Number(p.quantity),
+        }));
 
         return {
           memberId: uid,
           amountToPay: parseFloat(amount.toFixed(2)),
           foreignAmountToPay: parseFloat(foreignAmount.toFixed(2)),
           split: 1,
-          paid: false,
-          products: products.map((p) => ({
-            ...p,
-            price: Number(p.price),
-            quantity: Number(p.quantity),
-          })),
+          paid: uid === this.expense.paidBy,
+          products,
         };
       });
 
-      // Berechnung des Gesamtbetrags (in Fremdwährung, falls vorhanden)
       this.updateTotals();
 
-      // Wenn eine Fremdwährung gewählt wurde, berechne totalAmountInForeignCurrency
       if (this.selectedCurrency !== this.standardCurrency) {
         this.expense.totalAmountInForeignCurrency = +(
           this.expense.totalAmount / this.exchangeRate
-        ).toFixed(2); // Betrag in Fremdwährung
-        this.expense.exchangeRate = this.exchangeRate; // Speichere den Wechselkurs
+        ).toFixed(2);
+        this.expense.exchangeRate = this.exchangeRate;
       } else {
-        this.expense.totalAmountInForeignCurrency = 0; // Kein Fremdwährungsbetrag, wenn EUR gewählt wurde
-        this.expense.exchangeRate = 1; // EUR hat keinen Wechselkurs
+        this.expense.totalAmountInForeignCurrency = 0;
+        this.expense.exchangeRate = 1;
       }
 
-      // totalAmount muss immer den Betrag in EUR enthalten
       this.expense.totalAmount = Number(this.expense.totalAmount.toFixed(2));
 
-      // Hier wird die ausgewählte Währung in das currency Array gespeichert
       this.expense.currency = [this.selectedCurrency];
 
-      // Wenn Rechnung ausgewählt wurde → hochladen und URL setzen
+
       if (this.uploadInvoice) {
-        const invoicePath = `invoices/${this.groupId}/${this.expense.expenseId}.jpg`;
+        const invoicePath = `groups/${this.groupId}/invoices/${this.expense.expenseId}.jpg`;
         const downloadURL = await this.imageService.uploadImage(
           this.expense.expenseId,
           this.uploadInvoice,
@@ -1102,16 +1203,48 @@ export class CreateExpensePage {
         this.groupId,
         this.repeating
       );
+      if (this.shoppingCartId) {
+        await this.shoppinglistService.deleteAllProductsFromShoppingCart(this.groupId, this.shoppingCartId);
+      }
 
-      await this.presentToast('Ausgabe erfolgreich gespeichert!');
-      this.navCtrl.back();
+      // Push-Notification an alle Mitglieder, die noch nicht bezahlt haben und >0 zahlen müssen
+      const unpaidMembers = this.expense.expenseMember.filter(
+        (member) =>
+          !member.paid && member.memberId !== this.expense.paidBy &&
+          member.amountToPay > 0
+      );
+
+      const myName = this.user || 'Jemand';
+
+      for (const member of unpaidMembers) {
+        // member.memberId = UID des Mitglieds
+        await this.pushNotificationService.sendToUser(
+          member.memberId,
+          `Neue AUSGABE in der Gruppe "${this.groupname}"`,
+          `${myName} hat eine neue Ausgabe hinzugefügt. Du schuldest ${this.expense.paidBy} ${member.amountToPay.toFixed(2)} €.`
+        );
+      }
+
+      if(this.shoppingCartId != null){
+        this.navCtrl.back();
+      } else{
+        await this.navCtrl.navigateRoot(['/expense', this.groupId]);
+      }
+
+      if(this.shoppingCartId != null){
+        this.navCtrl.back();
+      } else{
+        await this.navCtrl.navigateRoot(['/expense', this.groupId]);
+      }
     } catch (error) {
       console.error('Fehler beim Speichern der Ausgabe:', error);
       await this.presentAlert('Fehler', 'Es ist ein Fehler aufgetreten. Bitte versuche es erneut.');
     } finally {
       this.loadingService.hide();
+      await this.presentToast('Ausgabe erfolgreich gespeichert!');
     }
   }
+
 
   removeInvoice() {
     this.expense.invoice = undefined;
@@ -1122,7 +1255,7 @@ export class CreateExpensePage {
   }
 
   /** Schließt das Rechnungs-Dropdown, wird auf ion-content (click) ausgelöst */
-  closeInvoiceDropdowns(): void {
+  closeDropdowns(): void {
     this.invoiceDropdownOpen = false;
     this.currencyDropdownOpen = false;
   }

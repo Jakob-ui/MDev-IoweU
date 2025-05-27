@@ -1,15 +1,15 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import {
-  IonHeader,
-  IonToolbar,
-  IonContent,
-  IonButton,
-  IonCard,
-  IonCardSubtitle,
-  IonCardTitle,
-  IonList, IonReorderGroup, IonReorder,
-  ItemReorderEventDetail, IonBadge
+    IonHeader,
+    IonToolbar,
+    IonContent,
+    IonButton,
+    IonCard,
+    IonCardSubtitle,
+    IonCardTitle,
+    IonList, IonReorderGroup, IonReorder,
+    ItemReorderEventDetail, IonBadge, IonIcon
 } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -23,19 +23,22 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
   templateUrl: './group-overview.page.html',
   styleUrls: ['./group-overview.page.scss'],
   standalone: true,
-  imports: [
-    IonReorder,
-    IonReorderGroup,
-    CommonModule,
-    IonContent,
-    IonButton,
-    RouterModule,
-    IonCard,
-    IonCardSubtitle,
-    IonCardTitle,
-    IonList,
-    IonBadge,
-  ],
+    imports: [
+        IonReorder,
+        IonReorderGroup,
+        CommonModule,
+        IonContent,
+        IonButton,
+        RouterModule,
+        IonCard,
+        IonCardSubtitle,
+        IonCardTitle,
+        IonList,
+        IonBadge,
+        IonToolbar,
+        IonHeader,
+        IonIcon
+    ],
 })
 export class GroupOverviewPage implements OnInit {
   private authService = inject(AuthService);
@@ -73,9 +76,6 @@ export class GroupOverviewPage implements OnInit {
       if (this.authService.currentUser) {
         this.username = this.authService.currentUser.username;
         this.iosIcons = this.platform.is('ios');
-        console.log(
-          'Group overview loaded: ' + this.authService.currentUser.username
-        );
 
         const userColor = this.authService.currentUser.color;
         document.documentElement.style.setProperty('--user-color', userColor);
@@ -169,7 +169,7 @@ export class GroupOverviewPage implements OnInit {
     Haptics.impact({
       style: ImpactStyle.Heavy, // Korrekte Verwendung von ImpactStyle
     });
-  }, 900);
+  }, 1500);
 }
 
   onLongPressCancel() {

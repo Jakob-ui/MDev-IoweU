@@ -132,12 +132,13 @@
 
     <ion-card class="shopping-card">
       <div class="card-content-shopping">
-        <h2>{{ shoppingproducts.length }} {{ shoppingproducts.length === 1 ? 'Produkt' : 'Produkte' }}</h2>
-
+        <h2>
+          <span class="animated-count">{{ animatedCount }}</span>
+          {{ animatedCount === 1 ? 'Produkt' : 'Produkte' }}
+        </h2>
         <p [ngClass]="{'past-date': isPast(earliestDueDateLabel)}">
           früheste Fälligkeit: {{ earliestDueDateLabel }}
         </p>
-
       </div>
     </ion-card>
 
@@ -157,8 +158,12 @@
     <ion-list class="shopping-list">
       <ng-container *ngFor="let group of groupedProducts">
         <ion-item
-          class="shoppingplist-item"
-          *ngFor="let shoppingproduct of group.shoppingproducts">
+          class="shoppinglist-item"
+          *ngFor="let shoppingproduct of group.shoppingproducts"
+          (touchstart)="onTouchStart($event)"
+          (touchend)="onTouchEnd($event, shoppingproduct)"
+          [class.swipe-right]="shoppingproduct.swiped === 'right'"
+          [class.swipe-left]="shoppingproduct.swiped === 'left'">
 
           <div class="profile-placeholder"
                [ngStyle]="{
@@ -184,7 +189,7 @@
         expand="block"
         (click)="goToCreateExpense()"
       >
-        Produkte weiterverrechnen
+        weiterverrechnen
       </ion-button>
     </div>
   </div>

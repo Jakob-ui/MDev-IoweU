@@ -2,8 +2,8 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as d3 from 'd3';
 import {
-  IonContent,
-  IonItem, IonList, IonButton, IonIcon, IonBadge,
+    IonContent,
+    IonItem, IonList, IonButton, IonIcon, IonBadge, IonHeader, IonToolbar,
 } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -20,16 +20,18 @@ import { Groups } from '../../services/objects/Groups';
   templateUrl: './overall-balance.page.html',
   styleUrls: ['./overall-balance.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    IonContent,
-    RouterModule,
-    IonItem,
-    IonList,
-    IonButton,
-    IonIcon,
-    IonBadge,
-  ],
+    imports: [
+        CommonModule,
+        IonContent,
+        RouterModule,
+        IonItem,
+        IonList,
+        IonButton,
+        IonIcon,
+        IonBadge,
+        IonHeader,
+        IonToolbar,
+    ],
 })
 export class OverallBalancePage implements OnInit {
   private authService = inject(AuthService);
@@ -53,6 +55,7 @@ export class OverallBalancePage implements OnInit {
   groupId: string | null = '';
   myGroupSum: number = 0;
   myExpenseSum: number = 0;
+  animatedExpenseSum: number = 0; // Animierte Ausgabe
 
   showChart = false;
 
@@ -82,6 +85,7 @@ export class OverallBalancePage implements OnInit {
         this.groupService.getGroupsByUserId(this.uid, (groups) => {
           this.groups = groups;
         });
+        this.animatedExpenseSum = this.myExpenseSum ?? 0;
       } else {
         console.error('Fehler: Kein Benutzer eingeloggt.');
       }
@@ -106,6 +110,8 @@ export class OverallBalancePage implements OnInit {
 
             // Setze myExpenseSum auf 0, bevor wir die Berechnungen durchführen
             this.myExpenseSum = 0;
+            this.animatedExpenseSum = 0;
+            this.groupExpenses = []; // Reset für neue Berechnung
 
             const groupPromises = groups.map(
               (group) =>
@@ -148,6 +154,8 @@ export class OverallBalancePage implements OnInit {
 
             await Promise.all(groupPromises);
 
+            // Animation nach Abschluss aller Gruppen
+            this.animateExpenseSum(this.myExpenseSum);
           }
         );
       }
@@ -272,7 +280,7 @@ export class OverallBalancePage implements OnInit {
       .data(data_ready)
       .enter()
       .append('polyline')
-      .attr('stroke', 'black')
+      .style('stroke', 'var(--ion-color-dark)')
       .style('fill', 'none')
       .attr('stroke-width', 1)
       .attr('points', (d) => {
@@ -445,6 +453,29 @@ export class OverallBalancePage implements OnInit {
       this.showCategoryChart = true;
       this.createPieChart();
     });
+  }
+
+  // Animiert die Ausgabensumme von aktuellem Wert zu neuem Wert
+  animateExpenseSum(target: number) {
+    const duration = 500;
+    const frameRate = 30;
+    const steps = Math.max(1, Math.round(duration / (1000 / frameRate)));
+    const start = this.animatedExpenseSum;
+    const diff = target - start;
+    if (diff === 0) return;
+    let currentStep = 0;
+
+    const stepFn = () => {
+      currentStep++;
+      this.animatedExpenseSum = +(start + (diff * currentStep) / steps).toFixed(2);
+      if (currentStep < steps) {
+        setTimeout(stepFn, 1000 / frameRate);
+      } else {
+        this.animatedExpenseSum = target;
+      }
+    };
+
+    stepFn();
   }
 
 }

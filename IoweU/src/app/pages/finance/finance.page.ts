@@ -9,16 +9,15 @@ import {
   IonBadge,
   IonCard,
   IonIcon,
-  IonButton,
-} from '@ionic/angular/standalone';
+  IonButton, IonSpinner } from '@ionic/angular/standalone';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NavController, Platform } from '@ionic/angular';
 import { LoadingService } from '../../services/loading.service';
 import { GroupService } from '../../services/group.service';
 import { ExpenseService } from '../../services/expense.service';
-import { QRCodeComponent } from 'angularx-qrcode';
 import { TransactionService } from 'src/app/services/transaction.service';
+import { Groups } from 'src/app/services/objects/Groups';
 
 @Component({
   selector: 'app-finance',
@@ -26,6 +25,7 @@ import { TransactionService } from 'src/app/services/transaction.service';
   styleUrls: ['./finance.page.scss'],
   standalone: true,
   imports: [
+    IonSpinner,
     CommonModule,
     IonHeader,
     IonToolbar,
@@ -62,6 +62,11 @@ export class FinancePage implements OnInit {
 
   myExpenses: number = 0;
   myIncome: number = 0;
+  myBalance: number = 0;
+  private unsubscribeBalance: (() => void) | null = null;
+  private memberUnsubscribes: (() => void)[] = [];
+
+  animatedBalance: number = 0;
 
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
@@ -72,12 +77,24 @@ export class FinancePage implements OnInit {
   memberColors: string[] = [];
   memberRoles: string[] = [];
   memberUids: string[] = [];
+  currentGroup: Groups | null = null;
+
+  isLoadingMembers: boolean = false;
 
   constructor() {}
 
   async ngOnInit() {
     try {
       await this.authService.waitForUser();
+
+      //Backbutton Verhalten
+    this.platform.backButton.subscribeWithPriority(10, () => {
+      if (this.overlayState === 'normal') {
+        this.overlayState = 'hidden'; // Nur Overlay schließen
+      } else {
+        this.goBack(); // Standard Verhalten
+      }
+    });
 
       const currentUser = this.authService.currentUser;
 
@@ -91,7 +108,6 @@ export class FinancePage implements OnInit {
       this.uid = currentUser.uid;
       this.user = currentUser.username;
       this.displayName = currentUser.username;
-      console.log('Benutzerdaten:', currentUser);
 
       const rawGroupId = this.activeRoute.snapshot.paramMap.get('groupId');
 
@@ -103,78 +119,105 @@ export class FinancePage implements OnInit {
 
       const groupId: string = rawGroupId; // jetzt garantiert kein null
 
-      const currentGroup = await this.groupService.getGroupById(groupId);
+      this.currentGroup = await this.groupService.getGroupById(groupId);
 
-      if (!currentGroup) {
+      if (!this.currentGroup) {
         console.error('Gruppe mit der ID ' + groupId + ' nicht gefunden');
         this.groupname = 'Unbekannte Gruppe';
         return;
       }
 
-      this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-      this.groupId = currentGroup.groupId || '';
+      this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
+      this.groupId = this.currentGroup.groupId || '';
 
-      if (!currentGroup.members || currentGroup.members.length === 0) {
+      if (
+        !this.currentGroup.members ||
+        this.currentGroup.members.length === 0
+      ) {
         console.error('Keine Mitglieder in der Gruppe gefunden');
         return;
       }
 
       // Gruppenmitglieder laden (außer aktueller User)
-      this.groupMembers = await Promise.all(
-        currentGroup.members
-          .filter((member: any) => member.uid !== this.uid)
-          .map(async (member: any) => {
-            // Memberdaten sammeln
-            this.memberUsernames.push(member.username || '');
-            this.memberIds.push(member.memberId || '');
-            this.memberColors.push(member.color || '');
-            this.memberRoles.push(member.role || '');
-            this.memberUids.push(member.uid || '');
+      this.isLoadingMembers = true;
+      this.groupMembers = this.currentGroup.members
+        .filter((member: any) => member.uid !== this.uid)
+        .map((member: any) => {
+          // Memberdaten sammeln
+          this.memberUsernames.push(member.username || '');
+          this.memberIds.push(member.memberId || '');
+          this.memberColors.push(member.color || '');
+          this.memberRoles.push(member.role || '');
+          this.memberUids.push(member.uid || '');
 
-            // Nur berechnen, wenn beide UIDs vorhanden sind
-            let saldo = 0;
+          // amount erstmal 0 setzen
+          return { ...member, amount: 0 };
+        });
 
-            if (member.uid && this.uid) {
-              const amount = await this.expenseService.getBalanceBetweenUsers(
-                groupId,
-                this.uid,
-                member.uid
-              );
+      // Für jedes Mitglied einen Echtzeit-Listener setzen
+      this.groupMembers.forEach((member, idx) => {
+        const unsubscribe = this.expenseService.getBalanceBetweenUsersRealtime(
+          this.groupId!,
+          this.uid!,
+          member.uid,
+          (balance) => {
+            this.groupMembers[idx].amount = balance;
+            this.updateMyBalance(); // myBalance immer neu berechnen
+          }
+        );
+        this.memberUnsubscribes.push(unsubscribe);
+      });
 
-              const saldo = amount; // Positiv bedeutet: Ich bekomme Geld
-              console.log(
-                `Saldo zwischen ${this.user} und ${member.username}: ${saldo}`
-              );
-
-              if (saldo > 0) {
-                this.myIncome += saldo;
-              } else {
-                this.myExpenses += Math.abs(saldo);
-              }
-
-              return {
-                ...member,
-                amount: saldo,
-              };
-            }
-          })
-      );
-
-      console.log('Mitglieder geladen:', this.groupMembers);
-      console.log('Mein Saldo:', this.myBalance);
-      console.log('Meine Ausgaben:', this.myExpenses);
-      console.log('Mein Einkommen:', this.myIncome);
-
+      this.isLoadingMembers = false;
+      this.animateBalance();
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
+      this.isLoadingMembers = false; // <--- Fehlerfall: Loading-Flag zurücksetzen
     } finally {
       this.loadingService.hide();
     }
   }
 
-  get myBalance(): number {
-    return this.myIncome - this.myExpenses;
+  ngOnDestroy() {
+    this.memberUnsubscribes.forEach((unsub) => unsub());
+  }
+
+  updateMyBalance() {
+    this.myBalance = this.groupMembers.reduce(
+      (sum, m) => sum + (m.amount || 0),
+      0
+    );
+    this.animateBalance();
+  }
+
+  animateBalance() {
+    // Stoppe ggf. laufende Animationen
+    if ((this as any)._balanceInterval) {
+      clearInterval((this as any)._balanceInterval);
+    }
+    const target = this.myBalance;
+    const duration = 400; // ms
+    const steps = 40;
+    const stepTime = duration / steps;
+    const start = 0;
+    let current = start;
+    let step = (target - start) / steps;
+    let count = 0;
+
+    this.animatedBalance = start;
+
+    (this as any)._balanceInterval = setInterval(() => {
+      count++;
+      current += step;
+      // Bei letzter Iteration auf exakten Zielwert setzen
+      if (count >= steps) {
+        this.animatedBalance = target;
+        clearInterval((this as any)._balanceInterval);
+      } else {
+        this.animatedBalance = Math.round(current);
+      }
+    }, stepTime);
   }
 
   async logout() {
@@ -190,15 +233,17 @@ export class FinancePage implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/group', this.groupId]);
+    if (this.overlayState === 'normal') {
+      this.overlayState = 'hidden'; // Optional: Overlay schließen
+      this.router.navigate(['/finance', this.groupId]);
+    } else {
+      this.router.navigate(['/group', this.groupId]);
+    }
   }
-
   toggleInfoOverlay() {
-    console.log('Overlay state:', this.overlayState);
-
     // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
     if (this.overlayState === 'start') {
-      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
+      this.overlayState = 'normal'; // Overlay wird sichtbar and Animation startet
     } else if (this.overlayState === 'normal') {
       // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
       this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
@@ -206,11 +251,15 @@ export class FinancePage implements OnInit {
       // Wenn es im "hidden" Zustand ist, wird es wieder nach oben geschoben
       this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
     }
-
-    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
   }
 
-  async goToPayAllExpenses() {
-    this.router.navigate(['/settle-balances', this.groupId]);
+  async goToPayAllExpenses(settlegroup: boolean) {
+    settlegroup
+      ? this.router.navigate(['/settle-balances', this.groupId], {
+          queryParams: {
+            settlegroup: settlegroup,
+          },
+        })
+      : this.router.navigate(['/settle-balances', this.groupId]);
   }
 }

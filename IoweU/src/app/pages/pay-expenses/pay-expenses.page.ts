@@ -357,27 +357,14 @@ export class PayExpensesPage {
 
   async pay() {
     if (this.authService.currentUser) {
-      const amount = this.getAmountToPayForMember(
-        this.expense[0],
-        this.authService.currentUser.uid
-      );
-      const trans: Transactions = {
-        from: this.uid || '',
-        to: this.expensePaidBy || '',
-        amount: amount,
-        reason: this.expense[0].description,
-        date: new Date().toISOString(),
-        relatedExpenses: [this.expenseId],
-      };
-
       try {
         // Transaktion durchführen
-        await this.transactionService.makeTransactionById(
-          this.groupId,
-          [this.expenseId],
+        await this.transactionService.settleDebtByExpense(
           this.authService.currentUser.uid,
-          trans
+          this.groupId,
+          this.expenseId,
         );
+        console.log("Transaktion wird beglichen von", this.authService.currentUser.uid, "in der Gruppe", this.groupId,"für Expense:", this.expenseId);
         // Erfolgreicher Abschluss der Transaktion
         await this.presentToast('Deine Schulden wurden erfolgreich bezahlt!');
       } catch (error) {

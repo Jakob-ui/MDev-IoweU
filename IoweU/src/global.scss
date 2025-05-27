@@ -216,7 +216,7 @@ ion-card {
   height: 120px;
   display: flex;
   --box-shadow: none !important;
-  box-shadow: none !important;
+  box-shadow: 4px 4px 15px rgb(111 111 111 / 24%) !important;
 }
 
 .card-content {
@@ -332,7 +332,7 @@ ion-card-subtitle h6 {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 5px;
+  //gap: 5px;
 }
 
 .Gesamtpreis {
@@ -419,7 +419,7 @@ ion-button.back-button::part(native) {
 }
 
 .divider {
-  width: 2px;
+  width: 1px;
   background-color: var(--ion-color-dark);
   margin-right: 10px;
   margin-left: 10px;
@@ -427,13 +427,13 @@ ion-button.back-button::part(native) {
 }
 
 ion-button.main-button::part(native) {
-  --background: var(--ion-color-primary);
+  --background: var(--ion-color-secondary);
   font-weight: 700;
   padding: 12px 24px;
   text-transform: uppercase;
   border-radius: 50px;
   box-shadow: none !important;
-  border: solid 2px var(--ion-color-dark);
+  border: solid 2px var(--ion-color-primary);
 }
 
 ion-button.outline-button::part(native) {
@@ -553,7 +553,7 @@ ion-item.select-interface-option::part(native) {
 }
 
 .info-item {
-  --background: var(--ion-color-primary);
+  --background: var(--ion-color-light);
   margin: 5px 0;
   padding: 8px;
   width: 80%;
@@ -564,7 +564,7 @@ ion-item.select-interface-option::part(native) {
   flex-direction: row;
 }
 .info-item::part(native) {
-  height: 80px;
+  height: 60px;
   border-radius: 15px;
 }
 
@@ -645,7 +645,7 @@ ion-item.select-interface-option::part(native) {
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding-top: calc(env(safe-area-inset-top) + 50px) !important;
+  //padding-top: calc(env(safe-area-inset-top) + 50px) !important;
 }
 
 .page-container {
@@ -870,6 +870,8 @@ ion-input:focus ~ .ionicon {
   padding: 5px;
 }
 
+
+
 ion-item.dropDownFelder::part(native) {
   --background: #ffffff;
   background-color: #ffffff !important;
@@ -1058,4 +1060,21 @@ ion-alert {
   .alert-button-inner.sc-ion-alert-md {
     color: var(--ion-color-light) !important;
   }
+     .info-wrapper, .invoice-wrapper{
+  background: var(--ion-color-dark) !important;
+  color: #ffffff !important;
+}
+    .info-overlay.slideUp,.invoice-overlay.slideUp{
+    background: rgba(0, 0, 0, 0.8) !important;
+  }
+  .info-wrapper [_ngcontent-ng-c3643937075] ul[_ngcontent-ng-c3643937075] li[_ngcontent-ng-c3643937075]::before {
+    color: #ffffff;
+  }
+  .info-overlay, .invoice-overlay {
+    background: rgba(0, 0, 0, 0.8) !important;
+  }
+   .info-wrapper ul li::before {
+    color: #fff !important;
+  }
+
 }

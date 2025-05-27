@@ -7,7 +7,8 @@ import {
   IonContent,
   IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList,
 
-  IonToolbar
+  IonToolbar,
+  Platform
 } from '@ionic/angular/standalone';
 import {AuthService} from "../../services/auth.service";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
@@ -16,7 +17,7 @@ import {GroupService} from "../../services/group.service";
 import {ShoppinglistService} from "../../services/shoppinglist.service";
 import {Members} from "../../services/objects/Members";
 import {ShoppingProducts} from "../../services/objects/ShoppingProducts";
-import {NavController} from "@ionic/angular";
+import {AlertController, NavController, ToastController} from "@ionic/angular";
 
 @Component({
   selector: 'app-shoppingcart',
@@ -34,6 +35,9 @@ export class ShoppingcartPage implements OnInit {
   private groupService = inject(GroupService);
   private shoppinglistService = inject(ShoppinglistService);
   private navCtrl = inject(NavController);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
+  private platform = inject(Platform);
 
   uid: string | null = '';
   user: string | null = '';
@@ -41,7 +45,7 @@ export class ShoppingcartPage implements OnInit {
 
   groupname: string = '';
   groupId: string | null = '';
-  groupMembers: Members[] = []; // Verwenden Sie das Members-Interface
+  groupMembers: { uid: string; username: string }[] = []; // Verwenden Sie das Members-Interface
   iosIcons: boolean = false;
 
   forMemberDropdownOpen: boolean = false;
@@ -59,6 +63,10 @@ export class ShoppingcartPage implements OnInit {
   earliestDueDate: Date = new Date(2025, 2, 20);
   earliestDueDateLabel: string = '';
 
+  showDeleteConfirm: boolean = false;
+  productToDelete: any;
+  touchStartX: number = 0;
+  touchStartTime: number = 0;
 
   addProductOpen = false;
 
@@ -83,12 +91,25 @@ export class ShoppingcartPage implements OnInit {
 
   isDatePickerOpen = false;
 
+  private unsubscribeShoppingCart!: () => void;
+
+  animatedCount: number = 0; // Animierte Produktanzahl
+
   async ngOnInit() {
     this.loadingService.show();
 
     try {
       // Benutzer wird gewartet und überprüft
       await this.authService.waitForUser();
+
+         //Backbutton Verhalten
+      this.platform.backButton.subscribeWithPriority(10, () => {
+        if (this.overlayState === 'normal') {
+          this.overlayState = 'hidden'; // Nur Overlay schließen
+        } else {
+          this.goBack(); // Standard Verhalten
+        }
+      });
 
       if (!this.authService.currentUser) {
         console.error('Kein Benutzer eingeloggt.');
@@ -102,24 +123,29 @@ export class ShoppingcartPage implements OnInit {
       // Die groupId aus der URL erhalten
       this.groupId = this.activeRoute.snapshot.paramMap.get('groupId');
       this.shoppingCartId = await this.shoppinglistService.getShoppingCartIdByGroupId(this.groupId!);
-      console.log('shoppingListId:', this.shoppingCartId);
+      console.log('shoppingCartId:', this.shoppingCartId);
 
       if (!this.groupId) {
         console.error('Keine groupId in Route gefunden.');
         return;
       }
 
-      // Hole die Gruppe basierend auf der groupId
-      const currentGroup = await this.groupService.getGroupById(this.groupId);
 
+      const currentGroup = await this.groupService.getGroupById(this.groupId);
       if (currentGroup) {
         this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-        this.groupMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
+        const originalMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
+        this.groupMembers = [
+          { uid: 'all', username: 'Alle' },
+          ...originalMembers
+        ];
       } else {
-        console.warn('Gruppe nicht gefunden');
         this.groupname = 'Unbekannte Gruppe';
-        this.groupMembers = [];
+        this.groupMembers = [
+          { uid: 'all', username: 'Alle' }
+        ];
       }
+
 
       this.selectedMember =
         this.groupMembers.find(
@@ -127,8 +153,19 @@ export class ShoppingcartPage implements OnInit {
         ) ||
         { uid: this.uid, username: this.displayName || 'Unbekannt' };
 
-      // Holen der Produkte für diese Gruppe
+      // Hole die Produkte für diese Gruppe
       await this.loadShoppingCartProducts();
+
+      this.unsubscribeShoppingCart = this.shoppinglistService.listenToShoppingCartChanges(
+        this.groupId,
+        this.shoppingCartId,
+        (products) => {
+          this.shoppingproducts = products;
+          this.groupProductsByDate();
+          this.animateCount(this.shoppingproducts.length); // Animation triggern
+        }
+      );
+
 
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
@@ -137,7 +174,14 @@ export class ShoppingcartPage implements OnInit {
     }
   }
 
-// Methode zum Laden der Produkte aus der Firebase-Datenbank
+  ngOnDestroy() {
+    // Den Listener abbestellen, wenn die Komponente zerstört wird
+    if (this.unsubscribeShoppingCart) {
+      this.unsubscribeShoppingCart();
+    }
+  }
+
+
   async loadShoppingCartProducts() {
     try {
       if (!this.groupId) {
@@ -153,6 +197,7 @@ export class ShoppingcartPage implements OnInit {
       const allProducts = await this.shoppinglistService.getShoppingCartProducts(this.groupId, this.shoppingCartId);
       this.shoppingproducts = allProducts.filter(p => p.status === 'im Warenkorb');
       this.groupProductsByDate();
+      this.animateCount(this.shoppingproducts.length); // Animation triggern
     } catch (error) {
       console.error('Fehler beim Laden der Produkte aus dem Warenkorb:', error);
     }
@@ -269,8 +314,14 @@ export class ShoppingcartPage implements OnInit {
 
 
   goBack() {
-    this.router.navigate(['/group', this.groupId]);
+    if (this.overlayState === 'normal') {
+      this.overlayState = 'hidden'; // Optional: Overlay schließen
+      this.router.navigate(['/shoppingcart', this.groupId]);
+    } else {
+      this.router.navigate(['/group', this.groupId]);
+    }
   }
+
 
   toggleInfoOverlay() {
 
@@ -351,15 +402,169 @@ export class ShoppingcartPage implements OnInit {
 
 
   goToCreateExpense() {
-    this.navCtrl.navigateForward(['/create-expense', this.groupId], {
-      state: {
-        fromShoppingCart: true,
-        cartItems: this.shoppingproducts,
-        groupId: this.groupId,
-        userId: this.authService.currentUser?.uid // Übergibt die UID des eingeloggten Users
-      }
-    });
+    try {
+      // Navigiere mit queryParams
+      this.router.navigate(['/create-expense', this.groupId], {
+        queryParams: {
+          fromShoppingCart: this.shoppingCartId,
+        },
+      });
+    } finally {
+      this.loadingService.hide();
+    }
   }
 
+  async deleteProductForShoppingCart(shoppingProductId: string) {
+    try {
+      if (!this.shoppingCartId) {
+        throw new Error('ShoppingListId ist nicht definiert!');
+      }
+
+      await this.shoppinglistService.deleteShoppingProduct(
+        this.groupId!,
+        this.shoppingCartId,  // Hier wird sicher die shoppingListId übergeben
+        shoppingProductId
+      );
+      console.log('Produkt gelöscht:', shoppingProductId);
+
+      await this.loadShoppingCartProducts();
+    } catch (error) {
+      console.error('Fehler beim Löschen des Produkts:', error);
+    }
+  }
+
+  onTouchStart(event: TouchEvent) {
+    this.touchStartX = event.changedTouches[0].screenX;
+    this.touchStartTime = Date.now(); // Zeit des Touch-Starts merken
+  }
+
+  onTouchEnd(event: TouchEvent, shoppingProduct: any) {
+    const touchEndX = event.changedTouches[0].screenX;
+    const deltaX = touchEndX - this.touchStartX;
+    const swipeDuration = Date.now() - this.touchStartTime;
+    const swipeThreshold = 100; // Mindestdistanz in px
+    const maxSwipeTime = 500; // maximale Dauer für "echten" Swipe in ms
+
+    // Abbrechen, wenn der Wisch zu langsam oder zu kurz war
+    if (Math.abs(deltaX) < swipeThreshold || swipeDuration > maxSwipeTime) {
+      return;
+    }
+
+    if (deltaX > 0) {
+      // Swipe nach rechts
+      (shoppingProduct as any).swiped = 'right';
+
+      setTimeout(() => {
+        this.moveProductToList(shoppingProduct.shoppingProductId);
+        this.presentToast('Produkt wurde zurück in die Einkaufsliste verschoben!');
+        this.shoppingproducts = this.shoppingproducts.filter(
+          (p) => p.shoppingProductId !== shoppingProduct.shoppingProductId
+        );
+        this.groupProductsByDate();
+      }, 300);
+    } else {
+      // Swipe nach links
+      (shoppingProduct as any).swiped = 'left';
+
+      setTimeout(() => {
+        this.productToDelete = shoppingProduct;
+        this.showDeleteAlert();
+        (shoppingProduct as any).swiped = null;
+      }, 300);
+    }
+  }
+
+  async moveProductToList(shoppingProductId: string) {
+    const groupId = this.groupId;
+    if (!groupId) {
+      console.error('groupId fehlt');
+      return;
+    }
+
+    try {
+      const shoppingCart = await this.shoppinglistService.getShoppingCartByGroupId(groupId);
+      if (!shoppingCart) {
+        console.error('Keine Einkaufsliste für diese Gruppe gefunden');
+        return;
+      }
+
+      const shoppingCartId = shoppingCart.shoppingcartId;
+
+      await this.shoppinglistService.moveProductBackToShoppingList(groupId, shoppingCartId, shoppingProductId);
+      console.log('Produkt verschoben!');
+
+      this.loadShoppingCartProducts();
+    } catch (error) {
+      console.error('Fehler beim Verschieben:', error);
+    }
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
+
+  async showDeleteAlert() {
+    const alert = await this.alertController.create({
+      header: 'Bestätigen',
+      message: 'Möchten Sie dieses Produkt wirklich löschen?',
+      buttons: [
+        {
+          text: 'Abbrechen',
+          role: 'cancel',
+          handler: () => {
+            this.showDeleteConfirm = false;
+            this.productToDelete = null;
+
+            if (this.productToDelete && (this.productToDelete as any).swiped) {
+              (this.productToDelete as any).swiped = null;
+            }
+          }
+        },
+        {
+          text: 'Löschen',
+          handler: () => {
+            if (this.productToDelete) {
+              this.deleteProductForShoppingCart(this.productToDelete.shoppingProductId);
+              this.presentToast('Produkt wurde erfolgreich gelöscht!');
+
+              this.showDeleteConfirm = false;
+              this.productToDelete = null;
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  // Animiert die Produktanzahl von aktuellem Wert zu neuem Wert
+  animateCount(target: number) {
+    const duration = 400; // ms
+    const frameRate = 30; // fps
+    const steps = Math.max(1, Math.round(duration / (1000 / frameRate)));
+    const start = this.animatedCount;
+    const diff = target - start;
+    if (diff === 0) return;
+    let currentStep = 0;
+
+    const stepFn = () => {
+      currentStep++;
+      this.animatedCount = Math.round(start + (diff * currentStep) / steps);
+      if (currentStep < steps) {
+        setTimeout(stepFn, 1000 / frameRate);
+      } else {
+        this.animatedCount = target;
+      }
+    };
+
+    stepFn();
+  }
 
 }

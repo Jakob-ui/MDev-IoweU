@@ -22,6 +22,8 @@ h1{
   align-items: center;
   transition: top 0.5s ease-in-out, visibility 0s 0.5s;
   padding: 20px;
+  visibility: hidden;         // Standard: unsichtbar
+  pointer-events: none;
 }
 
 .info-overlay.start {
@@ -30,6 +32,7 @@ h1{
 
 .info-overlay.normal {
   visibility: visible;
+  pointer-events: auto;
 }
 
 .info-overlay.slideUp {
@@ -71,6 +74,8 @@ h1{
   flex-direction: column;
   gap: 15px;
   color: #2c2c2c;
+  max-height: 90%;      // <--- NEU: maximale Höhe
+  overflow-y: auto;      // <--- NEU: Inhalt scrollbar machen
 }
 
 .info-wrapper h5 {
@@ -109,7 +114,7 @@ h1{
 }
 
 .input-item,
-.info-wrapper .main-button,{
+.info-wrapper .main-button{
   width: 100%;
 }
 
@@ -181,15 +186,15 @@ ion-button.outline-button::part(native) {
   margin-left: 10px;
 }
 
-.shoppingplist-item {
+.shoppinglist-item {
   transition: transform 0.3s ease;
 }
 
-.shoppingplist-item.swipe-right {
+.shoppinglist-item.swipe-right {
   transform: translateX(80px); // Slide nach rechts
 }
 
-.shoppingplist-item.swipe-left {
+.shoppinglist-item.swipe-left {
   transform: translateX(-80px); // Slide nach links
 }
 
@@ -288,7 +293,7 @@ ion-button.outline-button::part(native) {
   font-weight: 300;
 }
 
-.shoppingplist-item{
+.shoppinglist-item{
   display: flex !important;
   justify-content: center !important;
   width: 80%;
@@ -312,6 +317,23 @@ form .top-container{
 }
 
 
+.buttons{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  ion-icon{
+    width: 20px;
+    height: 20px;
+  }
+}
+
+ion-checkbox{
+  margin-right: 5px;
+}
+
+
 
 @media (prefers-color-scheme: dark) {
   .date {
@@ -326,4 +348,24 @@ form .top-container{
   .show-details-button span {
     color: #8c8c8c;
 }
+  .first-container{
+  color: #000 !important;
+}
+.selected-forMember{
+  color: #000 !important;
+}
+.forMember{
+  color: #000 !important;
+}
+h5{
+  color: #000 !important;
+}
+p{
+  color: #000 !important;
+}
+.info-wrapper p,
+  .info-wrapper h5 {
+    color: #fff !important;
+  }
+ 
 }

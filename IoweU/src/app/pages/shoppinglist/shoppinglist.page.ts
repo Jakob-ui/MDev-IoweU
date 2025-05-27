@@ -9,7 +9,8 @@ import {
   IonCard,
   IonButton,
   IonIcon,
-   IonInput, IonDatetime, IonLabel
+  IonInput, IonDatetime, IonLabel, IonCheckbox,
+  Platform
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -44,6 +45,7 @@ import {AlertController, ToastController} from "@ionic/angular";
     FormsModule,
     IonDatetime,
     IonLabel,
+    IonCheckbox,
   ],
 })
 export class ShoppinglistPage implements OnInit {
@@ -56,6 +58,7 @@ export class ShoppinglistPage implements OnInit {
   private shoppinglistService = inject(ShoppinglistService);
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
+  private platform = inject(Platform);
 
   uid: string | null = '';
   user: string | null = '';
@@ -63,11 +66,12 @@ export class ShoppinglistPage implements OnInit {
 
   groupname: string = '';
   groupId: string | null = '';
-  groupMembers: Members[] = [];
+  groupMembers: { uid: string; username: string }[] = [];
   iosIcons: boolean = false;
 
   forMemberDropdownOpen: boolean = false;
   selectedMember: any = this.uid ? { uid: this.uid, username: 'Dein Name' } : null;
+  isForAll: boolean = false;
 
   showDetails: boolean = false;
 
@@ -84,10 +88,14 @@ export class ShoppinglistPage implements OnInit {
   showDeleteConfirm: boolean = false;
   productToDelete: any;
   touchStartX: number = 0;
+  touchStartTime: number = 0;
+
+  inputVisible = true;
 
   addProductOpen = false;
   animatedItems: { [key: string]: boolean } = {};
 
+  animatedCount: number = 0; // Animierte Produktanzahl
 
   newProduct = {
     quantity: 1,
@@ -109,56 +117,68 @@ export class ShoppinglistPage implements OnInit {
   };
 
   isDatePickerOpen = false;
+  public showCheckbox: boolean = false;
 
   private unsubscribeProductsListener!: () => void;
+  
 
   async ngOnInit() {
     this.loadingService.show();
 
     try {
+      // User und Group initialisieren (wie von dir schon implementiert)
       await this.authService.waitForUser();
 
-      if (!this.authService.currentUser) {
-        console.error('Kein Benutzer eingeloggt.');
-        return;
+       //Backbutton Verhalten
+    this.platform.backButton.subscribeWithPriority(10, () => {
+      if (this.overlayState === 'normal') {
+        this.overlayState = 'hidden'; // Nur Overlay schließen
+      } else {
+        this.goBack(); // Standard Verhalten
       }
+    });
+
+      if (!this.authService.currentUser) return;
 
       this.uid = this.authService.currentUser.uid;
       this.user = this.authService.currentUser.username;
       this.displayName = this.authService.currentUser.username;
 
       const routeGroupId = this.activeRoute.snapshot.paramMap.get('groupId');
-      if (!routeGroupId) {
-        console.error('Keine groupId in Route gefunden.');
-        return;
-      }
+      if (!routeGroupId) return;
       this.groupId = routeGroupId;
 
       this.shoppingListId = await this.shoppinglistService.getShoppingListIdByGroupId(this.groupId);
-      console.log('shoppingListId:', this.shoppingListId);
 
       const currentGroup = await this.groupService.getGroupById(this.groupId);
       if (currentGroup) {
         this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-        this.groupMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
+        const originalMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
+        this.groupMembers = [
+          { uid: 'all', username: 'Alle' },
+          ...originalMembers
+        ];
       } else {
         console.warn('Gruppe nicht gefunden');
         this.groupname = 'Unbekannte Gruppe';
-        this.groupMembers = [];
+        this.groupMembers = [
+          { uid: 'all', username: 'Alle' }
+        ];
       }
 
+      window.addEventListener('resize', this.updateCheckboxVisibility.bind(this));
       this.unsubscribeProductsListener = this.shoppinglistService.listenToShoppingProductsChanges(
         this.groupId,
         this.shoppingListId,
         (products) => {
           this.shoppingproducts = products.filter(p => p.status === 'open');
           this.groupProductsByDate();
+          this.animateCount(this.shoppingproducts.length); // Animation triggern
 
           if (!this.selectedMember && this.shoppingproducts.length > 0) {
-            this.selectedMember =
-              this.groupMembers.find(
-                (member) => member.uid === this.shoppingproducts[0]?.forMemberId
-              ) || { uid: this.uid, username: this.displayName || 'Unbekannt' };
+            this.selectedMember = this.groupMembers.find(
+              (member) => member.uid === this.shoppingproducts[0]?.forMemberId
+            ) || { uid: this.uid, username: this.displayName || 'Unbekannt' };
           }
         }
       );
@@ -171,9 +191,14 @@ export class ShoppinglistPage implements OnInit {
 
 
   ngOnDestroy() {
+    window.removeEventListener('resize', this.updateCheckboxVisibility.bind(this));
     if (this.unsubscribeProductsListener) {
       this.unsubscribeProductsListener();
     }
+  }
+
+  private updateCheckboxVisibility() {
+    this.showCheckbox = window.innerWidth > 600;
   }
 
 
@@ -193,6 +218,7 @@ export class ShoppinglistPage implements OnInit {
       const allProducts = await this.shoppinglistService.getShoppingProducts(this.groupId, this.shoppingListId);
       this.shoppingproducts = allProducts.filter(p => p.status === 'open');
       this.groupProductsByDate();
+      this.animateCount(this.shoppingproducts.length); // Animation triggern
     } catch (error) {
       console.error('Fehler beim Laden der Produkte:', error);
     }
@@ -346,7 +372,12 @@ export class ShoppinglistPage implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/group', this.groupId]);
+    if (this.overlayState === 'normal') {
+      this.overlayState = 'hidden'; // Optional: Overlay schließen
+      this.router.navigate(['/shoppinglist', this.groupId]);
+    } else {
+      this.router.navigate(['/group', this.groupId]);
+    }
   }
 
   toggleInfoOverlay() {
@@ -411,32 +442,29 @@ export class ShoppinglistPage implements OnInit {
 
   async saveProductDetails() {
     if (!this.groupId || !this.shoppingListId) {
-      console.error('Group ID oder ShoppingList ID ist null oder undefined');
       this.presentAlert('Fehler','Die Gruppen- oder ShoppingList-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
-    try {
-      if (this.selectedProduct) {
+    if (!this.selectedProduct) {
+      this.presentAlert('Fehler','Kein Produkt zum Speichern ausgewählt.');
+      return;
+    }
 
-        await this.shoppinglistService.editShoppingProduct(
-          this.groupId,
-          this.shoppingListId,
-          this.selectedProduct.shoppingProductId,
-          this.selectedProduct
-        );
-        console.log('Produktdetails gespeichert:', this.selectedProduct);
-        await this.presentToast('Produktdetails gespeichert!');
-        this.detailsOverlayState = 'hidden';
-      } else {
-        console.error('Kein Produkt zum Speichern ausgewählt.');
-        this.presentAlert('Fehler','Kein Produkt zum Speichern ausgewählt.');
-      }
+    try {
+      await this.shoppinglistService.editShoppingProduct(
+        this.groupId,
+        this.shoppingListId,
+        this.selectedProduct.shoppingProductId,
+        this.selectedProduct
+      );
+      await this.presentToast('Produktdetails gespeichert!');
+      this.detailsOverlayState = 'hidden';
     } catch (error) {
-      console.error('Fehler beim Speichern der Produktdetails:', error);
       this.presentAlert('Fehler', 'Es gab einen Fehler beim Speichern der Produktdetails. Bitte versuche es erneut.');
     }
   }
+
 
   openDatePicker(product: any) {
     this.selectedProduct = product;
@@ -467,6 +495,35 @@ export class ShoppinglistPage implements OnInit {
     this.forMemberDropdownOpen = false;
     event.stopPropagation();
   }
+
+  editSelectedMember(member: any, event: Event) {
+    event.stopPropagation();
+    this.selectedProduct.forMemberId = member.uid; // <--- das fehlte!
+    this.selectedMember = member;
+    this.forMemberDropdownOpen = false;
+  }
+
+
+  selectAllMembers(event: Event) {
+    event.stopPropagation();
+    this.isForAll = true;
+    this.selectedMember = {
+      uid: 'all',
+      username: 'Alle'
+    };
+    this.forMemberDropdownOpen = false;
+  }
+
+  editSelectedAllMembers(event: Event) {
+    event.stopPropagation();
+    this.selectedProduct.forMemberId = 'all'; // <--- das fehlte!
+    this.selectedMember = {
+      uid: 'all',
+      username: 'Alle'
+    };
+    this.forMemberDropdownOpen = false;
+  }
+
 
 
   toggleChecked(shoppingproduct: ShoppingProducts) {
@@ -518,16 +575,26 @@ export class ShoppinglistPage implements OnInit {
 
     try {
       await this.shoppinglistService.addShoppingProduct(this.groupId!, shoppingProductData);
-      await this.presentToast('Produkt wurde hinzugefügt!');
-      console.log('Produkt erfolgreich gespeichert!');
-      this.showDetails = false;
+
+      // Felder zurücksetzen
       this.newProduct = {
         quantity: 1,
-        unit: 'Stück',
+        unit: 'Mal',
         productname: '',
         forMemberId: this.uid || '',
         dueDate: null,
       };
+
+      await this.presentToast('Produkt wurde hinzugefügt!');
+      console.log('Produkt erfolgreich gespeichert!');
+      this.showDetails = false;
+
+      // Sichtbarkeit kurz deaktivieren, um Input zurückzusetzen
+      this.inputVisible = false;
+      setTimeout(() => {
+        this.inputVisible = true;
+      }, 0);
+
     } catch (error) {
       console.error('Fehler beim Speichern:', error);
       this.presentAlert('Fehler','Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
@@ -579,34 +646,46 @@ export class ShoppinglistPage implements OnInit {
     }
   }
 
+  onCheckboxChange(event: any, shoppingProductId: string) {
+    if (event.detail.checked) {
+      this.moveProductToCart(shoppingProductId);
+    }
+  }
 
 
   onTouchStart(event: TouchEvent) {
     this.touchStartX = event.changedTouches[0].screenX;
+    this.touchStartTime = Date.now(); // Zeit des Touch-Starts merken
   }
 
   onTouchEnd(event: TouchEvent, shoppingProduct: any) {
     const touchEndX = event.changedTouches[0].screenX;
     const deltaX = touchEndX - this.touchStartX;
-    const swipeThreshold = 50;
+    const swipeDuration = Date.now() - this.touchStartTime;
+    const swipeThreshold = 100; // Mindestdistanz in px
+    const maxSwipeTime = 500; // maximale Dauer für "echten" Swipe in ms
 
-    if (deltaX > swipeThreshold) {
+    // Abbrechen, wenn der Wisch zu langsam oder zu kurz war
+    if (Math.abs(deltaX) < swipeThreshold || swipeDuration > maxSwipeTime) {
+      return;
+    }
+
+    if (deltaX > 0) {
+      // Swipe nach rechts
       (shoppingProduct as any).swiped = 'right';
 
       setTimeout(() => {
         this.moveProductToCart(shoppingProduct.shoppingProductId);
         this.presentToast('Produkt wurde in den Warenkorb verschoben!');
-
-
         this.shoppingproducts = this.shoppingproducts.filter(
           (p) => p.shoppingProductId !== shoppingProduct.shoppingProductId
         );
-
         this.groupProductsByDate();
       }, 300);
-
-    } else if (deltaX < -swipeThreshold) {
+    } else {
+      // Swipe nach links
       (shoppingProduct as any).swiped = 'left';
+
       setTimeout(() => {
         this.productToDelete = shoppingProduct;
         this.showDeleteAlert();
@@ -668,6 +747,29 @@ export class ShoppinglistPage implements OnInit {
       cssClass: 'custom-toast',
     });
     await toast.present();
+  }
+
+  // Animiert die Produktanzahl von aktuellem Wert zu neuem Wert
+  animateCount(target: number) {
+    const duration = 400; // ms
+    const frameRate = 30; // fps
+    const steps = Math.max(1, Math.round(duration / (1000 / frameRate)));
+    const start = this.animatedCount;
+    const diff = target - start;
+    if (diff === 0) return;
+    let currentStep = 0;
+
+    const stepFn = () => {
+      currentStep++;
+      this.animatedCount = Math.round(start + (diff * currentStep) / steps);
+      if (currentStep < steps) {
+        setTimeout(stepFn, 1000 / frameRate);
+      } else {
+        this.animatedCount = target;
+      }
+    };
+
+    stepFn();
   }
 
 }

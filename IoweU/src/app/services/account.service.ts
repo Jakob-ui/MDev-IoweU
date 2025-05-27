@@ -14,6 +14,7 @@ import {
   deleteDoc,
 } from '@angular/fire/firestore';
 import { Users } from './objects/Users';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -81,5 +82,43 @@ export class AccountService {
       console.error('Kein Benutzer ist aktuell eingeloggt.');
       throw new Error('Kein Benutzer ist aktuell eingeloggt.');
     }
+  }
+
+  async updateGroupsWithNewUserData(uid: string, newUsername: string, newColor: string): Promise<void> {
+    const groupsCollection = collection(this.firestore, 'groups');
+    const snapshot = await getDocs(groupsCollection);
+
+    for (const groupDoc of snapshot.docs) {
+      const groupData = groupDoc.data();
+      let members = groupData['members'] || [];
+      let updated = false;
+
+      members = members.map((member: any) => {
+        if (member.uid === uid) {
+          updated = true;
+          return {
+            ...member,
+            username: newUsername,
+            color: newColor,
+          };
+        }
+        return member;
+      });
+
+      if (updated) {
+        await updateDoc(groupDoc.ref, { members });
+        console.log(`Mitgliedsdaten in Gruppe ${groupDoc.id} aktualisiert.`);
+      }
+    }
+  }
+
+  shouldReloadGroupOverview = false;
+
+  setShouldReloadGroupOverview(value: boolean) {
+    this.shouldReloadGroupOverview = value;
+  }
+
+  getShouldReloadGroupOverview(): boolean {
+    return this.shouldReloadGroupOverview;
   }
 }

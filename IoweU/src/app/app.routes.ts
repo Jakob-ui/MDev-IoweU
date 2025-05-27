@@ -18,6 +18,14 @@ export const routes: Routes = [
       import('./pages/register/register.page').then((m) => m.RegisterPage),
   },
   {
+    path: 'profile-setup',
+    loadComponent: () =>
+      import('./pages/profile-setup/profile-setup.page').then(
+        (m) => m.ProfileSetupPage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'group-overview',
     loadComponent: () =>
       import('./pages/group-overview/group-overview.page').then(
@@ -166,10 +174,18 @@ export const routes: Routes = [
   },
   {
     path: 'settle-balances/:groupId',
-    loadComponent: () => import('./pages/settle-balances/settle-balances.page').then(
-      (m) => m.SettleBalancesPage
-    ),
+    loadComponent: () =>
+      import('./pages/settle-balances/settle-balances.page').then(
+        (m) => m.SettleBalancesPage
+      ),
     canActivate: [AuthGuard],
+  },
+  {
+    path: 'no-connection',
+    loadComponent: () =>
+      import('./pages/no-connection/no-connection.page').then(
+        (m) => m.NoConnectionPage
+      ),
   },
   {
     path: 'not-found',
@@ -181,8 +197,6 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'not-found',
   },
-
-
 
 
 ];

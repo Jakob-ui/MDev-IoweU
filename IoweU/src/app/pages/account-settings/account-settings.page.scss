@@ -1,3 +1,7 @@
+.container{
+  margin-bottom: 80px;
+}
+
 .profilepic {
   width: 60px;
   height: 60px;
@@ -62,6 +66,20 @@ ion-toggle::part(handle) {
   font-size: 22px;
   font-weight: bold;
   color: var(--ion-color-dark);
+}
+
+.name-buttons{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-item ion-icon{
+  font-size: 23px;
+  padding: 5px;
+  border-radius: 50%;
+  background-color: var(--ion-color-primary);
 }
 
 

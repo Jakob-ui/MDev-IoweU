@@ -1,12 +1,15 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'ioweu.eu',
   appName: 'IoweU',
   webDir: 'www',
+  server: {
+    androidScheme: 'https',
+  },
   plugins: {
-    Keyboard: {
-      resize: 'ionic',
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
     },
   },
 };

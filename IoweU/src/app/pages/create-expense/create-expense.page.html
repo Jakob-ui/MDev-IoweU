@@ -1,6 +1,6 @@
 <ion-content
   [fullscreen]="true"
-  (click)="closeInvoiceDropdowns()"
+  (click)="closeDropdowns()"
   scroll="true"
 >
   <div id="container" class="container">
@@ -160,7 +160,10 @@
         <!-- Währungsauswahl -->
         <div class="Währung">
           <span class="input-label">Währung</span>
-          <ion-item class="input-item" (click)="toggleCurrencyDropdown($event)">
+          <ion-item
+            class="input-item"
+            (click)="toggleCurrencyDropdown($event)"
+            [disabled]="ProduktFromShoppingCart">
             <ion-label>
               <div class="selected-currency">{{ selectedCurrency }}</div>
             </ion-label>
@@ -190,7 +193,7 @@
       <div class="exchange">
         <!-- Umgerechneter Betrag in EUR -->
         <div class="betrag" *ngIf="selectedCurrency !== 'EUR'">
-          <span class="input-label">Umgerechnet in €</span>
+          <span class="input-label">Betrag in <strong>EUR</strong></span>
           <ion-item class="input-item">
             <div class="input-wrapper">
               <ion-input
@@ -288,26 +291,30 @@
           </ion-item>
         </div>
 
-        <div class="wiederholung">
+        <div class="wiederholung" (click)="toggleRepeatDropdown($event)">
           <span class="input-label">Wiederholung</span>
           <ion-item class="input-item">
-            <ion-select [(ngModel)]="expense.repeat" interface="popover">
-              <ion-select-option class="custom-select-option" value="nein"
-                >nein</ion-select-option
-              >
-              <ion-select-option class="custom-select-option" value="täglich"
-                >täglich</ion-select-option
-              >
-              <ion-select-option
-                class="custom-select-option"
-                value="wöchentlich"
-                >wöchentlich</ion-select-option
-              >
-              <ion-select-option class="custom-select-option" value="monatlich"
-                >monatlich</ion-select-option
-              >
-            </ion-select>
+            <ion-label>
+              <div class="selected-repeat">
+                {{ getRepeatLabel(expense.repeat) || 'Wiederholung' }}
+              </div>
+            </ion-label>
+            <ion-icon name="caret-down-outline" slot="end" class="pfeilicon"></ion-icon> <!-- Add arrow icon -->
           </ion-item>
+
+          <div *ngIf="repeatDropdownOpen" class="custom-dropdown">
+            <ion-list>
+              <ion-item
+                class="dropDownFelder"
+                button
+                *ngFor="let repeatOption of repeatOptions"
+                [ngClass]="{ 'selected': expense.repeat === repeatOption.value }"
+                (click)="selectRepeat(repeatOption.value, $event)"
+              >
+                <ion-label>{{ repeatOption.label }}</ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
         </div>
       </div>
     </div>
@@ -323,6 +330,7 @@
               interface="popover"
               (ngModelChange)="onSplitTypeChange()"
               ngDefaultControl="anteile"
+              [disabled]="ProduktFromShoppingCart"
             >
               <ion-select-option class="custom-select-option" value="anteile"
                 >Anteile</ion-select-option
@@ -343,12 +351,12 @@
               [(ngModel)]="expense.splitBy"
               (ngModelChange)="onSplitByChange()"
               interface="popover"
-              [disabled]="!chooseSplitType"
+              [disabled]="!chooseSplitType || ProduktFromShoppingCart"
             >
               <ion-select-option
                 class="custom-select-option"
                 value="alle"
-                [disabled]="!chooseSplitType"
+                [disabled]="!chooseSplitType || ProduktFromShoppingCart"
                 >alle</ion-select-option
               >
               <ion-select-option class="custom-select-option" value="frei"
@@ -381,7 +389,7 @@
               'border-color': 'var(--member-color-' + groupMember.uid + ')'
             }"
             ></div>
-            <span class="member-name">{{ groupMember.username }}</span>
+            <span class="member-name">{{ groupMember.uid === 'all' ? 'Alle' : groupMember.username }}</span>
           </div>
           <div
             *ngIf="expense.splitType === 'produkte'"
@@ -524,7 +532,7 @@
         </div>
 
         <div
-          *ngIf="showProductInputFields[groupMember.uid]"
+          *ngIf="showProductInputFields[groupMember.uid] && shoppingCartId == null"
           class="product-input-fields"
         >
           <!-- Produktliste und Eingabefelder -->
@@ -602,6 +610,46 @@
               [src]="'assets/icon/ionicons/ios-add.svg'"
             ></ion-icon>
           </div>
+        </div>
+
+        <div
+          class="product-list"
+          *ngIf="productInputs[groupMember.uid]?.products?.length && shoppingCartId != null"
+        >
+          <ul>
+            <li *ngFor="let product of productInputs[groupMember.uid].products">
+              <div class="left-container">
+                <span class="product-quantity">{{ product.quantity }} {{ product.unit }}</span>
+                <span class="product">{{ product.productname }}</span>
+              </div>
+
+              <!-- Preis-Eingabe -->
+              <ion-input
+                *ngIf="selectedCurrency === 'EUR'"
+                type="number"
+                [(ngModel)]="product.price"
+                step="0.01"
+                placeholder="0,00"
+                (ionInput)="updateAmountToPayForProducts()"
+              ></ion-input>
+
+              <!-- Optional: auch für Fremdwährung -->
+              <ion-input
+                *ngIf="selectedCurrency !== 'EUR'"
+                type="number"
+                [(ngModel)]="product.foreignPrice"
+                step="0.01"
+                placeholder="0,00"
+                (ionInput)="updateAmountToPayForProducts()"
+              ></ion-input>
+
+              <ion-icon
+                class="delete-icon"
+                [src]="'assets/icon/ionicons/ios-close.svg'"
+                (click)="removeProduct(product)"
+              ></ion-icon>
+            </li>
+          </ul>
         </div>
       </div>
       <ion-text color="danger" *ngIf="error" class="split-percentage">
