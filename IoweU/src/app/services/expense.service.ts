@@ -197,7 +197,7 @@ export class ExpenseService {
     try {
       if (paid) {
         console.log('Ausgbabe wurde bereits bezahlt, löschen nicht möglich');
-        return;       
+        return;
       }
       const expenseRef = doc(
         this.firestore,
@@ -529,11 +529,12 @@ export class ExpenseService {
     return [memberAId, memberBId].sort().join('_');
   }
 
-  async getBalanceBetweenUsers(
+  getBalanceBetweenUsersRealtime(
     groupId: string,
     userAId: string,
-    userBId: string
-  ): Promise<number> {
+    userBId: string,
+    callback: (balance: number) => void
+  ): () => void {
     const balancesRef = collection(
       this.firestore,
       'groups',
@@ -545,38 +546,54 @@ export class ExpenseService {
       where('userAId', '==', userAId),
       where('userBId', '==', userBId)
     );
+    const q2 = query(
+      balancesRef,
+      where('userAId', '==', userBId),
+      where('userBId', '==', userAId)
+    );
 
-    let snapshot = await getDocs(q1);
-    if (snapshot.empty) {
-      const q2 = query(
-        balancesRef,
-        where('userAId', '==', userBId),
-        where('userBId', '==', userAId)
-      );
-      snapshot = await getDocs(q2);
-      if (snapshot.empty) {
-        return 0; // Keine Bilanz gefunden
+    let unsub2: (() => void) | null = null;
+    const unsub1 = onSnapshot(q1, (snapshot) => {
+      if (!snapshot.empty) {
+        let amount = 0;
+        snapshot.forEach((doc) => {
+          const data = doc.data() as Balances;
+          amount += data.userACredit - data.userBCredit;
+        });
+        callback(amount);
+      } else {
+        unsub2 = onSnapshot(q2, (snapshot2) => {
+          if (!snapshot2.empty) {
+            let amount = 0;
+            snapshot2.forEach((doc) => {
+              const data = doc.data() as Balances;
+              amount += data.userBCredit - data.userACredit;
+            });
+            callback(amount);
+          } else {
+            callback(0);
+          }
+        });
       }
-      let amount = 0;
-
-      snapshot.forEach((doc) => {
-        const data = doc.data() as Balances;
-        amount += data.userBCredit - data.userACredit; // Berechnung der Differenz
-      });
-      return amount;
-    }
-    let amount = 0;
-
-    snapshot.forEach((doc) => {
-      const data = doc.data() as Balances;
-      amount += data.userACredit - data.userBCredit; // Berechnung der Differenz
     });
 
-    return amount;
+    return () => {
+      unsub1();
+      if (unsub2) unsub2();
+    };
   }
 
-  async getUserBalance(groupId: string, currentUserId: string, selectedMemberId: string) {
-    const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+  async getUserBalance(
+    groupId: string,
+    currentUserId: string,
+    selectedMemberId: string
+  ) {
+    const balancesRef = collection(
+      this.firestore,
+      'groups',
+      groupId,
+      'balances'
+    );
 
     // Erste Abfrage nach den Benutzern, wobei der eingeloggte Benutzer als `userA` und der ausgewählte Benutzer als `userB` sein könnte
     const q1 = query(
@@ -586,7 +603,7 @@ export class ExpenseService {
     );
 
     let snapshot = await getDocs(q1);
-    console.log("q1 snapshot", snapshot.empty, snapshot.docs);
+    console.log('q1 snapshot', snapshot.empty, snapshot.docs);
 
     // Falls keine Daten gefunden werden, auch nach den umgekehrten IDs suchen
     if (snapshot.empty) {
@@ -596,7 +613,7 @@ export class ExpenseService {
         where('userBId', '==', currentUserId)
       );
       snapshot = await getDocs(q2);
-      console.log("q2 snapshot", snapshot.empty, snapshot.docs);
+      console.log('q2 snapshot', snapshot.empty, snapshot.docs);
 
       if (snapshot.empty) {
         return { myIncome: 0, myExpenses: 0 }; // Keine Bilanz gefunden
@@ -607,8 +624,8 @@ export class ExpenseService {
       let myExpenses = 0;
       snapshot.forEach((doc) => {
         const data = doc.data() as Balances;
-        console.log("Data from q2:", data);
-        myIncome += data.userBCredit;  // Betrag, den der ausgewählte Benutzer erhalten muss
+        console.log('Data from q2:', data);
+        myIncome += data.userBCredit; // Betrag, den der ausgewählte Benutzer erhalten muss
         myExpenses += data.userACredit; // Betrag, den der eingeloggte Benutzer zahlen muss
       });
 
@@ -620,8 +637,8 @@ export class ExpenseService {
     let myExpenses = 0;
     snapshot.forEach((doc) => {
       const data = doc.data() as Balances;
-      console.log("Data from q1:", data);
-      myIncome += data.userACredit;  // Betrag, den der eingeloggte Benutzer erhalten soll
+      console.log('Data from q1:', data);
+      myIncome += data.userACredit; // Betrag, den der eingeloggte Benutzer erhalten soll
       myExpenses += data.userBCredit; // Betrag, den der ausgewählte Benutzer zahlen muss
     });
 
@@ -633,7 +650,12 @@ export class ExpenseService {
     currentUserUid: string,
     selectedMemberUid: string
   ): Promise<Expenses[]> {
-    const balancesRef = collection(this.firestore, 'groups', groupId, 'balances');
+    const balancesRef = collection(
+      this.firestore,
+      'groups',
+      groupId,
+      'balances'
+    );
     const balanceMembers = [currentUserUid, selectedMemberUid];
     const q1 = query(
       balancesRef,
@@ -649,17 +671,29 @@ export class ExpenseService {
     const unsettledExpenses: Expenses[] = [];
 
     // Hol dir die Ausgaben, die unter relatedExpensesId aufscheinen
-    for(const expenseId of relatedBalance.relatedExpenseId) {
-      const expenseRef = doc(this.firestore, 'groups', groupId, 'expenses', expenseId);
+    for (const expenseId of relatedBalance.relatedExpenseId) {
+      const expenseRef = doc(
+        this.firestore,
+        'groups',
+        groupId,
+        'expenses',
+        expenseId
+      );
       const expenseSnapshot = await getDoc(expenseRef);
       if (expenseSnapshot.exists()) {
         const expenseData = expenseSnapshot.data() as Expenses;
         // Überprüfe für jeden, ob entweder der eingeloggte Benutzer oder der ausgewählte Benutzer seinen Anteil noch nicht bezahlt hat
         const unpaidByCurrentUser = expenseData.expenseMember.some(
-          (member) => member.memberId === currentUserUid && member.amountToPay > 0 && !member.paid
+          (member) =>
+            member.memberId === currentUserUid &&
+            member.amountToPay > 0 &&
+            !member.paid
         );
         const unpaidBySelectedMember = expenseData.expenseMember.some(
-          (member) => member.memberId === selectedMemberUid && member.amountToPay > 0 && !member.paid
+          (member) =>
+            member.memberId === selectedMemberUid &&
+            member.amountToPay > 0 &&
+            !member.paid
         );
         // Wenn keiner von beiden bezahlt hat, füge die Ausgabe der Liste hinzu
         if (unpaidByCurrentUser || unpaidBySelectedMember) {

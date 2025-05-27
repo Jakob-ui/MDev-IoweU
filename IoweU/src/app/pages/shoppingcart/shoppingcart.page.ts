@@ -7,7 +7,8 @@ import {
   IonContent,
   IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList,
 
-  IonToolbar
+  IonToolbar,
+  Platform
 } from '@ionic/angular/standalone';
 import {AuthService} from "../../services/auth.service";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
@@ -36,6 +37,7 @@ export class ShoppingcartPage implements OnInit {
   private navCtrl = inject(NavController);
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
+  private platform = inject(Platform);
 
   uid: string | null = '';
   user: string | null = '';
@@ -99,6 +101,15 @@ export class ShoppingcartPage implements OnInit {
     try {
       // Benutzer wird gewartet und überprüft
       await this.authService.waitForUser();
+
+         //Backbutton Verhalten
+      this.platform.backButton.subscribeWithPriority(10, () => {
+        if (this.overlayState === 'normal') {
+          this.overlayState = 'hidden'; // Nur Overlay schließen
+        } else {
+          this.goBack(); // Standard Verhalten
+        }
+      });
 
       if (!this.authService.currentUser) {
         console.error('Kein Benutzer eingeloggt.');

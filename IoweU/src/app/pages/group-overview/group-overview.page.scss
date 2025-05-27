@@ -6,12 +6,19 @@
   margin-top: 0;
 }
 
+.backdrop-wrapper{
+  height: 150px !important;
+}
+
+ion-header ion-toolbar:first-of-type{
+  padding-top: 125px !important;
+}
+
 ion-toolbar{
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  margin-top: 30px;
 }
 
 .user-info {
