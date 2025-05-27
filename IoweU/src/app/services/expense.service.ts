@@ -5,7 +5,6 @@ import {
   deleteDoc,
   Firestore,
   getDocs,
-  updateDoc,
   onSnapshot,
   getDoc,
   query,

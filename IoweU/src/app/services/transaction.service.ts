@@ -2,9 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Transactions } from './objects/Transactions';
 import {
   collection,
-  deleteDoc,
   doc,
-  documentId,
   Firestore,
   getDoc,
   getDocs,
