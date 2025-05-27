@@ -880,7 +880,7 @@ export class TransactionService {
     settlerId: string,
     groupId: string,
     expenseId: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     try {
       // 1. Hol dir die Expense-Daten als Expenses Objekt
       const groupRef = doc(this.firestore, 'groups', groupId);
@@ -937,9 +937,10 @@ export class TransactionService {
         balanceData.userACredit - balanceData.userBCredit
       );
       if (balance < settlerExpenseMember.amountToPay) {
-        throw new Error(
+        console.warn(
           `Amount ${settlerExpenseMember.amountToPay} exceeds ${balance}, the balance between ${settlerId} and ${payerId}. Settle your balance with this user instead.`
         );
+        return false; // Betrag ist zu hoch, also beende die Funktion
       } else {
         // 2.2. Wenn der Betrag in Ordnung ist, dann erstelle die Transaktion
         const transactionId = doc(collection(groupRef, 'transactions')).id;
@@ -1052,6 +1053,7 @@ export class TransactionService {
           );
         }
       }
+      return true; // Alles erfolgreich, also gib true zurück
     } catch (error) {
       console.error('Fehler in settleDebtByExpense:', error);
       throw error;
