@@ -1,9 +1,7 @@
 <ion-content [fullscreen]="true" scroll="true" (click)="closeDropdowns()">
   <div id="container" class="container">
     <h3>Ausgaben bearbeiten</h3>
-    <ion-button id="delete-alert" class="delete-button" color="danger" (click)="confirmDelete()" [disabled]="deletable">
-      Ausgabe löschen
-    </ion-button>
+
     <div class="separator"></div>
 
     <div class="section">
@@ -192,7 +190,7 @@
       <div class="exchange">
         <!-- Umgerechneter Betrag in EUR -->
         <div class="betrag" *ngIf="selectedCurrency !== 'EUR'">
-          <span class="input-label">Umgerechnet in €</span>
+          <span class="input-label">Betrag in <strong>EUR</strong></span>
           <ion-item class="input-item">
             <div class="input-wrapper">
               <ion-input
@@ -662,6 +660,12 @@
         </ion-button>
       </ion-text>
     </div>
+
+    <div class="separator" id="seperator-bottom"></div>
+
+    <ion-button id="delete-alert" class="delete-button" color="danger" (click)="confirmDelete()" [disabled]="deletable">
+      Ausgabe löschen
+    </ion-button>
 
     <!-- Buttons -->
     <div class="button-row">
