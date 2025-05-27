@@ -24,7 +24,8 @@ import { Groups } from 'src/app/services/objects/Groups';
   templateUrl: './finance.page.html',
   styleUrls: ['./finance.page.scss'],
   standalone: true,
-  imports: [IonSpinner, 
+  imports: [
+    IonSpinner,
     CommonModule,
     IonHeader,
     IonToolbar,
@@ -61,6 +62,9 @@ export class FinancePage implements OnInit {
 
   myExpenses: number = 0;
   myIncome: number = 0;
+  myBalance: number = 0;
+  private unsubscribeBalance: (() => void) | null = null;
+  private memberUnsubscribes: (() => void)[] = [];
 
   animatedBalance: number = 0;
 
@@ -117,51 +121,46 @@ export class FinancePage implements OnInit {
       this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
       this.groupId = this.currentGroup.groupId || '';
 
-      if (!this.currentGroup.members || this.currentGroup.members.length === 0) {
+      if (
+        !this.currentGroup.members ||
+        this.currentGroup.members.length === 0
+      ) {
         console.error('Keine Mitglieder in der Gruppe gefunden');
         return;
       }
 
       // Gruppenmitglieder laden (außer aktueller User)
-      this.isLoadingMembers = true; // <--- Setze Loading-Flag auf true
-      this.groupMembers = await Promise.all(
-        this.currentGroup.members
-          .filter((member: any) => member.uid !== this.uid)
-          .map(async (member: any) => {
-            // Memberdaten sammeln
-            this.memberUsernames.push(member.username || '');
-            this.memberIds.push(member.memberId || '');
-            this.memberColors.push(member.color || '');
-            this.memberRoles.push(member.role || '');
-            this.memberUids.push(member.uid || '');
+      this.isLoadingMembers = true;
+      this.groupMembers = this.currentGroup.members
+        .filter((member: any) => member.uid !== this.uid)
+        .map((member: any) => {
+          // Memberdaten sammeln
+          this.memberUsernames.push(member.username || '');
+          this.memberIds.push(member.memberId || '');
+          this.memberColors.push(member.color || '');
+          this.memberRoles.push(member.role || '');
+          this.memberUids.push(member.uid || '');
 
-            // Nur berechnen, wenn beide UIDs vorhanden sind
-            let saldo = 0;
+          // amount erstmal 0 setzen
+          return { ...member, amount: 0 };
+        });
 
-            if (member.uid && this.uid) {
-              const amount = await this.expenseService.getBalanceBetweenUsers(
-                groupId,
-                this.uid,
-                member.uid
-              );
-              const saldo = amount;
-              if (saldo > 0) {
-                this.myIncome += saldo;
-              } else {
-                this.myExpenses += Math.abs(saldo);
-              }
-              return {
-                ...member,
-                amount: saldo,
-              };
-            }
-          })
-      );
-      this.isLoadingMembers = false; // <--- Setze Loading-Flag auf false
+      // Für jedes Mitglied einen Echtzeit-Listener setzen
+      this.groupMembers.forEach((member, idx) => {
+        const unsubscribe = this.expenseService.getBalanceBetweenUsersRealtime(
+          this.groupId!,
+          this.uid!,
+          member.uid,
+          (balance) => {
+            this.groupMembers[idx].amount = balance;
+            this.updateMyBalance(); // myBalance immer neu berechnen
+          }
+        );
+        this.memberUnsubscribes.push(unsubscribe);
+      });
 
-      // Starte die Animation, sobald die Daten geladen sind
+      this.isLoadingMembers = false;
       this.animateBalance();
-
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
@@ -171,8 +170,16 @@ export class FinancePage implements OnInit {
     }
   }
 
-  get myBalance(): number {
-    return this.myIncome - this.myExpenses;
+  ngOnDestroy() {
+    this.memberUnsubscribes.forEach((unsub) => unsub());
+  }
+
+  updateMyBalance() {
+    this.myBalance = this.groupMembers.reduce(
+      (sum, m) => sum + (m.amount || 0),
+      0
+    );
+    this.animateBalance();
   }
 
   animateBalance() {
@@ -225,7 +232,6 @@ export class FinancePage implements OnInit {
     }
   }
   toggleInfoOverlay() {
-
     // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
     if (this.overlayState === 'start') {
       this.overlayState = 'normal'; // Overlay wird sichtbar and Animation startet
@@ -236,19 +242,15 @@ export class FinancePage implements OnInit {
       // Wenn es im "hidden" Zustand ist, wird es wieder nach oben geschoben
       this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
     }
-
   }
 
   async goToPayAllExpenses(settlegroup: boolean) {
     settlegroup
-      ? this.router.navigate([
-        '/settle-balances',
-        this.groupId
-      ], {
-        queryParams: {
-          settlegroup: settlegroup,
-        },
-      })
+      ? this.router.navigate(['/settle-balances', this.groupId], {
+          queryParams: {
+            settlegroup: settlegroup,
+          },
+        })
       : this.router.navigate(['/settle-balances', this.groupId]);
   }
 }
