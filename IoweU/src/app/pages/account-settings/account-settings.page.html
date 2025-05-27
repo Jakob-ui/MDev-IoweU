@@ -94,48 +94,49 @@
       Passwort ändern
     </ion-button>
 
-    <ion-button
-    class="outline-button"
-    expand="block"
-    id="support-alert"
-  >
-    Support
-  </ion-button>
-  <ion-alert
-        trigger="support-alert"
-        header="Support kontaktieren"
-        message="Wenn du Probleme entdeckt, oder Feedback für uns hast, dann schreibe uns doch eine Email:"
-        [buttons]="openSupportButtons"
-      ></ion-alert>
-
-    <div class="fixed-bottom">
-      <ion-button id="delete-alert" class="delete-button" color="danger">
-        Konto löschen
-      </ion-button>
-
-      <ion-alert
-        trigger="delete-alert"
-        header="Einloggen erforderlich"
-        message="Bitte logge dich erneut ein, um deine Identität zu bestätigen und dein Konto zu löschen."
-        [buttons]="loginAlertButtons"
-        [inputs]="alertInputs"
-      ></ion-alert>
-
       <ion-button
-        id="save-alert"
-        class="main-button save-button"
-        expand="block"
-        [disabled]="!hasChanges() || userEditing"
-      >
-        Änderungen speichern
-      </ion-button>
-      <ion-alert
-        trigger="save-alert"
-        header="Änderungen speichern"
-        message="Möchten Sie die Änderungen speichern?"
-        [buttons]="saveAlertButtons"
-        (didDismiss)="setResult($event)"
-      ></ion-alert>
-    </div>
+      class="outline-button"
+      expand="block"
+      id="support-alert"
+    >
+      Support
+    </ion-button>
+    <ion-alert
+      trigger="support-alert"
+      header="Support kontaktieren"
+      message="Wenn du Probleme entdeckt, oder Feedback für uns hast, dann schreibe uns doch eine Email:"
+      [buttons]="openSupportButtons"
+    ></ion-alert>
+
+
+    <ion-button id="delete-alert" class="delete-button" color="danger">
+      Konto löschen
+    </ion-button>
+
+    <ion-alert
+      trigger="delete-alert"
+      header="Einloggen erforderlich"
+      message="Bitte logge dich erneut ein, um deine Identität zu bestätigen und dein Konto zu löschen."
+      [buttons]="loginAlertButtons"
+      [inputs]="alertInputs"
+    ></ion-alert>
+
+     <div class="button-container">
+        <ion-button
+          id="save-alert"
+          class="main-button save-button"
+          expand="block"
+          [disabled]="!hasChanges() || userEditing"
+        >
+          Änderungen speichern
+        </ion-button>
+        <ion-alert
+          trigger="save-alert"
+          header="Änderungen speichern"
+          message="Möchten Sie die Änderungen speichern?"
+          [buttons]="saveAlertButtons"
+          (didDismiss)="setResult($event)"
+        ></ion-alert>
+     </div>
   </div>
 </ion-content>

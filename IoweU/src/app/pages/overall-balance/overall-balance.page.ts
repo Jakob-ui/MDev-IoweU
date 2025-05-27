@@ -2,8 +2,8 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as d3 from 'd3';
 import {
-  IonContent,
-  IonItem, IonList, IonButton, IonIcon, IonBadge,
+    IonContent,
+    IonItem, IonList, IonButton, IonIcon, IonBadge, IonHeader, IonToolbar,
 } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -20,16 +20,18 @@ import { Groups } from '../../services/objects/Groups';
   templateUrl: './overall-balance.page.html',
   styleUrls: ['./overall-balance.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    IonContent,
-    RouterModule,
-    IonItem,
-    IonList,
-    IonButton,
-    IonIcon,
-    IonBadge,
-  ],
+    imports: [
+        CommonModule,
+        IonContent,
+        RouterModule,
+        IonItem,
+        IonList,
+        IonButton,
+        IonIcon,
+        IonBadge,
+        IonHeader,
+        IonToolbar,
+    ],
 })
 export class OverallBalancePage implements OnInit {
   private authService = inject(AuthService);
