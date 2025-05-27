@@ -2,10 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { LoadingService } from './services/loading.service';
-import { Messaging, getToken, onMessage } from '@angular/fire/messaging';
-import { environment } from '../environments/environment';
-import { AuthService } from './services/auth.service';
 import { PushNotificationService } from './services/push-notification.service';
+import { NetworkService } from './services/network.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -20,8 +19,16 @@ export class AppComponent implements OnInit {
 
   constructor(
     private loadingService: LoadingService,
-    private pushNotificationService: PushNotificationService
-  ) {}
+    private pushNotificationService: PushNotificationService,
+    private networkService: NetworkService, 
+    private router: Router
+  ) {
+    this.networkService.isOnline$.subscribe((online) => {
+      if (!online) {
+        this.router.navigate(['/network-error']);
+      }
+    });
+  }
 
   isDarkMode(): boolean {
     return (

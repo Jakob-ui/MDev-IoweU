@@ -62,7 +62,7 @@ export class FinancePage implements OnInit {
   myExpenses: number = 0;
   myIncome: number = 0;
 
-  animatedBalance: number = 0; // <--- NEU: Für die animierte Anzeige
+  animatedBalance: number = 0;
 
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
@@ -75,7 +75,7 @@ export class FinancePage implements OnInit {
   memberUids: string[] = [];
   currentGroup: Groups | null = null;
 
-  isLoadingMembers: boolean = false; // <--- NEU: Loading-Flag für Mitgliederliste
+  isLoadingMembers: boolean = false;
 
   constructor() {}
 
@@ -181,7 +181,7 @@ export class FinancePage implements OnInit {
       clearInterval((this as any)._balanceInterval);
     }
     const target = this.myBalance;
-    const duration = 800; // ms
+    const duration = 400; // ms
     const steps = 40;
     const stepTime = duration / steps;
     const start = 0;
