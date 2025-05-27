@@ -706,6 +706,57 @@ export class TransactionService {
     }
 
     await batch.commit();
+
+    const groupRef = doc(this.firestore, 'groups', groupId);
+    const groupDoc = await getDoc(groupRef);
+    if (groupDoc.exists()) {
+      const groupData = groupDoc.data();
+      let members = groupData['members'];
+
+      for (const trans of transactionsToExecute) {
+        const settlerMember = members.find((m: any) => m.uid === trans.from);
+        const payerMember = members.find((m: any) => m.uid === trans.to);
+        if (settlementType === 'group') {
+          if (settlerMember && payerMember) {
+            settlerMember.sumAmountPaid = 0;
+            settlerMember.sumExpenseMemberAmount = 0;
+            settlerMember.sumExpenseAmount = 0;
+            settlerMember.sumAmountReceived = 0;
+            settlerMember.countAmountPaid += 1;
+            payerMember.sumAmountReceived = 0;
+            payerMember.sumAmountPaid = 0;
+            payerMember.sumExpenseMemberAmount = 0;
+            payerMember.sumExpenseAmount = 0;
+            payerMember.countAmountReceived += 1;
+
+            // Update members array
+            members = members.map((member: any) => {
+              if (member.uid === trans.from) return settlerMember;
+              if (member.uid === trans.to) return payerMember;
+              return member;
+            });
+          }
+        } else {
+          if (settlerMember && payerMember) {
+            settlerMember.sumAmountPaid += trans.amount;
+            settlerMember.countAmountPaid += 1;
+            payerMember.sumAmountReceived += trans.amount;
+            payerMember.countAmountReceived += 1;
+
+            // Update members array
+            members = members.map((member: any) => {
+              if (member.uid === trans.from) return settlerMember;
+              if (member.uid === trans.to) return payerMember;
+              return member;
+            });
+          }
+        }
+          
+      }
+
+      await updateDoc(groupRef, { members });
+      console.log('Updated member sums for all executed settlements.');
+    }
     console.log(
       'Schuldenausgleichstransaktionen erfolgreich ausgeführt und Member Amounts aktualisiert.'
     );

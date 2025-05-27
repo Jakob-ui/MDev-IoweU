@@ -1060,14 +1060,21 @@ ion-alert {
   .alert-button-inner.sc-ion-alert-md {
     color: var(--ion-color-light) !important;
   }
-     .info-wrapper {
+     .info-wrapper, .invoice-wrapper{
   background: var(--ion-color-dark) !important;
   color: #ffffff !important;
 }
-    .info-overlay.slideUp{
-    background-color: #000 !important;
+    .info-overlay.slideUp,.invoice-overlay.slideUp{
+    background: rgba(0, 0, 0, 0.8) !important;
   }
-  .info-wrapper[_ngcontent-ng-c3643937075] ul[_ngcontent-ng-c3643937075] li[_ngcontent-ng-c3643937075]::before {
+  .info-wrapper [_ngcontent-ng-c3643937075] ul[_ngcontent-ng-c3643937075] li[_ngcontent-ng-c3643937075]::before {
     color: #ffffff;
   }
+  .info-overlay, .invoice-overlay {
+    background: rgba(0, 0, 0, 0.8) !important;
+  }
+   .info-wrapper ul li::before {
+    color: #fff !important;
+  }
+
 }
