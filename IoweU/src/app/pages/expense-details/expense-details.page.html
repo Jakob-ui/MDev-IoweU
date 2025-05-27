@@ -183,35 +183,48 @@
 
     <div class="space"></div>
     <div class="button-container">
+
+      <!-- 1. Schulden begleichen (wenn du noch nicht bezahlt hast, nicht Zahler bist und Schulden hast) -->
       <ion-button
         class="main-button"
         expand="block"
-        (click)="payExpense()"
-        *ngIf="!showNoDebtText(expense[0]) && !hasUserPaid(expense[0]) && expense[0].paidBy !== uid!"
+        (click)="confirmOrPay(expense[0])"
+        *ngIf="!showNoDebtText(expense[0])
+           && !hasUserPaid(expense[0])
+           && expense[0].paidBy !== uid"
       >
         Schulden begleichen
       </ion-button>
 
+      <!-- 2. Schulden anfordern (wenn du der Zahler bist, die anderen noch nicht bezahlt haben) -->
       <ion-button
         class="main-button"
         expand="block"
         (click)="requestPayment()"
-        *ngIf="!showNoDebtText(expense[0]) && !hasUserPaid(expense[0]) && expense[0].paidBy === uid!"
+        *ngIf="!showNoDebtText(expense[0])
+           && !hasUserPaid(expense[0])
+           && expense[0].paidBy === uid"
       >
         Schulden anfordern
       </ion-button>
 
+      <!-- 3. Bereits bezahlt (wenn du die Ausgabe schon beglichen hast) -->
       <ion-button
         class="main-button"
         expand="block"
         (click)="goToTransactions()"
         *ngIf="!showNoDebtText(expense[0]) && hasUserPaid(expense[0])"
       >
-        bereits bezahlt
+        Bereits bezahlt
       </ion-button>
 
-      <p *ngIf="showNoDebtText(expense[0])" class="no-debt-text">keine Schulden in dieser Ausgabe</p>
+      <!-- 4. Keine Schulden (wenn amountToPay == 0 und nicht bezahlt und nicht Zahler) -->
+      <p *ngIf="showNoDebtText(expense[0])" class="no-debt-text">
+        keine Schulden in dieser Ausgabe
+      </p>
+
     </div>
+
 
 
   </div>

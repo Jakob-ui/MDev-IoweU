@@ -108,6 +108,8 @@ export class ExpenseDetailsPage {
   expenseMemberPaidByName: string = '';
   expenseMemberPaidByUid: string = '';
 
+  balanceMap: { [paidByUid: string]: number } = {};
+
   repeatingExpense: boolean = false;
   paid: boolean = false;
 
@@ -231,6 +233,16 @@ export class ExpenseDetailsPage {
 
             console.log('Geladene Expense:', this.expense);
             this.paid = this.hasUserPaid(this.expense[0]);
+
+
+            this.expenseService.getBalanceBetweenUsersRealtime(
+              this.groupId,
+              this.uid!,
+              this.expense[0].paidBy,
+              (balance) => {
+                this.balanceMap[this.expense[0].paidBy] = balance;
+              }
+            );
           } else {
             console.error('Expense nicht gefunden');
           }
@@ -494,7 +506,7 @@ export class ExpenseDetailsPage {
 
   hasUserPaid(expense: Expenses): boolean {
     if (expense.paidBy === this.uid) {
-      return false; // Zahler sieht keine Anzeige
+      return false; // Zahler sieht keine Anzeige "Bereits bezahlt"
     }
     const userEntry = expense.expenseMember?.find(
       (member) => member.memberId === this.uid
@@ -502,15 +514,61 @@ export class ExpenseDetailsPage {
     return !!userEntry?.paid;
   }
 
-  hasAnyMemberPaid(expense: Expenses): boolean {
-    return expense.expenseMember
-      .filter((member) => member.memberId !== expense.paidBy)
-      .some((member) => member.paid);
-  }
-
   showNoDebtText(expense: Expenses): boolean {
     const member = expense.expenseMember.find(m => m.memberId === this.uid);
+    // keine Schulden, noch nicht bezahlt, nicht Zahler
     return !!member && member.amountToPay === 0 && !member.paid && expense.paidBy !== this.uid;
+  }
+
+  goToBalance(groupId: string, userId: string) {
+    this.router.navigate([`/detailed-balance`, groupId, userId]);
+  }
+
+  confirmOrPay(expense: Expenses) {
+    const balance = this.balanceMap[expense.paidBy];
+    const memberEntry = expense.expenseMember.find(m => m.memberId === this.uid);
+    const amountToPay = memberEntry?.amountToPay ?? 0;
+
+    console.log('balance:', balance);
+    console.log('amountToPay:', amountToPay);
+
+    const afterPayment = balance + amountToPay;
+    const epsilon = 0.01;
+
+    console.log('afterPayment (balance + amountToPay):', afterPayment);
+
+    const isOverpaying = afterPayment > epsilon;
+
+    if (isOverpaying) {
+      this.showOverpayAlert(expense.paidBy);
+    } else {
+      this.payExpense();
+    }
+  }
+
+
+  async showOverpayAlert(userId: string) {
+    const alert = await this.alertController.create({
+      header: 'Bist du dir sicher?',
+      message: `Du hast eigentlich ein Guthaben bei dieser Person oder würdest mit dieser Zahlung mehr zahlen als nötig. Möchtest du stattdessen zur Bilanzübersicht?`,
+      buttons: [
+        {
+          text: 'Zur Bilanzübersicht',
+          handler: () => {
+            this.goToBalance(this.groupId, userId);
+          },
+        },
+        {
+          text: 'Trotzdem zahlen',
+          role: 'confirm',
+          handler: () => {
+            this.payExpense();
+          },
+        },
+      ],
+    });
+
+    await alert.present();
   }
 
 
