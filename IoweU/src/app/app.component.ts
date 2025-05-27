@@ -25,7 +25,7 @@ export class AppComponent implements OnInit {
   ) {
     this.networkService.isOnline$.subscribe((online) => {
       if (!online) {
-        this.router.navigate(['/network-error']);
+        this.router.navigate(['/no-connection']);
       }
     });
   }

@@ -85,9 +85,10 @@ export class DetailedBalancePage implements OnInit {
   productToggles: { [expenseId: string]: boolean } = {};
 
   balanceDetails: any = {};
-  deptList: DebtEntry[] = [];
-  constructor(
-  ) {}
+
+  private unsubscribeBalance: (() => void) | null = null;
+
+  constructor() {}
 
   async ngOnInit() {
     this.loadingService.show();
@@ -135,21 +136,25 @@ export class DetailedBalancePage implements OnInit {
               const currentUserId = this.uid!;
               const selectedMemberId = this.selectedMember?.uid!;
 
-              const saldo = await this.expenseService.getBalanceBetweenUsers(
-                validGroupId,
-                currentUserId,
-                selectedMemberId
-              );
+              this.unsubscribeBalance =
+                this.expenseService.getBalanceBetweenUsersRealtime(
+                  validGroupId,
+                  currentUserId,
+                  selectedMemberId,
+                  (saldo) => {
+                    this.balanceDetails = {
+                      from: this.username,
+                      to: this.selectedMember?.username,
+                      balance: saldo,
+                    };
+                    console.log(
+                      `Saldo zwischen ${this.username} und ${this.selectedMember?.username}: ${saldo}`
+                    );
+                    console.log('Balance Details:', this.balanceDetails);
+                  }
+                );
 
-              console.log(
-                `Saldo zwischen ${this.username} und ${this.selectedMember?.username}: ${saldo}`
-              );
-
-              this.balanceDetails = {
-                from: this.username,
-                to: this.selectedMember?.username,
-                balance: saldo,
-              };
+              
 
               console.log('Balance Details:', this.balanceDetails);
 
@@ -197,6 +202,12 @@ export class DetailedBalancePage implements OnInit {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
       this.loadingService.hide();
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.unsubscribeBalance) {
+      this.unsubscribeBalance();
     }
   }
 
@@ -272,13 +283,7 @@ export class DetailedBalancePage implements OnInit {
       return;
     }
 
-
     const amountToPay = Math.abs(this.myBalance);
-
-    const relatedExpensesIds = this.deptList.flatMap(
-      (debt) => debt.relatedExpenses
-    );
-    const uniqueRelatedExpensesIds = [...new Set(relatedExpensesIds)]; // Duplikate entfernen
 
     this.loadingService.show();
     try {
@@ -289,7 +294,7 @@ export class DetailedBalancePage implements OnInit {
         this.selectedMember.uid,
         amountToPay,
         `Schuld an ${this.selectedMember.username} beglichen`,
-        uniqueRelatedExpensesIds
+        this.allExpenses,
       );
 
       const alert = await this.alertController.create({
@@ -338,8 +343,6 @@ export class DetailedBalancePage implements OnInit {
     return memberEntry?.amountToPay || 0;
   }
 
-
-
   async requestPayment() {
     if (!this.groupId || !this.uid || !this.selectedMember?.uid) {
       console.error(
@@ -365,8 +368,10 @@ export class DetailedBalancePage implements OnInit {
       // 📲 Push Notification an ALLE Geräte des Empfängers senden (neue Methode im Service)
       await this.pushNotificationService.sendToUser(
         toUserId,
-        `Schuldenanfrage von ${myName}`,
-        `${myName} möchte, dass du deine Schulden begleichst.`
+        `ZAHLUNGSAUFFORDERUNG von ${myName}`,
+        `${myName} möchte, dass du deine Schulden in Höhe von ${this.myBalance.toFixed(
+          2
+        )} € in der Gruppe "${this.groupname}" begleichst.`
       );
 
       const successAlert = await this.alertController.create({
@@ -377,7 +382,6 @@ export class DetailedBalancePage implements OnInit {
       await successAlert.present();
 
       console.log('Push gesendet!');
-
     } catch (error) {
       console.error('Fehler beim Senden der Benachrichtigung:', error);
       const errorAlert = await this.alertController.create({
@@ -389,6 +393,4 @@ export class DetailedBalancePage implements OnInit {
       await errorAlert.present();
     }
   }
-
-
 }
