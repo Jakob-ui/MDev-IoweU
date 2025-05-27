@@ -402,7 +402,6 @@ export class ExpenseDetailsPage {
       return;
     }
 
-    // Stelle sicher, dass die Ausgabe geladen ist
     const expenseData = this.expense[0];
     if (!expenseData) {
       console.error('Keine Ausgabe geladen.');
@@ -412,24 +411,29 @@ export class ExpenseDetailsPage {
     try {
       const myName = this.user || 'Jemand';
 
-      // Alle Mitglieder filtern, die noch nicht bezahlt haben (und nicht der Zahler sind)
+      // Filtere Mitglieder:
+      // - die nicht bezahlt haben
+      // - die nicht selbst der Zahler sind
+      // - deren Anteil > 0 ist
       const unpaidMembers = expenseData.expenseMember.filter(
-        (member) => member.paid === false && member.memberId !== expenseData.paidBy
+        (member) =>
+          member.paid === false &&
+          member.memberId !== expenseData.paidBy &&
+          member.amountToPay > 0
       );
 
       if (unpaidMembers.length === 0) {
         const alert = await this.alertController.create({
           header: 'Keine offenen Schulden',
-          message: 'Alle Mitglieder haben ihre Anteile bereits bezahlt.',
+          message: 'Alle Mitglieder haben ihre Anteile bereits bezahlt oder müssen nichts zahlen.',
           buttons: ['OK'],
         });
         await alert.present();
         return;
       }
 
-      // Push Notifications an alle noch nicht zahlenden Mitglieder senden
+      // Sende Push-Benachrichtigungen
       for (const member of unpaidMembers) {
-        // member.memberId = UID des Mitglieds
         await this.pushNotificationService.sendToUser(
           member.memberId,
           `Schuldenanfrage von ${myName}`,
@@ -439,12 +443,12 @@ export class ExpenseDetailsPage {
 
       const successAlert = await this.alertController.create({
         header: 'Anfrage gesendet',
-        message: `Zahlungsanfragen wurden an alle Mitglieder gesendet, die noch nicht bezahlt haben.`,
+        message: 'Zahlungsanfragen wurden an alle Mitglieder gesendet, die noch nicht bezahlt haben.',
         buttons: ['OK'],
       });
       await successAlert.present();
 
-      console.log('Push Notifications an alle offenen Mitglieder gesendet!');
+      console.log('Push Notifications an folgende Mitglieder gesendet:', unpaidMembers.map(m => m.memberId));
 
     } catch (error) {
       console.error('Fehler beim Senden der Benachrichtigungen:', error);
@@ -456,6 +460,7 @@ export class ExpenseDetailsPage {
       await errorAlert.present();
     }
   }
+
 
   getPaidByName(uid: string): string {
     const memberIndex = this.memberUids.indexOf(uid);
