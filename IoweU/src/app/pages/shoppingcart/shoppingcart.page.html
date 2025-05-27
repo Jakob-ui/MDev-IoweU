@@ -132,12 +132,13 @@
 
     <ion-card class="shopping-card">
       <div class="card-content-shopping">
-        <h2>{{ shoppingproducts.length }} {{ shoppingproducts.length === 1 ? 'Produkt' : 'Produkte' }}</h2>
-
+        <h2>
+          <span class="animated-count">{{ animatedCount }}</span>
+          {{ animatedCount === 1 ? 'Produkt' : 'Produkte' }}
+        </h2>
         <p [ngClass]="{'past-date': isPast(earliestDueDateLabel)}">
           früheste Fälligkeit: {{ earliestDueDateLabel }}
         </p>
-
       </div>
     </ion-card>
 
