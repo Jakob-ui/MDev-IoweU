@@ -119,6 +119,15 @@ export class GroupPage implements OnInit {
       // Warte, bis der Benutzer vollständig geladen ist
       await this.authService.waitForUser();
 
+      //Backbutton Verhalten
+      this.platform.backButton.subscribeWithPriority(10, () => {
+        if (this.overlayState === 'normal') {
+          this.overlayState = 'hidden'; // Nur Overlay schließen
+        } else {
+          this.goBack(); // Standard Verhalten
+        }
+      });
+
       if (this.authService.currentUser) {
         // Setze Benutzerdaten
         this.user = this.authService.currentUser.username;
