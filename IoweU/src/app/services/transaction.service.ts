@@ -19,6 +19,7 @@ import { Expenses } from './objects/Expenses';
 import { ExpenseService } from './expense.service';
 import { DebtEntry } from './objects/DeptEntry';
 import { updateDoc } from 'firebase/firestore';
+import { b } from '@angular/core/navigation_types.d-u4EOrrdZ';
 
 @Injectable({
   providedIn: 'root',
@@ -874,7 +875,7 @@ if (!snap1.empty) {
           return member;
         });
         await setDoc(expenseRef, { expenseMember: updatedExpenseMembers }, { merge: true });
-        console.log(`Debt settled for ${settlerId} on expense ${expenseId} with amount ${settlerExpenseMember.amountToPay}.`);
+        console.log(`Debt settled for ${settlerId} on expense ${expenseId} with amount ${settlerExpenseMember.amountToPay}. Doc path: ${expenseRef.path}`);
         // 4. Update die Member Sums bei den betroffenen Benutzern
         const groupDoc = await getDoc(groupRef);	
         if (!groupDoc.exists()) {
@@ -909,21 +910,29 @@ if (!snap1.empty) {
         // 5. Dekrementiere den UserCredit des Payers in dem zugehörigen Balance-Dokument UND entferne die Expense ID aus dem Balance-Dokument 
         if(balanceData.userAId == payerId && balanceData.userBId == settlerId) 
         {
-          await updateDoc(balanceDoc.ref, {
-            userACredit: balanceData.userACredit - settlerExpenseMember.amountToPay,
-            relatedExpenseId: balanceData.relatedExpenseId.filter((id: string) => id !== expenseId),
+          balanceData.userACredit -= settlerExpenseMember.amountToPay;
+          balanceData.relatedExpenseId = balanceData.relatedExpenseId.filter((id: string) => id !== expenseId);
+          console.log('Updating balanceDoc:', {
+            path: balanceDoc.ref.path,
+            userACredit: balanceData.userACredit,
+            userBCredit: balanceData.userBCredit,
+            relatedExpenseId: balanceData.relatedExpenseId,
           });
-          console.log(`UserB pays, UserA receives. Balance is now ${Math.abs(balanceData.userACredit - balanceData.userBCredit)}`);
-          console.log('Updating balance document at path:', balanceDoc.ref.path);
+          await setDoc(balanceDoc.ref, balanceData, { merge: true });
+          console.log(`UserB pays ${settlerExpenseMember.amountToPay}, UserA receives. Balance is now ${Math.abs(balanceData.userACredit - balanceData.userBCredit)}`);
         }
         else if(balanceData.userAId == settlerId && balanceData.userBId == payerId) 
         {
-          await updateDoc(balanceDoc.ref, {
-            userBCredit: balanceData.userBCredit - settlerExpenseMember.amountToPay,
-            relatedExpenseId: balanceData.relatedExpenseId.filter((id: string) => id !== expenseId),
+          balanceData.userBCredit -= settlerExpenseMember.amountToPay;
+          balanceData.relatedExpenseId = balanceData.relatedExpenseId.filter((id: string) => id !== expenseId);
+          console.log('Updating balanceDoc:', {
+            path: balanceDoc.ref.path,
+            userACredit: balanceData.userACredit,
+            userBCredit: balanceData.userBCredit,
+            relatedExpenseId: balanceData.relatedExpenseId,
           });
-          console.log(`UserA pays, UserB receives. Balance is now ${Math.abs(balanceData.userACredit - balanceData.userBCredit)}`);
-          console.log('Updating balance document at path:', balanceDoc.ref.path);
+          await setDoc(balanceDoc.ref, balanceData, { merge: true });
+          console.log(`UserA pays ${settlerExpenseMember.amountToPay}, UserB receives. Balance is now ${Math.abs(balanceData.userACredit - balanceData.userBCredit)}`);
         }
       }
     }
