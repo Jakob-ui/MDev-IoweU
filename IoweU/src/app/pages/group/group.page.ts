@@ -249,7 +249,12 @@ export class GroupPage implements OnInit {
 
   // Navigation zur Gruppenübersicht
   goBack() {
-    this.router.navigate(['group-overview']);
+    if (this.overlayState === 'normal') {
+      this.overlayState = 'hidden'; // Optional: Overlay schließen
+      this.router.navigate(['/group', this.groupId]);
+    } else {
+      this.router.navigate(['/group-overview']);
+    }
   }
 
   // Funktion zur Generierung der Feature-Links mit groupId

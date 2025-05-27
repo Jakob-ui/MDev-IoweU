@@ -305,7 +305,7 @@ export class ShoppingcartPage implements OnInit {
   goBack() {
     if (this.overlayState === 'normal') {
       this.overlayState = 'hidden'; // Optional: Overlay schließen
-      this.router.navigate(['/shoppincart', this.groupId]);
+      this.router.navigate(['/shoppingcart', this.groupId]);
     } else {
       this.router.navigate(['/group', this.groupId]);
     }
