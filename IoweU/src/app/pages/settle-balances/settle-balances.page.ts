@@ -75,7 +75,7 @@ export class SettleBalancesPage implements OnInit {
 
   gruppenausgleich: boolean = false;
 
-  deptList: DebtEntry[] = [];
+  debtList: DebtEntry[] = [];
   expense: Expenses[] = [];
 
   async ngOnInit() {
@@ -86,6 +86,9 @@ export class SettleBalancesPage implements OnInit {
       this.activeRoute.queryParams.subscribe((params) => {
         this.gruppenausgleich = params['settlegroup'] === 'true';
       });
+      console.log(
+        'Gruppenausgleich-Status:', this.gruppenausgleich 
+      );
 
       if (!this.authService.currentUser) {
         console.error('Kein Benutzer eingeloggt.');
@@ -112,21 +115,21 @@ export class SettleBalancesPage implements OnInit {
 
       if (this.gruppenausgleich) {
         console.log('Berechne Gruppenausgleich...');
-        this.deptList =
+        this.debtList =
           await this.transactionService.getCalculatedGroupSettlementDebts(
             this.groupId
           );
       } else {
         // Wenn gruppenausgleich false ist, ist es automatisch persönlicher Ausgleich
         console.log('Berechne persönlichen Ausgleich für ' + this.uid + '...');
-        this.deptList =
+        this.debtList =
           await this.transactionService.getCalculatedPersonalSettlementDebts(
             this.groupId,
             this.uid
           );
       }
 
-      console.log('Final berechnete deptList für Anzeige:', this.deptList);
+      console.log('Final berechnete deptList für Anzeige:', this.debtList);
       await this.loadRelatedExpenses();
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -198,10 +201,10 @@ export class SettleBalancesPage implements OnInit {
 
   hasDebts(): boolean {
     if (!this.gruppenausgleich) {
-      return this.deptList.some(
+      return this.debtList.some(
         (debt) => debt.from === this.uid && debt.amount > 0
       );
-    } else if (this.deptList.length > 0) {
+    } else if (this.debtList.length > 0) {
       return true;
     }
     return false;
@@ -218,12 +221,12 @@ export class SettleBalancesPage implements OnInit {
 
   // Get Data using Service functions
   async loadRelatedExpenses() {
-    if (!this.deptList || this.deptList.length === 0) {
+    if (!this.debtList || this.debtList.length === 0) {
       this.expense = [];
       return;
     }
 
-    const relatedExpenseIds = this.deptList.flatMap(
+    const relatedExpenseIds = this.debtList.flatMap(
       (debt) => debt.relatedExpenses
     );
     const uniqueRelatedExpenseIds = [...new Set(relatedExpenseIds)];
@@ -256,7 +259,7 @@ export class SettleBalancesPage implements OnInit {
 
       await this.transactionService.executeSettlementTransactions(
         this.groupId,
-        this.deptList,
+        this.debtList,
         settlementType
       );
     } catch (error) {
