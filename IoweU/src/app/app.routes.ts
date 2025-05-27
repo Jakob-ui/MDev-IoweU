@@ -181,6 +181,13 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'no-connection',
+    loadComponent: () =>
+      import('./pages/no-connection/no-connection.page').then(
+        (m) => m.NoConnectionPage
+      ),
+  },
+  {
     path: 'not-found',
     loadComponent: () =>
       import('./pages/not-found/not-found.page').then((m) => m.NotFoundPage),
@@ -190,4 +197,6 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'not-found',
   },
+
+
 ];
