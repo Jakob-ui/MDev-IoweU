@@ -9,7 +9,8 @@ import {
   IonCard,
   IonButton,
   IonIcon,
-  IonInput, IonDatetime, IonLabel, IonCheckbox
+  IonInput, IonDatetime, IonLabel, IonCheckbox,
+  Platform
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -57,6 +58,7 @@ export class ShoppinglistPage implements OnInit {
   private shoppinglistService = inject(ShoppinglistService);
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
+  private platform = inject(Platform);
 
   uid: string | null = '';
   user: string | null = '';
@@ -118,6 +120,7 @@ export class ShoppinglistPage implements OnInit {
   public showCheckbox: boolean = false;
 
   private unsubscribeProductsListener!: () => void;
+  
 
   async ngOnInit() {
     this.loadingService.show();
@@ -125,6 +128,16 @@ export class ShoppinglistPage implements OnInit {
     try {
       // User und Group initialisieren (wie von dir schon implementiert)
       await this.authService.waitForUser();
+
+       //Backbutton Verhalten
+    this.platform.backButton.subscribeWithPriority(10, () => {
+      if (this.overlayState === 'normal') {
+        this.overlayState = 'hidden'; // Nur Overlay schließen
+      } else {
+        this.goBack(); // Standard Verhalten
+      }
+    });
+
       if (!this.authService.currentUser) return;
 
       this.uid = this.authService.currentUser.uid;

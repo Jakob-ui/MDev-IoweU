@@ -83,6 +83,15 @@ export class FinancePage implements OnInit {
     try {
       await this.authService.waitForUser();
 
+      //Backbutton Verhalten
+    this.platform.backButton.subscribeWithPriority(10, () => {
+      if (this.overlayState === 'normal') {
+        this.overlayState = 'hidden'; // Nur Overlay schließen
+      } else {
+        this.goBack(); // Standard Verhalten
+      }
+    });
+
       const currentUser = this.authService.currentUser;
 
       if (!currentUser || !currentUser.uid || !currentUser.username) {
