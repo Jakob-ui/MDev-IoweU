@@ -22,6 +22,8 @@ h1{
   align-items: center;
   transition: top 0.5s ease-in-out, visibility 0s 0.5s;
   padding: 20px;
+  visibility: hidden;         // Standard: unsichtbar
+  pointer-events: none;
 }
 
 .info-overlay.start {
@@ -30,6 +32,7 @@ h1{
 
 .info-overlay.normal {
   visibility: visible;
+  pointer-events: auto;
 }
 
 .info-overlay.slideUp {
@@ -71,6 +74,8 @@ h1{
   flex-direction: column;
   gap: 15px;
   color: #2c2c2c;
+  max-height: 90%;      // <--- NEU: maximale Höhe
+  overflow-y: auto;      // <--- NEU: Inhalt scrollbar machen
 }
 
 .info-wrapper h5 {
