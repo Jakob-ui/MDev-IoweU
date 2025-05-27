@@ -417,8 +417,7 @@ export class ExpenseDetailsPage {
       // - deren Anteil > 0 ist
       const unpaidMembers = expenseData.expenseMember.filter(
         (member) =>
-          member.paid === false &&
-          member.memberId !== expenseData.paidBy &&
+          !member.paid && member.memberId !== expenseData.paidBy &&
           member.amountToPay > 0
       );
 
@@ -506,7 +505,7 @@ export class ExpenseDetailsPage {
   hasAnyMemberPaid(expense: Expenses): boolean {
     return expense.expenseMember
       .filter((member) => member.memberId !== expense.paidBy)
-      .some((member) => member.paid === true);
+      .some((member) => member.paid);
   }
 
   showNoDebtText(expense: Expenses): boolean {
