@@ -30,8 +30,7 @@ import {
   bulbOutline,
   musicalNotesOutline,
   rocketOutline,
-  chevronDownOutline
-} from 'ionicons/icons';
+ caretDownOutline } from 'ionicons/icons';
 addIcons({
   // Bestehende Icons …
   'fast-food-outline': fastFoodOutline,
@@ -58,7 +57,7 @@ addIcons({
   'bulb-outline': bulbOutline,
   'musical-notes-outline': musicalNotesOutline,
   'rocket-outline': rocketOutline,
-  'chevron-down-outline': chevronDownOutline,
+  'caret-down-outline': caretDownOutline,
 });
 import {
   IonContent,
@@ -135,7 +134,7 @@ export class CreateExpensePage {
 
 
   constructor() {
-      addIcons({addOutline,checkmarkOutline,cameraOutline,imageOutline,chevronDownOutline});
+      addIcons({addOutline,checkmarkOutline,cameraOutline,imageOutline,caretDownOutline});
   }
 
   groupname: string = '';

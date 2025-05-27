@@ -62,6 +62,8 @@ export class TransactionsPage implements OnInit {
   currentGroup: Groups | null = null;
   updateTransactionsCallback: (() => void) | null = null;
 
+  animatedBalance: number = 0;
+
   constructor() {}
 
   async ngOnInit() {
@@ -85,6 +87,26 @@ export class TransactionsPage implements OnInit {
               (updatedTransactions) => {
                 this.transactions = updatedTransactions;
                 console.log('Aktualisierte Transaktionen:', this.transactions);
+                // Rechne myBalance neu, wenn sich Transaktionen ändern
+                if (
+                  this.currentGroup &&
+                  this.currentGroup.members &&
+                  this.currentGroup.members.length > 0
+                ) {
+                  const member = this.currentGroup.members.find(
+                    (m) => m.username === this.user
+                  );
+                  if (!member) {
+                    this.myBalance = 0;
+                  } else {
+                    this.myBalance =
+                      member.sumExpenseAmount -
+                      member.sumAmountReceived +
+                      member.sumAmountPaid -
+                      member.sumExpenseMemberAmount;
+                  }
+                  this.animateBalance(this.myBalance);
+                }
               }
             );
           if (this.currentGroup === null) {
@@ -104,9 +126,14 @@ export class TransactionsPage implements OnInit {
               const member = this.groupMembers.find((m) => m.username === this.user);
               if (!member) {
                 this.myBalance = 0;
-                return;
+              } else {
+                this.myBalance =
+                  member.sumExpenseAmount -
+                  member.sumAmountReceived +
+                  member.sumAmountPaid -
+                  member.sumExpenseMemberAmount;
               }
-              this.myBalance = member.sumExpenseAmount - member.sumAmountReceived + member.sumAmountPaid - member.sumExpenseMemberAmount;
+              this.animateBalance(this.myBalance);
             } else {
               console.error('Keine Mitglieder in der Gruppe gefunden');
             }
@@ -123,6 +150,7 @@ export class TransactionsPage implements OnInit {
       }
 
       this.iosIcons = this.platform.is('ios');
+      // this.animatedBalance = this.myBalance ?? 0; // Entfernt, da animateBalance immer aufgerufen wird
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
@@ -171,8 +199,29 @@ export class TransactionsPage implements OnInit {
     }
   }
 
-
   goBack() {
     this.router.navigate(['/group', this.groupId]);
+  }
+
+  animateBalance(target: number) {
+    const duration = 500;
+    const frameRate = 30;
+    const steps = Math.max(1, Math.round(duration / (1000 / frameRate)));
+    const start = this.animatedBalance;
+    const diff = target - start;
+    if (diff === 0) return;
+    let currentStep = 0;
+
+    const stepFn = () => {
+      currentStep++;
+      this.animatedBalance = +(start + (diff * currentStep) / steps).toFixed(2);
+      if (currentStep < steps) {
+        setTimeout(stepFn, 1000 / frameRate);
+      } else {
+        this.animatedBalance = target;
+      }
+    };
+
+    stepFn();
   }
 }
