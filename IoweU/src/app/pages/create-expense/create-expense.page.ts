@@ -90,6 +90,7 @@ import { HostListener } from '@angular/core';
 import { ImageService } from '../../services/image.service';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
 import { CURRENCIESWITHSYMBOLS } from 'src/app/services/objects/Currencies';
+import {PushNotificationService} from "../../services/push-notification.service";
 
 @Component({
   selector: 'app-create-expense',
@@ -130,6 +131,7 @@ export class CreateExpensePage {
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
   private shoppinglistService = inject(ShoppinglistService);
+  private pushNotificationService = inject(PushNotificationService);
 
 
 
@@ -1203,6 +1205,30 @@ export class CreateExpensePage {
       );
       if (this.shoppingCartId) {
         await this.shoppinglistService.deleteAllProductsFromShoppingCart(this.groupId, this.shoppingCartId);
+      }
+
+      // Push-Notification an alle Mitglieder, die noch nicht bezahlt haben und >0 zahlen müssen
+      const unpaidMembers = this.expense.expenseMember.filter(
+        (member) =>
+          !member.paid && member.memberId !== this.expense.paidBy &&
+          member.amountToPay > 0
+      );
+
+      const myName = this.user || 'Jemand';
+
+      for (const member of unpaidMembers) {
+        // member.memberId = UID des Mitglieds
+        await this.pushNotificationService.sendToUser(
+          member.memberId,
+          `Neue AUSGABE in der Gruppe "${this.groupname}"`,
+          `${myName} hat eine neue Ausgabe hinzugefügt. Du schuldest ${this.expense.paidBy} ${member.amountToPay.toFixed(2)} €.`
+        );
+      }
+
+      if(this.shoppingCartId != null){
+        this.navCtrl.back();
+      } else{
+        await this.navCtrl.navigateRoot(['/expense', this.groupId]);
       }
 
       if(this.shoppingCartId != null){
