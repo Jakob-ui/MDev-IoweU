@@ -85,7 +85,7 @@ export class DetailedBalancePage implements OnInit {
   productToggles: { [expenseId: string]: boolean } = {};
 
   balanceDetails: any = {};
-  deptList: DebtEntry[] = [];
+  debtList: DebtEntry[] = [];
   constructor(
   ) {}
 
@@ -275,10 +275,11 @@ export class DetailedBalancePage implements OnInit {
 
     const amountToPay = Math.abs(this.myBalance);
 
-    const relatedExpensesIds = this.deptList.flatMap(
+    const relatedExpensesIds = this.debtList.flatMap(
       (debt) => debt.relatedExpenses
     );
-    const uniqueRelatedExpensesIds = [...new Set(relatedExpensesIds)]; // Duplikate entfernen
+    const uniqueRelatedExpensesIds = [...new Set( relatedExpensesIds )]; // Duplikate entfernen
+    console.log('Schauen ob die zugehörigen Ausgaben gezeigt werden:', uniqueRelatedExpensesIds);
 
     this.loadingService.show();
     try {
@@ -289,7 +290,7 @@ export class DetailedBalancePage implements OnInit {
         this.selectedMember.uid,
         amountToPay,
         `Schuld an ${this.selectedMember.username} beglichen`,
-        uniqueRelatedExpensesIds
+        this.allExpenses,
       );
 
       const alert = await this.alertController.create({

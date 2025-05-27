@@ -298,9 +298,12 @@ export class TransactionService {
     toUid: string,
     amount: number,
     reason: string,
-    relatedExpenseIds: string[]
+    relatedExpenses: Expenses[]
   ) {
     try {
+      const relatedExpenseIds = relatedExpenses.map(
+        (expense) => expense.expenseId
+      );
       const batch = writeBatch(this.firestore);
       const transactionId = doc(
         collection(this.firestore, 'groups', groupId, 'transactions')
@@ -347,6 +350,36 @@ export class TransactionService {
             merge: true,
           });
         }
+      }
+      // Update member sums
+      const groupRef = doc(this.firestore, 'groups', groupId);
+      const groupDoc = await getDoc(groupRef);
+      if (!groupDoc.exists()) {
+        throw new Error(`Group with ID ${groupId} does not exist.`);
+      }
+      const groupData = groupDoc.data();
+      const fromMember = groupData['members'].find(
+        (member: any) => member.uid === fromUid
+      );
+      const toMember = groupData['members'].find(
+        (member: any) => member.uid === toUid
+      );
+      if (fromMember && toMember) {
+        fromMember.sumAmountPaid += amount;
+        fromMember.countAmountPaid += 1;
+        toMember.sumAmountReceived += amount;
+        toMember.countAmountReceived += 1;
+        groupData['members'] = groupData['members'].map((member: any) => {
+          if (member.uid === fromUid) {
+            return fromMember;
+          } else if (member.uid === toUid) {
+            return toMember;
+          }
+          return member;
+        });
+        batch.update(groupRef, {
+          members: groupData['members'],
+        });
       }
 
       const balancesRef = collection(
