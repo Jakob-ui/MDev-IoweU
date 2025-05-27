@@ -707,7 +707,9 @@ width: auto;
   gap: 10px;
   width: 100%;
 }
-
+.pfeilicon{
+  font-size: 14px;
+}
 
 
 @media (prefers-color-scheme: dark) {
@@ -746,4 +748,15 @@ width: auto;
     }
   }
 }
+.pfeilicon{
+  color: gray;
 }
+
+.custom-dropdown .selected ion-label {
+  color: #fff;
+  font-weight: 900;
+}
+
+}
+
+
