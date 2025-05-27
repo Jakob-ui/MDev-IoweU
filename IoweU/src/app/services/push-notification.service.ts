@@ -18,6 +18,8 @@ export class PushNotificationService {
   private messageSource = new BehaviorSubject<any>(null);
   currentMessage = this.messageSource.asObservable();
 
+  token: string | null = null;
+
   constructor(
     private http: HttpClient,
     private messaging: Messaging,
@@ -42,15 +44,16 @@ export class PushNotificationService {
   private async initWebPush() {
     try {
       const permission = await Notification.requestPermission();
+      console.log("permission", permission);
       if (permission === 'granted') {
-        const token = await getToken(this.messaging, {
+        this.token = await getToken(this.messaging, {
           vapidKey: environment.firebase.vapidKey,
         });
-        console.log('Web FCM Token:', token);
-        if (token) {
-          localStorage.setItem('fcm_token', token);
+        console.log('Web FCM Token:', this.token);
+        if (this.token) {
+          localStorage.setItem('fcm_token', this.token);
           // Web-Plattform als Metadaten mitgeben (optional)
-          await this.authService.saveFcmToken(token, 'web');
+          await this.authService.saveFcmToken(this.token, 'web');
         }
         this.listenToMessages();
       } else {

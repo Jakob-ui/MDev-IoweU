@@ -36,8 +36,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
         IonList,
         IonBadge,
         IonToolbar,
-        IonHeader,
-        IonIcon
+        IonHeader
     ],
 })
 export class GroupOverviewPage implements OnInit {
