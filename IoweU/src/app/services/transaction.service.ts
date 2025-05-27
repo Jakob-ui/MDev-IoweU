@@ -13,13 +13,12 @@ import {
   setDoc,
   where,
   writeBatch,
+  updateDoc,
 } from '@angular/fire/firestore';
 import { Balances } from './objects/Balances';
 import { Expenses } from './objects/Expenses';
 import { ExpenseService } from './expense.service';
 import { DebtEntry } from './objects/DeptEntry';
-import { updateDoc } from 'firebase/firestore';
-import { b } from '@angular/core/navigation_types.d-u4EOrrdZ';
 
 @Injectable({
   providedIn: 'root',
@@ -191,13 +190,13 @@ export class TransactionService {
   //Lösche die Transaktion bei einer bestimmten ID
   async deleteTransactionsById(
     groupId: string,
-    expenseId: string, 
+    expenseId: string,
     uid: string,
     transaction: Transactions,
     transactionId: string
   ) {
     try {
-      const singleDeleteBatch = writeBatch(this.firestore); 
+      const singleDeleteBatch = writeBatch(this.firestore);
       const transactionCollectionRef = doc(
         this.firestore,
         'groups',
@@ -299,7 +298,7 @@ export class TransactionService {
     toUid: string,
     amount: number,
     reason: string,
-    relatedExpenseIds: string[] 
+    relatedExpenseIds: string[]
   ) {
     try {
       const batch = writeBatch(this.firestore);
@@ -336,7 +335,7 @@ export class TransactionService {
         const expenseSnapshot = await getDoc(expenseRef);
         if (expenseSnapshot.exists()) {
           const expense = expenseSnapshot.data() as Expenses;
-          
+
           const updatedExpenseMembers = expense.expenseMember.map((member) => {
             if (member.memberId === fromUid || member.memberId === toUid) {
               return { ...member, paid: true };
@@ -344,7 +343,8 @@ export class TransactionService {
             return member;
           });
           batch.update(expenseRef, {
-            expenseMember: updatedExpenseMembers, merge: true
+            expenseMember: updatedExpenseMembers,
+            merge: true,
           });
         }
       }
@@ -792,10 +792,12 @@ export class TransactionService {
   }
 
   // Die Schuld pro einzelne AUsgabe begleichen
-  async settleDebtByExpense(settlerId: string, groupId: string, expenseId: string): Promise<void>
-  {
-    try
-    {
+  async settleDebtByExpense(
+    settlerId: string,
+    groupId: string,
+    expenseId: string
+  ): Promise<void> {
+    try {
       // 1. Hol dir die Expense-Daten als Expenses Objekt
       const groupRef = doc(this.firestore, 'groups', groupId);
       const expenseRef = doc(groupRef, 'expenses', expenseId);
@@ -809,48 +811,54 @@ export class TransactionService {
         (member) => member.memberId === settlerId
       );
       if (!settlerExpenseMember) {
-        throw new Error(`Settler with ID ${settlerId} is not part of the expense.`);
+        throw new Error(
+          `Settler with ID ${settlerId} is not part of the expense.`
+        );
       }
-      const balancesRef = collection(this.firestore, `groups/${groupId}/balances`);
-      const payerId = expenseData.paidBy;	
+      const balancesRef = collection(
+        this.firestore,
+        `groups/${groupId}/balances`
+      );
+      const payerId = expenseData.paidBy;
       const q1 = query(
-  balancesRef,
-  where('userAId', '==', settlerId),
-  where('userBId', '==', payerId)
-);
-const q2 = query(
-  balancesRef,
-  where('userAId', '==', payerId),
-  where('userBId', '==', settlerId)
-);
+        balancesRef,
+        where('userAId', '==', settlerId),
+        where('userBId', '==', payerId)
+      );
+      const q2 = query(
+        balancesRef,
+        where('userAId', '==', payerId),
+        where('userBId', '==', settlerId)
+      );
 
-const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
 
-let balanceDoc = null;
-let balanceData = null;
+      let balanceDoc = null;
+      let balanceData = null;
 
-if (!snap1.empty) {
-  balanceDoc = snap1.docs[0];
-  balanceData = balanceDoc.data() as Balances;
-} else if (!snap2.empty) {
-  balanceDoc = snap2.docs[0];
-  balanceData = balanceDoc.data() as Balances;
-} else {
-  throw new Error(`No balance found between ${settlerId} and ${payerId}.`);
-}
+      if (!snap1.empty) {
+        balanceDoc = snap1.docs[0];
+        balanceData = balanceDoc.data() as Balances;
+      } else if (!snap2.empty) {
+        balanceDoc = snap2.docs[0];
+        balanceData = balanceDoc.data() as Balances;
+      } else {
+        throw new Error(
+          `No balance found between ${settlerId} and ${payerId}.`
+        );
+      }
 
       console.log(`Balance between ${settlerId} and ${payerId}:`, balanceData);
-      const balance = Math.abs(balanceData.userACredit - balanceData.userBCredit)
-      if(balance < settlerExpenseMember.amountToPay) 
-      {
-        throw new Error(`Amount ${settlerExpenseMember.amountToPay} exceeds ${balance}, the balance between ${settlerId} and ${payerId}. Settle your balance with this user instead.`);
-      }
-      else 
-      {
+      const balance = Math.abs(
+        balanceData.userACredit - balanceData.userBCredit
+      );
+      if (balance < settlerExpenseMember.amountToPay) {
+        throw new Error(
+          `Amount ${settlerExpenseMember.amountToPay} exceeds ${balance}, the balance between ${settlerId} and ${payerId}. Settle your balance with this user instead.`
+        );
+      } else {
         // 2.2. Wenn der Betrag in Ordnung ist, dann erstelle die Transaktion
-        const transactionId = doc(
-          collection(groupRef, 'transactions')
-        ).id;
+        const transactionId = doc(collection(groupRef, 'transactions')).id;
         const transactionData: Transactions = {
           transactionId,
           from: settlerId,
@@ -861,23 +869,27 @@ if (!snap1.empty) {
           relatedExpenses: [expenseId],
           isSettlement: true,
         };
-        const transactionRef = doc(
-          groupRef,
-          'transactions',
-          transactionId
-        );
+        const transactionRef = doc(groupRef, 'transactions', transactionId);
         await setDoc(transactionRef, transactionData);
         // 3. Markiere die Expense als bezahlt für den Settler
-        const updatedExpenseMembers = expenseData.expenseMember.map((member) => {
-          if (member.memberId === settlerId) {
-            return { ...member, paid: true };
+        const updatedExpenseMembers = expenseData.expenseMember.map(
+          (member) => {
+            if (member.memberId === settlerId) {
+              return { ...member, paid: true };
+            }
+            return member;
           }
-          return member;
-        });
-        await setDoc(expenseRef, { expenseMember: updatedExpenseMembers }, { merge: true });
-        console.log(`Debt settled for ${settlerId} on expense ${expenseId} with amount ${settlerExpenseMember.amountToPay}. Doc path: ${expenseRef.path}`);
+        );
+        await setDoc(
+          expenseRef,
+          { expenseMember: updatedExpenseMembers },
+          { merge: true }
+        );
+        console.log(
+          `Debt settled for ${settlerId} on expense ${expenseId} with amount ${settlerExpenseMember.amountToPay}. Doc path: ${expenseRef.path}`
+        );
         // 4. Update die Member Sums bei den betroffenen Benutzern
-        const groupDoc = await getDoc(groupRef);	
+        const groupDoc = await getDoc(groupRef);
         if (!groupDoc.exists()) {
           throw new Error(`Group with ID ${groupId} does not exist.`);
         }
@@ -888,12 +900,11 @@ if (!snap1.empty) {
         const payerMember = groupData['members'].find(
           (member: any) => member.uid === payerId
         );
-        if (settlerMember && payerMember) 
-        {
+        if (settlerMember && payerMember) {
           settlerMember.sumAmountPaid += settlerExpenseMember.amountToPay;
           settlerMember.countAmountPaid += 1;
           payerMember.sumAmountReceived += settlerExpenseMember.amountToPay;
-          payerMember.countAmountReceived += 1; 
+          payerMember.countAmountReceived += 1;
           groupData['members'] = groupData['members'].map((member: any) => {
             if (member.uid === settlerId) {
               return settlerMember;
@@ -907,11 +918,15 @@ if (!snap1.empty) {
           });
           console.log(`Updated member sums for ${settlerId} and ${payerId}.`);
         }
-        // 5. Dekrementiere den UserCredit des Payers in dem zugehörigen Balance-Dokument UND entferne die Expense ID aus dem Balance-Dokument 
-        if(balanceData.userAId == payerId && balanceData.userBId == settlerId) 
-        {
+        // 5. Dekrementiere den UserCredit des Payers in dem zugehörigen Balance-Dokument UND entferne die Expense ID aus dem Balance-Dokument
+        if (
+          balanceData.userAId == payerId &&
+          balanceData.userBId == settlerId
+        ) {
           balanceData.userACredit -= settlerExpenseMember.amountToPay;
-          balanceData.relatedExpenseId = balanceData.relatedExpenseId.filter((id: string) => id !== expenseId);
+          balanceData.relatedExpenseId = balanceData.relatedExpenseId.filter(
+            (id: string) => id !== expenseId
+          );
           console.log('Updating balanceDoc:', {
             path: balanceDoc.ref.path,
             userACredit: balanceData.userACredit,
@@ -919,24 +934,41 @@ if (!snap1.empty) {
             relatedExpenseId: balanceData.relatedExpenseId,
           });
           await setDoc(balanceDoc.ref, balanceData, { merge: true });
-          console.log(`UserB pays ${settlerExpenseMember.amountToPay}, UserA receives. Balance is now ${Math.abs(balanceData.userACredit - balanceData.userBCredit)}`);
-        }
-        else if(balanceData.userAId == settlerId && balanceData.userBId == payerId) 
-        {
+          console.log(
+            `UserB pays ${
+              settlerExpenseMember.amountToPay
+            }, UserA receives. Balance is now ${Math.abs(
+              balanceData.userACredit - balanceData.userBCredit
+            )}`
+          );
+        } else if (
+          balanceData.userAId == settlerId &&
+          balanceData.userBId == payerId
+        ) {
           balanceData.userBCredit -= settlerExpenseMember.amountToPay;
-          balanceData.relatedExpenseId = balanceData.relatedExpenseId.filter((id: string) => id !== expenseId);
+          balanceData.relatedExpenseId = balanceData.relatedExpenseId.filter(
+            (id: string) => id !== expenseId
+          );
           console.log('Updating balanceDoc:', {
             path: balanceDoc.ref.path,
             userACredit: balanceData.userACredit,
             userBCredit: balanceData.userBCredit,
             relatedExpenseId: balanceData.relatedExpenseId,
           });
-          await setDoc(balanceDoc.ref, balanceData, { merge: true });
-          console.log(`UserA pays ${settlerExpenseMember.amountToPay}, UserB receives. Balance is now ${Math.abs(balanceData.userACredit - balanceData.userBCredit)}`);
+          await updateDoc(balanceDoc.ref, {
+            userBCredit: balanceData.userBCredit,
+            relatedExpenseId: balanceData.relatedExpenseId,
+          });
+          console.log(
+            `UserA pays ${
+              settlerExpenseMember.amountToPay
+            }, UserB receives. Balance is now ${Math.abs(
+              balanceData.userACredit - balanceData.userBCredit
+            )}`
+          );
         }
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Fehler in settleDebtByExpense:', error);
       throw error;
     }
