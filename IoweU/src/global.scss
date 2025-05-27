@@ -1065,9 +1065,16 @@ ion-alert {
   color: #ffffff !important;
 }
     .info-overlay.slideUp{
-    background-color: #000 !important;
+    background: rgba(0, 0, 0, 0.8) !important;
   }
   .info-wrapper[_ngcontent-ng-c3643937075] ul[_ngcontent-ng-c3643937075] li[_ngcontent-ng-c3643937075]::before {
     color: #ffffff;
   }
+  .info-overlay {
+    background: rgba(0, 0, 0, 0.8) !important;
+  }
+   .info-wrapper ul li::before {
+    color: #fff !important;
+  }
+
 }
