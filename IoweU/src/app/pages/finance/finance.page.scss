@@ -124,17 +124,9 @@ strong {
   font-weight: 600;
 }
 @media (prefers-color-scheme: dark) {
-    .info-wrapper {
-  background: var(--ion-color-dark);
-  color: #e0e2e5;
-}
+ 
   ion-icon.info-button {
     color: #000;
   }
-  .info-overlay.slideUp{
-    background-color: #000;
-  }
-  .info-wrapper[_ngcontent-ng-c3643937075] ul[_ngcontent-ng-c3643937075] li[_ngcontent-ng-c3643937075]::before {
-    color: #ffffff;
-  }
+
 }
