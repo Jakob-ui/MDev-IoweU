@@ -435,8 +435,8 @@ export class ExpenseDetailsPage {
       for (const member of unpaidMembers) {
         await this.pushNotificationService.sendToUser(
           member.memberId,
-          `Schuldenanfrage von ${myName}`,
-          `${myName} möchte, dass du deine Schulden für die Ausgabe "${expenseData.description}" begleichst.`
+          `ZAHLUNGSAUFFORDERUNG von ${myName}`,
+          `${myName} möchte, dass du deine Schulden für die Ausgabe "${expenseData.description}" in Höhe von ${this.amountToPay} € in der Gruppe "${this.groupname}" begleichst.`
         );
       }
 

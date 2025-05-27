@@ -365,8 +365,8 @@ export class DetailedBalancePage implements OnInit {
       // 📲 Push Notification an ALLE Geräte des Empfängers senden (neue Methode im Service)
       await this.pushNotificationService.sendToUser(
         toUserId,
-        `Schuldenanfrage von ${myName}`,
-        `${myName} möchte, dass du deine Schulden begleichst.`
+        `ZAHLUNGSAUFFORDERUNG von ${myName}`,
+        `${myName} möchte, dass du deine Schulden in Höhe von ${this.myBalance.toFixed(2)} € in der Gruppe "${this.groupname}" begleichst.`
       );
 
       const successAlert = await this.alertController.create({
