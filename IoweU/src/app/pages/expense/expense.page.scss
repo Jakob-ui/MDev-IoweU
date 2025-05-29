@@ -113,6 +113,10 @@ ion-item.dropDownFelder::part(native) {
   background-color: transparent !important;
 }
 
+.selected-category{
+  cursor: pointer;
+}
+
 .custom-dropdown ion-label {
   margin-left: 15px;
 }
