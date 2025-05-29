@@ -2,6 +2,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
 
+import { getApps } from 'firebase/app';
 import { provideFirebaseApp, initializeApp, setLogLevel } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
@@ -29,5 +30,7 @@ bootstrapApplication(AppComponent, {
     provideMessaging(() => getMessaging()),
     provideFunctions(() => getFunctions()),
   ],
+}).then(() => {
+  console.log('Firebase Apps:', getApps());
 });
 

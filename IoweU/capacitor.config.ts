@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'ioweu.eu',
+  appId: 'IoweU-team',
   appName: 'IoweU',
   webDir: 'www',
   server: {

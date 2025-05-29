@@ -26,6 +26,7 @@ export class AppComponent implements OnInit {
     private router: Router,
     private authService: AuthService
   ) {
+    console.log('App startet!');
     this.networkService.isOnline$.subscribe((online) => {
       if (!online) {
         this.router.navigate(['/no-connection']);
@@ -61,7 +62,9 @@ export class AppComponent implements OnInit {
           : 'assets/gifs/loadingLightMode.gif';
       });
 
-    await this.registerServiceWorker();
+    if (!this.pushNotificationService.isNativeApp()) {
+  await this.registerServiceWorker();
+}
 
     // Push Notifications initialisieren
 
