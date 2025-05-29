@@ -21,45 +21,63 @@ export class PushNotificationService {
   token: string | null = null;
 
   constructor(
-    private http: HttpClient,
-    private messaging: Messaging,
-  ) {}
+  private http: HttpClient,
+  private messaging: Messaging,
+) {
+  if (!this.isWebPushSupported()) {
+    // @ts-ignore
+    this.messaging = null;
+  }
+}
 
   async init(user: Users): Promise<void> {
-    if (this.isNativeApp()) {
-      await this.initNativePush(user);
-    } else {
-      await this.initWebPush(user);
-    }
+  if (this.isNativeApp()) {
+    await this.initNativePush(user);
+  } else if (this.isWebPushSupported()) {
+    await this.initWebPush(user);
+  } else {
+    console.log('Web Push wird in diesem Kontext nicht initialisiert.');
   }
+}
 
-
-  private isNativeApp(): boolean {
+   isNativeApp(): boolean {
     return Capacitor.isNativePlatform();
   }
 
-  // Web Push initialisieren
-  private async initWebPush(user: Users) {
-    try {
-      const permission = await Notification.requestPermission();
-      console.log("permission", permission);
-      if (permission === 'granted') {
-        this.token = await getToken(this.messaging, {
-          vapidKey: environment.firebase.vapidKey,
-        });
-        console.log('Web FCM Token:', this.token);
-        if (this.token) {
-          localStorage.setItem('fcm_token', this.token);
-          await this.saveFcmToken(user, this.token, 'web');
-        }
-        this.listenToMessages();
-      } else {
-        console.log('Notification permission denied');
+  isWebPushSupported(): boolean {
+  // Verhindere Web Push im iOS/Android WebView explizit
+  return (
+    'Notification' in window &&
+    'serviceWorker' in navigator &&
+    window.isSecureContext &&
+    !Capacitor.isNativePlatform() &&
+    !/iPad|iPhone|iPod|Android/.test(navigator.userAgent)
+  );
+}
+
+private async initWebPush(user: Users) {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      this.token = await getToken(this.messaging, {
+        vapidKey: environment.firebase.vapidKey,
+      });
+      if (this.token) {
+        localStorage.setItem('fcm_token', this.token);
+        await this.saveFcmToken(user, this.token, 'web');
       }
-    } catch (error) {
-      console.error('Web Push permission/token error:', error);
+      this.listenToMessages();
+    } else {
+      console.log('Notification permission denied');
     }
+  } catch (error: any) {
+    if (error?.code === 'messaging/unsupported-browser') {
+      // Fehler unterdrücken, da Web Push im WebView nicht unterstützt wird
+      return;
+    }
+    console.error('Web Push permission/token error:', error);
   }
+}
 
   // Native Push initialisieren (Android/iOS)
   private async initNativePush(user: Users) {
