@@ -73,10 +73,8 @@ export class ExpenseService {
         paidBy: expenseData.paidBy,
         date:
           expenseData.repeat === 'nein'
-            ? new Date(
-                new Date(expenseData.date).setHours(0, 0, 0, 0)
-              ).toISOString()
-            : new Date(expenseData.date).toISOString(),
+            ? new Date(expenseData.date).toISOString()
+            : new Date().toISOString(),
         currency: expenseData.currency,
         category: expenseData.category || '',
         invoice: expenseData.invoice || '',
