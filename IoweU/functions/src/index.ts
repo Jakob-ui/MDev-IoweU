@@ -136,19 +136,19 @@ export const handlerepeatingExpenses = onSchedule(
 
 // 1. Updaten der Gruppensummen sowie Mitgliedsummen bei Änderung der Ausgaben
 export const updateGroupSumsOnExpenseChange = onDocumentWritten(
-  "groups/{groupId}/expenses/{expenseId}",
+  {region: 'europe-west1', document: 'groups/{groupId}/expenses/{expenseId}'},
   async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
     const groupId = event.params.groupId;
 
     try {
       // Neue oder aktualisierte Ausgabe
       const newExpense = event.data?.after?.data();
-      console.log("New Expense data: ", newExpense);
+      console.log('New Expense data: ', newExpense);
       // Gelöschte Ausgabe
       const oldExpense = event.data?.before?.data();
 
       // Referenz zur Gruppe
-      const groupRef = firestore.collection("groups").doc(groupId);
+      const groupRef = firestore.collection('groups').doc(groupId);
       const groupSnapshot = await groupRef.get();
 
       if (!groupSnapshot.exists) {
@@ -162,7 +162,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
       let sumTotalExpenses = groupData?.sumTotalExpenses || 0;
       let countTotalExpenses = groupData?.countTotalExpenses || 0;
       let groupMembers = groupData?.members || [];
-      console.log("Group Members: ", groupMembers);
+      console.log('Group Members: ', groupMembers);
 
       // Summen und Zähler aktualisieren
       if (newExpense && !oldExpense) {
@@ -170,20 +170,17 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
         sumTotalExpenses += newExpense.totalAmount || 0;
         countTotalExpenses += 1;
         // MemberSums bei neuer Ausgabe aktualisieren
-        for(const groupMember of groupMembers)
-        {
-          for(const expenseMember of newExpense.expenseMember)
-          {
-            if(groupMember.uid === expenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
-            {
-              if(groupMember.uid == newExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat
-              {
+        for (const groupMember of groupMembers) {
+          for (const expenseMember of newExpense.expenseMember) {
+            if (groupMember.uid === expenseMember.memberId) {
+              // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
+              if (groupMember.uid == newExpense.paidBy) {
+                // Jeweiliger User ist der, die die Ausgabe bezahlt hat
                 groupMember.sumExpenseAmount += newExpense.totalAmount;
                 groupMember.sumExpenseMemberAmount += expenseMember.amountToPay;
                 groupMember.countExpenseAmount += 1;
-              }
-              else // Jeweiliger User ist der, die an der Ausgabe nur beteiligt war
-              {
+              } // Jeweiliger User ist der, die an der Ausgabe nur beteiligt war
+              else {
                 groupMember.sumExpenseMemberAmount += expenseMember.amountToPay;
                 groupMember.countExpenseMemberAmount += 1;
               }
@@ -195,20 +192,17 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
         sumTotalExpenses -= oldExpense.totalAmount || 0;
         countTotalExpenses -= 1;
         // MemberSums bei gelöschter Ausgabe aktualisieren
-        for(const groupMember of groupMembers)
-        {
-          for(const expenseMember of oldExpense.expenseMember)
-          {
-            if(groupMember.uid === expenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
-            {
-              if(groupMember.uid == oldExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat
-              {
+        for (const groupMember of groupMembers) {
+          for (const expenseMember of oldExpense.expenseMember) {
+            if (groupMember.uid === expenseMember.memberId) {
+              // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
+              if (groupMember.uid == oldExpense.paidBy) {
+                // Jeweiliger User ist der, die die Ausgabe bezahlt hat
                 groupMember.sumExpenseAmount -= oldExpense.totalAmount;
                 groupMember.sumExpenseMemberAmount -= expenseMember.amountToPay;
                 groupMember.countExpenseAmount -= 1;
-              }
-              else // Jeweiliger User ist der, die an der Ausgabe nur beteiligt war
-              {
+              } // Jeweiliger User ist der, die an der Ausgabe nur beteiligt war
+              else {
                 groupMember.sumExpenseMemberAmount -= expenseMember.amountToPay;
                 groupMember.countExpenseMemberAmount -= 1;
               }
@@ -221,42 +215,40 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
         // MemberSums bei aktualisierter Ausgabe aktualisieren:
 
         // A. Lösche die Daten der alten Ausgabe
-        for(const groupMember of groupMembers)
-        {
-          for(const oldExpenseMember of oldExpense.expenseMember)
-          {
-            if(groupMember.uid === oldExpenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
-            {
-              if(groupMember.uid == oldExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat
-              {
+        for (const groupMember of groupMembers) {
+          for (const oldExpenseMember of oldExpense.expenseMember) {
+            if (groupMember.uid === oldExpenseMember.memberId) {
+              // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
+              if (groupMember.uid == oldExpense.paidBy) {
+                // Jeweiliger User ist der, die die Ausgabe bezahlt hat
                 groupMember.sumExpenseAmount -= oldExpense.totalAmount;
-                groupMember.sumExpenseMemberAmount -= oldExpenseMember.amountToPay;
+                groupMember.sumExpenseMemberAmount -=
+                  oldExpenseMember.amountToPay;
                 groupMember.countExpenseAmount -= 1;
-              }
-              else // Jeweiliger User ist der, die an der Ausgabe nur beteiligt war
-              {
-                groupMember.sumExpenseMemberAmount -= oldExpenseMember.amountToPay;
+              } // Jeweiliger User ist der, die an der Ausgabe nur beteiligt war
+              else {
+                groupMember.sumExpenseMemberAmount -=
+                  oldExpenseMember.amountToPay;
                 groupMember.countExpenseMemberAmount -= 1;
               }
             }
           }
         }
         // B. Füge die Daten der neuen Ausgabe hinzu
-        for(const groupMember of groupMembers)
-        {
-          for(const newExpenseMember of newExpense.expenseMember)
-          {
-            if(groupMember.uid === newExpenseMember.memberId) // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
-            {
-              if(groupMember.uid == newExpense.paidBy) // Jeweiliger User ist der, die die Ausgabe bezahlt hat              firebase --version
-              {
+        for (const groupMember of groupMembers) {
+          for (const newExpenseMember of newExpense.expenseMember) {
+            if (groupMember.uid === newExpenseMember.memberId) {
+              // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
+              if (groupMember.uid == newExpense.paidBy) {
+                // Jeweiliger User ist der, die die Ausgabe bezahlt hat              firebase --version
                 groupMember.sumExpenseAmount += newExpense.totalAmount;
-                groupMember.sumExpenseMemberAmount += newExpenseMember.amountToPay;
+                groupMember.sumExpenseMemberAmount +=
+                  newExpenseMember.amountToPay;
                 groupMember.countExpenseAmount += 1;
-              }
-              else // Jeweiliger User ist der, die an der Ausgabe nur beteiligt war
-              {
-                groupMember.sumExpenseMemberAmount += newExpenseMember.amountToPay;
+              } // Jeweiliger User ist der, die an der Ausgabe nur beteiligt war
+              else {
+                groupMember.sumExpenseMemberAmount +=
+                  newExpenseMember.amountToPay;
                 groupMember.countExpenseMemberAmount += 1;
               }
             }
@@ -273,7 +265,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
 
       console.log(`Summen für Gruppe ${groupId} erfolgreich aktualisiert.`);
     } catch (error) {
-      console.error("Fehler beim Aktualisieren der Gruppensummen:", error);
+      console.error('Fehler beim Aktualisieren der Gruppensummen:', error);
     }
   }
 );
