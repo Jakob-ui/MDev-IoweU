@@ -51,7 +51,7 @@ const corsHandler = cors({origin: true});
 // Funktion um alle wiederkehrende Kosten zu behandeln
 export const handlerepeatingExpenses = onSchedule(
   {
-    schedule: "every day 00:20",
+    schedule: "every day 00:01",
     timeZone: "Europe/Berlin",
     region: "europe-west1",
   },
@@ -280,7 +280,8 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
 
 // 3. Updaten der Bilanzen bei Änderung der Ausgaben
 export const updateBalancesOnExpenseChange = onDocumentWritten(
-  "groups/{groupId}/expenses/{expenseId}",
+  {region: 'europe-west1',
+    document: 'groups/{groupId}/expenses/{expenseId}',},
   async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined>) => {
     const groupId = event.params.groupId;
 
@@ -289,31 +290,31 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
       const newExpense = event.data?.after?.data();
       const oldExpense = event.data?.before?.data();
 
-      const groupRef = firestore.collection("groups").doc(groupId);
+      const groupRef = firestore.collection('groups').doc(groupId);
       const groupSnapshot = await groupRef.get();
 
       if (newExpense && oldExpense) {
-        const onlyPaidChanged = newExpense.expenseMember.length === oldExpense.expenseMember.length &&
+        const onlyPaidChanged =
+          newExpense.expenseMember.length === oldExpense.expenseMember.length &&
           newExpense.expenseMember.every((newM: any, idx: number) => {
             const oldM = oldExpense.expenseMember[idx];
             // Vergleiche alle Felder außer "paid"
-            const {paid: newPaid, ...newRest} = newM;
-            const {paid: oldPaid, ...oldRest} = oldM;
+            const { paid: newPaid, ...newRest } = newM;
+            const { paid: oldPaid, ...oldRest } = oldM;
             return JSON.stringify(newRest) !== JSON.stringify(oldRest);
           });
-          if (onlyPaidChanged) {
-            return;
-          }  
+        if (onlyPaidChanged) {
+          return;
+        }
       }
-        
+
       if (!groupSnapshot.exists) {
         console.error(`Gruppe mit der ID ${groupId} nicht gefunden.`);
         return;
       }
 
       const balancesRef = firestore.collection(`groups/${groupId}/balances`);
-      if (newExpense && !oldExpense)
-      {
+      if (newExpense && !oldExpense) {
         // Ausgabe hinzugefügt
         for (const member of newExpense.expenseMember) {
           if (member.memberId !== newExpense.paidBy) {
@@ -323,14 +324,14 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
 
             // Richtung 1: creditor → debtor
             const snap1 = await balancesRef
-              .where("userAId", "==", creditor)
-              .where("userBId", "==", debtor)
+              .where('userAId', '==', creditor)
+              .where('userBId', '==', debtor)
               .get();
 
             // Richtung 2: debtor → creditor
             const snap2 = await balancesRef
-              .where("userAId", "==", debtor)
-              .where("userBId", "==", creditor)
+              .where('userAId', '==', debtor)
+              .where('userBId', '==', creditor)
               .get();
 
             const docs = [...snap1.docs, ...snap2.docs];
@@ -377,8 +378,7 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
         }
       }
 
-      if (!newExpense && oldExpense)
-      {
+      if (!newExpense && oldExpense) {
         // Ausgabe gelöscht
         for (const member of oldExpense.expenseMember) {
           if (member.memberId !== oldExpense.paidBy) {
@@ -387,13 +387,13 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
             const amount = member.amountToPay;
 
             const snap1 = await balancesRef
-              .where("userAId", "==", creditor)
-              .where("userBId", "==", debtor)
+              .where('userAId', '==', creditor)
+              .where('userBId', '==', debtor)
               .get();
 
             const snap2 = await balancesRef
-              .where("userAId", "==", debtor)
-              .where("userBId", "==", creditor)
+              .where('userAId', '==', debtor)
+              .where('userBId', '==', creditor)
               .get();
 
             const docs = [...snap1.docs, ...snap2.docs];
@@ -424,8 +424,7 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
           }
         }
       }
-      if(oldExpense&&newExpense)
-      {
+      if (oldExpense && newExpense) {
         //Ausgabe aktualisiert
 
         // A. Lösche die Daten der alten Ausgabe
@@ -436,13 +435,13 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
             const amount = member.amountToPay;
 
             const snap1 = await balancesRef
-              .where("userAId", "==", creditor)
-              .where("userBId", "==", debtor)
+              .where('userAId', '==', creditor)
+              .where('userBId', '==', debtor)
               .get();
 
             const snap2 = await balancesRef
-              .where("userAId", "==", debtor)
-              .where("userBId", "==", creditor)
+              .where('userAId', '==', debtor)
+              .where('userBId', '==', creditor)
               .get();
 
             const docs = [...snap1.docs, ...snap2.docs];
@@ -474,14 +473,14 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
 
             // Richtung 1: creditor → debtor
             const snap1 = await balancesRef
-              .where("userAId", "==", creditor)
-              .where("userBId", "==", debtor)
+              .where('userAId', '==', creditor)
+              .where('userBId', '==', debtor)
               .get();
 
             // Richtung 2: debtor → creditor
             const snap2 = await balancesRef
-              .where("userAId", "==", debtor)
-              .where("userBId", "==", creditor)
+              .where('userAId', '==', debtor)
+              .where('userBId', '==', creditor)
               .get();
 
             const docs = [...snap1.docs, ...snap2.docs];
@@ -517,17 +516,16 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
           }
         }
       }
+    } catch (error) {
+      console.error('Error updating balances on new expense:', error);
     }
-    catch (error)
-    {
-      console.error("Error updating balances on new expense:", error);
-    }
-  });
+  }
+);
 
 // Funktion um die Gruppensummen und -bilanzen täglich neu zu berechnen
 export const recalculateGroupBalances = onSchedule(
   {
-    schedule: "every day 00:01",
+    schedule: "every day 00:05",
     timeZone: "Europe/Berlin",
     region: "europe-west1",
   },
@@ -569,36 +567,41 @@ export const recalculateGroupBalances = onSchedule(
   }
 );
 
-export const sendPushNotification = onRequest((req, res) => {
-  corsHandler(req, res, async () => {
-    if (req.method === "OPTIONS") {
-      return res.status(204).send("");
-    }
-
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method Not Allowed" });
-    }
-
-    try {
-      const { toUserId, title, body, toFcmToken } = req.body;
-
-      if (!toFcmToken) {
-        return res.status(400).json({ error: "FCM Token fehlt im Body!" });
+export const sendPushNotification = onRequest(
+  {region: 'europe-west1'},
+  (req, res) => {
+    corsHandler(req, res, async () => {
+      if (req.method === 'OPTIONS') {
+        return res.status(204).send('');
       }
 
-      const message = {
-        notification: { title, body },
-        token: toFcmToken,
-      };
+      if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+      }
 
-      logger.info("FCM-Message wird gesendet an:", message.token);
-      await admin.messaging().send(message);
+      try {
+        const { toUserId, title, body, toFcmToken } = req.body;
 
-      return res.status(200).json({ success: true, message: "Push Notification gesendet" });
-    } catch (error: any) {
-      logger.error("Fehler beim Senden der Benachrichtigung:", error);
-      return res.status(500).json({ error: error.toString() });
-    }
-  });
-});
+        if (!toFcmToken) {
+          return res.status(400).json({ error: 'FCM Token fehlt im Body!' });
+        }
+
+        const message = {
+          notification: { title, body },
+          token: toFcmToken,
+        };
+
+        logger.info('FCM-Message wird gesendet an:', message.token);
+        await admin.messaging().send(message);
+
+        return res
+          .status(200)
+          .json({ success: true, message: 'Push Notification gesendet' });
+      } catch (error: any) {
+        logger.error('Fehler beim Senden der Benachrichtigung:', error);
+        return res.status(500).json({ error: error.toString() });
+      }
+    });
+  }
+);
 
