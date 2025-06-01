@@ -19,18 +19,23 @@ export class PushNotificationService {
   currentMessage = this.messageSource.asObservable();
 
   token: string | null = null;
+  messaging: Messaging | null = null;
 
   constructor(
   private http: HttpClient,
-  private messaging: Messaging,
 ) {
-  if (!this.isWebPushSupported()) {
+    if (Capacitor.isNativePlatform()) {
     // @ts-ignore
     this.messaging = null;
+  } else if(this.isWebPushSupported()){
+    // @ts-ignore
+    this.messaging = inject(Messaging);
   }
 }
 
   async init(user: Users): Promise<void> {
+      if (!this.messaging) return;
+    if(this.isNativeApp() && !Capacitor.isPluginAvailable('PushNotifications')) {
   if (this.isNativeApp()) {
     await this.initNativePush(user);
   } else if (this.isWebPushSupported()) {
@@ -39,8 +44,12 @@ export class PushNotificationService {
     console.log('Web Push wird in diesem Kontext nicht initialisiert.');
   }
 }
+}
 
    isNativeApp(): boolean {
+    if (Capacitor.getPlatform() === 'ios') {
+      return true;
+    }
     return Capacitor.isNativePlatform();
   }
 
@@ -57,6 +66,7 @@ export class PushNotificationService {
 
 private async initWebPush(user: Users) {
   try {
+          if (!this.messaging) return;
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       this.token = await getToken(this.messaging, {
@@ -159,6 +169,7 @@ private async initWebPush(user: Users) {
   }
 
   listenToMessages() {
+    if (!this.messaging) return;
     onMessage(this.messaging, (payload) => {
       console.log('Web Message received: ', payload);
       this.messageSource.next(payload);
@@ -191,6 +202,9 @@ private async initWebPush(user: Users) {
 
   // Sendet Push an alle Geräte eines Users
   async sendToUser(uid: string, title: string, body: string) {
+    if (Capacitor.getPlatform() === 'ios') {
+      return;
+    }
     const tokens = await this.getFcmTokensByUid(uid);
     if (!tokens.length) {
       console.warn('Keine Tokens für Benutzer:', uid);
