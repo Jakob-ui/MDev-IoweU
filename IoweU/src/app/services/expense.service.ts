@@ -5,7 +5,6 @@ import {
   deleteDoc,
   Firestore,
   getDocs,
-  updateDoc,
   onSnapshot,
   getDoc,
   query,
@@ -59,6 +58,10 @@ export class ExpenseService {
         collection(this.firestore, 'groups', groupId, 'expenses')
       ).id;
 
+      if (expenseData.repeat === 'nein') {
+        new Date(expenseData.date).setHours(0, 0, 0, 0);
+      }
+
       // Komplettes Expense-Objekt erstellen (Daten werden aus der UI geliefert)
       const expense: Expenses = {
         expenseId,
@@ -68,9 +71,10 @@ export class ExpenseService {
           expenseData.totalAmountInForeignCurrency || 0,
         exchangeRate: expenseData.exchangeRate || 0,
         paidBy: expenseData.paidBy,
-        date: expenseData.date
-          ? new Date(expenseData.date).toISOString()
-          : new Date().toISOString(),
+        date:
+          expenseData.repeat === 'nein'
+            ? new Date(expenseData.date).toISOString()
+            : new Date().toISOString(),
         currency: expenseData.currency,
         category: expenseData.category || '',
         invoice: expenseData.invoice || '',
@@ -100,7 +104,7 @@ export class ExpenseService {
         const repeatingExpense: RepeatingExpenses = {
           ...expense,
           lastPay: expenseData.date
-            ? new Date(expenseData.date).toISOString()
+            ? this.toUTCDateString(expenseData.date)
             : new Date().toISOString(),
         };
         const expenseRef = doc(
@@ -117,6 +121,13 @@ export class ExpenseService {
       console.error('Fehler beim Erstellen der Ausgabe: ', error);
       return null;
     }
+  }
+
+  toUTCDateString(dateInput: string | Date): string {
+    const d = new Date(dateInput);
+    return new Date(
+      Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
+    ).toISOString();
   }
 
   async updateExpense(
@@ -175,7 +186,7 @@ export class ExpenseService {
         const repeatingExpense: RepeatingExpenses = {
           ...updatedExpense,
           lastPay: updatedExpense.date
-            ? new Date(updatedExpense.date).toISOString()
+            ? this.toUTCDateString(updatedExpense.date)
             : new Date().toISOString(),
         };
         await setDoc(expenseRef, repeatingExpense);

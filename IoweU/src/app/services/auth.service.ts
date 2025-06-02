@@ -9,11 +9,12 @@ import {
   UserCredential,
   GoogleAuthProvider,
   signInWithRedirect,
-  signInWithPopup,
+  signInWithPopup, reload,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
 import { Router } from '@angular/router';
+import { PushNotificationService } from './push-notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,6 +24,7 @@ export class AuthService {
   private firestore = inject(Firestore);
   private groupService = inject(GroupService);
   private router = inject(Router);
+  private pushNotificationService = inject(PushNotificationService);
   currentUser: Users | null = null;
   colorBlindMode: boolean = false;
 
@@ -57,7 +59,7 @@ export class AuthService {
               'Benutzer eingeloggt und in Datenbank geladen',
               this.currentUser
             );
-
+            this.pushNotificationService.init(this.currentUser as Users);
             // Farben anwenden
             this.applyUserColors(this.currentUser.color);
           } else {
@@ -243,6 +245,7 @@ export class AuthService {
     try {
       const userRef = doc(this.firestore, 'users', uid);
       await setDoc(userRef, data);
+      //this.pushNotificationService.init(this.currentUser as Users);
       console.log('Benutzerdaten erfolgreich gespeichert:', uid);
       return true;
     } catch (e) {
@@ -251,23 +254,37 @@ export class AuthService {
     }
   }
 
-  login(email: string, password: string): Promise<void> {
-    return this.auth
-      .setPersistence(browserLocalPersistence)
-      .then(() => {
-        return signInWithEmailAndPassword(
-          this.auth,
-          email.trim(),
-          password.trim()
-        ).then(() => {
-          console.log('Benutzer erfolgreich eingeloggt.');
-        });
-      })
-      .catch((error) => {
-        console.error('Fehler beim Login:', error);
-        throw error;
-      });
+  async login(email: string, password: string): Promise<void> {
+  const userCredential = await signInWithEmailAndPassword(
+    this.auth,
+    email.trim(),
+    password.trim()
+  );
+  const user = userCredential.user;
+  if (user) {
+    const userDocRef = doc(this.firestore, 'users', user.uid);
+    const docsnap = await getDoc(userDocRef);
+    if (docsnap.exists()) {
+      this.currentUser = {
+        uid: user.uid,
+        username: docsnap.data()['username'],
+        email: docsnap.data()['email'],
+        color: docsnap.data()['color'],
+        lastedited: docsnap.data()['lastedited'],
+        groupId: docsnap.data()['groupId'],
+      };
+      this.applyUserColors(this.currentUser.color);
+      this.pushNotificationService.init(this.currentUser as Users);
+      console.log('Benutzer eingeloggt und in Datenbank geladen', this.currentUser);
+    } else {
+      this.currentUser = null;
+      throw new Error('Benutzer eingeloggt, aber nicht in der Datenbank gefunden');
+    }
+  } else {
+    this.currentUser = null;
+    throw new Error('Login fehlgeschlagen');
   }
+}
 
   logout(): void {
     this.auth.signOut().then(() => {
@@ -331,36 +348,6 @@ export class AuthService {
     }
   }
 
-  async saveFcmToken(token: string, platform: 'web' | 'android' | 'ios' = 'web') {
-    const uid = this.currentUser?.uid;
-    if (!uid || !token) return;
 
-    const userDocRef = doc(this.firestore, 'users', uid);
-
-    try {
-      const userDocSnap = await getDoc(userDocRef);
-      let tokens: string[] = [];
-      if (userDocSnap.exists()) {
-        const data = userDocSnap.data();
-        tokens = data?.['fcmTokens'] ?? [];
-
-      }
-
-      if (!tokens.includes(token)) {
-        await setDoc(
-          userDocRef,
-          {
-            fcmTokens: arrayUnion(token),
-          },
-          { merge: true }
-        );
-        console.log(`FCM Token gespeichert (${platform}):`, token);
-      } else {
-        console.log(`Token (${platform}) bereits vorhanden:`, token);
-      }
-    } catch (error) {
-      console.error('Fehler beim Speichern des FCM-Tokens:', error);
-    }
-  }
 
 }

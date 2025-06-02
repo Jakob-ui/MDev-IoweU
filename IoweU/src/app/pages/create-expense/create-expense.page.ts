@@ -1207,23 +1207,27 @@ export class CreateExpensePage {
         await this.shoppinglistService.deleteAllProductsFromShoppingCart(this.groupId, this.shoppingCartId);
       }
 
-      // Push-Notification an alle Mitglieder, die noch nicht bezahlt haben und >0 zahlen müssen
+      const payerId = this.expense.paidBy;
+      const payer = this.groupMembers.find(member => member.uid === payerId);
+      const payerName = payer ? payer.username || payer.name || 'Jemand' : 'Jemand';
+
       const unpaidMembers = this.expense.expenseMember.filter(
         (member) =>
-          !member.paid && member.memberId !== this.expense.paidBy &&
+          !member.paid &&
+          member.memberId !== payerId &&
           member.amountToPay > 0
       );
 
       const myName = this.user || 'Jemand';
 
       for (const member of unpaidMembers) {
-        // member.memberId = UID des Mitglieds
         await this.pushNotificationService.sendToUser(
           member.memberId,
           `Neue AUSGABE in der Gruppe "${this.groupname}"`,
-          `${myName} hat eine neue Ausgabe hinzugefügt. Du schuldest ${this.expense.paidBy} ${member.amountToPay.toFixed(2)} €.`
+          `${myName} hat eine neue Ausgabe hinzugefügt. Du schuldest ${payerName} ${member.amountToPay.toFixed(2)} €.`
         );
       }
+
 
       if(this.shoppingCartId != null){
         this.navCtrl.back();

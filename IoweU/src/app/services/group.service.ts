@@ -15,6 +15,8 @@ import {
   updateDoc,
   onSnapshot,
   collectionGroup,
+  FieldPath,
+  documentId,
 } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { elementAt } from 'rxjs';
@@ -436,26 +438,27 @@ export class GroupService {
 
         if (groupIds.length > 0) {
           const groupsRef = collection(this.firestore, 'groups');
+
           const groupsQuery = query(
             groupsRef,
-            where('groupId', 'in', groupIds)
+            where(documentId(), 'in', groupIds) // <--- Jetzt korrekt: documentId() als Funktion aufrufen
           );
+
           const groupSnapshot = await getDocs(groupsQuery);
 
           const groups = groupSnapshot.docs.map((doc) => ({
             groupId: doc.id,
             ...doc.data(),
           })) as Groups[];
-          updateGroupsCallback(groups); // Aktualisiere die Gruppenliste
+          updateGroupsCallback(groups);
           this.groupCount = groups.length;
         } else {
           console.log('No groups found for this user.');
-          updateGroupsCallback([]); // Leere Gruppenliste zurückgeben
+          updateGroupsCallback([]);
         }
       }
     );
 
-    // Gib die Unsubscribe-Funktion zurück, um den Listener bei Bedarf zu entfernen
     return unsub;
   }
 
@@ -689,6 +692,4 @@ export class GroupService {
 
     await setDoc(groupRef, updatedGroupData, { merge: true });
   }
-
-
 }

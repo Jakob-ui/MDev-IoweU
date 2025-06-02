@@ -74,3 +74,4 @@ ios/
 IoweU/src/environments/
 IoweU/src/environments/environment.prod.ts
 IoweU/src/environments/environment.ts
+IoweU/android/app/google-services.json

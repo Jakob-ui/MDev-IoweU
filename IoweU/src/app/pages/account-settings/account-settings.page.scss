@@ -20,6 +20,9 @@
   align-items: center;
   gap: 10px;
 }
+.name-buttons{
+  cursor: pointer;
+}
 
 .fixed-bottom ion-button {
   width: 80%;
@@ -98,5 +101,8 @@ ion-toggle::part(handle) {
   }
   .user-name-big {
     color: #fff !important;
+  }
+  .name-buttons{
+    color: #2f2f2f;
   }
 }

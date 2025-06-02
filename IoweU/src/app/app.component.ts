@@ -5,12 +5,15 @@ import { LoadingService } from './services/loading.service';
 import { PushNotificationService } from './services/push-notification.service';
 import { NetworkService } from './services/network.service';
 import { Router } from '@angular/router';
+import { AuthService } from './services/auth.service';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   imports: [IonApp, IonRouterOutlet, CommonModule],
+  standalone: true
 })
 export class AppComponent implements OnInit {
   loading: boolean = false;
@@ -20,9 +23,11 @@ export class AppComponent implements OnInit {
   constructor(
     private loadingService: LoadingService,
     private pushNotificationService: PushNotificationService,
-    private networkService: NetworkService, 
-    private router: Router
+    private networkService: NetworkService,
+    private router: Router,
+    private authService: AuthService
   ) {
+    console.log('App startet!');
     this.networkService.isOnline$.subscribe((online) => {
       if (!online) {
         this.router.navigate(['/no-connection']);
@@ -58,10 +63,21 @@ export class AppComponent implements OnInit {
           : 'assets/gifs/loadingLightMode.gif';
       });
 
-    await this.registerServiceWorker();
-    // Push Notifications initialisieren
-    await this.pushNotificationService.init();
+    if (!this.pushNotificationService.isNativeApp()) {
+  await this.registerServiceWorker();
+}
 
+    // Push Notifications initialisieren
+
+    await this.authService.waitForUser();
+    if (!this.authService.currentUser) {
+      console.warn('User not authenticated, skipping push notification initialization');
+      return;
+    } else {
+      //await this.pushNotificationService.init(this.authService.currentUser);
+    }
+
+    if(Capacitor.getPlatform() === 'ios') {
     // Auf eingehende Push-Nachrichten reagieren
     if (this.pushNotificationService.currentMessage) {
       this.pushNotificationService.currentMessage.subscribe((payload: { notification: { title: any; }; }) => {
@@ -69,6 +85,7 @@ export class AppComponent implements OnInit {
           alert(`Push Nachricht: ${payload.notification?.title ?? 'Neue Nachricht'}`);
         }
       });
+    }
     }
   }
 

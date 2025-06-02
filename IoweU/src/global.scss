@@ -426,6 +426,10 @@ ion-button.back-button::part(native) {
   height: 24px;
 }
 
+ion-button:hover{
+  cursor: pointer;
+}
+
 ion-button.main-button::part(native) {
   --background: var(--ion-color-secondary);
   font-weight: 700;
@@ -577,6 +581,10 @@ ion-item.select-interface-option::part(native) {
   background: var(--user-color-background, rgba(218, 218, 218, 0.84));
   border: 2px solid var(--user-color, #1a65eb);
   padding: 5px 10px 5px 5px;
+}
+
+.user-info {
+cursor: pointer;
 }
 
 .user-info .profile-placeholder {
@@ -793,6 +801,10 @@ ion-item.select-interface-option::part(native) {
   border-radius: 50%;
   display: block;
   top: 0; /* Entfernt mögliche Verschiebungen nach unten */
+}
+
+.colorinput {
+  cursor: pointer;
 }
 
 .colorinput::-webkit-color-swatch {
@@ -1037,6 +1049,15 @@ ion-alert {
   ion-icon.logout-button,
   ion-icon.back-button {
     color: #000 !important;
+  }
+  ion-icon.qr-code-icon,
+  ion-icon.edit-button,
+  ion-icon.logout-button,
+  .brush-icon,
+  ion-card,
+  ion-item,
+  ion-icon.back-button:hover {
+    cursor: pointer;
   }
 
   .button-container {
