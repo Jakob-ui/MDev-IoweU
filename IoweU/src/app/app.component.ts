@@ -18,7 +18,7 @@ import { SplashScreen } from '@capacitor/splash-screen';
   standalone: true
 })
 export class AppComponent implements OnInit {
-  loading: boolean = true;
+  loading: boolean = false;
   littleloading: boolean = false;
   videoSource: string = '';
 
