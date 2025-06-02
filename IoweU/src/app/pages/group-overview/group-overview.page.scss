@@ -155,73 +155,111 @@ ion-badge{
 
 /* Skeleton Loader Styles */
 .skeleton-list {
-  margin-top: 0;
-  width: 95%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  margin-top: 15px !important;
 }
 
 .skeleton-card {
-  width: 87%;
-  max-width: 700px;
-  height: 10px;
-  margin: 0 auto 5px auto;
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 5px;
-  box-sizing: border-box;
-  background: #eff1f3 !important;
+  width: 85% !important;
+  height: 40px !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+ padding-left: 20px !important;
+  padding-right: 20px !important;
+  padding-top: 60px !important;
+  padding-bottom: 60px !important;
+  background: #f3eff0 !important;
   box-shadow: 4px 4px 15px rgba(111, 111, 111, 0.24) !important;
-  position: relative;
+  position: relative !important;
+  margin-bottom: 32px !important;
 }
 
 .skeleton-row {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  padding-left: 2px;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
 }
 
 .skeleton-title {
-  height: 16px;
-  width: 80%;
-  background: #e0e0e0;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  height: 32px !important;
+  width:  40% !important;
+  background: #8b8b8b !important;
+  border-radius: 8px !important;
+  margin-left: 5px !important;
 }
 
 .skeleton-subtitle {
-  height: 12px;
-  width: 35%;
-  background: #e0e0e0;
-  border-radius: 10px;
-  margin-bottom: 0;
+  height: 16px !important;
+  width: 50% !important;
+  background: #7f7f7f !important;
+  border-radius: 10px !important;
+  margin-left: 5px !important;
+  margin-top: 5px !important;
 }
 
 .skeleton-badge {
-  height: 12px;
-  width: 25%;
-  background: #e0e0e0;
-  border-radius: 20px;
-  margin-bottom: 0;
+  height: 24px !important;
+  width: 23% !important;
+  background: #e0e0e0 !important;
+  border-radius: 16px !important;
+  margin-top: 5px !important;
+  margin-right: 5px !important;
 }
 
 .skeleton-blink {
-  animation: blink 1.2s linear infinite alternate;
-  opacity: 0.7;
+  position: relative !important;
+  overflow: hidden !important;
+  background: linear-gradient(
+    90deg,
+    #888888 0%,
+    #b0b0b0 100%
+  ) !important;
+  animation: skeleton-blink-fade 1s infinite alternate !important;
+}
+.skeleton-blink::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -200% !important;
+  height: 100% !important;
+  width: 300% !important;
+  background: linear-gradient(
+    90deg,
+    rgba(206, 206, 206, 0.05) 0%,
+    rgba(205, 205, 205, 0.15) 40%,
+    rgba(255,255,255,0.8) 60%,
+    #cccccc 80%,
+    #bbbbbb 100%
+  ) !important;
+  animation: shimmer 0.35s infinite !important;
+  z-index: 2 !important;
+  pointer-events: none !important;
 }
 
-@keyframes blink {
-  0% { opacity: 0.7; }
-  100% { opacity: 0.3; }
+@keyframes shimmer {
+  0% {
+    left: -200%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+@keyframes skeleton-blink-fade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
