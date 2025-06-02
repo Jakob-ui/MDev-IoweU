@@ -13,7 +13,7 @@ import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } fro
 @Injectable({ providedIn: 'root' })
 export class PushNotificationService {
   private firestore = inject(Firestore);
-  private cloudFunctionUrl = 'https://sendpushnotification-4nzswiab5a-uc.a.run.app';
+  private cloudFunctionUrl = 'https://sendpushnotification-4nzswiab5a-ew.a.run.app';
 
   private messageSource = new BehaviorSubject<any>(null);
   currentMessage = this.messageSource.asObservable();
@@ -34,19 +34,21 @@ export class PushNotificationService {
 }
 
   async init(user: Users): Promise<void> {
-      if (!this.messaging) return;
-    if(this.isNativeApp() && !Capacitor.isPluginAvailable('PushNotifications')) {
-  if (this.isNativeApp()) {
-    await this.initNativePush(user);
-  } else if (this.isWebPushSupported()) {
-    await this.initWebPush(user);
-  } else {
-    console.log('Web Push wird in diesem Kontext nicht initialisiert.');
+    if (this.isNativeApp()) {
+      if (!Capacitor.isPluginAvailable('PushNotifications')) {
+        console.warn('PushNotifications Plugin ist auf der nativen Plattform nicht verfügbar.');
+        return;
+      }
+      await this.initNativePush(user);
+    } else if (this.isWebPushSupported()) {
+      await this.initWebPush(user);
+    } else {
+      console.log('Push wird in diesem Kontext nicht initialisiert.');
+    }
   }
-}
-}
 
-   isNativeApp(): boolean {
+
+  isNativeApp(): boolean {
     if (Capacitor.getPlatform() === 'ios') {
       return true;
     }
@@ -66,7 +68,7 @@ export class PushNotificationService {
 
 private async initWebPush(user: Users) {
   try {
-          if (!this.messaging) return;
+    if (!this.messaging) return;
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       this.token = await getToken(this.messaging, {

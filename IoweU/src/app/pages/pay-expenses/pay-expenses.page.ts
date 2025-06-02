@@ -35,6 +35,7 @@ import { AuthService } from '../../services/auth.service';
 import { TransactionService } from 'src/app/services/transaction.service';
 import { Transactions } from 'src/app/services/objects/Transactions';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
+import {PushNotificationService} from "../../services/push-notification.service";
 
 
 addIcons({
@@ -77,6 +78,7 @@ export class PayExpensesPage {
   private transactionService = inject(TransactionService);
   private alertController = inject(AlertController);
   private toastController = inject(ToastController);
+  private pushNotificationService = inject(PushNotificationService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -364,8 +366,17 @@ export class PayExpensesPage {
           this.groupId,
           this.expenseId,
         );
-        console.log("Transaktion wird beglichen von", this.authService.currentUser.uid, "in der Gruppe", this.groupId,"für Expense:", this.expenseId);
-        // Erfolgreicher Abschluss der Transaktion
+
+        const payerUid = this.expenseMemberPaidBy || this.expensePaidBy;
+        if (this.uid !== payerUid) {
+          await this.pushNotificationService.sendToUser(
+            payerUid,
+            `Zahlung erhalten`,
+            `${this.displayName} hat seine Zahlung zur Ausgabe "${this.expenseDescription}" in der Gruppe "${this.groupname}" bestätigt.`
+          );
+          console.log(`Benachrichtigung an Zahler (${payerUid}) gesendet`);
+        }
+
         await this.presentToast('Deine Schulden wurden erfolgreich bezahlt!');
       } catch (error) {
         console.error('Fehler bei der Transaktion:', error);
@@ -380,8 +391,8 @@ export class PayExpensesPage {
 
     // Danach: Nur noch fragen, ob man sie sehen will
     const alert = await this.alertController.create({
-      header: 'Transaktion abgeschlossen',
-      message: 'Deine Schulden wurden bezahlt. Möchtest du dir die Transaktion ansehen?',
+      header: 'Transaktion abgeschlossen & Zahlung bestätigt',
+      message: 'Deine Schulden wurden bezahlt und der Zahler wurde darüber informiert. Möchtest du dir die Transaktion ansehen?',
       cssClass: 'custom-alert-pay-expenses',
       buttons: [
         {
