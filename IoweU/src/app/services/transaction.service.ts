@@ -724,6 +724,7 @@ export class TransactionService {
           userBCredit: 0,
           relatedExpenseId: [],
         });
+      
       });
     } else {
       // Bei persönlichem Ausgleich: Nur die tatsächlich von den Transaktionen betroffenen Balances auf Null setzen
@@ -748,17 +749,17 @@ export class TransactionService {
         const settlerMember = members.find((m: any) => m.uid === trans.from);
         const payerMember = members.find((m: any) => m.uid === trans.to);
         if (settlementType === 'group') {
-          if (settlerMember && payerMember) {
-            settlerMember.sumAmountPaid = 0;
-            settlerMember.sumExpenseMemberAmount = 0;
-            settlerMember.sumExpenseAmount = 0;
-            settlerMember.sumAmountReceived = 0;
-            settlerMember.countAmountPaid += 1;
-            payerMember.sumAmountReceived = 0;
-            payerMember.sumAmountPaid = 0;
-            payerMember.sumExpenseMemberAmount = 0;
-            payerMember.sumExpenseAmount = 0;
-            payerMember.countAmountReceived += 1;
+          for(const member of members) 
+          {
+            member.sumAmountPaid = 0;
+            member.countAmountPaid = 0;
+            member.sumAmountReceived = 0;
+            member.countAmountReceived = 0;
+            member.sumExpenseMemberAmount = 0;
+            member.countExpenseMemberAmount = 0;
+            member.sumExpenseAmount = 0;
+            member.countExpenseAmount = 0;
+          }
 
             // Update members array
             members = members.map((member: any) => {
@@ -766,7 +767,6 @@ export class TransactionService {
               if (member.uid === trans.to) return payerMember;
               return member;
             });
-          }
         } else {
           if (settlerMember && payerMember) {
             settlerMember.sumAmountPaid += trans.amount;
