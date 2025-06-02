@@ -256,21 +256,16 @@ export class AuthService {
     try {
       let firebaseUser: any = null;
 
-     
-        const result = await FirebaseAuthentication.signInWithApple();
-        if (!result.credential?.idToken)
-          throw new Error('Kein idToken erhalten!');
-        const provider = new OAuthProvider('apple.com');
-        const credential = provider.credential({
-          idToken: result.credential.idToken,
-          accessToken: result.credential.accessToken,
-        });
-        const userCredential = await signInWithCredential(
-          this.auth,
-          credential
-        );
-        firebaseUser = userCredential.user;
-      
+      const result = await FirebaseAuthentication.signInWithApple();
+      if (!result.credential?.idToken)
+        throw new Error('Kein idToken erhalten!');
+      const provider = new OAuthProvider('apple.com');
+      const credential = provider.credential({
+        idToken: result.credential.idToken,
+        accessToken: result.credential.accessToken,
+      });
+      const userCredential = await signInWithCredential(this.auth, credential);
+      firebaseUser = userCredential.user;
 
       if (firebaseUser) {
         const userDocRef = doc(this.firestore, `users/${firebaseUser.uid}`);
