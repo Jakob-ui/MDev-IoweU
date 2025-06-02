@@ -12,6 +12,7 @@ import {
   signInWithPopup,
   reload,
   signInWithCredential,
+  OAuthProvider,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
@@ -247,6 +248,87 @@ export class AuthService {
     }
   }
 
+  async appleLogin(
+    username: string,
+    color: string,
+    groupId: string[] = []
+  ): Promise<Users | null> {
+    try {
+      let firebaseUser: any = null;
+
+      const result = await FirebaseAuthentication.signInWithApple();
+      if (!result.credential?.idToken)
+        throw new Error('Kein idToken erhalten!');
+      const provider = new OAuthProvider('apple.com');
+      const credential = provider.credential({
+        idToken: result.credential.idToken,
+        accessToken: result.credential.accessToken,
+      });
+      const userCredential = await signInWithCredential(this.auth, credential);
+      firebaseUser = userCredential.user;
+
+      if (firebaseUser) {
+        const userDocRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+        const userDocSnap = await getDoc(userDocRef);
+
+        let userDataToSave: Users;
+
+        if (!userDocSnap.exists()) {
+          userDataToSave = {
+            uid: firebaseUser.uid,
+            username: username || firebaseUser.displayName || 'Unnamed User',
+            email: firebaseUser.email || '',
+            color: color || '#CCCCCC',
+            lastedited: new Date().toISOString(),
+            groupId: groupId,
+          };
+          console.log(
+            'Neuer Apple-Nutzer: Daten werden in Firestore gespeichert.',
+            userDataToSave
+          );
+
+          const success = await this.saveUserData(
+            firebaseUser.uid,
+            userDataToSave
+          );
+          if (!success) {
+            throw new Error(
+              'Fehler beim Speichern der Benutzerdaten nach dem ersten Apple Login.'
+            );
+          }
+          this.currentUser = userDataToSave;
+          this.applyUserColors(this.currentUser.color);
+        } else {
+          const existingUserData = userDocSnap.data() as Users;
+          userDataToSave = {
+            ...existingUserData,
+            lastedited: new Date().toISOString(),
+            username:
+              existingUserData.username ||
+              firebaseUser.displayName ||
+              'Unnamed User',
+            email: existingUserData.email || firebaseUser.email || '',
+          };
+
+          await setDoc(
+            userDocRef,
+            { lastedited: new Date().toISOString() },
+            { merge: true }
+          );
+          console.log('Existierender Apple-Nutzer: lastedited aktualisiert.');
+
+          this.currentUser = userDataToSave;
+          this.applyUserColors(this.currentUser.color);
+        }
+        return userDataToSave;
+      }
+      return null;
+    } catch (error: any) {
+      console.error('Fehler beim Apple Login:', error);
+      throw error;
+    }
+  }
+
   async saveUserData(uid: string, data: Users): Promise<boolean> {
     try {
       const userRef = doc(this.firestore, 'users', uid);
@@ -261,36 +343,41 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<void> {
-  const userCredential = await signInWithEmailAndPassword(
-    this.auth,
-    email.trim(),
-    password.trim()
-  );
-  const user = userCredential.user;
-  if (user) {
-    const userDocRef = doc(this.firestore, 'users', user.uid);
-    const docsnap = await getDoc(userDocRef);
-    if (docsnap.exists()) {
-      this.currentUser = {
-        uid: user.uid,
-        username: docsnap.data()['username'],
-        email: docsnap.data()['email'],
-        color: docsnap.data()['color'],
-        lastedited: docsnap.data()['lastedited'],
-        groupId: docsnap.data()['groupId'],
-      };
-      this.applyUserColors(this.currentUser.color);
-      this.pushNotificationService.init(this.currentUser as Users);
-      console.log('Benutzer eingeloggt und in Datenbank geladen', this.currentUser);
+    const userCredential = await signInWithEmailAndPassword(
+      this.auth,
+      email.trim(),
+      password.trim()
+    );
+    const user = userCredential.user;
+    if (user) {
+      const userDocRef = doc(this.firestore, 'users', user.uid);
+      const docsnap = await getDoc(userDocRef);
+      if (docsnap.exists()) {
+        this.currentUser = {
+          uid: user.uid,
+          username: docsnap.data()['username'],
+          email: docsnap.data()['email'],
+          color: docsnap.data()['color'],
+          lastedited: docsnap.data()['lastedited'],
+          groupId: docsnap.data()['groupId'],
+        };
+        this.applyUserColors(this.currentUser.color);
+        this.pushNotificationService.init(this.currentUser as Users);
+        console.log(
+          'Benutzer eingeloggt und in Datenbank geladen',
+          this.currentUser
+        );
+      } else {
+        this.currentUser = null;
+        throw new Error(
+          'Benutzer eingeloggt, aber nicht in der Datenbank gefunden'
+        );
+      }
     } else {
       this.currentUser = null;
-      throw new Error('Benutzer eingeloggt, aber nicht in der Datenbank gefunden');
+      throw new Error('Login fehlgeschlagen');
     }
-  } else {
-    this.currentUser = null;
-    throw new Error('Login fehlgeschlagen');
   }
-}
 
   logout(): void {
     this.auth.signOut().then(() => {
@@ -353,7 +440,4 @@ export class AuthService {
       throw new Error('Benutzer konnte nicht vollständig geladen werden.');
     }
   }
-
-
-
 }
