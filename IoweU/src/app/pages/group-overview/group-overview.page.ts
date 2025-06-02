@@ -70,32 +70,26 @@ export class GroupOverviewPage implements OnInit {
 
   async ngOnInit() {
     this.isLoading = true;
-    // Simuliere längeres Laden (z.B. 2 Sekunden)
-    setTimeout(async () => {
-      this.isLoading = true;
-      // this.loadingService.show(); // ENTFERNT: Nur Skeleton Loader verwenden
-      try {
-        await this.authService.waitForUser();
+    try {
+      await this.authService.waitForUser();
 
-        if (this.authService.currentUser) {
-          this.username = this.authService.currentUser.username;
-          this.iosIcons = this.platform.is('ios');
+      if (this.authService.currentUser) {
+        this.username = this.authService.currentUser.username;
+        this.iosIcons = this.platform.is('ios');
 
-          const userColor = this.authService.currentUser.color;
-          document.documentElement.style.setProperty('--user-color', userColor);
+        const userColor = this.authService.currentUser.color;
+        document.documentElement.style.setProperty('--user-color', userColor);
 
-          // Gruppen laden
-          await this.loadMyGroups();
-        } else {
-          console.error('No user is logged in.');
-        }
-      } catch (error) {
-        console.error('Fehler beim Laden des Benutzers oder der Gruppen:', error);
-      } finally {
+        // Gruppen laden
+        await this.loadMyGroups();
+      } else {
+        console.error('No user is logged in.');
         this.isLoading = false;
-        // this.loadingService.hide(); // ENTFERNT: Nur Skeleton Loader verwenden
       }
-    }, 2000);
+    } catch (error) {
+      console.error('Fehler beim Laden des Benutzers oder der Gruppen:', error);
+      this.isLoading = false;
+    }
   }
 
   ngOnDestroy() {
@@ -108,10 +102,6 @@ export class GroupOverviewPage implements OnInit {
   async loadMyGroups() {
     try {
       this.isLoading = true;
-
-      // Künstliche Verzögerung zum Testen der Skeleton Loader
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       if (this.authService.currentUser) {
         const uid = this.authService.currentUser.uid;
 
@@ -148,6 +138,8 @@ export class GroupOverviewPage implements OnInit {
             this.isLoading = false;
           }
         );
+      } else {
+        this.isLoading = false;
       }
     } catch (e) {
       console.log('Error loading Groups:', e);
