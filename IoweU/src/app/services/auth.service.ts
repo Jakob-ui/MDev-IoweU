@@ -260,24 +260,37 @@ export class AuthService {
     }
   }
 
-  login(email: string, password: string): Promise<void> {
-    return this.auth
-      .setPersistence(browserLocalPersistence)
-      .then(() => {
-        return signInWithEmailAndPassword(
-          this.auth,
-          email.trim(),
-          password.trim()
-        ).then(() => {
-          console.log('Benutzer erfolgreich eingeloggt.');
-          //this.pushNotificationService.init(this.currentUser as Users);
-        });
-      })
-      .catch((error) => {
-        console.error('Fehler beim Login:', error);
-        throw error;
-      });
+  async login(email: string, password: string): Promise<void> {
+  const userCredential = await signInWithEmailAndPassword(
+    this.auth,
+    email.trim(),
+    password.trim()
+  );
+  const user = userCredential.user;
+  if (user) {
+    const userDocRef = doc(this.firestore, 'users', user.uid);
+    const docsnap = await getDoc(userDocRef);
+    if (docsnap.exists()) {
+      this.currentUser = {
+        uid: user.uid,
+        username: docsnap.data()['username'],
+        email: docsnap.data()['email'],
+        color: docsnap.data()['color'],
+        lastedited: docsnap.data()['lastedited'],
+        groupId: docsnap.data()['groupId'],
+      };
+      this.applyUserColors(this.currentUser.color);
+      this.pushNotificationService.init(this.currentUser as Users);
+      console.log('Benutzer eingeloggt und in Datenbank geladen', this.currentUser);
+    } else {
+      this.currentUser = null;
+      throw new Error('Benutzer eingeloggt, aber nicht in der Datenbank gefunden');
+    }
+  } else {
+    this.currentUser = null;
+    throw new Error('Login fehlgeschlagen');
   }
+}
 
   logout(): void {
     this.auth.signOut().then(() => {

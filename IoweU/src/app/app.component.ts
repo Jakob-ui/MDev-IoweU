@@ -6,6 +6,7 @@ import { PushNotificationService } from './services/push-notification.service';
 import { NetworkService } from './services/network.service';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-root',
@@ -76,7 +77,7 @@ export class AppComponent implements OnInit {
       //await this.pushNotificationService.init(this.authService.currentUser);
     }
 
-
+    if(Capacitor.getPlatform() === 'ios') {
     // Auf eingehende Push-Nachrichten reagieren
     if (this.pushNotificationService.currentMessage) {
       this.pushNotificationService.currentMessage.subscribe((payload: { notification: { title: any; }; }) => {
@@ -84,6 +85,7 @@ export class AppComponent implements OnInit {
           alert(`Push Nachricht: ${payload.notification?.title ?? 'Neue Nachricht'}`);
         }
       });
+    }
     }
   }
 

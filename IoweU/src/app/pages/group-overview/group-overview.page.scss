@@ -153,6 +153,77 @@ ion-badge{
   animation: wiggle 0.3s infinite;
 }
 
+/* Skeleton Loader Styles */
+.skeleton-list {
+  margin-top: 0;
+  width: 95%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.skeleton-card {
+  width: 87%;
+  max-width: 700px;
+  height: 10px;
+  margin: 0 auto 5px auto;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 5px;
+  box-sizing: border-box;
+  background: #eff1f3 !important;
+  box-shadow: 4px 4px 15px rgba(111, 111, 111, 0.24) !important;
+  position: relative;
+}
+
+.skeleton-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-left: 2px;
+}
+
+.skeleton-title {
+  height: 16px;
+  width: 80%;
+  background: #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.skeleton-subtitle {
+  height: 12px;
+  width: 35%;
+  background: #e0e0e0;
+  border-radius: 10px;
+  margin-bottom: 0;
+}
+
+.skeleton-badge {
+  height: 12px;
+  width: 25%;
+  background: #e0e0e0;
+  border-radius: 20px;
+  margin-bottom: 0;
+}
+
+.skeleton-blink {
+  animation: blink 1.2s linear infinite alternate;
+  opacity: 0.7;
+}
+
+@keyframes blink {
+  0% { opacity: 0.7; }
+  100% { opacity: 0.3; }
+}
+
 @media (prefers-color-scheme: dark) {
 
 }
