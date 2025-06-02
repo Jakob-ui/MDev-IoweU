@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@capacitor-firebase/authentication": "^7.2.0",
+    "firebase": "^11.8.1"
+  }
+}

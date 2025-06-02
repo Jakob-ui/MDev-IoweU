@@ -9,12 +9,16 @@ import {
   UserCredential,
   GoogleAuthProvider,
   signInWithRedirect,
-  signInWithPopup, reload,
+  signInWithPopup,
+  reload,
+  signInWithCredential,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
 import { Router } from '@angular/router';
 import { PushNotificationService } from './push-notification.service';
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 
 @Injectable({
   providedIn: 'root',
@@ -154,30 +158,32 @@ export class AuthService {
     return userCredential;
   }
 
-  async googleLoginWithRedirect(
-    username: string,
-    color: string,
-    groupId: string[] = []
-  ): Promise<Users | null> {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithRedirect(this.auth, provider);
-      return null;
-    } catch (error: any) {
-      console.error('Fehler beim Google Login:', error);
-      throw error;
-    }
-  }
-
   async googleLogin(
     username: string,
     color: string,
     groupId: string[] = []
   ): Promise<Users | null> {
-    const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(this.auth, provider);
-      const firebaseUser = result.user;
+      let firebaseUser: any = null;
+
+      if (!Capacitor.isNativePlatform()) {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(this.auth, provider);
+        firebaseUser = result.user;
+      } else {
+        const result = await FirebaseAuthentication.signInWithGoogle();
+        if (!result.credential?.idToken)
+          throw new Error('Kein idToken erhalten!');
+        const credential = GoogleAuthProvider.credential(
+          result.credential.idToken,
+          result.credential.accessToken
+        );
+        const userCredential = await signInWithCredential(
+          this.auth,
+          credential
+        );
+        firebaseUser = userCredential.user;
+      }
 
       if (firebaseUser) {
         const userDocRef = doc(this.firestore, `users/${firebaseUser.uid}`);
