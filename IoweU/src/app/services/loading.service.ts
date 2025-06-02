@@ -5,24 +5,33 @@ import { BehaviorSubject } from 'rxjs';
   providedIn: 'root',
 })
 export class LoadingService {
-  private loadingSubject = new BehaviorSubject<boolean>(false);
-  private littleLoadingSubject = new BehaviorSubject<boolean>(false);
-
+  private loadingSubject = new BehaviorSubject<boolean>(true); // <-- Initialwert true
   loading$ = this.loadingSubject.asObservable();
+
+  private littleLoadingSubject = new BehaviorSubject<boolean>(false);
   littleLoading$ = this.littleLoadingSubject.asObservable();
 
+  setLoading(isLoading: boolean) {
+    this.loadingSubject.next(isLoading);
+  }
+
+  setLittleLoading(isLittleLoading: boolean) {
+    this.littleLoadingSubject.next(isLittleLoading);
+  }
+
   show() {
-    this.loadingSubject.next(true);
+    this.setLoading(true);
   }
 
   hide() {
-    this.loadingSubject.next(false);
+    this.setLoading(false);
   }
+
   showLittle() {
-    this.littleLoadingSubject.next(true);
+    this.setLittleLoading(true);
   }
 
   hideLittle() {
-    this.littleLoadingSubject.next(false);
+    this.setLittleLoading(false);
   }
 }

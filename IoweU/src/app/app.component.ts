@@ -7,6 +7,8 @@ import { NetworkService } from './services/network.service';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { Capacitor } from '@capacitor/core';
+// @ts-ignore
+import { SplashScreen } from '@capacitor/splash-screen';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +18,7 @@ import { Capacitor } from '@capacitor/core';
   standalone: true
 })
 export class AppComponent implements OnInit {
-  loading: boolean = false;
+  loading: boolean = true;
   littleloading: boolean = false;
   videoSource: string = '';
 
@@ -72,6 +74,11 @@ export class AppComponent implements OnInit {
     await this.authService.waitForUser();
     if (!this.authService.currentUser) {
       console.warn('User not authenticated, skipping push notification initialization');
+      // Splashscreen ausblenden, falls verwendet
+      if (Capacitor.isNativePlatform()) {
+        SplashScreen.hide();
+      }
+      this.loading = false;
       return;
     } else {
       //await this.pushNotificationService.init(this.authService.currentUser);
@@ -87,6 +94,12 @@ export class AppComponent implements OnInit {
       });
     }
     }
+
+    // Splashscreen ausblenden, falls verwendet
+    if (Capacitor.isNativePlatform()) {
+      SplashScreen.hide();
+    }
+    this.loading = false;
   }
 
   private async registerServiceWorker() {
