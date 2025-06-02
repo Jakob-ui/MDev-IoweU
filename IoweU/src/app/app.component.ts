@@ -35,6 +35,13 @@ export class AppComponent implements OnInit {
         this.router.navigate(['/no-connection']);
       }
     });
+
+    // Lade-Overlay ausblenden, wenn auf Login-Seite navigiert wird
+    this.router.events.subscribe((event: any) => {
+      if (event?.url === '/login' || event?.urlAfterRedirects === '/login') {
+        this.loadingService.hide();
+      }
+    });
   }
 
   isDarkMode(): boolean {
@@ -45,6 +52,8 @@ export class AppComponent implements OnInit {
   }
 
   async ngOnInit() {
+    this.loadingService.show(); // Lade-Overlay anzeigen
+
     this.videoSource = this.isDarkMode()
       ? 'assets/videos/loadingDarkMode.gif'
       : 'assets/videos/loadingLightMode.gif';
@@ -79,6 +88,7 @@ export class AppComponent implements OnInit {
         SplashScreen.hide();
       }
       this.loading = false;
+      this.loadingService.hide(); // <-- Stelle sicher, dass das Overlay ausgeblendet wird
       return;
     } else {
       //await this.pushNotificationService.init(this.authService.currentUser);
@@ -100,6 +110,7 @@ export class AppComponent implements OnInit {
       SplashScreen.hide();
     }
     this.loading = false;
+    this.loadingService.hide(); // Lade-Overlay ausblenden nach Abschluss der Initialisierung
   }
 
   private async registerServiceWorker() {
@@ -115,5 +126,16 @@ export class AppComponent implements OnInit {
     }
   }
 
+  // Beispiel: Logout-Methode ergänzen oder anpassen
+  async logout() {
+    this.loadingService.show();
+    try {
+      await this.authService.logout();
+      this.router.navigate(['/login']);
+      this.loadingService.hide(); // <-- Overlay nach Navigation ausblenden
+    } finally {
+      this.loadingService.hide();
+    }
+  }
 
 }
