@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'IoweU-team',
+  appId: 'ioweu.eu',
   appName: 'IoweU',
   webDir: 'www',
   server: {
@@ -9,7 +9,11 @@ const config: CapacitorConfig = {
   },
   plugins: {
     PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"],
+      presentationOptions: ['badge', 'sound', 'alert'],
+    },
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ['apple.com', 'google.com'],
     },
   },
 };
