@@ -191,6 +191,7 @@ ion-badge{
 .skeleton-title {
   height: 32px !important;
   width:  40% !important;
+  max-width: 180px !important;
   background: #8b8b8b !important;
   border-radius: 8px !important;
   margin-left: 5px !important;
@@ -199,6 +200,7 @@ ion-badge{
 .skeleton-subtitle {
   height: 16px !important;
   width: 50% !important;
+  max-width: 160px !important;
   background: #7f7f7f !important;
   border-radius: 10px !important;
   margin-left: 5px !important;
@@ -208,6 +210,7 @@ ion-badge{
 .skeleton-badge {
   height: 24px !important;
   width: 23% !important;
+  max-width: 80px !important;
   background: #e0e0e0 !important;
   border-radius: 16px !important;
   margin-top: 5px !important;
