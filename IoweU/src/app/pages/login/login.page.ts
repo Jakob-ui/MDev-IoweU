@@ -71,6 +71,36 @@ export class LoginPage {
     }
   }
 
+  async appleLogin() {
+    try {
+      this.loadingService.show();
+      const userData = await this.authService.appleLogin('', '');
+
+      if (userData && userData.uid) {
+        if (!userData.username || userData.username === 'Unnamed User' || !userData.color || userData.color === '#CCCCCC') {
+          console.log(
+            'Apple Login: Erster Login oder Profil unvollständig. Weiterleitung zu Profil-Setup.'
+          );
+          this.router.navigate(['/profile-setup']);
+        } else {
+          console.log('Apple Login erfolgreich. Weiterleitung zu Gruppenübersicht.');
+          this.router.navigate(['/group-overview']);
+        }
+      } else {
+        this.error =
+          'Apple Login fehlgeschlagen: Keine Benutzerdaten erhalten.';
+        this.loginFailed = true;
+      }
+    } catch (error: any) {
+      this.loadingService.hide();
+      console.error('Fehler beim Google Login:', error);
+      this.error = error.message || 'Google Login fehlgeschlagen, bitte versuchen Sie es erneut.';
+      this.loginFailed = true;
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
   async googleLogin() {
     try {
       this.loadingService.show();
@@ -89,6 +119,7 @@ export class LoginPage {
         this.loginFailed = true;
       }
     } catch (error: any) {
+      this.loadingService.hide();
       console.error('Fehler beim Google Login:', error);
       this.error = error.message || 'Google Login fehlgeschlagen, bitte versuchen Sie es erneut.';
       this.loginFailed = true;
