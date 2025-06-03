@@ -293,9 +293,10 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
             // Vergleiche alle Felder außer "paid"
             const { paid: newPaid, ...newRest } = newM;
             const { paid: oldPaid, ...oldRest } = oldM;
-            return JSON.stringify(newRest) !== JSON.stringify(oldRest);
+            return JSON.stringify(newRest) === JSON.stringify(oldRest);
           });
         if (onlyPaidChanged) {
+          console.error("ABBRUCH !!! Da liegt das Problem mit den Bilanzen");
           return;
         }
       }
@@ -447,11 +448,13 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
                   userACredit: Number((data.userACredit - amount).toFixed(2)),
                   lastUpdated: new Date().toISOString(),
                 });
+                console.log("userACredit - old amount:", data.userACredit - amount);
               } else if (data.userAId === debtor && data.userBId === creditor) {
                 await docRef.update({
                   userBCredit: Number((data.userBCredit - amount).toFixed(2)),
                   lastUpdated: new Date().toISOString(),
                 });
+                console.log("userBCredit - old amount:", data.userBCredit - amount);
               }
             }
           }
@@ -492,6 +495,7 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
                     ])
                   ),
                 });
+                console.log("userACredit + new amount:", data.userACredit + amount);
               } else if (data.userAId === debtor && data.userBId === creditor) {
                 await docRef.update({
                   userBCredit: Number((data.userBCredit + amount).toFixed(2)),
@@ -503,6 +507,7 @@ export const updateBalancesOnExpenseChange = onDocumentWritten(
                     ])
                   ),
                 });
+                console.log("userBCredit + new amount:", data.userBCredit + amount);
               }
             }
           }
