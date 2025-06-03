@@ -1074,13 +1074,6 @@ export class EditExpensePage {
           //expenseMember.products = this.productInputs[memberUid]?.products || [];
         });
 
-        await this.expenseService.updateExpense(
-          this.expense,
-          this.expense.expenseMember,
-          this.groupId,
-          this.repeating
-        );
-
         const payerId = this.expense.paidBy;
         const payer = this.groupMembers.find(member => member.uid === payerId);
         const payerName = payer ? payer.username || payer.name || 'Jemand' : 'Jemand';
@@ -1090,6 +1083,19 @@ export class EditExpensePage {
             !member.paid &&
             member.memberId !== payerId &&
             member.amountToPay > 0
+        );
+        // Update the paid status of all mebers so that the new payer is marked as paid and the previous one is not
+        const newPayerId = this.expense.paidBy;
+        this.expense.expenseMember = this.expense.expenseMember.map(member => ({
+        ...member,
+        paid: member.memberId === newPayerId
+      }));
+
+        await this.expenseService.updateExpense(
+          this.expense,
+          this.expense.expenseMember,
+          this.groupId,
+          this.repeating
         );
 
         const myName = this.user || 'Jemand';
