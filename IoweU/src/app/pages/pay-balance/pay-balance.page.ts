@@ -37,6 +37,9 @@ import { TransactionService } from 'src/app/services/transaction.service';
 import { Transactions } from 'src/app/services/objects/Transactions';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
 import {PushNotificationService} from "../../services/push-notification.service";
+import {Firestore} from "@angular/fire/firestore";
+import {Members} from "../../services/objects/Members";
+import {Balances} from "../../services/objects/Balances";
 
 
 addIcons({
@@ -59,180 +62,194 @@ addIcons({
 })
 export class PayBalancePage{
   private authService = inject(AuthService);
-  private router = inject(Router);
+  private expenseService = inject(ExpenseService);
+  private groupService = inject(GroupService);
   private activeRoute = inject(ActivatedRoute);
+  private router = inject(Router);
   private platform = inject(Platform);
   private navCtrl = inject(NavController);
   private loadingService = inject(LoadingService);
-  private groupService = inject(GroupService);
-  private expenseService = inject(ExpenseService);
+  private firestore: Firestore = inject(Firestore);
   private transactionService = inject(TransactionService);
+  private pushNotificationService = inject(PushNotificationService);
   private alertController = inject(AlertController);
   private toastController = inject(ToastController);
-  private pushNotificationService = inject(PushNotificationService);
 
   groupname: string = '';
   iosIcons: boolean = false;
+  showExpenses: boolean = false;
+  showExpensesFromSelectedMember: boolean = false;
 
   uid: string | null = '';
-  user: string | null = '';
-  displayName: string | null = null;
-  groupId = this.activeRoute.snapshot.paramMap.get('groupId') || '';
-  expenseId = this.activeRoute.snapshot.paramMap.get('expenseId') || '';
+  username: string | null = '';
+  groupId: string | null = null;
 
-  groupMembers: any[] = [];
-  memberUsernames: string[] = [];
-  memberIds: string[] = [];
-  memberColors: string[] = [];
-  memberRoles: string[] = [];
-  memberUids: string[] = [];
+  groupMembers: Members[] = [];
+  selectedMember: Members | null = null;
+  allExpenses: Expenses[] = [];
 
-  expenseDescription: string = '';
-  expenseTotalAmount: number = 0;
-  expensePaidBy: string = '';
-  expensePaidByUsername: string = '';
-  expenseDate: string = '';
-  expenseCurrency: string = '';
-  expenseCategory: string = '';
-  expenseMember: ExpenseMember[] = [];
-  expenseMemberIds: string[] = [];
-  expenseAmountToPay: number = 0;
-  expenseMemberProducts: Products[] = [];
-  expenseMemberSplitType: string = '';
-  expenseMemberSplitBy: string = '';
-  expenseMemberPaidBy: string = '';
-  expenseMemberPaidByName: string = '';
-  expenseMemberPaidByUid: string = '';
-  reason: string = '';
+  balances: Balances[] = [];
+  paidByCurrentUser: Expenses[] = [];
+  paidBySelectedMember: Expenses[] = [];
+  myExpenses: number = 0;
+  myIncome: number = 0;
 
-  repeatingExpense: boolean = false;
+  payable: boolean = false;
 
-  splitValue: { [uid: string]: number } = {};
-  amountToPay: { [uid: string]: number } = {};
-  products: Products[] = [];
+  productToggles: { [expenseId: string]: boolean } = {};
 
-  visibleProducts: { [key: string]: boolean } = {};
+  balanceDetails: any = {};
 
-  overlayState: 'start' | 'normal' | 'hidden' = 'start';
+  private unsubscribeBalance: (() => void) | null = null;
 
-  categories = CATEGORIES;
-
-  expense: Expenses[] = [
-    {
-      expenseId: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
-      description: '',
-      totalAmount: 0,
-      paidBy: '',
-      date: new Date().toISOString().split('T')[0],
-      currency: ['EUR', 'USD', 'GBP', 'JPY', 'AUD'],
-      category: '', // optional
-      invoice: '', // optional
-      repeat: '', // Wiederholung, falls benötigt
-      splitType: 'prozent', // Kann 'prozent', 'anteile' oder 'produkte' sein
-      splitBy: 'alle', // Kann 'alle' oder 'frei' sein
-      expenseMember: [
-        {
-          memberId: '', // Leerer String für den Member
-          amountToPay: 0, // Betrag, der zu zahlen ist
-          split: 0, // Optional, je nach Bedarf
-          paid: false,
-          products: [
-            {
-              productId: (
-                Date.now() + Math.floor(Math.random() * 1000)
-              ).toString(),
-              memberId: '', // Leerer String für den Member
-              productname: '', // Leerer String für den Produktnamen
-              quantity: 1, // Standardmenge 1
-              unit: '', // Einheit, z.B. "kg", "Stück"
-              price: 0, // Preis des Produkts
-            },
-          ],
-        },
-      ],
-    },
-  ];
-
+  constructor() {}
   async ngOnInit() {
     this.loadingService.show();
+
     try {
       await this.authService.waitForUser();
-      // Query-Parameter lesen, um festzustellen, ob es sich um eine wiederkehrende Ausgabe handelt
-      this.activeRoute.queryParams.subscribe((params) => {
-        this.repeatingExpense = params['repeating'] === 'true';
-      });
+      if (this.authService.currentUser) {
+        this.username = this.authService.currentUser.username;
+        this.uid = this.authService.currentUser.uid;
+        console.log('Benutzerdaten:', this.authService.currentUser);
 
-      if (!this.authService.currentUser) {
-        console.error('Kein Benutzer eingeloggt.');
-        return;
-      }
+        const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
+        const selectedMember = this.activeRoute.snapshot.paramMap.get('uid');
 
-      this.uid = this.authService.currentUser.uid;
-      this.user = this.authService.currentUser.username;
-      this.displayName = this.authService.currentUser.username;
+        const validGroupId: string = groupId || '';
+        const validSelectedMember = selectedMember ?? '';
 
-      if (!this.groupId || !this.expenseId) {
-        console.error('Kein groupId oder expenseId in der URL');
-        return;
-      }
+        if (validGroupId && validSelectedMember) {
+          const currentGroup = await this.groupService.getGroupById(
+            validGroupId
+          );
 
-      const currentGroup = await this.groupService.getGroupById(this.groupId);
-      if (!currentGroup) {
-        console.error(`Gruppe mit der ID ${this.groupId} nicht gefunden`);
-        return;
-      }
+          if (currentGroup) {
+            this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+            this.groupId = currentGroup.groupId || '';
 
-      this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-      this.groupMembers = currentGroup.members || [];
+            if (currentGroup.members && currentGroup.members.length > 0) {
+              this.groupMembers = currentGroup.members;
+              this.selectedMember =
+                this.groupMembers.find((m) => m.uid === validSelectedMember) ??
+                null;
 
-      this.memberUsernames = this.groupMembers.map((m) => m.username || '');
-      this.memberIds = this.groupMembers.map((m) => m.memberId || '');
-      this.memberColors = this.groupMembers.map((m) => m.color || '');
-      this.memberRoles = this.groupMembers.map((m) => m.role || '');
-      this.memberUids = this.groupMembers.map((m) => m.uid || '');
+              if (!this.selectedMember) {
+                console.error(
+                  `Mitglied mit UID ${selectedMember} nicht gefunden.`
+                );
+                this.loadingService.hide();
+                return;
+              }
 
-      await this.expenseService.getExpenseById(
-        this.groupId,
-        this.expenseId,
-        this.repeatingExpense,
-        (fetchedExpense) => {
-          if (fetchedExpense) {
-            this.expense = [fetchedExpense];
+              console.log('Selected Member:', this.selectedMember);
+              console.log('Current User UID:', this.uid);
 
-            const expenseData = this.expense[0];
-            this.expenseDescription = expenseData.description || '';
-            this.expenseTotalAmount = expenseData.totalAmount || 0;
-            this.expensePaidBy = expenseData.paidBy || '';
-            this.expenseDate = expenseData.date || '';
-            this.expenseCurrency = expenseData.currency[0] || '';
-            this.expenseCategory = expenseData.category || '';
-            this.expenseMember = expenseData.expenseMember || [];
-            this.expenseMemberIds = this.expenseMember.map(
-              (m) => m.memberId || ''
-            );
-            this.expenseMemberSplitType = expenseData.splitType || '';
-            this.expenseMemberSplitBy = expenseData.splitBy || '';
-            this.expenseMemberPaidBy = expenseData.paidBy || '';
+              // Stellen sicher, dass selectedMemberId korrekt gesetzt wird
+              const currentUserId = this.uid!;
+              const selectedMemberId = this.selectedMember?.uid!;
 
-            const currentMember = this.expenseMember.find(
-              (m) => m.memberId === this.uid
-            );
-            this.expenseAmountToPay = currentMember?.amountToPay || 0;
+              this.unsubscribeBalance =
+                this.expenseService.getBalanceBetweenUsersRealtime(
+                  validGroupId,
+                  currentUserId,
+                  selectedMemberId,
+                  (saldo) => {
+                    this.balanceDetails = {
+                      from: this.username,
+                      to: this.selectedMember?.username,
+                      balance: saldo,
+                    };
+                    console.log(
+                      `Saldo zwischen ${this.username} und ${this.selectedMember?.username}: ${saldo}`
+                    );
+                    console.log('Balance Details:', this.balanceDetails);
+                  }
+                );
 
-            this.expensePaidByUsername = this.getPaidByName(this.expensePaidBy);
 
-            console.log('Geladene Expense:', this.expense);
+
+              console.log('Balance Details:', this.balanceDetails);
+
+              // Ruft updateBalances mit den korrekten Parametern auf
+              await this.updateBalances(
+                validGroupId,
+                currentUserId,
+                selectedMemberId
+              );
+
+              this.allExpenses =
+                await this.expenseService.getUnsettledExpensesByBalance(
+                  validGroupId,
+                  currentUserId,
+                  selectedMemberId
+                );
+              console.log('All Expenses (unsettled 1:1):', this.allExpenses);
+
+              this.paidByCurrentUser = this.allExpenses.filter(
+                (expense) => expense.paidBy === this.uid
+              );
+              this.paidBySelectedMember = this.allExpenses.filter(
+                (expense) => expense.paidBy === this.selectedMember?.uid
+              );
+
+              this.payable = this.myBalance !== 0;
+            } else {
+              console.error('Keine Mitglieder in der Gruppe gefunden');
+            }
           } else {
-            console.error('Expense nicht gefunden');
+            console.error(
+              'Gruppe mit der ID ' + validGroupId + ' nicht gefunden'
+            );
+            this.groupname = 'Unbekannte Gruppe';
           }
+        } else {
+          console.error('groupId oder selectedMember fehlt in der URL');
         }
-      );
+      } else {
+        console.error('Kein Benutzer eingeloggt.');
+      }
 
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
       this.loadingService.hide();
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.unsubscribeBalance) {
+      this.unsubscribeBalance();
+    }
+  }
+
+  get myBalance(): number {
+    return this.balanceDetails.balance || 0;
+  }
+
+  async updateBalances(
+    groupId: string,
+    currentUserId: string,
+    selectedMemberId: string
+  ) {
+    try {
+      const balance = await this.expenseService.getUserBalance(
+        groupId,
+        currentUserId,
+        selectedMemberId
+      );
+
+      console.log('Balance:', balance); // Überprüfe, was zurückgegeben wird
+
+      // Setze die Werte für myIncome und myExpenses
+      this.myIncome = balance.myIncome;
+      this.myExpenses = balance.myExpenses;
+
+      console.log('myIncome:', this.myIncome); // Überprüfe den Wert von myIncome
+      console.log('myExpenses:', this.myExpenses); // Überprüfe den Wert von myExpenses
+    } catch (error) {
+      console.error('Fehler beim Laden der Bilanz:', error);
     }
   }
 
@@ -247,71 +264,6 @@ export class PayBalancePage{
     return memberEntry?.amountToPay ?? 0;
   }
 
-  getAmountClass(expense: Expenses, memberId: string): string {
-    const isPaidByMember = expense.paidBy === memberId;
-    const member = expense.expenseMember.find((m) => m.memberId === memberId);
-
-    if (isPaidByMember) {
-      return 'neutral';
-    }
-
-    if (member && member.amountToPay > 0) {
-      return 'negative';
-    }
-
-    return 'neutral';
-  }
-
-  hasProducts(groupMemberId: string): boolean {
-    if (!this.expense || this.expense.length === 0) {
-      return false;
-    }
-
-    for (let expense of this.expense) {
-      const groupMember = expense.expenseMember.find(
-        (member) => member.memberId === groupMemberId
-      );
-
-      if (
-        groupMember &&
-        Array.isArray(groupMember.products) &&
-        groupMember.products.length > 0
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  toggleProducts(memberName: string) {
-    this.visibleProducts[memberName] = !this.visibleProducts[memberName]; // Toggle die Sichtbarkeit der Produkte
-  }
-
-  getPurchasedProductsForMember(memberId: string): Products[] {
-    // Ensure that this.expense is properly defined and is not empty
-    if (!this.expense || this.expense.length === 0) {
-      return []; // Return an empty array if no expense is available
-    }
-
-    // Assuming you are dealing with a single expense for the member
-    const expense = this.expense[0]; // Access the first expense, or adjust based on your use case
-
-    // Ensure that expenseMember exists
-    if (!expense.expenseMember) {
-      return []; // Return empty array if expenseMember is not available
-    }
-
-    // Find the member in the expenseMember array
-    const member = expense.expenseMember.find((m) => m.memberId === memberId);
-
-    // If the member is found and they have products, return the products array, otherwise return an empty array
-    return member?.products ?? [];
-  }
-
-  isProductsVisibleForMember(memberId: string): boolean {
-    return this.visibleProducts[memberId] || false;
-  }
 
   getUserAmount(expense: Expenses): number {
     //console.log('Aktueller Benutzer:', this.uid);
@@ -326,83 +278,74 @@ export class PayBalancePage{
     this.navCtrl.back();
   }
 
-  getPaidByName(uid: string): string {
-    const memberIndex = this.memberUids.indexOf(uid);
-    return memberIndex >= 0 ? this.memberUsernames[memberIndex] : '';
-  }
-
-  toggleInvoiceOverlay() {
-    console.log('Overlay state:', this.overlayState);
-
-    // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
-    if (this.overlayState === 'start') {
-      this.overlayState = 'normal'; // Overlay wird sichtbar und Animation startet
-    } else if (this.overlayState === 'normal') {
-      // Wenn es im "normal" Zustand ist, wird es nach unten geschoben
-      this.overlayState = 'hidden'; // Wechselt zum "hidden"-Zustand
-    } else if (this.overlayState === 'hidden') {
-      // Wenn es im "hidden" Zustand ist, wird es wieder nach oben geschoben
-      this.overlayState = 'normal'; // Wechselt zurück zum "normal"-Zustand
-    }
-
-    console.log('Overlay state:', this.overlayState); // Debugging-Ausgabe
-  }
 
   async pay() {
-    if (this.authService.currentUser) {
-      try {
-        // Transaktion durchführen
-        await this.transactionService.settleDebtByExpense(
-          this.authService.currentUser.uid,
-          this.groupId,
-          this.expenseId,
-        );
-
-        const payerUid = this.expenseMemberPaidBy || this.expensePaidBy;
-        if (this.uid !== payerUid) {
-          await this.pushNotificationService.sendToUser(
-            payerUid,
-            `Zahlung erhalten`,
-            `${this.displayName} hat seine Zahlung zur Ausgabe "${this.expenseDescription}" in der Gruppe "${this.groupname}" bestätigt.`
-          );
-          console.log(`Benachrichtigung an Zahler (${payerUid}) gesendet`);
-        }
-
-        await this.presentToast('Deine Schulden wurden erfolgreich bezahlt!');
-      } catch (error) {
-        console.error('Fehler bei der Transaktion:', error);
-        await this.presentToast('Fehler bei der Zahlung. Bitte versuche es erneut.');
-        return;
-      }
-    } else {
-      console.log('current user is null');
-      await this.presentToast('Fehler: Benutzer nicht angemeldet. Bitte melde dich an.');
+    if (!this.groupId || !this.uid || !this.selectedMember?.uid) {
+      console.error(
+        'Fehlende groupId, aktuelle UID oder ausgewählte Mitglieder-UID.'
+      );
       return;
     }
 
-    // Danach: Nur noch fragen, ob man sie sehen will
-    const alert = await this.alertController.create({
-      header: 'Transaktion abgeschlossen & Zahlung bestätigt',
-      message: 'Deine Schulden wurden bezahlt und der Zahler wurde darüber informiert. Möchtest du dir die Transaktion ansehen?',
-      cssClass: 'custom-alert-pay-expenses',
-      buttons: [
-        {
-          text: 'Nein',
-          role: 'cancel',
-          handler: () => {
-            this.router.navigate(['expense', this.groupId]);
-          },
-        },
-        {
-          text: 'Ja',
-          handler: () => {
-            this.router.navigate(['transactions', this.groupId]);
-          },
-        },
-      ],
-    });
+    if (this.myBalance >= 0) {
+      const alert = await this.alertController.create({
+        header: 'Keine Schulden zu begleichen',
+        message: `${this.selectedMember.username} schuldet Ihnen Geld, oder die Bilanz ist ausgeglichen. Sie können keine Zahlung an ${this.selectedMember.username} tätigen.`,
+        buttons: ['OK'],
+      });
+      await alert.present();
+      return;
+    }
 
-    await alert.present();
+    const amountToPay = Math.abs(this.myBalance);
+
+    this.loadingService.show();
+    try {
+      // Aufruf der spezialisierten Funktion im TransactionService
+      await this.transactionService.settleDebtWithOneMember(
+        this.groupId,
+        this.uid,
+        this.selectedMember.uid,
+        amountToPay,
+        `Schuld an ${this.selectedMember.username} beglichen`,
+        this.allExpenses,
+      );
+
+      const alert = await this.alertController.create({
+        header: 'Transaktion abgeschlossen',
+        message:
+          'Deine Schulden wurden erfolgreich an ' +
+          this.selectedMember.username +
+          ' bezahlt. Möchtest du dir die Transaktion ansehen?',
+        buttons: [
+          {
+            text: 'Nein',
+            role: 'cancel',
+            handler: () => {
+              this.router.navigate(['detailed-balance', this.groupId, this.selectedMember?.uid]);
+            },
+          },
+          {
+            text: 'Ja',
+            handler: () => {
+              this.router.navigate(['transactions', this.groupId]);
+            },
+          },
+        ],
+      });
+      await alert.present();
+    } catch (error) {
+      console.error('Fehler beim Ausführen der Zahlung:', error);
+      const errorAlert = await this.alertController.create({
+        header: 'Fehler',
+        message:
+          'Ein Fehler ist beim Begleichen der Schulden aufgetreten. Bitte versuche es erneut.',
+        buttons: ['OK'],
+      });
+      await errorAlert.present();
+    } finally {
+      this.loadingService.hide();
+    }
   }
 
   async presentToast(message: string) {

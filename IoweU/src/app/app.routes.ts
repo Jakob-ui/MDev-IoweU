@@ -181,7 +181,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'pay-balance',
+    path: 'pay-balance/:groupId/:uid',
     loadComponent: () =>
       import('./pages/pay-balance/pay-balance.page').then(
         (m) => m.PayBalancePage

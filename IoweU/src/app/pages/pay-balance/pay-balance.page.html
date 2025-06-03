@@ -9,54 +9,23 @@
     </div>
 
     <div class="right-container" slot="end">
-      <ion-icon
-        class="edit-button"
-        (click)="toggleInvoiceOverlay()"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-paper.svg' : 'assets/icon/ionicons/md-paper.svg'"
-      ></ion-icon>
+
     </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div
-    class="invoice-overlay"
-    [ngClass]="{
-      'hidden': overlayState === 'hidden',
-      'normal': overlayState === 'normal',
-      'start': overlayState === 'start',
-      'slideUp': overlayState === 'normal',
-      'slideDown': overlayState === 'hidden'
-    }"
-    (click)="toggleInvoiceOverlay()">
-    <div class="invoice-wrapper" (click)="$event.stopPropagation()">
-      <span>Rechnung zur Ausgabe:</span>
-      <h5>{{ expense[0].description }}</h5>
 
-      <ng-container *ngIf="expense[0]?.invoice; else noInvoice">
-        <img
-          [src]="expense[0].invoice"
-          alt="Rechnung"
-          class="invoice-image"
-        />
-      </ng-container>
 
-      <ng-template #noInvoice>
-        <p>Keine Rechnung vorhanden.</p>
-      </ng-template>
-
-    </div>
-  </div>
-
-  <div class="page-container" *ngIf="expense">
+  <div class="page-container">
     <ion-button
       class="outline-button"
       expand="block">
       Beleg hinzufügen
     </ion-button>
     <div class="titel">
-      <h4>Bilanz ausgleichen</h4>
-      <h2>{{ expense[0].description }}</h2>
+      <h4>Bilanz ausgleichen mit</h4>
+      <h2>{{ selectedMember?.username }}</h2>
     </div>
 
     <div class="debt-details">
@@ -74,59 +43,32 @@
                 'border-color': 'var(--member-color-' + uid + ')'
               }"
         ></div>
-        <span class="member-name">{{ user }}</span>
+        <span class="member-name">{{ username }}</span>
       </div>
       <span>überweise</span>
-      <ion-badge class="Preis" [ngClass]="getAmountClass(expense[0], uid!)">
-        {{ getAmountToPayForMember(expense[0], uid!) | currency:
-        'EUR' }}
+      <ion-badge class="Preis negativ">
+        {{ myExpenses | currency: 'EUR' }}
       </ion-badge>
       <span>an</span>
 
       <div
         class="member-info"
         [ngStyle]="{
-                  'background-color': 'var(--member-color-background-' + expense[0].paidBy + ')',
-                  'border-color': 'var(--member-color-' + expense[0].paidBy + ')'
+                  'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
+                  'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
                }"
       >
         <div
           class="profile-placeholder"
           [ngStyle]="{
-                'background-color': 'var(--member-color-' + expense[0].paidBy + ')',
-                'border-color': 'var(--member-color-' + expense[0].paidBy + ')'
+                'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
+                'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
               }"
         ></div>
-        <span class="member-name">{{ expensePaidByUsername }}</span>
+        <span class="member-name">{{ selectedMember?.username }}</span>
       </div>
 
     </div>
-    <ng-container
-      *ngIf="expense?.length && expense[0].expenseMember?.length && groupMembers?.length"
-    >
-
-      <div
-        *ngIf="isProductsVisibleForMember(uid!)"
-        class="product-list"
-      >
-        <ul>
-          <li
-            class="products"
-            *ngFor="let product of getPurchasedProductsForMember(uid!)"
-          >
-            <div class="left-container">
-                <span class="product-quantity"
-                >{{ product.quantity }} {{ product.unit }}</span
-                >
-              <span class="product">{{ product.productname }}</span>
-            </div>
-            <ion-badge class="product-price">
-              {{ product.price | currency: 'EUR' }}
-            </ion-badge>
-          </li>
-        </ul>
-      </div>
-    </ng-container>
 
     <div class="space"></div>
     <div class="button-container">
