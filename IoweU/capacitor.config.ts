@@ -16,8 +16,7 @@ const config: CapacitorConfig = {
       providers: ['apple.com', 'google.com'],
     },
     Keyboard: {
-      resize: 'none', // verhindert das Verschieben des Layouts
-      style: 'dark', // optional: Tastatur-Style
+      resize: 'none' as any, // Typfehler umgehen
     },
   },
 };
