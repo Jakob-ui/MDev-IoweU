@@ -24,7 +24,11 @@
     </div>
 
     <div *ngIf="isLoading" class="group-list skeleton-list">
-      <div class="skeleton-card" *ngFor="let n of [1,2,3]">
+      <div
+        class="skeleton-card fade-in"
+        *ngFor="let n of [1,2,3]; let i = index"
+        [ngStyle]="{ 'animation-delay': (i * 0.3) + 's' }"
+      >
         <div class="card-content">
           <div class="skeleton-title skeleton-blink"></div>
           <div class="skeleton-row">
