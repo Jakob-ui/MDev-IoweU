@@ -4,7 +4,7 @@ import { AuthGuard } from './guards/auth.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'group-overview',
+    redirectTo: 'login',
     pathMatch: 'full',
   },
   {
