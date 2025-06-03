@@ -70,7 +70,6 @@ export class GroupOverviewPage implements OnInit {
 
   async ngOnInit() {
     this.isLoading = true;
-    // this.loadingService.show(); // ENTFERNT: Nur Skeleton Loader verwenden
     try {
       await this.authService.waitForUser();
 
@@ -85,12 +84,11 @@ export class GroupOverviewPage implements OnInit {
         await this.loadMyGroups();
       } else {
         console.error('No user is logged in.');
+        this.isLoading = false;
       }
     } catch (error) {
       console.error('Fehler beim Laden des Benutzers oder der Gruppen:', error);
-    } finally {
       this.isLoading = false;
-      // this.loadingService.hide(); // ENTFERNT: Nur Skeleton Loader verwenden
     }
   }
 
@@ -104,10 +102,6 @@ export class GroupOverviewPage implements OnInit {
   async loadMyGroups() {
     try {
       this.isLoading = true;
-
-      // Künstliche Verzögerung zum Testen der Skeleton Loader
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       if (this.authService.currentUser) {
         const uid = this.authService.currentUser.uid;
 
@@ -144,6 +138,8 @@ export class GroupOverviewPage implements OnInit {
             this.isLoading = false;
           }
         );
+      } else {
+        this.isLoading = false;
       }
     } catch (e) {
       console.log('Error loading Groups:', e);

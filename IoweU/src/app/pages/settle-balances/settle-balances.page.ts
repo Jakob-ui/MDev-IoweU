@@ -24,6 +24,7 @@ import { Expenses } from '../../services/objects/Expenses';
 import { Transactions } from '../../services/objects/Transactions';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
 import { DebtEntry } from 'src/app/services/objects/DeptEntry';
+import {PushNotificationService} from "../../services/push-notification.service";
 
 
 @Component({
@@ -54,6 +55,7 @@ export class SettleBalancesPage implements OnInit {
   private groupService = inject(GroupService);
   private transactionService = inject(TransactionService);
   private alertController = inject(AlertController);
+  private pushNotificationService = inject(PushNotificationService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -87,7 +89,7 @@ export class SettleBalancesPage implements OnInit {
         this.gruppenausgleich = params['settlegroup'] === 'true';
       });
       console.log(
-        'Gruppenausgleich-Status:', this.gruppenausgleich 
+        'Gruppenausgleich-Status:', this.gruppenausgleich
       );
 
       if (!this.authService.currentUser) {
@@ -262,6 +264,46 @@ export class SettleBalancesPage implements OnInit {
         this.debtList,
         settlementType
       );
+
+
+      try {
+        if (!this.debtList || this.debtList.length === 0) {
+          console.warn('Keine offenen Schulden vorhanden.');
+          return;
+        }
+
+        for (const debt of this.debtList) {
+          const creditorUid = debt.to;
+
+          // Nur benachrichtigen, wenn es eine andere Person ist
+          if (creditorUid && creditorUid !== this.uid) {
+            await this.pushNotificationService.sendToUser(
+              creditorUid,
+              'Zahlung erhalten',
+              `${this.displayName} hat seine Schuld gegenüber dir in der Gruppe "${this.groupname}" beglichen.`
+            );
+            console.log(`Benachrichtigung an ${creditorUid} gesendet.`);
+          }
+        }
+
+        const successAlert = await this.alertController.create({
+          header: 'Benachrichtigungen gesendet',
+          message: 'Alle relevanten Mitglieder wurden über den Ausgleich informiert.',
+          buttons: ['OK'],
+        });
+        await successAlert.present();
+
+      } catch (error) {
+        console.error('Fehler beim Senden der Benachrichtigungen:', error);
+        const errorAlert = await this.alertController.create({
+          header: 'Fehler',
+          message: 'Beim Senden der Benachrichtigungen ist ein Fehler aufgetreten.',
+          buttons: ['OK'],
+        });
+        await errorAlert.present();
+      }
+
+
     } catch (error) {
       console.error('Fehler beim Ausführen der Zahlung:', error);
       const errorAlert = await this.alertController.create({

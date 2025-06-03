@@ -69,6 +69,7 @@ export class ExpensePage implements OnInit, OnDestroy {
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   sumExpenses: number = 0;
+  animatedSumExpenses: number = 0; // <--- NEU
   countExpenses: number = 0;
   currentMonth: string = '';
   currentYear: number = 0;
@@ -126,6 +127,7 @@ export class ExpensePage implements OnInit, OnDestroy {
             this.groupService.listenToGroupChanges(this.groupId!, (group) => {
               if (group) {
                 this.sumExpenses = group.sumTotalExpenses || 0;
+                this.animateSumExpenses(); // <--- Animation starten
               } else {
                 console.error('Gruppe nicht gefunden oder gelöscht.');
               }
@@ -151,6 +153,7 @@ export class ExpensePage implements OnInit, OnDestroy {
             this.sumExpenses = total;
             this.countExpenses = count;*/
             this.sumExpenses = currentGroup.sumTotalExpenses || 0;
+            this.animateSumExpenses(); // <--- Animation starten
           } else {
             console.error(
               'Gruppe mit der ID ' + this.groupId + ' nicht gefunden'
@@ -425,5 +428,26 @@ export class ExpensePage implements OnInit, OnDestroy {
     return !!userEntry?.paid && userEntry.amountToPay > 0;
   }
 
+  /**
+   * Animiert das Hochzählen der Gesamtausgabe.
+   */
+  animateSumExpenses() {
+    const duration = 800; // ms
+    const start = this.animatedSumExpenses;
+    const end = this.sumExpenses;
+    const startTime = performance.now();
+
+    const step = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      this.animatedSumExpenses = Math.round(start + (end - start) * progress);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        this.animatedSumExpenses = end;
+      }
+    };
+
+    requestAnimationFrame(step);
+  }
 
 }
