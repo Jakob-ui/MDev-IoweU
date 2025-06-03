@@ -342,13 +342,24 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<void> {
-    const userCredential = await signInWithEmailAndPassword(
+    console.log("starte login funktion");
+    let userCredential;
+    try{
+      if(Capacitor.isNativePlatform()){
+        userCredential = await FirebaseAuthentication.signInWithEmailAndPassword({ email, password });
+      } 
+    userCredential = await signInWithEmailAndPassword(
       this.auth,
       email.trim(),
       password.trim()
-    );
-    const user = userCredential.user;
+    )
+    } catch(e){
+      console.log("login error ios", e);
+    }
+    const user = userCredential?.user;
+        console.log("nach await login funktion");
     if (user) {
+          console.log("is user there? login funktion");
       const userDocRef = doc(this.firestore, 'users', user.uid);
       const docsnap = await getDoc(userDocRef);
       if (docsnap.exists()) {
@@ -365,6 +376,7 @@ export class AuthService {
           'Benutzer eingeloggt und in Datenbank geladen',
           this.currentUser
         );
+    console.log("ende login funktion");
       } else {
         this.currentUser = null;
         throw new Error(
