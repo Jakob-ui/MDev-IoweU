@@ -347,7 +347,7 @@ export class SettleBalancesPage implements OnInit {
           text: 'Nein',
           role: 'cancel',
           handler: () => {
-            this.router.navigate(['expense', this.groupId]);
+            this.router.navigate(['finance', this.groupId]);
           },
         },
         {
