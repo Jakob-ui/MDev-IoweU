@@ -9,6 +9,7 @@ import { AuthService } from './services/auth.service';
 import { Capacitor } from '@capacitor/core';
 // @ts-ignore
 import { SplashScreen } from '@capacitor/splash-screen';
+import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 
 @Component({
   selector: 'app-root',
@@ -85,6 +86,7 @@ export class AppComponent implements OnInit {
       console.warn('User not authenticated, skipping push notification initialization');
       // Splashscreen ausblenden, falls verwendet
       if (Capacitor.isNativePlatform()) {
+        Keyboard.setResizeMode({ mode: KeyboardResize.Body });
         SplashScreen.hide();
       }
       this.loading = false;

@@ -44,7 +44,18 @@ h4 {
 
 .transaction-details {
   display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
+
+.left-side {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 
 .member-info {
   display: flex;
@@ -60,15 +71,51 @@ h4 {
 
 .payed-by {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   flex-direction: column;
   margin-top: 10px;
   margin-bottom: 30px;
+  width: 100% !important;
+}
+
+ion-item::part(native){
+  margin-bottom: 15px;
 }
 
 .payed-by-lbl {
   margin-bottom: 5px;
+}
+
+.payed-by .member-info{
+  height: 25px;
+  border-radius: 50px;
+  gap: 7px;
+  background: var(--member-color-background, rgba(252, 238, 238, 0.84));
+  border: 2px solid var(--member-color, #1a65eb);
+  padding: 5px 10px 5px 5px;
+}
+
+.payed-by .member-info .profile-placeholder {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--user-color, #1a65eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--ion-color-dark);
+  font-size: 14px;
+  border: 2px solid;
+}
+
+.payed-by .BalancePrice{
+  font-weight: 600;
+  font-size: 16px;
+  padding: 5px 10px;
+  margin: 0 5px;
+  border-radius: 50px;
+  background-color: white;
 }
 
 .edit-button {
@@ -219,15 +266,11 @@ h4 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
-  max-width: fit-content;
+  width: 80%;
   padding: 10px 0;
-  flex-direction: row;
+  flex-direction: column;
 }
 
-.debt-details > * {
-  margin: 0 10px;
-}
 
 h5{
   font-size: 16px;
@@ -263,13 +306,3 @@ h5{
   margin: auto;
 }
 
-@media (max-width: 500px) {
-  .debt-details {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .debt-details > * {
-    margin: 10px 0;
-  }
-}
