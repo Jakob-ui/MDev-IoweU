@@ -43,6 +43,13 @@ export class AppComponent implements OnInit {
         this.loadingService.hide();
       }
     });
+
+    this.setKeyboardResizeMode();
+  }
+
+  private setKeyboardResizeMode() {
+    // Setzt das Verhalten so, dass die Tastatur NICHT das Layout verschiebt
+    Keyboard.setResizeMode({ mode: KeyboardResize.None });
   }
 
   isDarkMode(): boolean {
