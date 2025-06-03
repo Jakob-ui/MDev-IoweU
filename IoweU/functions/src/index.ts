@@ -240,7 +240,7 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
             if (groupMember.uid === newExpenseMember.memberId) {
               // Finde den Match zwischen Gruppenmitglied und Ausgabenmitglied
               if (groupMember.uid == newExpense.paidBy) {
-                // Jeweiliger User ist der, die die Ausgabe bezahlt hat              firebase --version
+                // Jeweiliger User ist der, die die Ausgabe bezahlt hat
                 groupMember.sumExpenseAmount += newExpense.totalAmount;
                 groupMember.sumExpenseMemberAmount +=
                   newExpenseMember.amountToPay;
