@@ -1,26 +1,28 @@
 <ion-header [translucent]="true" class="header">
-  <ion-toolbar>
-    <div class="left-container" slot="start">
-      <ion-icon
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
-        class="back-button"
-        (click)="goBack()"
-      ></ion-icon>
-    </div>
+  <div class="backdrop-wrapper">
+    <ion-toolbar>
+      <div class="left-container" slot="start">
+        <ion-icon
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+          class="back-button"
+          (click)="goBack()"
+        ></ion-icon>
+      </div>
 
-    <div class="right-container" slot="end">
-      <ion-icon
-        class="edit-button"
-        (click)="toggleInvoiceOverlay()"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-paper.svg' : 'assets/icon/ionicons/md-paper.svg'"
-      ></ion-icon>
-      <ion-icon
-        class="edit-button"
-        [src]="iosIcons ? 'assets/icon/ionicons/ios-create.svg' : 'assets/icon/ionicons/md-create.svg'"
-        (click)="editExpense()"
-      ></ion-icon>
-    </div>
-  </ion-toolbar>
+      <div class="right-container" slot="end">
+        <ion-icon
+          class="edit-button"
+          (click)="toggleInvoiceOverlay()"
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-paper.svg' : 'assets/icon/ionicons/md-paper.svg'"
+        ></ion-icon>
+        <ion-icon
+          class="edit-button"
+          [src]="iosIcons ? 'assets/icon/ionicons/ios-create.svg' : 'assets/icon/ionicons/md-create.svg'"
+          (click)="editExpense()"
+        ></ion-icon>
+      </div>
+    </ion-toolbar>
+  </div>
 </ion-header>
 
 <ion-content [fullscreen]="true">
