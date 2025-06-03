@@ -15,6 +15,10 @@ const config: CapacitorConfig = {
       skipNativeAuth: false,
       providers: ['apple.com', 'google.com'],
     },
+    Keyboard: {
+      resize: 'none', // verhindert das Verschieben des Layouts
+      style: 'dark', // optional: Tastatur-Style
+    },
   },
 };
 
