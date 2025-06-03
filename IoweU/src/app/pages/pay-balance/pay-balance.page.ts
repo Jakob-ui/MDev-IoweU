@@ -307,7 +307,7 @@ export class PayBalancePage{
         this.uid,
         this.selectedMember.uid,
         amountToPay,
-        `Schuld an ${this.selectedMember.username} beglichen`,
+        `Schulden bei ${this.selectedMember.username}`,
         this.allExpenses,
       );
 
@@ -316,7 +316,7 @@ export class PayBalancePage{
         message:
           'Deine Schulden wurden erfolgreich an ' +
           this.selectedMember.username +
-          ' bezahlt. Möchtest du dir die Transaktion ansehen?',
+          ' beglichen. Möchtest du dir die Transaktion ansehen?',
         buttons: [
           {
             text: 'Nein',

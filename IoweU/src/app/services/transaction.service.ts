@@ -637,9 +637,9 @@ export class TransactionService {
           from: trans.from,
           to: trans.to,
           amount: trans.amount,
-          reason: `Ausgleich (${
-            settlementType === 'group' ? 'Gruppe' : 'Persönlich'
-          })`,
+          reason: `${
+            settlementType === 'group' ? 'alle Gruppenschulden' : 'direkte Schulden'
+          }`,
           date: new Date().toISOString(),
           relatedExpenses: trans.relatedExpenses,
           isSettlement: true,
@@ -724,7 +724,7 @@ export class TransactionService {
           userBCredit: 0,
           relatedExpenseId: [],
         });
-      
+
       });
     } else {
       // Bei persönlichem Ausgleich: Nur die tatsächlich von den Transaktionen betroffenen Balances auf Null setzen
@@ -749,7 +749,7 @@ export class TransactionService {
         const settlerMember = members.find((m: any) => m.uid === trans.from);
         const payerMember = members.find((m: any) => m.uid === trans.to);
         if (settlementType === 'group') {
-          for(const member of members) 
+          for(const member of members)
           {
             member.sumAmountPaid = 0;
             member.countAmountPaid = 0;
@@ -782,7 +782,7 @@ export class TransactionService {
             });
           }
         }
-          
+
       }
 
       await updateDoc(groupRef, { members });
@@ -947,7 +947,7 @@ export class TransactionService {
           from: settlerId,
           to: expenseData.paidBy,
           amount: settlerExpenseMember.amountToPay,
-          reason: `Schuldenbegleichung für Expense ${expenseId}`,
+          reason: `${expenseData.description}`,
           date: new Date().toISOString(),
           relatedExpenses: [expenseId],
           isSettlement: true,
