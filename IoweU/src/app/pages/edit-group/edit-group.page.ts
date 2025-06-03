@@ -10,7 +10,6 @@ import { GroupService } from 'src/app/services/group.service';
 import { ExpenseService } from 'src/app/services/expense.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
 import {
   IonContent,
   IonButton,
@@ -26,7 +25,7 @@ import { AlertController } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth.service';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { ImageService } from 'src/app/services/image.service';
-import { Keyboard } from '@capacitor/keyboard';
+
 
 @Component({
   selector: 'app-edit-group',
@@ -34,7 +33,6 @@ import { Keyboard } from '@capacitor/keyboard';
   styleUrls: ['./edit-group.page.scss'],
   standalone: true,
   imports: [
-    IonicModule,
     IonContent,
     IonButton,
     IonItem,
@@ -78,14 +76,10 @@ export class EditGroupPage implements OnInit {
   private navController = inject(Router);
   private expenseService = inject(ExpenseService);
 
- 
-
   @ViewChild('fileInput') fileInput!: ElementRef;
-  
 iosIcons: any;
 
-  constructor(private router: Router) {
-  }
+  constructor(private router: Router) {}
 
   ngOnInit() {
     // Verwende authService.getCurrentUser() anstelle von this.auth.currentUser
@@ -101,11 +95,7 @@ iosIcons: any;
       console.log('groupId:', this.groupId);
       this.loadGroupData(this.groupId); // Lade die Gruppendaten basierend auf der groupId
     });
-
-     Keyboard.setScroll({ isDisabled: false }); 
   }
-
- 
 
   async loadGroupData(groupId: string) {
     try {
