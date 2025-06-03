@@ -19,31 +19,17 @@ export class PushNotificationService {
   currentMessage = this.messageSource.asObservable();
 
   token: string | null = null;
-  messaging: Messaging | null = null;
 
   constructor(
-  private http: HttpClient,
-) {
-    if (Capacitor.isNativePlatform()) {
-    // @ts-ignore
-    this.messaging = null;
-  } else if(this.isWebPushSupported()){
-    // @ts-ignore
-    this.messaging = inject(Messaging);
-  }
-}
+    private http: HttpClient,
+    private messaging: Messaging,
+  ) {}
 
   async init(user: Users): Promise<void> {
     if (this.isNativeApp()) {
-      if (!Capacitor.isPluginAvailable('PushNotifications')) {
-        console.warn('PushNotifications Plugin ist auf der nativen Plattform nicht verfügbar.');
-        return;
-      }
       await this.initNativePush(user);
-    } else if (this.isWebPushSupported()) {
-      await this.initWebPush(user);
     } else {
-      console.log('Push wird in diesem Kontext nicht initialisiert.');
+      await this.initWebPush(user);
     }
   }
 
@@ -169,6 +155,7 @@ private async initWebPush(user: Users) {
       console.error('Fehler beim Speichern des FCM-Tokens:', error);
     }
   }
+
 
   listenToMessages() {
     if (!this.messaging) return;

@@ -192,10 +192,32 @@ export class SettleBalancesPage implements OnInit {
     return 'neutral';
   }
 
-  //UI Controll
-  toggleExpenses(index: number) {
+  // Gibt eindeutige Zahler zurück (alle from-UIDs)
+  getUniqueFromUids(): string[] {
+    const uniqueUids = new Set<string>();
+    this.debtList.forEach((debt) => {
+      uniqueUids.add(debt.from);
+    });
+    return Array.from(uniqueUids);
+  }
+
+// Gibt alle Debts für einen Zahler (fromUid) zurück
+  getDebtsByFrom(fromUid: string): DebtEntry[] {
+    return this.debtList.filter((debt) => debt.from === fromUid);
+  }
+
+// Gibt die Gesamtsumme für einen Zahler (fromUid) zurück
+  getTotalDebtForFrom(fromUid: string): number {
+    return this.debtList
+      .filter((debt) => debt.from === fromUid)
+      .reduce((sum, debt) => sum + debt.amount, 0);
+  }
+
+// Pfeil-Toggle
+  togglePayedBy(index: number) {
     this.showExpensesMap[index] = !this.showExpensesMap[index];
   }
+
 
   goBack() {
     this.navCtrl.back();
@@ -325,7 +347,7 @@ export class SettleBalancesPage implements OnInit {
           text: 'Nein',
           role: 'cancel',
           handler: () => {
-            this.router.navigate(['expense', this.groupId]);
+            this.router.navigate(['finance', this.groupId]);
           },
         },
         {

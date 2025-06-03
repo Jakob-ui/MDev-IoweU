@@ -150,7 +150,6 @@ export class AuthService {
         userCredential.user.uid,
         userData
       );
-
       if (!success) {
         throw new Error('Fehler beim Speichern der Benutzerdaten.');
       }
@@ -333,7 +332,7 @@ export class AuthService {
     try {
       const userRef = doc(this.firestore, 'users', uid);
       await setDoc(userRef, data);
-      //this.pushNotificationService.init(this.currentUser as Users);
+      this.pushNotificationService.init(this.currentUser as Users);
       console.log('Benutzerdaten erfolgreich gespeichert:', uid);
       return true;
     } catch (e) {
@@ -373,7 +372,6 @@ export class AuthService {
           groupId: docsnap.data()['groupId'],
         };
         this.applyUserColors(this.currentUser.color);
-        this.pushNotificationService.init(this.currentUser as Users);
         console.log(
           'Benutzer eingeloggt und in Datenbank geladen',
           this.currentUser

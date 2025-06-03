@@ -99,6 +99,18 @@ export class ExpenseService {
         const groupData = groupRef.data() as Groups;
         await this.initializeLackingBalances(groupId, groupData.members);
 
+        // Bilanzen updaten
+        const balancesRef = collection(
+          this.firestore,
+          'groups',
+          groupId,
+          'balances'
+        );
+        const batch = writeBatch(this.firestore);
+        
+
+        // MemberSums updaten
+
         return expense;
       } else {
         const repeatingExpense: RepeatingExpenses = {
@@ -743,4 +755,5 @@ export class ExpenseService {
     // Gibt zurück, ob die Bilanz ungleich null ist
     return myBalance !== 0;
   }
+  
 }

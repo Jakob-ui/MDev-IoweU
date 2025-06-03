@@ -15,6 +15,9 @@ const config: CapacitorConfig = {
       skipNativeAuth: false,
       providers: ['apple.com', 'google.com'],
     },
+    Keyboard: {
+      resize: 'none' as any, // Typfehler umgehen
+    },
   },
 };
 
