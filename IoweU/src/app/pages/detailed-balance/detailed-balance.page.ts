@@ -154,7 +154,7 @@ export class DetailedBalancePage implements OnInit {
                   }
                 );
 
-              
+
 
               console.log('Balance Details:', this.balanceDetails);
 
@@ -263,6 +263,15 @@ export class DetailedBalancePage implements OnInit {
 
   goBack() {
     this.navCtrl.back();
+  }
+
+  payBalance() {
+    if (this.uid) {
+      this.router.navigate(['/pay-expenses', this.groupId, this.uid], {
+      });
+    } else {
+      console.error('UID not found');
+    }
   }
 
   async pay() {
