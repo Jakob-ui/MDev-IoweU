@@ -183,7 +183,7 @@ private async initWebPush(user: Users) {
       if (userDocSnap.exists()) {
         const userData = userDocSnap.data();
         if (userData && Array.isArray(userData['fcmTokens'])) {
-          return userData['fcmTokens'];
+          return userData['fcmTokens'].map((entry: any) => entry.token);
         }
       }
       return [];
@@ -192,6 +192,7 @@ private async initWebPush(user: Users) {
       return [];
     }
   }
+
 
   // Sendet Push an alle Geräte eines Users
   async sendToUser(uid: string, title: string, body: string) {
