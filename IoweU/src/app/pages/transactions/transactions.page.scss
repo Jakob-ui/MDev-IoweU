@@ -12,9 +12,7 @@ h5 {
   font-size: 14px;
 }
 
-.page-container span{
-  font-size: 12px;
-}
+
 
 .transaction-list{
   display: flex;
@@ -123,11 +121,5 @@ h5 {
   .show-details-button span {
     color: #8c8c8c;
 }
-ion-icon{
-  filter: invert(1);
-}
-ion-button.back-button {
-    color: #000 !important;
-  background-color: #dde0e4 !important;
-}
+
 }
