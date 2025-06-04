@@ -32,21 +32,24 @@
       <div class="transaction-details">
         <!-- Linke Seite: Name + Pfeil -->
         <div class="left-side">
-          <div
-            class="member-info"
-            [ngStyle]="{
-          'background-color': 'var(--member-color-background-' + fromUid + ')',
-          'border-color': 'var(--member-color-' + fromUid + ')'
-       }"
-          >
+          <div>
+            <span class="text">muss bezahlen</span>
             <div
-              class="profile-placeholder"
+              class="member-info"
               [ngStyle]="{
-          'background-color': 'var(--member-color-' + fromUid + ')',
-          'border-color': 'var(--member-color-' + fromUid + ')'
-        }"
-            ></div>
-            <span class="member-name">{{ getMemberNameById(fromUid) }}</span>
+                'background-color': 'var(--member-color-background-' + fromUid + ')',
+                'border-color': 'var(--member-color-' + fromUid + ')'
+             }"
+            >
+              <div
+                class="profile-placeholder"
+                [ngStyle]="{
+                'background-color': 'var(--member-color-' + fromUid + ')',
+                'border-color': 'var(--member-color-' + fromUid + ')'
+              }"
+              ></div>
+              <span class="member-name">{{ getMemberNameById(fromUid) }}</span>
+            </div>
           </div>
           <div class="toggle-arrow" (click)="togglePayedBy(i)">
             <ion-icon
@@ -64,8 +67,10 @@
 
 
       <!-- Liste: wem dieser Zahler etwas schuldet -->
+
       <ion-list class="payed-by" *ngIf="showExpensesMap[i]">
         <ion-item *ngFor="let debt of getDebtsByFrom(fromUid)">
+          <span>bekommt</span>
           <div
             slot="start"
             class="member-info"

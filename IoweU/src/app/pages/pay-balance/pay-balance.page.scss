@@ -1,34 +1,22 @@
-h2 {
+h2{
   margin: 0;
-  text-align: center;
 }
 
-h4 {
+h4{
   margin-top: 10px !important;
-  text-align: center;
 }
 
-.titel {
+.titel{
   display: flex;
   flex-direction: column;
   margin-bottom: 30px;
   margin-top: 30px;
-  max-width: 90%;
+  max-width: 80%;
+  justify-content: center;
   align-items: center;
 }
 
-.beleg-button {
-  width: 80%;
-}
 
-.balance-page-container {
-  width: 100%;
-  margin: auto;
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 40px;
-}
 
 .detailedprice-overview {
   width: 80%;
@@ -42,29 +30,10 @@ h4 {
   padding: 10px 0; /* Etwas Abstand oben und unten */
 }
 
-.transaction-details {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: end;
-  width: 100%;
-}
-
-.left-side {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.left-side .text{
-  margin-left: 5px;
-}
-
-
 .member-info {
   display: flex;
   align-items: center;
-  flex-grow: 0;
+  flex-grow: 0; /* Verhindert, dass die member-info-Box wächst */
 }
 
 .detailedprice {
@@ -75,50 +44,15 @@ h4 {
 
 .payed-by {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
   flex-direction: column;
   margin-top: 10px;
   margin-bottom: 30px;
-  width: 100% !important;
-}
-
-ion-item::part(native){
-  margin-bottom: 15px;
 }
 
 .payed-by-lbl {
   margin-bottom: 5px;
-}
-
-.payed-by .member-info{
-  height: 30px;
-  border-radius: 50px;
-  gap: 7px;
-  background: var(--member-color-background, rgba(252, 238, 238, 0.84));
-  border: 2px solid var(--member-color, #1a65eb);
-  padding: 5px 10px 5px 5px;
-}
-
-.payed-by .member-info .profile-placeholder {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--user-color, #1a65eb);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: var(--ion-color-dark);
-  font-size: 16px;
-  border: 2px solid;
-}
-
-.payed-by .BalancePrice{
-  font-weight: 600;
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 50px;
-  background-color: white;
 }
 
 .edit-button {
@@ -128,7 +62,6 @@ ion-item::part(native){
 .toggle-arrow {
   cursor: pointer;
   transition: transform 0.3s ease;
-  margin-top: 15px;
 }
 
 .rotated {
@@ -167,9 +100,6 @@ ion-item::part(native){
   padding-right: 10px;
   width: 100px;
   text-align: end;
-}
-.header{
-  width: 100% !important;
 }
 
 .product {
@@ -270,42 +200,31 @@ ion-item::part(native){
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 80%;
+  width: 100%;
+  max-width: fit-content;
   padding: 10px 0;
-  flex-direction: column;
+  flex-direction: row;
 }
 
-
-h5{
-  font-size: 16px;
+.debt-details > * {
+  margin: 0 10px;
 }
 
-.einzelneAusgabe {
-  width: 40%;
-}
-
-.BalancePrice{
+.Preis {
   font-weight: 600;
   font-size: 20px;
   padding: 10px 20px;
-  border-radius: 50px;
-}
-
-.info-item{
-  width: 100% !important;
 }
 
 
-.balance-page-container-empty{
-    display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 60%;
-  width: 100%;
-  text-align: center;
-}
+@media (max-width: 500px) {
+  .debt-details {
+    flex-direction: column;
+    align-items: center;
+  }
 
-.nothingToPay h2{
-  margin: auto;
+  .debt-details > * {
+    margin: 10px 0;
+  }
 }
 

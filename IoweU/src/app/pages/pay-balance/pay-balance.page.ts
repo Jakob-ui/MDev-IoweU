@@ -1,53 +1,66 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { addIcons } from 'ionicons';
+import {AlertController, ToastController} from '@ionic/angular';
+
 import {
-  IonBadge,
-  IonButton,
+  fastFoodOutline,
+  cartOutline,
+  wineOutline,
+  carOutline,
+  gameControllerOutline,
+  homeOutline,
+  receiptOutline,
+  ellipsisHorizontalOutline,
+} from 'ionicons/icons';
+import {
   IonContent,
-  IonHeader,
+  IonButton,
   IonIcon,
+  IonBadge,
+  IonHeader,
   IonToolbar,
-} from '@ionic/angular/standalone';
+  IonTitle} from '@ionic/angular/standalone';
+
+// Import interfaces
+import { Expenses } from 'src/app/services/objects/Expenses';
+import { Products } from 'src/app/services/objects/Products';
+import { NavController, Platform } from '@ionic/angular';
+import { LoadingService } from 'src/app/services/loading.service';
+import { ExpenseService } from 'src/app/services/expense.service';
+import { ExpenseMember } from 'src/app/services/objects/ExpenseMember';
+import { GroupService } from 'src/app/services/group.service';
 import { AuthService } from '../../services/auth.service';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AlertController, NavController, Platform } from '@ionic/angular';
-import { LoadingService } from '../../services/loading.service';
-import { Expenses } from '../../services/objects/Expenses';
-import { ExpenseService } from '../../services/expense.service';
-import { GroupService } from '../../services/group.service';
-import { Members } from '../../services/objects/Members';
-import { Balances } from '../../services/objects/Balances';
-import {
-  Firestore,
-  collection,
-  query,
-  where,
-} from '@angular/fire/firestore';
-import { FunctionsModule } from '@angular/fire/functions';
-import { TransactionService } from '../../services/transaction.service';
-import { PushNotificationService } from '../../services/push-notification.service';
-import { DebtEntry } from 'src/app/services/objects/DeptEntry';
+import { TransactionService } from 'src/app/services/transaction.service';
+import { Transactions } from 'src/app/services/objects/Transactions';
+import { CATEGORIES } from 'src/app/services/objects/Categories';
+import {PushNotificationService} from "../../services/push-notification.service";
+import {Firestore} from "@angular/fire/firestore";
+import {Members} from "../../services/objects/Members";
+import {Balances} from "../../services/objects/Balances";
+
+
+addIcons({
+  'fast-food-outline': fastFoodOutline,
+  'cart-outline': cartOutline,
+  'wine-outline': wineOutline,
+  'car-outline': carOutline,
+  'game-controller-outline': gameControllerOutline,
+  'home-outline': homeOutline,
+  'receipt-outline': receiptOutline,
+  'ellipsis-horizontal-outline': ellipsisHorizontalOutline,
+});
 
 @Component({
-  selector: 'app-detailed-balance',
-  templateUrl: './detailed-balance.page.html',
-  styleUrls: ['./detailed-balance.page.scss'],
+  selector: 'app-pay-balance',
+  templateUrl: './pay-balance.page.html',
+  styleUrls: ['./pay-balance.page.scss'],
   standalone: true,
-  imports: [
-    IonContent,
-    IonHeader,
-    IonToolbar,
-    CommonModule,
-    FormsModule,
-    IonBadge,
-    IonButton,
-    IonIcon,
-    RouterLink,
-    FunctionsModule,
-  ],
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonBadge, IonButton, IonIcon]
 })
-export class DetailedBalancePage implements OnInit {
+export class PayBalancePage{
   private authService = inject(AuthService);
   private expenseService = inject(ExpenseService);
   private groupService = inject(GroupService);
@@ -60,6 +73,7 @@ export class DetailedBalancePage implements OnInit {
   private transactionService = inject(TransactionService);
   private pushNotificationService = inject(PushNotificationService);
   private alertController = inject(AlertController);
+  private toastController = inject(ToastController);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -89,7 +103,6 @@ export class DetailedBalancePage implements OnInit {
   private unsubscribeBalance: (() => void) | null = null;
 
   constructor() {}
-
   async ngOnInit() {
     this.loadingService.show();
 
@@ -240,55 +253,33 @@ export class DetailedBalancePage implements OnInit {
     }
   }
 
-  toggleExpenses() {
-    this.showExpenses = !this.showExpenses;
+  getAmountToPayForMember(
+    expense: Partial<Expenses>,
+    memberId: string
+  ): number {
+    if (!expense || !expense.expenseMember) return 0;
+    const memberEntry = expense.expenseMember.find(
+      (m) => m.memberId === memberId
+    );
+    return memberEntry?.amountToPay ?? 0;
   }
 
-  toggleExpensesFromSelectedMember() {
-    this.showExpensesFromSelectedMember = !this.showExpensesFromSelectedMember;
-  }
 
-  toggleProducts(expenseId: string) {
-    this.productToggles[expenseId] = !this.productToggles[expenseId];
-  }
-
-  getProducts(expense: any, uid: string): any[] {
-    const member = expense.expenseMember?.find((m: any) => m.memberId === uid);
-    return member?.products || [];
-  }
-
-  isProductsVisible(expenseId: string): boolean {
-    return this.productToggles[expenseId];
+  getUserAmount(expense: Expenses): number {
+    //console.log('Aktueller Benutzer:', this.uid);
+    const userEntry = expense.expenseMember?.find(
+      (member) => member.memberId === this.uid
+    );
+    //console.log('UserEntry:', userEntry);
+    return userEntry?.amountToPay ?? 0;
   }
 
   goBack() {
-    if (this.uid) {
-      this.router.navigate(['/finance', this.groupId], {
-      });
-    } else {
-      console.error('UID not found');
-    }
+    this.navCtrl.back();
   }
 
-  payBalance() {
-    if (this.uid) {
-      this.router.navigate(['/pay-balance', this.groupId, this.selectedMember?.uid], {
-      });
-    } else {
-      console.error('UID not found');
-    }
-  }
 
-  getAmountToPay(expense: any, uid: string | null): number {
-    if (!uid || !expense || !expense.expenseMember) return 0;
-
-    const memberEntry = expense.expenseMember.find(
-      (m: any) => m.memberId === uid
-    );
-    return memberEntry?.amountToPay || 0;
-  }
-
-  async requestPayment() {
+  async pay() {
     if (!this.groupId || !this.uid || !this.selectedMember?.uid) {
       console.error(
         'Fehlende groupId, aktuelle UID oder ausgewählte Mitglieder-UID.'
@@ -296,46 +287,75 @@ export class DetailedBalancePage implements OnInit {
       return;
     }
 
-    try {
-      const toUserId = this.selectedMember.uid;
-      const myName = this.username;
-
-      if (this.myBalance <= 0) {
-        const alert = await this.alertController.create({
-          header: 'Keine Anfrage möglich',
-          message: `Sie schulden ${this.selectedMember.username} Geld, oder die Bilanz ist ausgeglichen. Sie können keine Zahlung anfordern.`,
-          buttons: ['OK'],
-        });
-        await alert.present();
-        return;
-      }
-
-      // 📲 Push Notification an ALLE Geräte des Empfängers senden (neue Methode im Service)
-      await this.pushNotificationService.sendToUser(
-        toUserId,
-        `ZAHLUNGSAUFFORDERUNG von ${myName}`,
-        `${myName} möchte, dass du deine Schulden in Höhe von ${this.myBalance.toFixed(
-          2
-        )} € in der Gruppe "${this.groupname}" begleichst.`
-      );
-
-      const successAlert = await this.alertController.create({
-        header: 'Anfrage gesendet',
-        message: `Eine Zahlungsanfrage wurde an ${this.selectedMember.username} gesendet.`,
+    if (this.myBalance >= 0) {
+      const alert = await this.alertController.create({
+        header: 'Keine Schulden zu begleichen',
+        message: `${this.selectedMember.username} schuldet Ihnen Geld, oder die Bilanz ist ausgeglichen. Sie können keine Zahlung an ${this.selectedMember.username} tätigen.`,
         buttons: ['OK'],
       });
-      await successAlert.present();
+      await alert.present();
+      return;
+    }
 
-      console.log('Push gesendet!');
+    const amountToPay = Math.abs(this.myBalance);
+
+    this.loadingService.show();
+    try {
+      // Aufruf der spezialisierten Funktion im TransactionService
+      await this.transactionService.settleDebtWithOneMember(
+        this.groupId,
+        this.uid,
+        this.selectedMember.uid,
+        amountToPay,
+        `Schulden bei ${this.selectedMember.username}`,
+        this.allExpenses,
+      );
+
+      const alert = await this.alertController.create({
+        header: 'Transaktion abgeschlossen',
+        message:
+          'Deine Schulden wurden erfolgreich an ' +
+          this.selectedMember.username +
+          ' beglichen. Möchtest du dir die Transaktion ansehen?',
+        buttons: [
+          {
+            text: 'Nein',
+            role: 'cancel',
+            handler: () => {
+              this.router.navigate(['detailed-balance', this.groupId, this.selectedMember?.uid]);
+            },
+          },
+          {
+            text: 'Ja',
+            handler: () => {
+              this.router.navigate(['transactions', this.groupId]);
+            },
+          },
+        ],
+      });
+      await alert.present();
     } catch (error) {
-      console.error('Fehler beim Senden der Benachrichtigung:', error);
+      console.error('Fehler beim Ausführen der Zahlung:', error);
       const errorAlert = await this.alertController.create({
         header: 'Fehler',
         message:
-          'Fehler beim Senden der Benachrichtigung. Bitte versuche es erneut.',
+          'Ein Fehler ist beim Begleichen der Schulden aufgetreten. Bitte versuche es erneut.',
         buttons: ['OK'],
       });
       await errorAlert.present();
+    } finally {
+      this.loadingService.hide();
     }
   }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
+
 }

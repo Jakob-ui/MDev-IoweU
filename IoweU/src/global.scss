@@ -460,6 +460,17 @@ ion-button.delete-button::part(native) {
   width: 100% !important;
 }
 
+ion-button.leave-button::part(native) {
+  --background: white;
+  font-weight: 700;
+  padding: 7px 10px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  border: 2px solid var(--ion-color-danger);
+  box-shadow: none !important;
+  width: 100% !important;
+}
+
 ion-button.edit-button::part(native) {
   --background: var(--ion-color-primary);
   font-weight: 700;

@@ -181,6 +181,14 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'pay-balance/:groupId/:uid',
+    loadComponent: () =>
+      import('./pages/pay-balance/pay-balance.page').then(
+        (m) => m.PayBalancePage
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'no-connection',
     loadComponent: () =>
       import('./pages/no-connection/no-connection.page').then(
@@ -197,6 +205,8 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'not-found',
   },
+
+
 
 
 ];

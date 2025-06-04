@@ -73,8 +73,8 @@
           </div>
           <ion-button
             *ngIf="userUid === founder || userUid === member.uid"
-            fill="clear"
-            color="danger"
+            class="leave-button"
+            slot="end"
             (click)="userUid === founder && userUid !== member.uid ? removeMemberFromGroup(member) : leaveGroup()">
             X
           </ion-button>
