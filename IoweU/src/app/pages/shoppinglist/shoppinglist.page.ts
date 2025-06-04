@@ -130,13 +130,22 @@ export class ShoppinglistPage implements OnInit {
       await this.authService.waitForUser();
 
        //Backbutton Verhalten
-    this.platform.backButton.subscribeWithPriority(10, () => {
-      if (this.overlayState === 'normal') {
-        this.overlayState = 'hidden'; // Nur Overlay schließen
-      } else {
-        this.goBack(); // Standard Verhalten
-      }
-    });
+      this.platform.backButton.subscribeWithPriority(10, () => {
+        // 1. Details-Overlay zuerst schließen, wenn offen
+        if (this.detailsOverlayState === 'normal') {
+          this.detailsOverlayState = 'hidden';
+          return;
+        }
+
+        // 2. Dann Haupt-Overlay schließen, wenn offen
+        if (this.overlayState === 'normal') {
+          this.overlayState = 'hidden';
+          return;
+        }
+
+        // 3. Wenn keine Overlays offen, Standardverhalten ausführen
+        this.goBack();
+      });
 
       if (!this.authService.currentUser) return;
 
@@ -372,13 +381,22 @@ export class ShoppinglistPage implements OnInit {
   }
 
   goBack() {
-    if (this.overlayState === 'normal') {
-      this.overlayState = 'hidden'; // Optional: Overlay schließen
-      this.router.navigate(['/shoppinglist', this.groupId]);
-    } else {
-      this.router.navigate(['/group', this.groupId]);
-    }
+  // Zuerst: Falls Details-Overlay offen ist, nur dieses schließen
+  if (this.detailsOverlayState === 'normal') {
+    this.detailsOverlayState = 'hidden';
+    return;
   }
+
+  // Dann: Falls das Haupt-Overlay offen ist, nur dieses schließen
+  if (this.overlayState === 'normal') {
+    this.overlayState = 'hidden';
+    this.router.navigate(['/shoppinglist', this.groupId]);
+    return;
+  }
+
+  // Andernfalls: Zur Gruppenübersicht navigieren
+  this.router.navigate(['/group', this.groupId]);
+}
 
   toggleInfoOverlay() {
 
