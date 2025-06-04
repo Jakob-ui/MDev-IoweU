@@ -1015,7 +1015,7 @@ ion-alert {
   }
 
   .loading-overlay {
-    color: var(--ion-color-light);
+   
     background:#111111;
   }
   .little-loading-overlay {
@@ -1084,9 +1084,7 @@ ion-alert {
   ion-list {
     background-color: #121212 !important;
   }
-  .page-container {
-    background-color: #121212 !important;
-  }
+  
   .button-row {
     background-color: #121212 !important;
   }
@@ -1109,5 +1107,7 @@ ion-alert {
    .info-wrapper ul li::before {
     color: #fff !important;
   }
-
+.datepicker{
+  background-color: #000 !important;
+}
 }

@@ -15,6 +15,10 @@ const config: CapacitorConfig = {
       skipNativeAuth: false,
       providers: ['apple.com', 'google.com'],
     },
+    // @ts-ignore: Keyboard is a valid Capacitor plugin config
+    Keyboard: {
+      resize: 'body',
+    },
   },
 };
 
