@@ -133,17 +133,20 @@ private async initWebPush(user: Users) {
 
     try {
       const userDocSnap = await getDoc(userDocRef);
-      let tokens: string[] = [];
+      let tokens: { token: string; platform: string }[] = [];
+
       if (userDocSnap.exists()) {
         const data = userDocSnap.data();
         tokens = data?.['fcmTokens'] ?? [];
       }
 
-      if (!tokens.includes(token)) {
+      const tokenExists = tokens.some(t => t.token === token);
+
+      if (!tokenExists) {
         await setDoc(
           userDocRef,
           {
-            fcmTokens: arrayUnion(token),
+            fcmTokens: arrayUnion({ token, platform }),
           },
           { merge: true }
         );
@@ -155,6 +158,7 @@ private async initWebPush(user: Users) {
       console.error('Fehler beim Speichern des FCM-Tokens:', error);
     }
   }
+
 
 
   listenToMessages() {
