@@ -337,7 +337,7 @@ ion-checkbox{
 
 @media (prefers-color-scheme: dark) {
   .date {
-    color: var(--ion-color-light);
+    color: black !important;
   }
   .add-product-wrapper{
     background-color: transparent;
