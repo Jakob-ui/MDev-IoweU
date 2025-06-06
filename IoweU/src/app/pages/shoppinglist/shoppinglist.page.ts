@@ -119,8 +119,10 @@ export class ShoppinglistPage implements OnInit {
   isDatePickerOpen = false;
   public showCheckbox: boolean = false;
 
+  isSaving = false;
+
   private unsubscribeProductsListener!: () => void;
-  
+
 
   async ngOnInit() {
     this.loadingService.show();
@@ -130,13 +132,22 @@ export class ShoppinglistPage implements OnInit {
       await this.authService.waitForUser();
 
        //Backbutton Verhalten
-    this.platform.backButton.subscribeWithPriority(10, () => {
-      if (this.overlayState === 'normal') {
-        this.overlayState = 'hidden'; // Nur Overlay schließen
-      } else {
-        this.goBack(); // Standard Verhalten
-      }
-    });
+      this.platform.backButton.subscribeWithPriority(10, () => {
+        // 1. Details-Overlay zuerst schließen, wenn offen
+        if (this.detailsOverlayState === 'normal') {
+          this.detailsOverlayState = 'hidden';
+          return;
+        }
+
+        // 2. Dann Haupt-Overlay schließen, wenn offen
+        if (this.overlayState === 'normal') {
+          this.overlayState = 'hidden';
+          return;
+        }
+
+        // 3. Wenn keine Overlays offen, Standardverhalten ausführen
+        this.goBack();
+      });
 
       if (!this.authService.currentUser) return;
 
@@ -283,11 +294,14 @@ export class ShoppinglistPage implements OnInit {
 
     if (validDates.length > 0) {
       this.earliestDueDate = new Date(Math.min(...validDates.map(d => d.getTime())));
+      this.earliestDueDateLabel = this.formatDateLabel(this.earliestDueDate.toISOString().split('T')[0], today, yesterday, tomorrow);
     } else {
-      this.earliestDueDate = new Date(); // Fallback
+      this.earliestDueDate = new Date(9999, 11, 31); // 31. Dezember 9999
+      this.earliestDueDateLabel = 'Nicht dringend';
+
     }
 
-    this.earliestDueDateLabel = this.formatDateLabel(this.earliestDueDate.toISOString().split('T')[0], today, yesterday, tomorrow);
+
 
     const sortedDates = Object.keys(grouped).sort((a, b) => {
       if (a === 'Nicht dringend') return 1;
@@ -317,7 +331,6 @@ export class ShoppinglistPage implements OnInit {
 
     return new Intl.DateTimeFormat('de-AT').format(dueDate);
   }
-
 
 
 
@@ -372,13 +385,22 @@ export class ShoppinglistPage implements OnInit {
   }
 
   goBack() {
-    if (this.overlayState === 'normal') {
-      this.overlayState = 'hidden'; // Optional: Overlay schließen
-      this.router.navigate(['/shoppinglist', this.groupId]);
-    } else {
-      this.router.navigate(['/group', this.groupId]);
-    }
+  // Zuerst: Falls Details-Overlay offen ist, nur dieses schließen
+  if (this.detailsOverlayState === 'normal') {
+    this.detailsOverlayState = 'hidden';
+    return;
   }
+
+  // Dann: Falls das Haupt-Overlay offen ist, nur dieses schließen
+  if (this.overlayState === 'normal') {
+    this.overlayState = 'hidden';
+    this.router.navigate(['/shoppinglist', this.groupId]);
+    return;
+  }
+
+  // Andernfalls: Zur Gruppenübersicht navigieren
+  this.router.navigate(['/group', this.groupId]);
+}
 
   toggleInfoOverlay() {
 
@@ -548,14 +570,19 @@ export class ShoppinglistPage implements OnInit {
   }
 
   async saveNewProduct() {
+    if (this.isSaving) return;
+    this.isSaving = true;
+
     if (!this.groupId) {
+      this.isSaving = false;
       console.error('Group ID ist null oder undefined');
-      this.presentAlert('Fehler','Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
+      this.presentAlert('Fehler', 'Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
     const trimmedName = this.newProduct.productname?.trim();
     if (!trimmedName || !this.uid) {
+      this.isSaving = false;
       this.presentAlert('Fehler', 'Bitte gib mindestens einen Produktnamen ein.');
       return;
     }
@@ -576,7 +603,6 @@ export class ShoppinglistPage implements OnInit {
     try {
       await this.shoppinglistService.addShoppingProduct(this.groupId!, shoppingProductData);
 
-      // Felder zurücksetzen
       this.newProduct = {
         quantity: 1,
         unit: 'Mal',
@@ -586,10 +612,7 @@ export class ShoppinglistPage implements OnInit {
       };
 
       await this.presentToast('Produkt wurde hinzugefügt!');
-      console.log('Produkt erfolgreich gespeichert!');
       this.showDetails = false;
-
-      // Sichtbarkeit kurz deaktivieren, um Input zurückzusetzen
       this.inputVisible = false;
       setTimeout(() => {
         this.inputVisible = true;
@@ -597,8 +620,10 @@ export class ShoppinglistPage implements OnInit {
 
     } catch (error) {
       console.error('Fehler beim Speichern:', error);
-      this.presentAlert('Fehler','Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
+      this.presentAlert('Fehler', 'Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
     }
+
+    this.isSaving = false;
   }
 
 

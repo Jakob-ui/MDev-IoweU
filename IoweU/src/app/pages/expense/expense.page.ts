@@ -13,7 +13,7 @@ import {
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonSearchbar,
-  IonLabel,
+  IonLabel, IonRefresher, IonRefresherContent,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -24,6 +24,7 @@ import { Expenses } from 'src/app/services/objects/Expenses';
 import { Members } from 'src/app/services/objects/Members';
 import { FormsModule } from '@angular/forms';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
+import { timeout } from 'd3';
 
 @Component({
   selector: 'app-expense',
@@ -47,6 +48,8 @@ import { CATEGORIES } from 'src/app/services/objects/Categories';
     IonSearchbar,
     FormsModule,
     IonLabel,
+    IonRefresher,
+    IonRefresherContent,
   ],
 })
 export class ExpensePage implements OnInit, OnDestroy {
@@ -78,7 +81,7 @@ export class ExpensePage implements OnInit, OnDestroy {
   groupedExpenses: { date: string; expenses: Expenses[] }[] = [];
 
   visibleGroupedExpenses: { date: string; expenses: Expenses[] }[] = [];
-  private pageSize = 20;
+  private pageSize = 15;
   lastVisibleDoc: any | null = null;
   isLoadingMore: boolean = false;
   hasMoreExpenses: boolean = true;
@@ -323,7 +326,6 @@ export class ExpensePage implements OnInit, OnDestroy {
   }
 
   async loadInitialExpenses() {
-    this.loadingService.show();
     try {
       if (this.unsubscribeExpenses) {
         this.unsubscribeExpenses();
@@ -345,11 +347,11 @@ export class ExpensePage implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Fehler beim Laden der Ausgaben:', error);
     } finally {
-      this.loadingService.hide();
     }
   }
 
   async loadMoreExpenses(event: any) {
+    await new Promise((resolve) => setTimeout(resolve, 400));
     if (!this.hasMoreExpenses || this.isLoadingMore) {
       event.target.complete();
       return;
@@ -449,5 +451,32 @@ export class ExpensePage implements OnInit, OnDestroy {
 
     requestAnimationFrame(step);
   }
+
+  async doRefresh(event: any) {
+    try {
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+      this.expenses = [];
+      this.groupedExpenses = [];
+      this.visibleGroupedExpenses = [];
+      this.lastVisibleDoc = null;
+      this.hasMoreExpenses = true;
+
+      // Aktuelle Daten aus der DB neu laden
+      await this.loadInitialExpenses();
+
+      // Gruppensumme aktualisieren
+      const updatedGroup = await this.groupService.getGroupById(this.groupId!);
+      if (updatedGroup) {
+        this.sumExpenses = updatedGroup.sumTotalExpenses || 0;
+        this.animateSumExpenses();
+      }
+    } catch (error) {
+      console.error('Fehler beim manuellen Aktualisieren:', error);
+    } finally {
+      event.target.complete();
+    }
+  }
+
 
 }

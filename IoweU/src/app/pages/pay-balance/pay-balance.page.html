@@ -1,0 +1,83 @@
+<ion-header [translucent]="true" class="header">
+  <ion-toolbar>
+    <div class="left-container" slot="start">
+      <ion-icon
+        [src]="iosIcons ? 'assets/icon/ionicons/ios-arrow-back.svg' : 'assets/icon/ionicons/md-arrow-back.svg'"
+        class="back-button"
+        (click)="goBack()"
+      ></ion-icon>
+    </div>
+
+    <div class="right-container" slot="end">
+
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+
+  <div class="page-container">
+    <ion-button
+      class="outline-button"
+      expand="block">
+      Beleg hinzufügen
+    </ion-button>
+    <div class="titel">
+      <h4>Bilanz ausgleichen mit</h4>
+      <h2>{{ selectedMember?.username }}</h2>
+    </div>
+
+    <div class="debt-details">
+      <div
+        class="member-info"
+        [ngStyle]="{
+                  'background-color': 'var(--member-color-background-' + uid + ')',
+                  'border-color': 'var(--member-color-' + uid + ')'
+               }"
+      >
+        <div
+          class="profile-placeholder"
+          [ngStyle]="{
+                'background-color': 'var(--member-color-' + uid + ')',
+                'border-color': 'var(--member-color-' + uid + ')'
+              }"
+        ></div>
+        <span class="member-name">{{ username }}</span>
+      </div>
+      <span>überweise</span>
+      <ion-badge class="Preis negativ">
+        {{ myExpenses | currency: 'EUR' }}
+      </ion-badge>
+      <span>an</span>
+
+      <div
+        class="member-info"
+        [ngStyle]="{
+                  'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
+                  'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+               }"
+      >
+        <div
+          class="profile-placeholder"
+          [ngStyle]="{
+                'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
+                'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
+              }"
+        ></div>
+        <span class="member-name">{{ selectedMember?.username }}</span>
+      </div>
+
+    </div>
+
+    <div class="space"></div>
+    <div class="button-container">
+      <ion-button
+        class="main-button"
+        expand="block"
+        (click)="pay()">
+        Schulden wurden beglichen
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

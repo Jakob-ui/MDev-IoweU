@@ -557,6 +557,55 @@ export class EditExpensePage {
 
   //------------------------------------------RECHENFUNKTIONEN-------------------------------------------
 
+  get totalAmountInput(): string {
+    return this.expense.totalAmount === 0 ? '' : this.expense.totalAmount.toString();
+  }
+  set totalAmountInput(val: string) {
+    this.expense.totalAmount = val === '' ? 0 : parseFloat(val);
+  }
+
+  // Getter/Setter für totalAmountInForeignCurrency (Fremdwährung)
+  get totalAmountInForeignCurrencyInput(): string {
+    const val = this.expense.totalAmountInForeignCurrency ?? 0; // nullish coalescing: wenn undefined dann 0
+    return val === 0 ? '' : val.toString();
+  }
+  set totalAmountInForeignCurrencyInput(val: string) {
+    this.expense.totalAmountInForeignCurrency = val === '' ? 0 : parseFloat(val);
+  }
+
+  // amountToPay getter/setter für ein bestimmtes userId
+  getAmountToPayInput(userId: string): string {
+    const val = this.amountToPay[userId];
+    return val === 0 || val == null ? '' : val.toString();
+  }
+  setAmountToPayInput(userId: string, val: string | null | undefined) {
+    const safeVal = val ?? '';
+    this.amountToPay[userId] = safeVal === '' ? 0 : parseFloat(safeVal);
+  }
+
+// foreignAmountToPay getter/setter für ein bestimmtes userId
+  getForeignAmountToPayInput(userId: string): string {
+    const val = this.foreignAmountToPay[userId];
+    return val === 0 || val == null ? '' : val.toString();
+  }
+  setForeignAmountToPayInput(userId: string, val: string) {
+    this.foreignAmountToPay[userId] = val === '' ? 0 : parseFloat(val);
+  }
+
+  getSplitValueInput(userId: string): string {
+    const val = this.splitValue[userId];
+    return val === 0 || val == null ? '' : val.toString();
+  }
+
+  setSplitValueInput(userId: string, val: string | null | undefined) {
+    const safeVal = val ?? '';
+    this.splitValue[userId] = safeVal === '' ? 0 : parseFloat(safeVal);
+  }
+
+
+
+
+
   private updateTotals() {
     const total = parseFloat(this.calculateTotalFromAmountToPay().toFixed(2));
     this.expense.totalAmount = total;

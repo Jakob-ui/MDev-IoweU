@@ -25,6 +25,14 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pullingIcon="arrow-down"
+      refreshingSpinner="crescent"
+      pullingText="Zum Aktualisieren nach unten ziehen"
+      refreshingText="Aktualisiere...">
+    </ion-refresher-content>
+  </ion-refresher>
   <div class="page-container">
     <h4>{{ groupname }}</h4>
     <h1>Ausgaben</h1>
@@ -140,18 +148,17 @@
           </div>
         </ion-item>
       </ng-container>
-    </ion-list>
-
-    <ion-infinite-scroll
-      threshold="100px"
+     <ion-infinite-scroll
+      threshold="0px"
       (ionInfinite)="loadMoreExpenses($event)"
       [disabled]="!hasMoreExpenses"
     >
       <ion-infinite-scroll-content
-        loadingSpinner="bubbles"
+        refreshingSpinner="crescent"
         loadingText="Weitere Ausgaben werden geladen..."
       ></ion-infinite-scroll-content>
     </ion-infinite-scroll>
+    </ion-list>
 
     <div class="button-container">
       <ion-button

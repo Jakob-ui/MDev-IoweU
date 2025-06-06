@@ -448,7 +448,7 @@ export class ExpenseDetailsPage {
         await this.pushNotificationService.sendToUser(
           member.memberId,
           `ZAHLUNGSAUFFORDERUNG von ${myName}`,
-          `${myName} möchte, dass du deine Schulden für die Ausgabe "${expenseData.description}" in Höhe von ${this.amountToPay} € in der Gruppe "${this.groupname}" begleichst.`
+          `${myName} möchte, dass du deine Schulden für die Ausgabe "${expenseData.description}" in Höhe von ${member.amountToPay} € in der Gruppe "${this.groupname}" begleichst.`
         );
       }
 

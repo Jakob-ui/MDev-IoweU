@@ -19,11 +19,14 @@ export class PushNotificationService {
   currentMessage = this.messageSource.asObservable();
 
   token: string | null = null;
-
+messaging: Messaging | null = null;
   constructor(
     private http: HttpClient,
-    private messaging: Messaging,
-  ) {}
+  ) {
+  if (Capacitor.getPlatform() !== 'ios') {
+    this.messaging = inject(Messaging);
+  }
+  }
 
   async init(user: Users): Promise<void> {
     if (this.isNativeApp()) {
@@ -133,17 +136,20 @@ private async initWebPush(user: Users) {
 
     try {
       const userDocSnap = await getDoc(userDocRef);
-      let tokens: string[] = [];
+      let tokens: { token: string; platform: string }[] = [];
+
       if (userDocSnap.exists()) {
         const data = userDocSnap.data();
         tokens = data?.['fcmTokens'] ?? [];
       }
 
-      if (!tokens.includes(token)) {
+      const tokenExists = tokens.some(t => t.token === token);
+
+      if (!tokenExists) {
         await setDoc(
           userDocRef,
           {
-            fcmTokens: arrayUnion(token),
+            fcmTokens: arrayUnion({ token, platform }),
           },
           { merge: true }
         );
@@ -155,6 +161,7 @@ private async initWebPush(user: Users) {
       console.error('Fehler beim Speichern des FCM-Tokens:', error);
     }
   }
+
 
 
   listenToMessages() {
@@ -179,7 +186,7 @@ private async initWebPush(user: Users) {
       if (userDocSnap.exists()) {
         const userData = userDocSnap.data();
         if (userData && Array.isArray(userData['fcmTokens'])) {
-          return userData['fcmTokens'];
+          return userData['fcmTokens'].map((entry: any) => entry.token);
         }
       }
       return [];
@@ -188,6 +195,7 @@ private async initWebPush(user: Users) {
       return [];
     }
   }
+
 
   // Sendet Push an alle Geräte eines Users
   async sendToUser(uid: string, title: string, body: string) {

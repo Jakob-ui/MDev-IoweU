@@ -56,11 +56,10 @@ export class LoginPage {
     }
     try {
       await this.authService.login(this.email, this.password);
+      this.router.navigate(['/group-overview']);
+      console.log("hätte routen müssen");
       while (!this.authService.currentUser) {
         this.loadingService.show();
-      }
-      if (this.authService.currentUser) {
-        this.router.navigate(['/group-overview']);
       }
     } catch (error) {
       console.error('Fehler beim Login:', error);
@@ -121,7 +120,7 @@ export class LoginPage {
     } catch (error: any) {
       this.loadingService.hide();
       console.error('Fehler beim Google Login:', error);
-      this.error = error.message || 'Google Login fehlgeschlagen, bitte versuchen Sie es erneut.';
+      this.error = 'Google Login fehlgeschlagen, bitte versuchen Sie es erneut.';
       this.loginFailed = true;
     } finally {
       this.loadingService.hide();

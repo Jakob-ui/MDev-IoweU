@@ -460,6 +460,17 @@ ion-button.delete-button::part(native) {
   width: 100% !important;
 }
 
+ion-button.leave-button::part(native) {
+  --background: white;
+  font-weight: 700;
+  padding: 7px 10px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  border: 2px solid var(--ion-color-danger);
+  box-shadow: none !important;
+  width: 100% !important;
+}
+
 ion-button.edit-button::part(native) {
   --background: var(--ion-color-primary);
   font-weight: 700;
@@ -629,6 +640,7 @@ cursor: pointer;
 .member-name {
   font-size: 16px;
   font-weight: bold;
+  text-align: left;
   color: var(--ion-color-dark);
 }
 
@@ -1004,7 +1016,7 @@ ion-alert {
   }
 
   .loading-overlay {
-    color: var(--ion-color-light);
+
     background:#111111;
   }
   .little-loading-overlay {
@@ -1073,9 +1085,7 @@ ion-alert {
   ion-list {
     background-color: #121212 !important;
   }
-  .page-container {
-    background-color: #121212 !important;
-  }
+
   .button-row {
     background-color: #121212 !important;
   }
@@ -1098,5 +1108,7 @@ ion-alert {
    .info-wrapper ul li::before {
     color: #fff !important;
   }
-
+.datepicker{
+  background-color: #000 !important;
+}
 }
