@@ -436,6 +436,18 @@ iosIcons: any;
     }
   }
 
+  async onGroupnameClick() {
+    if (this.userUid !== this.founder) {
+      const alert = await this.alertController.create({
+        header: 'Aktion nicht erlaubt',
+        message: 'Nur der Gründer kann den Gruppennamen ändern.',
+        buttons: ['OK'],
+      });
+      await alert.present();
+    }
+  }
+
+
 
 }
 
