@@ -21,8 +21,7 @@ import {
   IonIcon,
   IonBadge,
   IonHeader,
-  IonToolbar,
-  IonTitle} from '@ionic/angular/standalone';
+  IonToolbar} from '@ionic/angular/standalone';
 
 // Import interfaces
 import { Expenses } from 'src/app/services/objects/Expenses';
@@ -58,7 +57,7 @@ addIcons({
   templateUrl: './pay-balance.page.html',
   styleUrls: ['./pay-balance.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonBadge, IonButton, IonIcon]
+  imports: [IonContent, IonHeader, IonToolbar, CommonModule, FormsModule, IonBadge, IonButton, IonIcon]
 })
 export class PayBalancePage{
   private authService = inject(AuthService);

@@ -24,6 +24,7 @@ import { Expenses } from 'src/app/services/objects/Expenses';
 import { Members } from 'src/app/services/objects/Members';
 import { FormsModule } from '@angular/forms';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
+import { timeout } from 'd3';
 
 @Component({
   selector: 'app-expense',
@@ -80,7 +81,7 @@ export class ExpensePage implements OnInit, OnDestroy {
   groupedExpenses: { date: string; expenses: Expenses[] }[] = [];
 
   visibleGroupedExpenses: { date: string; expenses: Expenses[] }[] = [];
-  private pageSize = 20;
+  private pageSize = 15;
   lastVisibleDoc: any | null = null;
   isLoadingMore: boolean = false;
   hasMoreExpenses: boolean = true;
@@ -325,7 +326,6 @@ export class ExpensePage implements OnInit, OnDestroy {
   }
 
   async loadInitialExpenses() {
-    this.loadingService.show();
     try {
       if (this.unsubscribeExpenses) {
         this.unsubscribeExpenses();
@@ -347,11 +347,11 @@ export class ExpensePage implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Fehler beim Laden der Ausgaben:', error);
     } finally {
-      this.loadingService.hide();
     }
   }
 
   async loadMoreExpenses(event: any) {
+    await new Promise((resolve) => setTimeout(resolve, 400));
     if (!this.hasMoreExpenses || this.isLoadingMore) {
       event.target.complete();
       return;
@@ -454,10 +454,8 @@ export class ExpensePage implements OnInit, OnDestroy {
 
   async doRefresh(event: any) {
     try {
-      console.log('Aktualisiere Daten manuell via Pull-To-Refresh...');
-      this.loadingService.show();
+          await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // Alles zurücksetzen
       this.expenses = [];
       this.groupedExpenses = [];
       this.visibleGroupedExpenses = [];
@@ -476,8 +474,7 @@ export class ExpensePage implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Fehler beim manuellen Aktualisieren:', error);
     } finally {
-      this.loadingService.hide();
-      event.target.complete(); // Beendet das Refresher-UI
+      event.target.complete();
     }
   }
 
