@@ -13,7 +13,7 @@ import {
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonSearchbar,
-  IonLabel,
+  IonLabel, IonRefresher, IonRefresherContent,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -47,6 +47,8 @@ import { CATEGORIES } from 'src/app/services/objects/Categories';
     IonSearchbar,
     FormsModule,
     IonLabel,
+    IonRefresher,
+    IonRefresherContent,
   ],
 })
 export class ExpensePage implements OnInit, OnDestroy {
@@ -449,5 +451,35 @@ export class ExpensePage implements OnInit, OnDestroy {
 
     requestAnimationFrame(step);
   }
+
+  async doRefresh(event: any) {
+    try {
+      console.log('Aktualisiere Daten manuell via Pull-To-Refresh...');
+      this.loadingService.show();
+
+      // Alles zurücksetzen
+      this.expenses = [];
+      this.groupedExpenses = [];
+      this.visibleGroupedExpenses = [];
+      this.lastVisibleDoc = null;
+      this.hasMoreExpenses = true;
+
+      // Aktuelle Daten aus der DB neu laden
+      await this.loadInitialExpenses();
+
+      // Gruppensumme aktualisieren
+      const updatedGroup = await this.groupService.getGroupById(this.groupId!);
+      if (updatedGroup) {
+        this.sumExpenses = updatedGroup.sumTotalExpenses || 0;
+        this.animateSumExpenses();
+      }
+    } catch (error) {
+      console.error('Fehler beim manuellen Aktualisieren:', error);
+    } finally {
+      this.loadingService.hide();
+      event.target.complete(); // Beendet das Refresher-UI
+    }
+  }
+
 
 }
