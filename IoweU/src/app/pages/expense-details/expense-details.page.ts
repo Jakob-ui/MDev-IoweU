@@ -549,20 +549,13 @@ export class ExpenseDetailsPage {
 
   async showOverpayAlert(userId: string) {
     const alert = await this.alertController.create({
-      header: 'Bist du dir sicher?',
-      message: `Du hast eigentlich ein Guthaben bei dieser Person oder würdest mit dieser Zahlung mehr zahlen als nötig. Möchtest du stattdessen zur Bilanzübersicht?`,
+      header: 'Deine Bilanz ist kleiner als dein Anteil an dieser Ausgabe',
+      message: `Um übermäßige Zahlungen zu vermeiden, gehe zur Bilanzübersicht und begleiche deine Schulden mit ${this.getPaidByName(userId)} direkt.`,
       buttons: [
         {
           text: 'Zur Bilanzübersicht',
           handler: () => {
             this.goToBalance(this.groupId, userId);
-          },
-        },
-        {
-          text: 'Trotzdem zahlen',
-          role: 'confirm',
-          handler: () => {
-            this.payExpense();
           },
         },
       ],

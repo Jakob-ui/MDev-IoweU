@@ -47,7 +47,7 @@
       </div>
       <span>überweise</span>
       <ion-badge class="Preis negativ">
-        {{ myExpenses | currency: 'EUR' }}
+        {{ myExpenses - myIncome | currency: 'EUR' }}
       </ion-badge>
       <span>an</span>
 
