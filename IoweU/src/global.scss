@@ -640,6 +640,7 @@ cursor: pointer;
 .member-name {
   font-size: 16px;
   font-weight: bold;
+  text-align: left;
   color: var(--ion-color-dark);
 }
 
@@ -1015,7 +1016,7 @@ ion-alert {
   }
 
   .loading-overlay {
-   
+
     background:#111111;
   }
   .little-loading-overlay {
@@ -1084,7 +1085,7 @@ ion-alert {
   ion-list {
     background-color: #121212 !important;
   }
-  
+
   .button-row {
     background-color: #121212 !important;
   }
