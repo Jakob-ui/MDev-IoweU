@@ -151,6 +151,22 @@ export const updateGroupSumsOnExpenseChange = onDocumentWritten(
       const groupRef = firestore.collection('groups').doc(groupId);
       const groupSnapshot = await groupRef.get();
 
+      if (newExpense && oldExpense) {
+        const onlyPaidChanged =
+          newExpense.expenseMember.length === oldExpense.expenseMember.length &&
+          newExpense.expenseMember.every((newM: any, idx: number) => {
+            const oldM = oldExpense.expenseMember[idx];
+            // Vergleiche alle Felder außer "paid"
+            const { paid: newPaid, ...newRest } = newM;
+            const { paid: oldPaid, ...oldRest } = oldM;
+            return JSON.stringify(newRest) === JSON.stringify(oldRest);
+          });
+        if (onlyPaidChanged) {
+          console.error("MemberSums nicht geupdatet - nur der Status der Zahlung geändert!");
+          return;
+        }
+      }
+
       if (!groupSnapshot.exists) {
         console.error(`Gruppe mit der ID ${groupId} nicht gefunden.`);
         return;
