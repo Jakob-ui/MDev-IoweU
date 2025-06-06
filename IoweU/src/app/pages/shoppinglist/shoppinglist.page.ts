@@ -294,11 +294,14 @@ export class ShoppinglistPage implements OnInit {
 
     if (validDates.length > 0) {
       this.earliestDueDate = new Date(Math.min(...validDates.map(d => d.getTime())));
+      this.earliestDueDateLabel = this.formatDateLabel(this.earliestDueDate.toISOString().split('T')[0], today, yesterday, tomorrow);
     } else {
-      this.earliestDueDate = new Date(); // Fallback
+      this.earliestDueDate = new Date(9999, 11, 31); // 31. Dezember 9999
+      this.earliestDueDateLabel = 'Nicht dringend';
+
     }
 
-    this.earliestDueDateLabel = this.formatDateLabel(this.earliestDueDate.toISOString().split('T')[0], today, yesterday, tomorrow);
+
 
     const sortedDates = Object.keys(grouped).sort((a, b) => {
       if (a === 'Nicht dringend') return 1;
@@ -328,7 +331,6 @@ export class ShoppinglistPage implements OnInit {
 
     return new Intl.DateTimeFormat('de-AT').format(dueDate);
   }
-
 
 
 
