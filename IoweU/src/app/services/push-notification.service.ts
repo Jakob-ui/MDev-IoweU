@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Messaging, getToken, onMessage } from '@angular/fire/messaging';
 import { environment } from 'src/environments/environment';
 import { BehaviorSubject } from 'rxjs';
-import { Firestore, doc, getDoc, setDoc, arrayUnion } from '@angular/fire/firestore';
+import {Firestore, doc, getDoc, setDoc, arrayUnion, collection, getDocs} from '@angular/fire/firestore';
 import { Capacitor } from '@capacitor/core';
 import { Users } from './objects/Users';
 
@@ -55,35 +55,41 @@ messaging: Messaging | null = null;
   );
 }
 
-private async initWebPush(user: Users) {
-  try {
-    if (!this.messaging) return;
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      this.token = await getToken(this.messaging, {
+  private async initWebPush(user: Users) {
+    try {
+      if (!this.messaging) return;
+
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        console.log('Notification permission denied');
+        return;
+      }
+
+      const token = await getToken(this.messaging, {
         vapidKey: environment.firebase.vapidKey,
       });
-      if (this.token) {
-        localStorage.setItem('fcm_token', this.token);
-        await this.saveFcmToken(user, this.token, 'web');
-      }
+
+      if (!token) return;
+
+      localStorage.setItem('fcm_token', token);
+      await this.migrateTokenOwnership(token, user.uid, 'web');
+
+
+      this.token = token;
       this.listenToMessages();
-    } else {
-      console.log('Notification permission denied');
+    } catch (error: any) {
+      if (error?.code === 'messaging/unsupported-browser') {
+        return;
+      }
+      console.error('Web Push permission/token error:', error);
     }
-  } catch (error: any) {
-    if (error?.code === 'messaging/unsupported-browser') {
-      // Fehler unterdrücken, da Web Push im WebView nicht unterstützt wird
-      return;
-    }
-    console.error('Web Push permission/token error:', error);
   }
-}
+
 
   // Native Push initialisieren (Android/iOS)
   private async initNativePush(user: Users) {
     try {
-      // Android 13+ Permission abfragen
+      // Android 13+ Notification Permission
       if (Capacitor.getPlatform() === 'android') {
         const permissionStatus = await PushNotifications.requestPermissions();
         if (permissionStatus.receive !== 'granted') {
@@ -96,18 +102,19 @@ private async initWebPush(user: Users) {
 
       PushNotifications.addListener('registration', async (token: Token) => {
         console.log('Native Push Token:', token.value);
+
         localStorage.setItem('fcm_token', token.value);
 
-        // Plattform bestimmen (android / ios)
+        // Plattform ermitteln und validieren
         let platform = Capacitor.getPlatform();
-
-        // Nur erlaubte Plattformen akzeptieren, sonst fallback auf 'web'
         const allowedPlatforms = ['web', 'android', 'ios'] as const;
         if (!allowedPlatforms.includes(platform as any)) {
           platform = 'web';
         }
 
-        await this.saveFcmToken(user, token.value, platform as 'web' | 'android' | 'ios');
+
+        await this.migrateTokenOwnership(token.value, user.uid, platform as 'web' | 'android' | 'ios');
+
       });
 
       PushNotifications.addListener('registrationError', (error) => {
@@ -123,10 +130,12 @@ private async initWebPush(user: Users) {
       PushNotifications.addListener('pushNotificationActionPerformed', (action: ActionPerformed) => {
         console.log('Push Notification Action performed:', action);
       });
+
     } catch (error) {
       console.error('Native Push init error:', error);
     }
   }
+
 
   async saveFcmToken(user: Users, token: string, platform: 'web' | 'android' | 'ios' = 'web') {
     const uid = user?.uid;
@@ -160,6 +169,53 @@ private async initWebPush(user: Users) {
     } catch (error) {
       console.error('Fehler beim Speichern des FCM-Tokens:', error);
     }
+  }
+
+  private async checkIfTokenExists(uid: string, token: string): Promise<boolean> {
+    try {
+      const userDocRef = doc(this.firestore, 'users', uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const data = userDocSnap.data();
+        const tokens = data?.['fcmTokens'] ?? [];
+
+        const exists = tokens.some((t: { token: string; platform: string }) => t.token === token);
+        console.log(`[checkIfTokenExists] UID: ${uid}, Token: ${token}, Bereits vorhanden:`, exists);
+        return exists;
+      }
+
+      console.log(`[checkIfTokenExists] Kein UserDoc gefunden für UID: ${uid}`);
+      return false;
+    } catch (error) {
+      console.error('Fehler beim Prüfen des Tokens:', error);
+      return false;
+    }
+  }
+
+
+  async migrateTokenOwnership(token: string, newUid: string, platform: 'web' | 'android' | 'ios') {
+    // 1. Durchsuche alle User, ob jemand den Token schon hat
+    const usersRef = collection(this.firestore, 'users');
+    const snapshot = await getDocs(usersRef);
+
+    for (const docSnap of snapshot.docs) {
+      const uid = docSnap.id;
+      const data = docSnap.data();
+      const tokens = data?.['fcmTokens'] ?? [];
+
+      const tokenIndex = tokens.findIndex((t: any) => t.token === token);
+
+      if (tokenIndex !== -1 && uid !== newUid) {
+        // 2. Token bei altem User entfernen
+        const updatedTokens = tokens.filter((t: any) => t.token !== token);
+        await setDoc(doc(this.firestore, 'users', uid), { fcmTokens: updatedTokens }, { merge: true });
+        console.log(`Token bei altem User (${uid}) entfernt`);
+      }
+    }
+
+    // 3. Token beim neuen User hinzufügen
+    await this.saveFcmToken({ uid: newUid } as Users, token, platform);
   }
 
 
