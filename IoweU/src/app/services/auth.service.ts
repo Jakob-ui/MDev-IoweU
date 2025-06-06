@@ -1,5 +1,11 @@
 import { inject, Injectable } from '@angular/core';
-import { Firestore, setDoc, doc, getDoc, arrayUnion } from '@angular/fire/firestore';
+import {
+  Firestore,
+  setDoc,
+  doc,
+  getDoc,
+  arrayUnion,
+} from '@angular/fire/firestore';
 import {
   Auth,
   browserLocalPersistence,
@@ -342,25 +348,30 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<void> {
-    console.log("starte login funktion");
+    console.log('starte login funktion');
     let userCredential;
-    try{
-      if(Capacitor.isNativePlatform()){
-        userCredential = await FirebaseAuthentication.signInWithEmailAndPassword({ email, password });
-      } else{
+    try {
+      if (Capacitor.isNativePlatform()) {
+        //userCredential = await FirebaseAuthentication.signInWithEmailAndPassword({ email, password });
         userCredential = await signInWithEmailAndPassword(
-        this.auth,
-        email.trim(),
-        password.trim()
-        )
-      } 
-    } catch(e){
-      console.log("login error ios", e);
+          this.auth,
+          email.trim(),
+          password.trim()
+        );
+      } else {
+        userCredential = await signInWithEmailAndPassword(
+          this.auth,
+          email.trim(),
+          password.trim()
+        );
+      }
+    } catch (e) {
+      console.log('login error ios', e);
     }
     const user = userCredential?.user;
-        console.log("nach await login funktion");
+    console.log('nach await login funktion');
     if (user) {
-          console.log("is user there? login funktion");
+      console.log('is user there? login funktion');
       const userDocRef = doc(this.firestore, 'users', user.uid);
       const docsnap = await getDoc(userDocRef);
       if (docsnap.exists()) {
@@ -377,7 +388,7 @@ export class AuthService {
           'Benutzer eingeloggt und in Datenbank geladen',
           this.currentUser
         );
-    console.log("ende login funktion");
+        console.log('ende login funktion');
       } else {
         this.currentUser = null;
         throw new Error(
