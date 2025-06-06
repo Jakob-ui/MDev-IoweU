@@ -347,12 +347,13 @@ export class AuthService {
     try{
       if(Capacitor.isNativePlatform()){
         userCredential = await FirebaseAuthentication.signInWithEmailAndPassword({ email, password });
+      } else{
+        userCredential = await signInWithEmailAndPassword(
+        this.auth,
+        email.trim(),
+        password.trim()
+        )
       } 
-    userCredential = await signInWithEmailAndPassword(
-      this.auth,
-      email.trim(),
-      password.trim()
-    )
     } catch(e){
       console.log("login error ios", e);
     }
