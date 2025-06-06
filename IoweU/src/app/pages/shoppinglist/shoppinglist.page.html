@@ -176,9 +176,11 @@
           {{ animatedCount === 1 ? 'Produkt' : 'Produkte' }}
         </h2>
 
-        <p [ngClass]="{'past-date': isPast(earliestDueDateLabel)}">
-          früheste Fälligkeit: {{ earliestDueDateLabel }}
-        </p>
+        <ng-container *ngIf="shoppingproducts.length > 0">
+          <p [ngClass]="{'past-date': isPast(earliestDueDateLabel)}">
+            früheste Fälligkeit: {{ earliestDueDateLabel }}
+          </p>
+        </ng-container>
 
       </div>
     </ion-card>
@@ -373,9 +375,9 @@
   </div>
 
   <!-- Overlay-Hintergrund für Datepicker -->
-  <div 
-    class="datepicker-overlay" 
-    *ngIf="isDatePickerOpen" 
+  <div
+    class="datepicker-overlay"
+    *ngIf="isDatePickerOpen"
     (click)="closeDatePicker()"
     style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.2); z-index: 1000;">
   </div>

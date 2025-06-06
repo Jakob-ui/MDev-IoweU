@@ -119,8 +119,10 @@ export class ShoppinglistPage implements OnInit {
   isDatePickerOpen = false;
   public showCheckbox: boolean = false;
 
+  isSaving = false;
+
   private unsubscribeProductsListener!: () => void;
-  
+
 
   async ngOnInit() {
     this.loadingService.show();
@@ -566,14 +568,19 @@ export class ShoppinglistPage implements OnInit {
   }
 
   async saveNewProduct() {
+    if (this.isSaving) return;
+    this.isSaving = true;
+
     if (!this.groupId) {
+      this.isSaving = false;
       console.error('Group ID ist null oder undefined');
-      this.presentAlert('Fehler','Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
+      this.presentAlert('Fehler', 'Die Gruppen-ID ist ungültig. Bitte versuche es erneut.');
       return;
     }
 
     const trimmedName = this.newProduct.productname?.trim();
     if (!trimmedName || !this.uid) {
+      this.isSaving = false;
       this.presentAlert('Fehler', 'Bitte gib mindestens einen Produktnamen ein.');
       return;
     }
@@ -594,7 +601,6 @@ export class ShoppinglistPage implements OnInit {
     try {
       await this.shoppinglistService.addShoppingProduct(this.groupId!, shoppingProductData);
 
-      // Felder zurücksetzen
       this.newProduct = {
         quantity: 1,
         unit: 'Mal',
@@ -604,10 +610,7 @@ export class ShoppinglistPage implements OnInit {
       };
 
       await this.presentToast('Produkt wurde hinzugefügt!');
-      console.log('Produkt erfolgreich gespeichert!');
       this.showDetails = false;
-
-      // Sichtbarkeit kurz deaktivieren, um Input zurückzusetzen
       this.inputVisible = false;
       setTimeout(() => {
         this.inputVisible = true;
@@ -615,8 +618,10 @@ export class ShoppinglistPage implements OnInit {
 
     } catch (error) {
       console.error('Fehler beim Speichern:', error);
-      this.presentAlert('Fehler','Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
+      this.presentAlert('Fehler', 'Speichern fehlgeschlagen. Bitte versuche es noch einmal.');
     }
+
+    this.isSaving = false;
   }
 
 
