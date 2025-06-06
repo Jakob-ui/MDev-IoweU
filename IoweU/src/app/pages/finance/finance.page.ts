@@ -9,7 +9,8 @@ import {
   IonBadge,
   IonCard,
   IonIcon,
-  IonButton, IonSpinner } from '@ionic/angular/standalone';
+  IonButton, IonSpinner, IonRefresher, IonRefresherContent
+} from '@ionic/angular/standalone';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NavController, Platform } from '@ionic/angular';
@@ -37,6 +38,8 @@ import { Groups } from 'src/app/services/objects/Groups';
     IonIcon,
     RouterModule,
     IonButton,
+    IonRefresher,
+    IonRefresherContent,
   ],
 })
 export class FinancePage implements OnInit {
@@ -262,4 +265,23 @@ export class FinancePage implements OnInit {
         })
       : this.router.navigate(['/settle-balances', this.groupId]);
   }
+
+  async refreshData(event: any) {
+    try {
+      // Alle Listener entfernen
+      this.memberUnsubscribes.forEach((unsub) => unsub());
+      this.memberUnsubscribes = [];
+
+      // Lade Daten neu
+      await this.ngOnInit();
+
+      // Signalisiere dem Refresher, dass er beendet werden kann
+      event.target.complete();
+      console.error('Finanzseite wurde aktualisiert');
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren:', error);
+      event.target.complete(); // auch im Fehlerfall beenden
+    }
+  }
+
 }
