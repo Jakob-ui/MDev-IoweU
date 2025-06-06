@@ -48,10 +48,13 @@
         <ion-input
           type="text"
           placeholder="Gruppenname"
+          [readonly]="userUid !== founder"
           [(ngModel)]="groupname"
+          (click)="onGroupnameClick()"
         ></ion-input>
       </ion-item>
     </div>
+
 
     <div class="edit-fields">
       <span class="input-label">Mitglieder</span>
@@ -59,18 +62,25 @@
         <ion-item class="member-item" *ngFor="let member of members">
           <div class="member-info"
                [ngStyle]="{
-                 'background-color': 'var(--member-color-background-' + member.uid + ')',
-                 'border-color': 'var(--member-color-' + member.uid + ')'
-               }">
+             'background-color': 'var(--member-color-background-' + member.uid + ')',
+             'border-color': 'var(--member-color-' + member.uid + ')'
+           }">
             <div
               class="profile-placeholder"
               [ngStyle]="{
-                'background-color': 'var(--member-color-' + member.uid + ')',
-                'border-color': 'var(--member-color-' + member.uid + ')'
-              }">
+            'background-color': 'var(--member-color-' + member.uid + ')',
+            'border-color': 'var(--member-color-' + member.uid + ')'
+          }">
             </div>
-            <span class="member-name">{{ member.username }}</span>
+            <span class="member-name">
+              {{ member.username }}
+            </span>
+
           </div>
+          <span class="member-role"
+                [ngClass]="{'founder': member.uid === founder, 'member': member.uid !== founder}">
+              {{ member.uid === founder ? 'Gründer' : 'Mitglied' }}
+            </span>
           <ion-button
             *ngIf="userUid === founder || userUid === member.uid"
             class="leave-button"
@@ -81,6 +91,7 @@
         </ion-item>
       </ion-list>
     </div>
+
 
     <div class="edit-fields">
       <span class="input-label">Features</span>
