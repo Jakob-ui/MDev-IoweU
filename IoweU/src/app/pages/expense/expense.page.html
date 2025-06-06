@@ -148,18 +148,17 @@
           </div>
         </ion-item>
       </ng-container>
-    </ion-list>
-
-    <ion-infinite-scroll
-      threshold="100px"
+     <ion-infinite-scroll
+      threshold="0px"
       (ionInfinite)="loadMoreExpenses($event)"
       [disabled]="!hasMoreExpenses"
     >
       <ion-infinite-scroll-content
-        loadingSpinner="bubbles"
+        refreshingSpinner="crescent"
         loadingText="Weitere Ausgaben werden geladen..."
       ></ion-infinite-scroll-content>
     </ion-infinite-scroll>
+    </ion-list>
 
     <div class="button-container">
       <ion-button
