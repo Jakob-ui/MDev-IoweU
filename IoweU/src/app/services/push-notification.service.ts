@@ -19,11 +19,14 @@ export class PushNotificationService {
   currentMessage = this.messageSource.asObservable();
 
   token: string | null = null;
-
+messaging: Messaging | null = null;
   constructor(
     private http: HttpClient,
-    private messaging: Messaging,
-  ) {}
+  ) {
+  if (Capacitor.getPlatform() !== 'ios') {
+    this.messaging = inject(Messaging);
+  }
+  }
 
   async init(user: Users): Promise<void> {
     if (this.isNativeApp()) {
