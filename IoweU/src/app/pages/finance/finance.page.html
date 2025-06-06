@@ -25,6 +25,16 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="refreshData($event)">
+    <ion-refresher-content
+      pullingIcon="arrow-down"
+      refreshingSpinner="crescent"
+      pullingText="Zum Aktualisieren nach unten ziehen"
+      refreshingText="Aktualisiere...">
+    </ion-refresher-content>
+  </ion-refresher>
+
+
   <div
     class="info-overlay"
     [ngClass]="{
@@ -83,7 +93,7 @@
 
     <ion-spinner *ngIf="isLoadingMembers" name="crescent" style="display: block; margin: 2rem auto;"></ion-spinner>
     <ion-list class="balance-list" *ngIf="!isLoadingMembers">
-      
+
       <ion-item class="info-item" [routerLink]="['/detailed-balance', groupId, member.uid]" *ngFor="let member of groupMembers">
         <div class="member-info"
              [ngStyle]="{
