@@ -146,7 +146,17 @@ iosIcons: any;
     }
   }
 
-  selectImage() {
+  async selectImage() {
+    if (this.userUid !== this.founder) {
+      const alert = await this.alertController.create({
+        header: 'Aktion nicht erlaubt',
+        message: 'Nur der Gründer kann das Gruppenbild ändern.',
+        buttons: ['OK'],
+      });
+      await alert.present();
+      return;
+    }
+
     this.fileInput.nativeElement.click();
   }
 
@@ -436,7 +446,7 @@ iosIcons: any;
     }
   }
 
-  async onGroupnameClick() {
+  async onClick() {
     if (this.userUid !== this.founder) {
       const alert = await this.alertController.create({
         header: 'Aktion nicht erlaubt',
