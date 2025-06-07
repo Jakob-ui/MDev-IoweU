@@ -106,8 +106,6 @@ export class CreateGroupPage {
       await this.shoppinglistService.createEmptyShoppingList(groupId);
 
       await this.presentToast('Gruppe erfolgreich erstellt!');
-
-      await this.presentToast('Gruppe erfolgreich erstellt!');
       //this.router.navigate(['group', this.groupId]);
       console.log('Group successfully created!');
     } catch (error) {

@@ -19,6 +19,7 @@ import {
 import { Router } from '@angular/router';
 import { UserService } from './user.service';
 import { ImageService } from './image.service';
+import { throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -99,15 +100,21 @@ export class GroupService {
 
       // Bild hochladen
       if (groupImage) {
+        try {
         const imageUrl = await this.imageService.uploadImage(
           newGroup.groupId,
           groupImage,
           `groups/${newGroup.groupId}/groupImage`
         );
+        
+        
         await updateDoc(doc(this.firestore, 'groups', newGroup.groupId), {
           groupimage: imageUrl,
         });
-        console.log('Group image URL updated:', imageUrl);
+          console.log('Group image URL updated:', imageUrl);
+        } catch (e){
+          console.error('Error uploading picture:', e);
+        }
       }
 
       const userRef = doc(this.firestore, 'users', founder.uid);
