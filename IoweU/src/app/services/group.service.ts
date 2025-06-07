@@ -14,17 +14,11 @@ import {
   getDoc,
   updateDoc,
   onSnapshot,
-  collectionGroup,
-  FieldPath,
   documentId,
 } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
-import { elementAt } from 'rxjs';
-import { CATEGORIES } from './objects/Categories';
-import { Storage } from '@angular/fire/storage';
 import { UserService } from './user.service';
 import { ImageService } from './image.service';
-import { Expenses } from './objects/Expenses';
 
 @Injectable({
   providedIn: 'root',
@@ -32,7 +26,6 @@ import { Expenses } from './objects/Expenses';
 export class GroupService {
   public router = inject(Router);
   public firestore: Firestore = inject(Firestore);
-  private userService = inject(UserService);
   private imageService = inject(ImageService);
 
   public lastCreatedGroupId: string = '';
@@ -94,20 +87,17 @@ export class GroupService {
           'Finanzübersicht',
           'Ausgaben',
           'Einkaufsliste',
-          'Anlagegüter'
         );
       } else if (template === 'Reise') {
         newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Einkaufsliste');
       } else if (template === 'Projekt') {
-        newGroup.features.push('Finanzübersicht', 'Ausgaben', 'Anlagegüter');
+        newGroup.features.push('Finanzübersicht', 'Ausgaben');
       }
-      // Gruppe in Firestore speichern
-      const groupRef = await setDoc(
-        doc(this.firestore, 'groups', newGroup.groupId),
-        newGroup
-      );
 
-      //Bild hochladen
+      // Gruppe in Firestore speichern
+      await setDoc(doc(this.firestore, 'groups', newGroup.groupId), newGroup);
+
+      // Bild hochladen
       if (groupImage) {
         const imageUrl = await this.imageService.uploadImage(
           newGroup.groupId,
@@ -120,20 +110,16 @@ export class GroupService {
         console.log('Group image URL updated:', imageUrl);
       }
 
-      // Benutzer aktualisieren, um die groupId hinzuzufügen
-      const usersRef = collection(this.firestore, 'users');
-      const q = query(usersRef, where('uid', '==', founder.uid));
-      const querySnapshot = await getDocs(q);
+      const userRef = doc(this.firestore, 'users', founder.uid);
+      const userSnap = await getDoc(userRef);
 
-      if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0];
-        const userData = userDoc.data() as Users;
-
+      if (userSnap.exists()) {
+        const userData = userSnap.data() as Users;
         const updatedGroupIds = userData.groupId
           ? [...userData.groupId, newGroup.groupId]
           : [newGroup.groupId];
 
-        await updateDoc(userDoc.ref, { groupId: updatedGroupIds });
+        await setDoc(userRef, { groupId: updatedGroupIds }, { merge: true }); // <--- Änderung!
         console.log('User updated with new group ID:', newGroup.groupId);
         this.router.navigate(['/group/' + newGroup.groupId]);
       } else {

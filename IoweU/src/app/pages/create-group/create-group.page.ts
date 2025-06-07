@@ -74,7 +74,6 @@ export class CreateGroupPage {
   }
 
   async saveGroup() {
-    0;
     if (!this.groupname || !this.selectedTemplate) {
       console.error('Group name and template are required!');
       await this.presentAlert('Fehler','Wähle einen Gruppennamen und Template aus!');
