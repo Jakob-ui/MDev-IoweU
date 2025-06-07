@@ -258,6 +258,9 @@ export class AuthService {
     color: string,
     groupId: string[] = []
   ): Promise<Users | null> {
+    if (Capacitor.isNativePlatform()) {
+      return null;
+    }
     try {
       let firebaseUser: any = null;
 

@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-login',
@@ -25,6 +26,7 @@ export class LoginPage {
   loginFailed: boolean = false;
   loading: boolean = false;
   timeout: any;
+  smartphone: boolean = true;
 
   inputChange() {
     this.error = '';
@@ -32,6 +34,9 @@ export class LoginPage {
   }
 
   async ngOnInit() {
+        if (!Capacitor.isNativePlatform()) {
+          this.smartphone = false;
+        }
     try {
       await this.authService.waitForUser();
 

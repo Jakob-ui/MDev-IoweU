@@ -16,6 +16,7 @@ import {
   IonLabel,
   IonRefresher,
   IonRefresherContent,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -26,7 +27,6 @@ import { Expenses } from 'src/app/services/objects/Expenses';
 import { Members } from 'src/app/services/objects/Members';
 import { FormsModule } from '@angular/forms';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
-import { timeout } from 'd3';
 
 @Component({
   selector: 'app-expense',
@@ -57,11 +57,11 @@ import { timeout } from 'd3';
 export class ExpensePage implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private activeRoute = inject(ActivatedRoute);
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
+  private toastController = inject(ToastController);
 
   uid: string | null = '';
   user: string | null = '';
@@ -69,12 +69,12 @@ export class ExpensePage implements OnInit, OnDestroy {
 
   groupname: string = '';
   groupId: string | null = '';
-  groupMembers: Members[] = []; // Verwenden Sie das Members-Interface
+  groupMembers: Members[] = [];
   iosIcons: boolean = false;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   sumExpenses: number = 0;
-  animatedSumExpenses: number = 0; // <--- NEU
+  animatedSumExpenses: number = 0;
   countExpenses: number = 0;
   currentMonth: string = '';
   currentYear: number = 0;
@@ -449,6 +449,16 @@ export class ExpensePage implements OnInit, OnDestroy {
     requestAnimationFrame(step);
   }
 
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
+
   async doRefresh(event: any) {
     try {
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -468,6 +478,7 @@ export class ExpensePage implements OnInit, OnDestroy {
         this.sumExpenses = updatedGroup.sumTotalExpenses || 0;
         this.animateSumExpenses();
       }
+      await this.presentToast('Ausgabenliste aktualisiert!');
     } catch (error) {
       console.error('Fehler beim manuellen Aktualisieren:', error);
     } finally {

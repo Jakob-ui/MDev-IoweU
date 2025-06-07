@@ -55,6 +55,7 @@
     </ion-button>
 
     <ion-button
+    *ngIf="!smartphone"
       class="main-button apple"
       expand="block"
       (click)="appleLogin()"

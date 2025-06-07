@@ -19,6 +19,11 @@
           [src]="'assets/icon/ionicons/calendar-outline.svg'"
           [routerLink]="['/repeating-expenses', groupId]"
         ></ion-icon>
+        <ion-icon
+          class="edit-button"
+          [src]="'assets/icon/ionicons/refresh-outline.svg'"
+          (click)="doRefresh($event)"
+        ></ion-icon>
       </div>
     </ion-toolbar>
   </div>
