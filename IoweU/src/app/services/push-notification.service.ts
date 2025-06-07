@@ -89,7 +89,6 @@ messaging: Messaging | null = null;
   // Native Push initialisieren (Android/iOS)
   private async initNativePush(user: Users) {
     try {
-      // Android 13+ Notification Permission
       if (Capacitor.getPlatform() === 'android') {
         const permissionStatus = await PushNotifications.requestPermissions();
         if (permissionStatus.receive !== 'granted') {
@@ -102,20 +101,26 @@ messaging: Messaging | null = null;
 
       PushNotifications.addListener('registration', async (token: Token) => {
         console.log('Native Push Token:', token.value);
-
         localStorage.setItem('fcm_token', token.value);
 
-        // Plattform ermitteln und validieren
         let platform = Capacitor.getPlatform();
         const allowedPlatforms = ['web', 'android', 'ios'] as const;
         if (!allowedPlatforms.includes(platform as any)) {
           platform = 'web';
         }
 
-
         await this.migrateTokenOwnership(token.value, user.uid, platform as 'web' | 'android' | 'ios');
-
       });
+
+      // 🔥 Ergänzung: Lokalen Token verwenden, falls kein neuer registriert wird
+      const existingToken = localStorage.getItem('fcm_token');
+      if (existingToken) {
+        let platform = Capacitor.getPlatform();
+        if (!['web', 'android', 'ios'].includes(platform)) platform = 'web';
+
+        console.log('Bestehender Token gefunden, migriere Ownership:', existingToken);
+        await this.migrateTokenOwnership(existingToken, user.uid, platform as 'web' | 'android' | 'ios');
+      }
 
       PushNotifications.addListener('registrationError', (error) => {
         console.error('Native Push Registration Error:', error);
@@ -135,6 +140,7 @@ messaging: Messaging | null = null;
       console.error('Native Push init error:', error);
     }
   }
+
 
 
   async saveFcmToken(user: Users, token: string, platform: 'web' | 'android' | 'ios' = 'web') {
