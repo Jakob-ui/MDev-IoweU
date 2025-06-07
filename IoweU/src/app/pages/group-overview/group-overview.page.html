@@ -10,6 +10,14 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pullingIcon="arrow-down"
+      refreshingSpinner="crescent"
+      pullingText="Zum Aktualisieren nach unten ziehen"
+      refreshingText="Aktualisiere...">
+    </ion-refresher-content>
+  </ion-refresher>
   <div class="page-container">
     <h2>Meine Gruppen</h2>
 

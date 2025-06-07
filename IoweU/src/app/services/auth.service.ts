@@ -39,6 +39,8 @@ export class AuthService {
   currentUser: Users | null = null;
   colorBlindMode: boolean = false;
 
+  passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,}$/;
+
   constructor() {
     this.auth.onAuthStateChanged((user) => {
       if (user) {
@@ -136,6 +138,11 @@ export class AuthService {
     color: string,
     groupId: string
   ): Promise<UserCredential> {
+    if (!this.passwordRegex.test(password)) {
+      throw new Error(
+        'Das Passwort muss mindestens 8 Zeichen lang sein und einen Groß-, Kleinbuchstaben, eine Ziffer enthalten.'
+      );
+    }
     const userCredential = await createUserWithEmailAndPassword(
       this.auth,
       email.trim(),

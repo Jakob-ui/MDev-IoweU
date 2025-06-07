@@ -20,6 +20,7 @@
           [routerLink]="['/repeating-expenses', groupId]"
         ></ion-icon>
         <ion-icon
+        *ngIf="!smartphone"
           class="edit-button"
           [src]="'assets/icon/ionicons/refresh-outline.svg'"
           (click)="doRefresh($event)"

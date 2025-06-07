@@ -46,6 +46,7 @@ export class RegisterPage implements OnInit {
   loading: boolean = false;
   timeout: any;
   videoSource: string = '';
+  passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,}$/;
 
   ngOnInit() {
     // Setze die GIF-Quelle basierend auf dem Modus
@@ -92,6 +93,12 @@ export class RegisterPage implements OnInit {
     }
     if (this.name === '') {
       this.error = 'Der Benutzername darf nicht leer sein!';
+      this.registerFailed = true;
+      return;
+    }
+    if (!this.passwordRegex.test(this.password)) {
+      this.error =
+        'Das Passwort muss mindestens 8 Zeichen lang sein und einen Groß-, Kleinbuchstaben, eine Ziffer enthalten.';
       this.registerFailed = true;
       return;
     }

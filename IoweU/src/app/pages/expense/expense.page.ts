@@ -27,6 +27,7 @@ import { Expenses } from 'src/app/services/objects/Expenses';
 import { Members } from 'src/app/services/objects/Members';
 import { FormsModule } from '@angular/forms';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-expense',
@@ -93,10 +94,14 @@ export class ExpensePage implements OnInit, OnDestroy {
   searchTerm: string = '';
   selectedCategories: string[] = [];
   dropdownOpen: boolean = false;
+  smartphone: boolean = true;
 
   categories = CATEGORIES;
 
   async ngOnInit() {
+    if (!Capacitor.isNativePlatform()) {
+      this.smartphone = false;
+    }
     this.loadingService.show();
 
     try {
