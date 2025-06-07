@@ -698,7 +698,7 @@ cursor: pointer;
 
 .button-container {
   position: fixed;
-  bottom: -5px;
+  bottom: 0px;
   left: 0;
   right: 0;
   display: flex;
@@ -706,7 +706,7 @@ cursor: pointer;
   justify-content: center;
   align-items: center;
   padding-top: 10px;
-  padding-bottom: 10px;
+  padding-bottom: 25px;
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }

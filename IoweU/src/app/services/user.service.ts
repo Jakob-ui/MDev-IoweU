@@ -16,7 +16,7 @@ import { getDownloadURL, ref, Storage, uploadBytes } from '@angular/fire/storage
 export class UserService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
-  private storage = inject(Storage);
+  public essNotification: boolean = false;
   constructor() {}
 
   async getUserData(): Promise<Users> {
