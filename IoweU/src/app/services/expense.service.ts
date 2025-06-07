@@ -107,7 +107,6 @@ export class ExpenseService {
           'balances'
         );
         const batch = writeBatch(this.firestore);
-        
 
         // MemberSums updaten
 
@@ -361,119 +360,57 @@ export class ExpenseService {
     updateExpensesCallback(expenses);
   }
 
-  async getPaginatedExpenses(
+  async getPaginatedExpensesRealtime(
     groupId: string,
     lastVisibleDoc: any | null,
-    pageSize: number
-  ): Promise<{ expenses: Expenses[]; lastVisible: any }> {
+    pageSize: number,
+    repeating: boolean = false,
+    updateExpensesCallback: (expenses: Expenses[], lastVisible: any, hasMore: boolean) => void
+  ): Promise<() => void> { {
     try {
+      const collectionName = repeating ? 'repeatingExpenses' : 'expenses';
       const expensesRef = collection(
         this.firestore,
         'groups',
         groupId,
-        'expenses'
+        collectionName
       );
+
       let expensesQuery;
 
       if (lastVisibleDoc) {
-        // Wenn ein Cursor vorhanden ist, starte nach dem letzten Dokument
         expensesQuery = query(
           expensesRef,
           orderBy('date', 'desc'),
           startAfter(lastVisibleDoc),
-          limit(pageSize)
+          limit(pageSize + 1)
         );
       } else {
-        // Erste Seite laden
         expensesQuery = query(
           expensesRef,
           orderBy('date', 'desc'),
-          limit(pageSize)
+          limit(pageSize + 1)
         );
       }
 
-      const snapshot = await getDocs(expensesQuery);
+      // Echtzeit-Listener auf die paginierte Query
+      const unsubscribe = onSnapshot(expensesQuery, (snapshot) => {
+        const hasMore = snapshot.docs.length > pageSize;
+        const docs = hasMore ? snapshot.docs.slice(0, pageSize) : snapshot.docs;
+        const expenses = docs.map((doc) => ({
+          expenseId: doc.id,
+          ...doc.data(),
+        })) as Expenses[];
+        const lastVisible = docs[docs.length - 1] ?? null;
+        updateExpensesCallback(expenses, lastVisible, hasMore);
+      });
 
-      const expenses = snapshot.docs.map((doc) => ({
-        expenseId: doc.id,
-        ...doc.data(),
-      })) as Expenses[];
-
-      const lastVisible = snapshot.docs[snapshot.docs.length - 1]; // Letztes Dokument als Cursor speichern
-
-      return { expenses, lastVisible };
+      return unsubscribe;
     } catch (error) {
       console.error('Fehler beim Abrufen der paginierten Ausgaben:', error);
       throw error;
     }
-  }
-
-  async getPaginatedAndRealtimeExpenses(
-    groupId: string,
-    lastVisibleDoc: any | null,
-    pageSize: number,
-    repeating: boolean,
-    updateExpensesCallback: (expenses: Expenses[]) => void
-  ): Promise<() => void> {
-    let expensesRef;
-    if (!repeating) {
-      expensesRef = collection(this.firestore, 'groups', groupId, 'expenses');
-    } else {
-      expensesRef = collection(
-        this.firestore,
-        'groups',
-        groupId,
-        'repeatingExpenses'
-      );
-    }
-
-    // Pagination-Query
-    let expensesQuery;
-    if (lastVisibleDoc) {
-      expensesQuery = query(
-        expensesRef,
-        orderBy('date', 'desc'),
-        startAfter(lastVisibleDoc),
-        limit(pageSize)
-      );
-    } else {
-      expensesQuery = query(
-        expensesRef,
-        orderBy('date', 'desc'),
-        limit(pageSize)
-      );
-    }
-
-    // Lade die erste Seite der Daten
-    const snapshot = await getDocs(expensesQuery);
-    const paginatedExpenses = snapshot.docs.map((doc) => ({
-      expenseId: doc.id,
-      ...doc.data(),
-    })) as Expenses[];
-
-    const lastVisible = snapshot.docs[snapshot.docs.length - 1];
-
-    // Echtzeit-Subscription
-    const unsubscribe = onSnapshot(expensesRef, (realtimeSnapshot) => {
-      const realtimeExpenses = realtimeSnapshot.docs.map((doc) => ({
-        expenseId: doc.id,
-        ...doc.data(),
-      })) as Expenses[];
-
-      // Kombiniere die paginierten Daten mit den Echtzeit-Daten und entferne Duplikate
-      const combinedExpenses = [
-        ...new Map(
-          [...realtimeExpenses, ...paginatedExpenses].map((expense) => [
-            expense.expenseId,
-            expense,
-          ])
-        ).values(),
-      ];
-
-      updateExpensesCallback(combinedExpenses);
-    });
-
-    return unsubscribe;
+    } 
   }
 
   //Calculation Methods
@@ -755,5 +692,4 @@ export class ExpenseService {
     // Gibt zurück, ob die Bilanz ungleich null ist
     return myBalance !== 0;
   }
-  
 }

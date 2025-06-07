@@ -164,7 +164,7 @@ export class RepeatingExpensesPage implements OnInit {
 
       // Starte eine neue Subscription
       this.unsubscribeExpenses =
-        await this.expenseService.getPaginatedAndRealtimeExpenses(
+        await this.expenseService.getPaginatedExpensesRealtime(
           this.groupId!,
           null,
           30,

@@ -148,7 +148,8 @@
           </div>
         </ion-item>
       </ng-container>
-     <ion-infinite-scroll
+      <ion-infinite-scroll
+      *ngIf="hasMoreExpenses"
       threshold="20px"
       (ionInfinite)="loadMoreExpenses($event)"
       [disabled]="!hasMoreExpenses"

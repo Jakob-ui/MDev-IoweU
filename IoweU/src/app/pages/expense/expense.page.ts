@@ -13,7 +13,9 @@ import {
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonSearchbar,
-  IonLabel, IonRefresher, IonRefresherContent,
+  IonLabel,
+  IonRefresher,
+  IonRefresherContent,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -81,7 +83,7 @@ export class ExpensePage implements OnInit, OnDestroy {
   groupedExpenses: { date: string; expenses: Expenses[] }[] = [];
 
   visibleGroupedExpenses: { date: string; expenses: Expenses[] }[] = [];
-  private pageSize = 15;
+  private pageSize = 25;
   lastVisibleDoc: any | null = null;
   isLoadingMore: boolean = false;
   hasMoreExpenses: boolean = true;
@@ -123,14 +125,13 @@ export class ExpensePage implements OnInit, OnDestroy {
               );
               this.groupMembers = [];
             }
-            //lade die ersten expenses
-            await this.loadInitialExpenses();
 
-            //erstelle einen listener der auf changes in der Gruppe horcht
+            await this.loadExpenses();
+
             this.groupService.listenToGroupChanges(this.groupId!, (group) => {
               if (group) {
                 this.sumExpenses = group.sumTotalExpenses || 0;
-                this.animateSumExpenses(); // <--- Animation starten
+                this.animateSumExpenses();
               } else {
                 console.error('Gruppe nicht gefunden oder gelöscht.');
               }
@@ -147,14 +148,6 @@ export class ExpensePage implements OnInit, OnDestroy {
               }));
             });
 
-            /*
-            // Berechne die Balance, nachdem die Ausgaben geladen wurden
-            const { total, count } = this.expenseService.calculateBalance(
-              this.expenses
-            );
-
-            this.sumExpenses = total;
-            this.countExpenses = count;*/
             this.sumExpenses = currentGroup.sumTotalExpenses || 0;
             this.animateSumExpenses(); // <--- Animation starten
           } else {
@@ -165,7 +158,7 @@ export class ExpensePage implements OnInit, OnDestroy {
           }
         }
 
-        await this.loadInitialExpenses();
+        await this.loadExpenses();
       } else {
         console.error('Kein Benutzer eingeloggt.');
       }
@@ -300,7 +293,8 @@ export class ExpensePage implements OnInit, OnDestroy {
       .map((date) => ({
         date: date,
         expenses: grouped[date].sort((a, b) => {
-          const timeDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+          const timeDiff =
+            new Date(b.date).getTime() - new Date(a.date).getTime();
           if (timeDiff !== 0) return timeDiff;
 
           return a.description.localeCompare(b.description);
@@ -311,7 +305,6 @@ export class ExpensePage implements OnInit, OnDestroy {
     this.visibleGroupedExpenses = this.groupedExpenses.slice(0, this.pageSize);
     console.log('Grouped expenses:', this.groupedExpenses);
   }
-
 
   getFirstLetter(paidBy: string): string {
     const member = this.groupMembers.find((m) => m.uid === paidBy);
@@ -325,32 +318,36 @@ export class ExpensePage implements OnInit, OnDestroy {
     this.router.navigate(['/group', this.groupId]);
   }
 
-  async loadInitialExpenses() {
+  async loadExpenses() {
     try {
       if (this.unsubscribeExpenses) {
         this.unsubscribeExpenses();
         console.log('Vorherige Subscription beendet.');
       }
 
-      // Starte eine neue Subscription
       this.unsubscribeExpenses =
-        await this.expenseService.getPaginatedAndRealtimeExpenses(
+        await this.expenseService.getPaginatedExpensesRealtime(
           this.groupId!,
           null,
           this.pageSize,
           false,
-          (expenses) => {
+          (expenses, lastVisible, hasMore) => {
             this.expenses = expenses;
             this.groupExpensesByDate(this.expenses);
+            this.lastVisibleDoc = lastVisible;
+            this.hasMoreExpenses = hasMore;
           }
         );
     } catch (error) {
       console.error('Fehler beim Laden der Ausgaben:', error);
-    } finally {
     }
   }
 
   async loadMoreExpenses(event: any) {
+    if (!this.hasMoreExpenses) {
+      event.target.complete();
+      return;
+    }
     await new Promise((resolve) => setTimeout(resolve, 400));
     if (!this.hasMoreExpenses || this.isLoadingMore) {
       event.target.complete();
@@ -360,27 +357,27 @@ export class ExpensePage implements OnInit, OnDestroy {
     this.isLoadingMore = true;
 
     try {
-      const { expenses, lastVisible } =
-        await this.expenseService.getPaginatedExpenses(
+      if (this.unsubscribeExpenses) {
+        this.unsubscribeExpenses();
+      }
+
+      this.unsubscribeExpenses =
+        await this.expenseService.getPaginatedExpensesRealtime(
           this.groupId!,
           this.lastVisibleDoc,
-          this.pageSize
+          this.pageSize,
+          false,
+          (expenses, lastVisible, hasMore) => {
+            const newExpenses = expenses.filter(
+              (expense) =>
+                !this.expenses.some((e) => e.expenseId === expense.expenseId)
+            );
+            this.expenses = [...this.expenses, ...newExpenses];
+            this.groupExpensesByDate(this.expenses);
+            this.lastVisibleDoc = lastVisible;
+            this.hasMoreExpenses = hasMore;
+          }
         );
-
-      // Filtere doppelte Einträge basierend auf der expenseId
-      const newExpenses = expenses.filter(
-        (expense) =>
-          !this.expenses.some((e) => e.expenseId === expense.expenseId)
-      );
-
-      // Aktualisiere die Liste der Ausgaben
-      this.expenses = [...this.expenses, ...newExpenses];
-      this.groupExpensesByDate(this.expenses);
-
-      // Aktualisiere den Cursor und die Pagination-Flags
-      this.lastVisibleDoc = lastVisible;
-      this.hasMoreExpenses = newExpenses.length > 0;
-
       event.target.complete();
     } catch (error) {
       console.error('Fehler beim Laden weiterer Ausgaben:', error);
@@ -454,7 +451,7 @@ export class ExpensePage implements OnInit, OnDestroy {
 
   async doRefresh(event: any) {
     try {
-          await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       this.expenses = [];
       this.groupedExpenses = [];
@@ -463,7 +460,7 @@ export class ExpensePage implements OnInit, OnDestroy {
       this.hasMoreExpenses = true;
 
       // Aktuelle Daten aus der DB neu laden
-      await this.loadInitialExpenses();
+      await this.loadExpenses();
 
       // Gruppensumme aktualisieren
       const updatedGroup = await this.groupService.getGroupById(this.groupId!);
@@ -477,6 +474,4 @@ export class ExpensePage implements OnInit, OnDestroy {
       event.target.complete();
     }
   }
-
-
 }
