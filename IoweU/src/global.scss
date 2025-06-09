@@ -706,15 +706,24 @@ cursor: pointer;
   justify-content: center;
   align-items: center;
   padding-top: 10px;
+  padding-bottom: 5px !important;
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   // Kein padding-bottom standardmäßig!
 }
 
-// Nur auf Touch-Geräten mit kleiner Breite das dynamische Padding aktivieren
-@media (pointer: coarse) and (max-width: 900px) {
+// Du brauchst die Regel nur einmal, da env(safe-area-inset-bottom, 0px) auf allen Touch-Geräten funktioniert.
+// Diese eine Media Query reicht:
+@media (pointer: coarse) {
   .button-container {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 15px);
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important; /* Sicherstellen, dass der Safe Area Inset Bottom immer angewendet wird */
+  }
+}
+
+// Für mittlere Geräte: ebenfalls nur Safe Area, kein extra px
+@media (pointer: coarse) and (min-width: 601px) and (max-width: 900px) {
+  .button-container {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
@@ -922,7 +931,7 @@ body.color-blind {
   ion-toolbar {
     padding-top: 70px !important;
   }
-  // Das padding-bottom hier entfernen, da es jetzt oben geregelt wird
+  
 }
 
 .loading-overlay {
