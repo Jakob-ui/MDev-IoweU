@@ -711,10 +711,17 @@ cursor: pointer;
   // Kein padding-bottom standardmäßig!
 }
 
-// Nur auf Touch-Geräten mit kleiner Breite das dynamische Padding aktivieren
-@media (pointer: coarse) and (max-width: 900px) {
+// Für kleine Geräte: Padding nur wenn wirklich eine Safe Area vorhanden ist
+@media (pointer: coarse) and (max-width: 600px) {
   .button-container {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 15px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+// Für mittlere Geräte: ebenfalls nur Safe Area, kein extra px
+@media (pointer: coarse) and (min-width: 601px) and (max-width: 900px) {
+  .button-container {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
@@ -922,7 +929,7 @@ body.color-blind {
   ion-toolbar {
     padding-top: 70px !important;
   }
-  // Das padding-bottom hier entfernen, da es jetzt oben geregelt wird
+  
 }
 
 .loading-overlay {
