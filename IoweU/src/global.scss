@@ -706,7 +706,6 @@ cursor: pointer;
   justify-content: center;
   align-items: center;
   padding-top: 10px;
-  padding-bottom: 15px;
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
@@ -915,9 +914,7 @@ body.color-blind {
   ion-toolbar {
     padding-top: 70px !important;
   }
-  .button-container {
-    padding-bottom: 45px;
-  }
+ 
 }
 
 .loading-overlay {
