@@ -706,6 +706,8 @@ cursor: pointer;
   justify-content: center;
   align-items: center;
   padding-top: 10px;
+  // Dynamisches Padding für Geräte mit unterer Leiste
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 15px);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
@@ -914,7 +916,10 @@ body.color-blind {
   ion-toolbar {
     padding-top: 70px !important;
   }
- 
+  .button-container {
+    // Auch hier dynamisch
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 45px);
+  }
 }
 
 .loading-overlay {
