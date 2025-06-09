@@ -716,7 +716,7 @@ cursor: pointer;
 // Diese eine Media Query reicht:
 @media (pointer: coarse) {
   .button-container {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important; /* Sicherstellen, dass der Safe Area Inset Bottom immer angewendet wird */
   }
 }
 
