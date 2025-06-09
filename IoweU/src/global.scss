@@ -711,8 +711,9 @@ cursor: pointer;
   // Kein padding-bottom standardmäßig!
 }
 
-// Für kleine Geräte: Padding nur wenn wirklich eine Safe Area vorhanden ist
-@media (pointer: coarse) and (max-width: 600px) {
+// Du brauchst die Regel nur einmal, da env(safe-area-inset-bottom, 0px) auf allen Touch-Geräten funktioniert.
+// Diese eine Media Query reicht:
+@media (pointer: coarse) {
   .button-container {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
