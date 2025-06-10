@@ -705,8 +705,7 @@ cursor: pointer;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding-top: 10px;
-  padding-bottom: 5px !important;
+  padding-bottom: 20px !important;
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   // Kein padding-bottom standardmäßig!
@@ -931,7 +930,7 @@ body.color-blind {
   ion-toolbar {
     padding-top: 70px !important;
   }
-  
+
 }
 
 .loading-overlay {
