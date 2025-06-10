@@ -698,33 +698,18 @@ cursor: pointer;
 
 .button-container {
   position: fixed;
-  bottom: 0px;
+  bottom: -5px;
   left: 0;
   right: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding-bottom: 20px !important;
+  padding-bottom: 20px;
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  // Kein padding-bottom standardmäßig!
 }
 
-// Du brauchst die Regel nur einmal, da env(safe-area-inset-bottom, 0px) auf allen Touch-Geräten funktioniert.
-// Diese eine Media Query reicht:
-@media (pointer: coarse) {
-  .button-container {
-    padding-bottom: env(safe-area-inset-bottom, 0px) !important; /* Sicherstellen, dass der Safe Area Inset Bottom immer angewendet wird */
-  }
-}
-
-// Für mittlere Geräte: ebenfalls nur Safe Area, kein extra px
-@media (pointer: coarse) and (min-width: 601px) and (max-width: 900px) {
-  .button-container {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-}
 
 .separator {
   border: none;
