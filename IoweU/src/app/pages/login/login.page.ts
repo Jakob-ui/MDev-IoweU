@@ -101,16 +101,13 @@ export class LoginPage {
           this.router.navigate(['/group-overview']);
         }
       } else {
-        this.error =
-          'Apple Login fehlgeschlagen: Keine Benutzerdaten erhalten.';
+        this.error = 'Apple Login fehlgeschlagen: Keine Benutzerdaten erhalten.';
         this.loginFailed = true;
       }
     } catch (error: any) {
       this.loadingService.hide();
-      console.error('Fehler beim Google Login:', error);
-      this.error =
-        error.message ||
-        'Google Login fehlgeschlagen, bitte versuchen Sie es erneut.';
+      console.error('Fehler beim Apple Login:', error);
+      this.error = 'Apple Login fehlgeschlagen, bitte versuchen Sie es erneut.';
       this.loginFailed = true;
     } finally {
       this.loadingService.hide();
