@@ -13,7 +13,7 @@ h1{
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 9998;
+  z-index: 10;
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -129,7 +129,7 @@ strong {
 .add-product-overlay {
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 5;
   width: 100%;
 }
 
@@ -337,7 +337,7 @@ ion-checkbox{
 
 @media (prefers-color-scheme: dark) {
   .date {
-    color: var(--ion-color-light);
+    color: black !important;
   }
   .add-product-wrapper{
     background-color: transparent;
@@ -367,5 +367,5 @@ p{
   .info-wrapper h5 {
     color: #fff !important;
   }
- 
+
 }

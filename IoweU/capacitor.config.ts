@@ -9,7 +9,11 @@ const config: CapacitorConfig = {
   },
   plugins: {
     PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"],
+      presentationOptions: ['badge', 'sound', 'alert'],
+    },
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ['apple.com', 'google.com'],
     },
   },
 };

@@ -7,9 +7,19 @@ h1 {
 }
 
 .einzelneAusgabe {
-  width: 40%;
+  width: 50%;
 }
 
 .expense-list {
   margin-bottom: 85px;
+}
+
+.profile-placeholder .username{
+  color: var(--ion-color-light);
+  font-size: 12px;
+  font-weight: 300;
+}
+
+.button-container {
+  padding-top: 10px;
 }

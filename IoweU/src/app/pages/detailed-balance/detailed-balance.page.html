@@ -66,12 +66,14 @@
             <span class="member-name">{{ username }}</span>
           </div>
           <div
-               class="toggle-arrow"
-               (click)="toggleExpenses()">
+            class="toggle-arrow"
+            *ngIf="paidByCurrentUser && paidByCurrentUser.length > 0"
+            (click)="toggleExpenses()">
             <ion-icon
               [src]="showExpenses ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'">
             </ion-icon>
           </div>
+
         </div>
         <ion-badge class="balance-price positive">
           {{ myIncome | currency: 'EUR' }}
@@ -130,6 +132,7 @@
           </div>
           <div
             class="toggle-arrow"
+            *ngIf="paidBySelectedMember && paidBySelectedMember.length > 0"
             (click)="toggleExpensesFromSelectedMember()">
             <ion-icon
               [src]="showExpensesFromSelectedMember ? 'assets/icon/ionicons/ios-arrow-down.svg' : 'assets/icon/ionicons/ios-arrow-up.svg'">
@@ -178,7 +181,7 @@
       <ion-button
         class="main-button"
         expand="block"
-        (click)="pay()"
+        (click)="payBalance()"
         *ngIf="payable && myBalance < 0">
         Schulden begleichen
       </ion-button>

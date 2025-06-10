@@ -91,6 +91,7 @@ import { HostListener } from '@angular/core';
 import { ImageService } from '../../services/image.service';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
 import { CURRENCIESWITHSYMBOLS } from 'src/app/services/objects/Currencies';
+import {PushNotificationService} from "../../services/push-notification.service";
 
 @Component({
   selector: 'app-edit-expense',
@@ -131,6 +132,8 @@ export class EditExpensePage {
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
   private shoppinglistService = inject(ShoppinglistService);
+  private pushNotificationService = inject(PushNotificationService);
+
 
   constructor() {
     addIcons({addOutline,checkmarkOutline,cameraOutline,imageOutline,chevronDownOutline});}
@@ -553,6 +556,55 @@ export class EditExpensePage {
   }
 
   //------------------------------------------RECHENFUNKTIONEN-------------------------------------------
+
+  get totalAmountInput(): string {
+    return this.expense.totalAmount === 0 ? '' : this.expense.totalAmount.toString();
+  }
+  set totalAmountInput(val: string) {
+    this.expense.totalAmount = val === '' ? 0 : parseFloat(val);
+  }
+
+  // Getter/Setter für totalAmountInForeignCurrency (Fremdwährung)
+  get totalAmountInForeignCurrencyInput(): string {
+    const val = this.expense.totalAmountInForeignCurrency ?? 0; // nullish coalescing: wenn undefined dann 0
+    return val === 0 ? '' : val.toString();
+  }
+  set totalAmountInForeignCurrencyInput(val: string) {
+    this.expense.totalAmountInForeignCurrency = val === '' ? 0 : parseFloat(val);
+  }
+
+  // amountToPay getter/setter für ein bestimmtes userId
+  getAmountToPayInput(userId: string): string {
+    const val = this.amountToPay[userId];
+    return val === 0 || val == null ? '' : val.toString();
+  }
+  setAmountToPayInput(userId: string, val: string | null | undefined) {
+    const safeVal = val ?? '';
+    this.amountToPay[userId] = safeVal === '' ? 0 : parseFloat(safeVal);
+  }
+
+// foreignAmountToPay getter/setter für ein bestimmtes userId
+  getForeignAmountToPayInput(userId: string): string {
+    const val = this.foreignAmountToPay[userId];
+    return val === 0 || val == null ? '' : val.toString();
+  }
+  setForeignAmountToPayInput(userId: string, val: string) {
+    this.foreignAmountToPay[userId] = val === '' ? 0 : parseFloat(val);
+  }
+
+  getSplitValueInput(userId: string): string {
+    const val = this.splitValue[userId];
+    return val === 0 || val == null ? '' : val.toString();
+  }
+
+  setSplitValueInput(userId: string, val: string | null | undefined) {
+    const safeVal = val ?? '';
+    this.splitValue[userId] = safeVal === '' ? 0 : parseFloat(safeVal);
+  }
+
+
+
+
 
   private updateTotals() {
     const total = parseFloat(this.calculateTotalFromAmountToPay().toFixed(2));
@@ -1071,12 +1123,39 @@ export class EditExpensePage {
           //expenseMember.products = this.productInputs[memberUid]?.products || [];
         });
 
+        const payerId = this.expense.paidBy;
+        const payer = this.groupMembers.find(member => member.uid === payerId);
+        const payerName = payer ? payer.username || payer.name || 'Jemand' : 'Jemand';
+
+        const unpaidMembers = this.expense.expenseMember.filter(
+          (member) =>
+            !member.paid &&
+            member.memberId !== payerId &&
+            member.amountToPay > 0
+        );
+        // Update the paid status of all mebers so that the new payer is marked as paid and the previous one is not
+        const newPayerId = this.expense.paidBy;
+        this.expense.expenseMember = this.expense.expenseMember.map(member => ({
+        ...member,
+        paid: member.memberId === newPayerId
+      }));
+
         await this.expenseService.updateExpense(
           this.expense,
           this.expense.expenseMember,
           this.groupId,
           this.repeating
         );
+
+        const myName = this.user || 'Jemand';
+
+        for (const member of unpaidMembers) {
+          await this.pushNotificationService.sendToUser(
+            member.memberId,
+            `Geänderte AUSGABE in der Gruppe "${this.groupname}"`,
+            `${myName} hat die Ausgabe geändert. Du schuldest jetzt ${payerName} ${member.amountToPay.toFixed(2)} €.`
+          );
+        }
 
         console.log('Ausgabe erfolgreich aktualisiert.');
         this.navCtrl.back();
@@ -1161,26 +1240,64 @@ export class EditExpensePage {
 
   async deleteExpense() {
     try {
-      // Stelle sicher, dass expenseId vorhanden ist
       if (!this.expense.expenseId) {
         console.error('Expense ID ist nicht definiert');
         return;
       }
-      console.log("was ist paid status", this.paid)
-      // Löschen der Ausgabe aufrufen
+
       await this.expenseService.deleteExpense(
         this.groupId,
         this.expense.expenseId,
         this.paid
       );
 
-      // Weiterleitung zur Gruppenansicht
+      const myName = this.user || 'Jemand';
+      const groupName = this.groupname;
+      const expenseDesc = this.expense.description || 'die Ausgabe';
+
+      // Alle Gruppenmitglieder holen (angenommen groupMembers ist vorhanden)
+      // Wenn du die Liste nicht hast, musst du sie noch holen!
+      const allMembers = this.groupMembers || [];
+
+      // IDs der Mitglieder, die an der Ausgabe beteiligt waren (expenseMember)
+      const involvedMembers = this.expense.expenseMember || [];
+
+      // Map für schnellen Lookup: memberId -> expenseMember
+      const involvedMap = new Map(
+        involvedMembers.map(m => [m.memberId, m])
+      );
+
+      for (const member of allMembers) {
+        const isInvolved = involvedMap.has(member.uid);
+        const expenseMember = involvedMap.get(member.uid);
+        const isPayer = this.expense.paidBy === member.uid;
+
+        let personalMessage = '';
+
+        if (isPayer) {
+          personalMessage = `${myName} hat die Ausgabe "${expenseDesc}" in der Gruppe "${groupName}" gelöscht, für die du bezahlt hattest.`;
+        } else if (isInvolved && !(expenseMember) || !(expenseMember) || expenseMember.amountToPay > 0) {
+          personalMessage = `${myName} hat die Ausgabe "${expenseDesc}" in der Gruppe "${groupName}" gelöscht. Deine offene Schuld ist dadurch entfallen.`;
+        } else {
+          personalMessage = `${myName} hat die Ausgabe "${expenseDesc}" in der Gruppe "${groupName}" gelöscht.`;
+        }
+
+        await this.pushNotificationService.sendToUser(
+          member.uid,
+          `AUSGABE in "${groupName}" GELÖSCHT!`,
+          personalMessage
+        );
+      }
+
       this.router.navigate(['/expense', this.groupId]);
     } catch (e) {
       console.error('Fehler beim Löschen der Ausgabe:', e);
       alert('Beim Löschen ist ein Fehler aufgetreten.');
     }
   }
+
+
+
 
   async confirmDelete() {
     console.log('Bestätigung wird angezeigt'); // Zum Debuggen

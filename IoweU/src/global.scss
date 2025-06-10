@@ -426,6 +426,10 @@ ion-button.back-button::part(native) {
   height: 24px;
 }
 
+ion-button:hover{
+  cursor: pointer;
+}
+
 ion-button.main-button::part(native) {
   --background: var(--ion-color-secondary);
   font-weight: 700;
@@ -452,6 +456,17 @@ ion-button.delete-button::part(native) {
   padding: 12px 24px;
   text-transform: uppercase;
   border-radius: 50px;
+  box-shadow: none !important;
+  width: 100% !important;
+}
+
+ion-button.leave-button::part(native) {
+  --background: white;
+  font-weight: 700;
+  padding: 7px 10px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  border: 2px solid var(--ion-color-danger);
   box-shadow: none !important;
   width: 100% !important;
 }
@@ -579,6 +594,10 @@ ion-item.select-interface-option::part(native) {
   padding: 5px 10px 5px 5px;
 }
 
+.user-info {
+cursor: pointer;
+}
+
 .user-info .profile-placeholder {
   width: 20px;
   height: 20px;
@@ -621,6 +640,7 @@ ion-item.select-interface-option::part(native) {
 .member-name {
   font-size: 16px;
   font-weight: bold;
+  text-align: left;
   color: var(--ion-color-dark);
 }
 
@@ -689,6 +709,7 @@ ion-item.select-interface-option::part(native) {
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
+
 
 .separator {
   border: none;
@@ -795,6 +816,10 @@ ion-item.select-interface-option::part(native) {
   top: 0; /* Entfernt mögliche Verschiebungen nach unten */
 }
 
+.colorinput {
+  cursor: pointer;
+}
+
 .colorinput::-webkit-color-swatch {
   border-radius: 50%;
 }
@@ -890,6 +915,7 @@ body.color-blind {
   ion-toolbar {
     padding-top: 70px !important;
   }
+
 }
 
 .loading-overlay {
@@ -991,8 +1017,8 @@ ion-alert {
   }
 
   .loading-overlay {
-    color: var(--ion-color-light);
-    background: var(--ion-background-color);
+
+    background:#111111;
   }
   .little-loading-overlay {
     color: var(--ion-color-light);
@@ -1038,6 +1064,15 @@ ion-alert {
   ion-icon.back-button {
     color: #000 !important;
   }
+  ion-icon.qr-code-icon,
+  ion-icon.edit-button,
+  ion-icon.logout-button,
+  .brush-icon,
+  ion-card,
+  ion-item,
+  ion-icon.back-button:hover {
+    cursor: pointer;
+  }
 
   .button-container {
     background-color: #121212 !important;
@@ -1051,9 +1086,7 @@ ion-alert {
   ion-list {
     background-color: #121212 !important;
   }
-  .page-container {
-    background-color: #121212 !important;
-  }
+
   .button-row {
     background-color: #121212 !important;
   }
@@ -1076,5 +1109,7 @@ ion-alert {
    .info-wrapper ul li::before {
     color: #fff !important;
   }
-
+.datepicker{
+  background-color: #000 !important;
+}
 }

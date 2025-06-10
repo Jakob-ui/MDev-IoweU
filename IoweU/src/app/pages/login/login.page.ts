@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-login',
@@ -25,6 +26,7 @@ export class LoginPage {
   loginFailed: boolean = false;
   loading: boolean = false;
   timeout: any;
+  smartphone: boolean = true;
 
   inputChange() {
     this.error = '';
@@ -32,10 +34,16 @@ export class LoginPage {
   }
 
   async ngOnInit() {
+    if (!Capacitor.isNativePlatform()) {
+      this.smartphone = false;
+    }
     try {
       await this.authService.waitForUser();
 
-      if (this.authService.currentUser && this.authService.currentUser.username) {
+      if (
+        this.authService.currentUser &&
+        this.authService.currentUser.username
+      ) {
         this.router.navigate(['/group-overview']);
       }
     } catch (error) {
@@ -56,15 +64,50 @@ export class LoginPage {
     }
     try {
       await this.authService.login(this.email, this.password);
+      this.router.navigate(['/group-overview']);
+      console.log('hätte routen müssen');
       while (!this.authService.currentUser) {
         this.loadingService.show();
-      }
-      if (this.authService.currentUser) {
-        this.router.navigate(['/group-overview']);
       }
     } catch (error) {
       console.error('Fehler beim Login:', error);
       this.error = 'Fehler beim Login, bitte versuchen Sie es erneut.';
+      this.loginFailed = true;
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
+  async appleLogin() {
+    try {
+      this.loadingService.show();
+      const userData = await this.authService.appleLogin('', '');
+
+      if (userData && userData.uid) {
+        if (
+          !userData.username ||
+          userData.username === 'Unnamed User' ||
+          !userData.color ||
+          userData.color === '#CCCCCC'
+        ) {
+          console.log(
+            'Apple Login: Erster Login oder Profil unvollständig. Weiterleitung zu Profil-Setup.'
+          );
+          this.router.navigate(['/profile-setup']);
+        } else {
+          console.log(
+            'Apple Login erfolgreich. Weiterleitung zu Gruppenübersicht.'
+          );
+          this.router.navigate(['/group-overview']);
+        }
+      } else {
+        this.error = 'Apple Login fehlgeschlagen: Keine Benutzerdaten erhalten.';
+        this.loginFailed = true;
+      }
+    } catch (error: any) {
+      this.loadingService.hide();
+      console.error('Fehler beim Apple Login:', error);
+      this.error = 'Apple Login fehlgeschlagen, bitte versuchen Sie es erneut.';
       this.loginFailed = true;
     } finally {
       this.loadingService.hide();
@@ -77,20 +120,32 @@ export class LoginPage {
       const userData = await this.authService.googleLogin('', '');
 
       if (userData && userData.uid) {
-        if (!userData.username || userData.username === 'Unnamed User' || !userData.color || userData.color === '#CCCCCC') {
-          console.log('Google Login: Erster Login oder Profil unvollständig. Weiterleitung zu Profil-Setup.');
+        if (
+          !userData.username ||
+          userData.username === 'Unnamed User' ||
+          !userData.color ||
+          userData.color === '#CCCCCC'
+        ) {
+          console.log(
+            'Google Login: Erster Login oder Profil unvollständig. Weiterleitung zu Profil-Setup.'
+          );
           this.router.navigate(['/profile-setup']);
         } else {
-          console.log('Google Login erfolgreich. Weiterleitung zu Gruppenübersicht.');
+          console.log(
+            'Google Login erfolgreich. Weiterleitung zu Gruppenübersicht.'
+          );
           this.router.navigate(['/group-overview']);
         }
       } else {
-        this.error = 'Google Login fehlgeschlagen: Keine Benutzerdaten erhalten.';
+        this.error =
+          'Google Login fehlgeschlagen: Keine Benutzerdaten erhalten.';
         this.loginFailed = true;
       }
     } catch (error: any) {
+      this.loadingService.hide();
       console.error('Fehler beim Google Login:', error);
-      this.error = error.message || 'Google Login fehlgeschlagen, bitte versuchen Sie es erneut.';
+      this.error =
+        'Google Login fehlgeschlagen, bitte versuchen Sie es erneut.';
       this.loginFailed = true;
     } finally {
       this.loadingService.hide();

@@ -2,9 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Transactions } from './objects/Transactions';
 import {
   collection,
-  deleteDoc,
   doc,
-  documentId,
   Firestore,
   getDoc,
   getDocs,
@@ -639,9 +637,9 @@ export class TransactionService {
           from: trans.from,
           to: trans.to,
           amount: trans.amount,
-          reason: `Ausgleich (${
-            settlementType === 'group' ? 'Gruppe' : 'Persönlich'
-          })`,
+          reason: `${
+            settlementType === 'group' ? 'alle Gruppenschulden' : 'direkte Schulden'
+          }`,
           date: new Date().toISOString(),
           relatedExpenses: trans.relatedExpenses,
           isSettlement: true,
@@ -726,6 +724,7 @@ export class TransactionService {
           userBCredit: 0,
           relatedExpenseId: [],
         });
+
       });
     } else {
       // Bei persönlichem Ausgleich: Nur die tatsächlich von den Transaktionen betroffenen Balances auf Null setzen
@@ -750,17 +749,17 @@ export class TransactionService {
         const settlerMember = members.find((m: any) => m.uid === trans.from);
         const payerMember = members.find((m: any) => m.uid === trans.to);
         if (settlementType === 'group') {
-          if (settlerMember && payerMember) {
-            settlerMember.sumAmountPaid = 0;
-            settlerMember.sumExpenseMemberAmount = 0;
-            settlerMember.sumExpenseAmount = 0;
-            settlerMember.sumAmountReceived = 0;
-            settlerMember.countAmountPaid += 1;
-            payerMember.sumAmountReceived = 0;
-            payerMember.sumAmountPaid = 0;
-            payerMember.sumExpenseMemberAmount = 0;
-            payerMember.sumExpenseAmount = 0;
-            payerMember.countAmountReceived += 1;
+          for(const member of members)
+          {
+            member.sumAmountPaid = 0;
+            member.countAmountPaid = 0;
+            member.sumAmountReceived = 0;
+            member.countAmountReceived = 0;
+            member.sumExpenseMemberAmount = 0;
+            member.countExpenseMemberAmount = 0;
+            member.sumExpenseAmount = 0;
+            member.countExpenseAmount = 0;
+          }
 
             // Update members array
             members = members.map((member: any) => {
@@ -768,7 +767,6 @@ export class TransactionService {
               if (member.uid === trans.to) return payerMember;
               return member;
             });
-          }
         } else {
           if (settlerMember && payerMember) {
             settlerMember.sumAmountPaid += trans.amount;
@@ -784,7 +782,7 @@ export class TransactionService {
             });
           }
         }
-          
+
       }
 
       await updateDoc(groupRef, { members });
@@ -880,7 +878,7 @@ export class TransactionService {
     settlerId: string,
     groupId: string,
     expenseId: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     try {
       // 1. Hol dir die Expense-Daten als Expenses Objekt
       const groupRef = doc(this.firestore, 'groups', groupId);
@@ -937,9 +935,10 @@ export class TransactionService {
         balanceData.userACredit - balanceData.userBCredit
       );
       if (balance < settlerExpenseMember.amountToPay) {
-        throw new Error(
+        console.warn(
           `Amount ${settlerExpenseMember.amountToPay} exceeds ${balance}, the balance between ${settlerId} and ${payerId}. Settle your balance with this user instead.`
         );
+        return false; // Betrag ist zu hoch, also beende die Funktion
       } else {
         // 2.2. Wenn der Betrag in Ordnung ist, dann erstelle die Transaktion
         const transactionId = doc(collection(groupRef, 'transactions')).id;
@@ -948,7 +947,7 @@ export class TransactionService {
           from: settlerId,
           to: expenseData.paidBy,
           amount: settlerExpenseMember.amountToPay,
-          reason: `Schuldenbegleichung für Expense ${expenseId}`,
+          reason: `${expenseData.description}`,
           date: new Date().toISOString(),
           relatedExpenses: [expenseId],
           isSettlement: true,
@@ -1052,6 +1051,7 @@ export class TransactionService {
           );
         }
       }
+      return true; // Alles erfolgreich, also gib true zurück
     } catch (error) {
       console.error('Fehler in settleDebtByExpense:', error);
       throw error;

@@ -70,6 +70,7 @@ export class AccountSettingsPage implements OnInit {
   passwordInput: string = '';
   emailInput: string = '';
   isLoginVerified: boolean = false;
+  lokalEssNotifications: boolean = false;
 
   showPasswordFields: boolean = false;
   showDeleteAlert: boolean = false;
@@ -83,6 +84,9 @@ export class AccountSettingsPage implements OnInit {
 
   async ngOnInit() {
     this.loadingService.show();
+
+    this.lokalEssNotifications =
+      localStorage.getItem('essNotifications') === 'true';
 
     this.colorBlindMode = localStorage.getItem('colorBlindMode') === 'true';
     this.applyColorBlindMode(this.colorBlindMode);

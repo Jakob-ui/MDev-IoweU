@@ -74,7 +74,6 @@ export class CreateGroupPage {
   }
 
   async saveGroup() {
-    0;
     if (!this.groupname || !this.selectedTemplate) {
       console.error('Group name and template are required!');
       await this.presentAlert('Fehler','Wähle einen Gruppennamen und Template aus!');
@@ -105,8 +104,6 @@ export class CreateGroupPage {
 
       const groupId = this.groupService.lastCreatedGroupId;
       await this.shoppinglistService.createEmptyShoppingList(groupId);
-
-      await this.presentToast('Gruppe erfolgreich erstellt!');
 
       await this.presentToast('Gruppe erfolgreich erstellt!');
       //this.router.navigate(['group', this.groupId]);

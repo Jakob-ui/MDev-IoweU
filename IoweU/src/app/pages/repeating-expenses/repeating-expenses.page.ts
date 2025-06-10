@@ -19,6 +19,7 @@ import { ExpenseService } from 'src/app/services/expense.service';
 import { Expenses } from 'src/app/services/objects/Expenses';
 import { Groups } from 'src/app/services/objects/Groups';
 import { ExpenseMember } from '../../services/objects/ExpenseMember';
+import {Members} from "../../services/objects/Members";
 
 @Component({
   selector: 'app-repeating-expenses',
@@ -52,7 +53,7 @@ export class RepeatingExpensesPage implements OnInit {
 
   groupname: string = '';
   groupId: string | null = '';
-  groupMembers: any[] = [];
+  groupMembers: Members[] = [];
   iosIcons: boolean = false;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
@@ -81,19 +82,28 @@ export class RepeatingExpensesPage implements OnInit {
         this.displayName = this.authService.currentUser.username;
 
         const groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-        console.log('Benutzer GroupId:', groupId);
 
         if (groupId) {
-          this.currentGroup = await this.groupService.getGroup();
-          if (this.currentGroup === null) {
-            this.currentGroup = await this.groupService.getGroupById(groupId);
-          }
+          const currentGroup = await this.groupService.getGroupById(groupId);
 
-          if (this.currentGroup) {
-            this.groupname = this.currentGroup.groupname || 'Unbekannte Gruppe';
-            this.groupId = this.currentGroup.groupId || '';
+          if (currentGroup) {
+            this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
+            this.groupId = currentGroup.groupId || '';
+
+            // Lade die Mitglieder der Gruppe
+            if (currentGroup.members && Array.isArray(currentGroup.members)) {
+              this.groupMembers = currentGroup.members;
+            } else {
+              console.warn(
+                'Keine Mitglieder in der Gruppe gefunden oder members ist kein Array'
+              );
+              this.groupMembers = [];
+            }
+            //lade die ersten expenses
             await this.loadInitialExpenses();
-          } else {
+
+
+        } else {
             console.error(
               'Gruppe mit der ID ' + this.groupId + ' nicht gefunden'
             );
@@ -154,7 +164,7 @@ export class RepeatingExpensesPage implements OnInit {
 
       // Starte eine neue Subscription
       this.unsubscribeExpenses =
-        await this.expenseService.getPaginatedAndRealtimeExpenses(
+        await this.expenseService.getPaginatedExpensesRealtime(
           this.groupId!,
           null,
           30,
@@ -181,6 +191,14 @@ export class RepeatingExpensesPage implements OnInit {
       }
       grouped[date].push(expense);
     }
+  }
+
+  getFirstLetter(paidBy: string): string {
+    const member = this.groupMembers.find((m) => m.uid === paidBy);
+    if (member && member.username && member.username.length > 0) {
+      return member.username.charAt(0).toUpperCase();
+    }
+    return '';
   }
 
   goBack() {

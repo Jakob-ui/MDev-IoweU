@@ -54,6 +54,15 @@
     <img class="googleLogo" src="../../../assets/icon/Google.png"  />Mit Google Anmelden
     </ion-button>
 
+    <ion-button
+    *ngIf="!smartphone"
+      class="main-button apple"
+      expand="block"
+      (click)="appleLogin()"
+    >
+    <img class="appleLogo" src="../../../assets/icon/apple-logo.png"  />Mit Apple Anmelden
+    </ion-button>
+
     <p class="link-text" [routerLink]="'/reset-password'">
       Passwort vergessen?
     </p>

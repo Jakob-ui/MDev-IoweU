@@ -63,6 +63,10 @@ ion-list{
   margin-top: 5px;
 }
 
+.member-role{
+  margin-left: 10px;
+}
+
 .edit-fields{
   width: 100%;
   display: flex;
@@ -99,9 +103,10 @@ ion-icon{
 
 .button-row {
   margin-top: 10px;
-  width: 80%;
+  padding-left: 10%;
+  padding-right: 10%;
+  width: 100%;
   justify-content: space-between;
-
   position: fixed;
   bottom: 0;
   margin-left: auto;
@@ -109,7 +114,8 @@ ion-icon{
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding-bottom: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -135,6 +141,7 @@ delete-button{
 
 .container{
   margin-top: 50px;
+
 }
 
 
@@ -199,5 +206,8 @@ delete-button{
 @media (prefers-color-scheme: dark) {
   .feature-name{
     color: #000;
+  }
+  .member-role{
+    color: #727272;
   }
 }

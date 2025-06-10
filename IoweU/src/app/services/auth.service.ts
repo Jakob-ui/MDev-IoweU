@@ -1,5 +1,11 @@
 import { inject, Injectable } from '@angular/core';
-import { Firestore, setDoc, doc, getDoc, arrayUnion } from '@angular/fire/firestore';
+import {
+  Firestore,
+  setDoc,
+  doc,
+  getDoc,
+  arrayUnion,
+} from '@angular/fire/firestore';
 import {
   Auth,
   browserLocalPersistence,
@@ -10,10 +16,16 @@ import {
   GoogleAuthProvider,
   signInWithRedirect,
   signInWithPopup,
+  reload,
+  signInWithCredential,
+  OAuthProvider,
 } from '@angular/fire/auth';
 import { Users } from './objects/Users';
 import { GroupService } from './group.service';
 import { Router } from '@angular/router';
+import { PushNotificationService } from './push-notification.service';
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 
 @Injectable({
   providedIn: 'root',
@@ -23,8 +35,11 @@ export class AuthService {
   private firestore = inject(Firestore);
   private groupService = inject(GroupService);
   private router = inject(Router);
+  private pushNotificationService = inject(PushNotificationService);
   currentUser: Users | null = null;
   colorBlindMode: boolean = false;
+
+  passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,}$/;
 
   constructor() {
     this.auth.onAuthStateChanged((user) => {
@@ -57,7 +72,7 @@ export class AuthService {
               'Benutzer eingeloggt und in Datenbank geladen',
               this.currentUser
             );
-
+            this.pushNotificationService.init(this.currentUser as Users);
             // Farben anwenden
             this.applyUserColors(this.currentUser.color);
           } else {
@@ -123,6 +138,11 @@ export class AuthService {
     color: string,
     groupId: string
   ): Promise<UserCredential> {
+    if (!this.passwordRegex.test(password)) {
+      throw new Error(
+        'Das Passwort muss mindestens 8 Zeichen lang sein und einen Groß-, Kleinbuchstaben, eine Ziffer enthalten.'
+      );
+    }
     const userCredential = await createUserWithEmailAndPassword(
       this.auth,
       email.trim(),
@@ -143,7 +163,6 @@ export class AuthService {
         userCredential.user.uid,
         userData
       );
-
       if (!success) {
         throw new Error('Fehler beim Speichern der Benutzerdaten.');
       }
@@ -152,30 +171,32 @@ export class AuthService {
     return userCredential;
   }
 
-  async googleLoginWithRedirect(
-    username: string,
-    color: string,
-    groupId: string[] = []
-  ): Promise<Users | null> {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithRedirect(this.auth, provider);
-      return null;
-    } catch (error: any) {
-      console.error('Fehler beim Google Login:', error);
-      throw error;
-    }
-  }
-
   async googleLogin(
     username: string,
     color: string,
     groupId: string[] = []
   ): Promise<Users | null> {
-    const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(this.auth, provider);
-      const firebaseUser = result.user;
+      let firebaseUser: any = null;
+
+      if (!Capacitor.isNativePlatform()) {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(this.auth, provider);
+        firebaseUser = result.user;
+      } else {
+        const result = await FirebaseAuthentication.signInWithGoogle();
+        if (!result.credential?.idToken)
+          throw new Error('Kein idToken erhalten!');
+        const credential = GoogleAuthProvider.credential(
+          result.credential.idToken,
+          result.credential.accessToken
+        );
+        const userCredential = await signInWithCredential(
+          this.auth,
+          credential
+        );
+        firebaseUser = userCredential.user;
+      }
 
       if (firebaseUser) {
         const userDocRef = doc(this.firestore, `users/${firebaseUser.uid}`);
@@ -239,10 +260,95 @@ export class AuthService {
     }
   }
 
+  async appleLogin(
+    username: string,
+    color: string,
+    groupId: string[] = []
+  ): Promise<Users | null> {
+    if (Capacitor.isNativePlatform()) {
+      return null;
+    }
+    try {
+      let firebaseUser: any = null;
+
+      const result = await FirebaseAuthentication.signInWithApple();
+      if (!result.credential?.idToken)
+        throw new Error('Kein idToken erhalten!');
+      const provider = new OAuthProvider('apple.com');
+      const credential = provider.credential({
+        idToken: result.credential.idToken,
+        accessToken: result.credential.accessToken,
+      });
+      const userCredential = await signInWithCredential(this.auth, credential);
+      firebaseUser = userCredential.user;
+
+      if (firebaseUser) {
+        const userDocRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+        const userDocSnap = await getDoc(userDocRef);
+
+        let userDataToSave: Users;
+
+        if (!userDocSnap.exists()) {
+          userDataToSave = {
+            uid: firebaseUser.uid,
+            username: username || firebaseUser.displayName || 'Unnamed User',
+            email: firebaseUser.email || '',
+            color: color || '#CCCCCC',
+            lastedited: new Date().toISOString(),
+            groupId: groupId,
+          };
+          console.log(
+            'Neuer Apple-Nutzer: Daten werden in Firestore gespeichert.',
+            userDataToSave
+          );
+
+          const success = await this.saveUserData(
+            firebaseUser.uid,
+            userDataToSave
+          );
+          if (!success) {
+            throw new Error(
+              'Fehler beim Speichern der Benutzerdaten nach dem ersten Apple Login.'
+            );
+          }
+          this.currentUser = userDataToSave;
+          this.applyUserColors(this.currentUser.color);
+        } else {
+          const existingUserData = userDocSnap.data() as Users;
+          userDataToSave = {
+            ...existingUserData,
+            lastedited: new Date().toISOString(),
+            username:
+              existingUserData.username ||
+              firebaseUser.displayName ||
+              'Unnamed User',
+            email: existingUserData.email || firebaseUser.email || '',
+          };
+
+          await setDoc(
+            userDocRef,
+            { lastedited: new Date().toISOString() },
+            { merge: true }
+          );
+          console.log('Existierender Apple-Nutzer: lastedited aktualisiert.');
+
+          this.currentUser = userDataToSave;
+          this.applyUserColors(this.currentUser.color);
+        }
+        return userDataToSave;
+      }
+      return null;
+    } catch (error: any) {
+      console.error('Fehler beim Apple Login:', error);
+      throw error;
+    }
+  }
+
   async saveUserData(uid: string, data: Users): Promise<boolean> {
     try {
       const userRef = doc(this.firestore, 'users', uid);
       await setDoc(userRef, data);
+      this.pushNotificationService.init(this.currentUser as Users);
       console.log('Benutzerdaten erfolgreich gespeichert:', uid);
       return true;
     } catch (e) {
@@ -251,22 +357,58 @@ export class AuthService {
     }
   }
 
-  login(email: string, password: string): Promise<void> {
-    return this.auth
-      .setPersistence(browserLocalPersistence)
-      .then(() => {
-        return signInWithEmailAndPassword(
+  async login(email: string, password: string): Promise<void> {
+    console.log('starte login funktion');
+    let userCredential;
+    try {
+      if (Capacitor.isNativePlatform()) {
+        //userCredential = await FirebaseAuthentication.signInWithEmailAndPassword({ email, password });
+        userCredential = await signInWithEmailAndPassword(
           this.auth,
           email.trim(),
           password.trim()
-        ).then(() => {
-          console.log('Benutzer erfolgreich eingeloggt.');
-        });
-      })
-      .catch((error) => {
-        console.error('Fehler beim Login:', error);
-        throw error;
-      });
+        );
+      } else {
+        userCredential = await signInWithEmailAndPassword(
+          this.auth,
+          email.trim(),
+          password.trim()
+        );
+      }
+    } catch (e) {
+      console.log('login error ios', e);
+    }
+    const user = userCredential?.user;
+    console.log('nach await login funktion');
+    if (user) {
+      console.log('is user there? login funktion');
+      const userDocRef = doc(this.firestore, 'users', user.uid);
+      const docsnap = await getDoc(userDocRef);
+      if (docsnap.exists()) {
+        this.currentUser = {
+          uid: user.uid,
+          username: docsnap.data()['username'],
+          email: docsnap.data()['email'],
+          color: docsnap.data()['color'],
+          lastedited: docsnap.data()['lastedited'],
+          groupId: docsnap.data()['groupId'],
+        };
+        this.applyUserColors(this.currentUser.color);
+        console.log(
+          'Benutzer eingeloggt und in Datenbank geladen',
+          this.currentUser
+        );
+        console.log('ende login funktion');
+      } else {
+        this.currentUser = null;
+        throw new Error(
+          'Benutzer eingeloggt, aber nicht in der Datenbank gefunden'
+        );
+      }
+    } else {
+      this.currentUser = null;
+      throw new Error('Login fehlgeschlagen');
+    }
   }
 
   logout(): void {
@@ -330,37 +472,4 @@ export class AuthService {
       throw new Error('Benutzer konnte nicht vollständig geladen werden.');
     }
   }
-
-  async saveFcmToken(token: string, platform: 'web' | 'android' | 'ios' = 'web') {
-    const uid = this.currentUser?.uid;
-    if (!uid || !token) return;
-
-    const userDocRef = doc(this.firestore, 'users', uid);
-
-    try {
-      const userDocSnap = await getDoc(userDocRef);
-      let tokens: string[] = [];
-      if (userDocSnap.exists()) {
-        const data = userDocSnap.data();
-        tokens = data?.['fcmTokens'] ?? [];
-
-      }
-
-      if (!tokens.includes(token)) {
-        await setDoc(
-          userDocRef,
-          {
-            fcmTokens: arrayUnion(token),
-          },
-          { merge: true }
-        );
-        console.log(`FCM Token gespeichert (${platform}):`, token);
-      } else {
-        console.log(`Token (${platform}) bereits vorhanden:`, token);
-      }
-    } catch (error) {
-      console.error('Fehler beim Speichern des FCM-Tokens:', error);
-    }
-  }
-
 }

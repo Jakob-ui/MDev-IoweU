@@ -113,6 +113,10 @@ ion-item.dropDownFelder::part(native) {
   background-color: transparent !important;
 }
 
+.selected-category{
+  cursor: pointer;
+}
+
 .custom-dropdown ion-label {
   margin-left: 15px;
 }
@@ -150,6 +154,10 @@ ion-searchbar {
   width: 30px;
 }
 */
+
+ion-infinite-scroll-content{
+  margin: 10px 0;
+}
 
 @media (prefers-color-scheme: dark) {
   .date {

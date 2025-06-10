@@ -154,7 +154,7 @@ export class DetailedBalancePage implements OnInit {
                   }
                 );
 
-              
+
 
               console.log('Balance Details:', this.balanceDetails);
 
@@ -262,75 +262,20 @@ export class DetailedBalancePage implements OnInit {
   }
 
   goBack() {
-    this.navCtrl.back();
+    if (this.uid) {
+      this.router.navigate(['/finance', this.groupId], {
+      });
+    } else {
+      console.error('UID not found');
+    }
   }
 
-  async pay() {
-    if (!this.groupId || !this.uid || !this.selectedMember?.uid) {
-      console.error(
-        'Fehlende groupId, aktuelle UID oder ausgewählte Mitglieder-UID.'
-      );
-      return;
-    }
-
-    if (this.myBalance >= 0) {
-      const alert = await this.alertController.create({
-        header: 'Keine Schulden zu begleichen',
-        message: `${this.selectedMember.username} schuldet Ihnen Geld, oder die Bilanz ist ausgeglichen. Sie können keine Zahlung an ${this.selectedMember.username} tätigen.`,
-        buttons: ['OK'],
+  payBalance() {
+    if (this.uid) {
+      this.router.navigate(['/pay-balance', this.groupId, this.selectedMember?.uid], {
       });
-      await alert.present();
-      return;
-    }
-
-    const amountToPay = Math.abs(this.myBalance);
-
-    this.loadingService.show();
-    try {
-      // Aufruf der spezialisierten Funktion im TransactionService
-      await this.transactionService.settleDebtWithOneMember(
-        this.groupId,
-        this.uid,
-        this.selectedMember.uid,
-        amountToPay,
-        `Schuld an ${this.selectedMember.username} beglichen`,
-        this.allExpenses,
-      );
-
-      const alert = await this.alertController.create({
-        header: 'Transaktion abgeschlossen',
-        message:
-          'Deine Schulden wurden erfolgreich an ' +
-          this.selectedMember.username +
-          ' bezahlt. Möchtest du dir die Transaktion ansehen?',
-        buttons: [
-          {
-            text: 'Nein',
-            role: 'cancel',
-            handler: () => {
-              this.router.navigate(['expense', this.groupId]);
-            },
-          },
-          {
-            text: 'Ja',
-            handler: () => {
-              this.router.navigate(['transactions', this.groupId]);
-            },
-          },
-        ],
-      });
-      await alert.present();
-    } catch (error) {
-      console.error('Fehler beim Ausführen der Zahlung:', error);
-      const errorAlert = await this.alertController.create({
-        header: 'Fehler',
-        message:
-          'Ein Fehler ist beim Begleichen der Schulden aufgetreten. Bitte versuche es erneut.',
-        buttons: ['OK'],
-      });
-      await errorAlert.present();
-    } finally {
-      this.loadingService.hide();
+    } else {
+      console.error('UID not found');
     }
   }
 

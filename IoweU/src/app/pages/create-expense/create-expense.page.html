@@ -135,7 +135,7 @@
               <ion-input
                 type="number"
                 placeholder="0,00"
-                [(ngModel)]="expense.totalAmountInForeignCurrency"
+                [(ngModel)]="totalAmountInForeignCurrencyInput"
                 (ionInput)="onForeignAmountChange()"
                 *ngIf="selectedCurrency !== 'EUR'"
                 step="0.01"
@@ -144,16 +144,15 @@
               <ion-input
                 type="number"
                 placeholder="0,00"
-                [(ngModel)]="expense.totalAmount"
+                [(ngModel)]="totalAmountInput"
                 (ionInput)="onTotalAmountChange()"
                 *ngIf="selectedCurrency === 'EUR'"
                 step="0.01"
               ></ion-input>
 
-              <span class="percent-symbol"
-                >{{ getCurrencySymbol(selectedCurrency) }}</span
-              >
+              <span class="percent-symbol">{{ getCurrencySymbol(selectedCurrency) }}</span>
             </div>
+
           </ion-item>
         </div>
 
@@ -420,11 +419,12 @@
                   type="number"
                   class="percent-input"
                   placeholder="0"
-                  [(ngModel)]="splitValue[groupMember.uid]"
-                  (ionInput)="calculateSplitByPercentage(groupMember.uid, 'percentage')"
+                  [value]="getSplitValueInput(groupMember.uid)"
+                  (ionInput)="setSplitValueInput(groupMember.uid, $event.detail.value ?? ''); calculateSplitByPercentage(groupMember.uid, 'percentage')"
                 ></ion-input>
                 <span class="percent-symbol">%</span>
               </div>
+
             </div>
 
             <div class="input-field">
@@ -436,15 +436,14 @@
                 <ion-input
                   type="number"
                   placeholder="0,00"
-                  [(ngModel)]="amountToPay[groupMember.uid]"
-                  [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
-                  (ionInput)="calculateSplitByPercentage(groupMember.uid, 'amount')"
+                  [value]="getAmountToPayInput(groupMember.uid)"
+                  (ionInput)="setAmountToPayInput(groupMember.uid, $event.detail.value ?? ''); calculateSplitByPercentage(groupMember.uid, 'amount')"
                   step="0.01"
                   [readonly]="expense.splitType === 'prozent'"
                   [disabled]="expense.splitType === 'prozent'"
                   scrollAssist="true"
-                >
-                </ion-input>
+                ></ion-input>
+
 
                 <span class="percent-symbol">€</span>
               </div>
@@ -486,15 +485,15 @@
                 <ion-input
                   type="number"
                   placeholder="0,00"
-                  [(ngModel)]="amountToPay[groupMember.uid]"
+                  [value]="getAmountToPayInput(groupMember.uid)"
                   [disabled]="expense.splitBy === 'alle'"
-                  [value]="amountToPay[groupMember.uid] === 0 ? '' : amountToPay[groupMember.uid]"
-                  (ionInput)="onAmountToPayChange()"
+                  (ionInput)="setAmountToPayInput(groupMember.uid, $event.detail.value); onAmountToPayChange()"
                   step="0.01"
                   scrollAssist="true"
                 ></ion-input>
                 <span class="percent-symbol">€</span>
               </div>
+
 
               <!-- Anteil/Produkte mit Fremdwährung -->
               <div
@@ -517,15 +516,14 @@
                 <ion-input
                   type="number"
                   placeholder="0,00"
-                  [(ngModel)]="foreignAmountToPay[groupMember.uid]"
+                  [value]="getForeignAmountToPayInput(groupMember.uid)"
+                  (ionInput)="setForeignAmountToPayInput(groupMember.uid, $event.detail.value ?? ''); onForeignAmountInput(groupMember.uid)"
                   [disabled]="expense.splitBy === 'alle'"
-                  (ionInput)="onForeignAmountInput(groupMember.uid)"
                   step="0.01"
                   scrollAssist="true"
                 ></ion-input>
-                <span class="percent-symbol"
-                  >{{ getCurrencySymbol(selectedCurrency) }}</span
-                >
+                <span class="percent-symbol">{{ getCurrencySymbol(selectedCurrency) }}</span>
+
               </div>
             </div>
           </div>

@@ -1,4 +1,5 @@
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true"
+  >
   <div id="container" class="container">
     <img [src]="groupImage || 'assets/logo/LogoWeiss.png'" alt="Logo" class="logo" />
 
@@ -45,10 +46,13 @@
         <ion-input
           type="text"
           placeholder="Gruppenname"
+          [readonly]="userUid !== founder"
           [(ngModel)]="groupname"
+          (click)="onClick()"
         ></ion-input>
       </ion-item>
     </div>
+
 
     <div class="edit-fields">
       <span class="input-label">Mitglieder</span>
@@ -56,28 +60,36 @@
         <ion-item class="member-item" *ngFor="let member of members">
           <div class="member-info"
                [ngStyle]="{
-                 'background-color': 'var(--member-color-background-' + member.uid + ')',
-                 'border-color': 'var(--member-color-' + member.uid + ')'
-               }">
+             'background-color': 'var(--member-color-background-' + member.uid + ')',
+             'border-color': 'var(--member-color-' + member.uid + ')'
+           }">
             <div
               class="profile-placeholder"
               [ngStyle]="{
-                'background-color': 'var(--member-color-' + member.uid + ')',
-                'border-color': 'var(--member-color-' + member.uid + ')'
-              }">
+            'background-color': 'var(--member-color-' + member.uid + ')',
+            'border-color': 'var(--member-color-' + member.uid + ')'
+          }">
             </div>
-            <span class="member-name">{{ member.username }}</span>
+            <span class="member-name">
+              {{ member.username }}
+            </span>
+
           </div>
+          <span class="member-role"
+                [ngClass]="{'founder': member.uid === founder, 'member': member.uid !== founder}">
+              {{ member.uid === founder ? 'Gründer' : 'Mitglied' }}
+            </span>
           <ion-button
             *ngIf="userUid === founder || userUid === member.uid"
-            fill="clear"
-            color="danger"
+            class="leave-button"
+            slot="end"
             (click)="userUid === founder && userUid !== member.uid ? removeMemberFromGroup(member) : leaveGroup()">
             X
           </ion-button>
         </ion-item>
       </ion-list>
     </div>
+
 
     <div class="edit-fields">
       <span class="input-label">Features</span>

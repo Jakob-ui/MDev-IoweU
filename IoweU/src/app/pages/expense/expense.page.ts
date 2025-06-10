@@ -14,6 +14,9 @@ import {
   IonInfiniteScrollContent,
   IonSearchbar,
   IonLabel,
+  IonRefresher,
+  IonRefresherContent,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -24,6 +27,7 @@ import { Expenses } from 'src/app/services/objects/Expenses';
 import { Members } from 'src/app/services/objects/Members';
 import { FormsModule } from '@angular/forms';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-expense',
@@ -47,16 +51,18 @@ import { CATEGORIES } from 'src/app/services/objects/Categories';
     IonSearchbar,
     FormsModule,
     IonLabel,
+    IonRefresher,
+    IonRefresherContent,
   ],
 })
 export class ExpensePage implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private activeRoute = inject(ActivatedRoute);
   private loadingService = inject(LoadingService);
   private groupService = inject(GroupService);
   private expenseService = inject(ExpenseService);
+  private toastController = inject(ToastController);
 
   uid: string | null = '';
   user: string | null = '';
@@ -64,11 +70,12 @@ export class ExpensePage implements OnInit, OnDestroy {
 
   groupname: string = '';
   groupId: string | null = '';
-  groupMembers: Members[] = []; // Verwenden Sie das Members-Interface
+  groupMembers: Members[] = [];
   iosIcons: boolean = false;
   lastTransactionDate: Date = new Date(2025, 2, 20);
 
   sumExpenses: number = 0;
+  animatedSumExpenses: number = 0;
   countExpenses: number = 0;
   currentMonth: string = '';
   currentYear: number = 0;
@@ -77,7 +84,7 @@ export class ExpensePage implements OnInit, OnDestroy {
   groupedExpenses: { date: string; expenses: Expenses[] }[] = [];
 
   visibleGroupedExpenses: { date: string; expenses: Expenses[] }[] = [];
-  private pageSize = 20;
+  private pageSize = 25;
   lastVisibleDoc: any | null = null;
   isLoadingMore: boolean = false;
   hasMoreExpenses: boolean = true;
@@ -87,10 +94,14 @@ export class ExpensePage implements OnInit, OnDestroy {
   searchTerm: string = '';
   selectedCategories: string[] = [];
   dropdownOpen: boolean = false;
+  smartphone: boolean = true;
 
   categories = CATEGORIES;
 
   async ngOnInit() {
+    if (!Capacitor.isNativePlatform()) {
+      this.smartphone = false;
+    }
     this.loadingService.show();
 
     try {
@@ -119,13 +130,13 @@ export class ExpensePage implements OnInit, OnDestroy {
               );
               this.groupMembers = [];
             }
-            //lade die ersten expenses
-            await this.loadInitialExpenses();
 
-            //erstelle einen listener der auf changes in der Gruppe horcht
+            await this.loadExpenses();
+
             this.groupService.listenToGroupChanges(this.groupId!, (group) => {
               if (group) {
                 this.sumExpenses = group.sumTotalExpenses || 0;
+                this.animateSumExpenses();
               } else {
                 console.error('Gruppe nicht gefunden oder gelöscht.');
               }
@@ -142,15 +153,8 @@ export class ExpensePage implements OnInit, OnDestroy {
               }));
             });
 
-            /*
-            // Berechne die Balance, nachdem die Ausgaben geladen wurden
-            const { total, count } = this.expenseService.calculateBalance(
-              this.expenses
-            );
-
-            this.sumExpenses = total;
-            this.countExpenses = count;*/
             this.sumExpenses = currentGroup.sumTotalExpenses || 0;
+            this.animateSumExpenses(); // <--- Animation starten
           } else {
             console.error(
               'Gruppe mit der ID ' + this.groupId + ' nicht gefunden'
@@ -159,7 +163,7 @@ export class ExpensePage implements OnInit, OnDestroy {
           }
         }
 
-        await this.loadInitialExpenses();
+        await this.loadExpenses();
       } else {
         console.error('Kein Benutzer eingeloggt.');
       }
@@ -294,7 +298,8 @@ export class ExpensePage implements OnInit, OnDestroy {
       .map((date) => ({
         date: date,
         expenses: grouped[date].sort((a, b) => {
-          const timeDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+          const timeDiff =
+            new Date(b.date).getTime() - new Date(a.date).getTime();
           if (timeDiff !== 0) return timeDiff;
 
           return a.description.localeCompare(b.description);
@@ -305,7 +310,6 @@ export class ExpensePage implements OnInit, OnDestroy {
     this.visibleGroupedExpenses = this.groupedExpenses.slice(0, this.pageSize);
     console.log('Grouped expenses:', this.groupedExpenses);
   }
-
 
   getFirstLetter(paidBy: string): string {
     const member = this.groupMembers.find((m) => m.uid === paidBy);
@@ -319,34 +323,37 @@ export class ExpensePage implements OnInit, OnDestroy {
     this.router.navigate(['/group', this.groupId]);
   }
 
-  async loadInitialExpenses() {
-    this.loadingService.show();
+  async loadExpenses() {
     try {
       if (this.unsubscribeExpenses) {
         this.unsubscribeExpenses();
         console.log('Vorherige Subscription beendet.');
       }
 
-      // Starte eine neue Subscription
       this.unsubscribeExpenses =
-        await this.expenseService.getPaginatedAndRealtimeExpenses(
+        await this.expenseService.getPaginatedExpensesRealtime(
           this.groupId!,
           null,
           this.pageSize,
           false,
-          (expenses) => {
+          (expenses, lastVisible, hasMore) => {
             this.expenses = expenses;
             this.groupExpensesByDate(this.expenses);
+            this.lastVisibleDoc = lastVisible;
+            this.hasMoreExpenses = hasMore;
           }
         );
     } catch (error) {
       console.error('Fehler beim Laden der Ausgaben:', error);
-    } finally {
-      this.loadingService.hide();
     }
   }
 
   async loadMoreExpenses(event: any) {
+    if (!this.hasMoreExpenses) {
+      event.target.complete();
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400));
     if (!this.hasMoreExpenses || this.isLoadingMore) {
       event.target.complete();
       return;
@@ -355,27 +362,27 @@ export class ExpensePage implements OnInit, OnDestroy {
     this.isLoadingMore = true;
 
     try {
-      const { expenses, lastVisible } =
-        await this.expenseService.getPaginatedExpenses(
+      if (this.unsubscribeExpenses) {
+        this.unsubscribeExpenses();
+      }
+
+      this.unsubscribeExpenses =
+        await this.expenseService.getPaginatedExpensesRealtime(
           this.groupId!,
           this.lastVisibleDoc,
-          this.pageSize
+          this.pageSize,
+          false,
+          (expenses, lastVisible, hasMore) => {
+            const newExpenses = expenses.filter(
+              (expense) =>
+                !this.expenses.some((e) => e.expenseId === expense.expenseId)
+            );
+            this.expenses = [...this.expenses, ...newExpenses];
+            this.groupExpensesByDate(this.expenses);
+            this.lastVisibleDoc = lastVisible;
+            this.hasMoreExpenses = hasMore;
+          }
         );
-
-      // Filtere doppelte Einträge basierend auf der expenseId
-      const newExpenses = expenses.filter(
-        (expense) =>
-          !this.expenses.some((e) => e.expenseId === expense.expenseId)
-      );
-
-      // Aktualisiere die Liste der Ausgaben
-      this.expenses = [...this.expenses, ...newExpenses];
-      this.groupExpensesByDate(this.expenses);
-
-      // Aktualisiere den Cursor und die Pagination-Flags
-      this.lastVisibleDoc = lastVisible;
-      this.hasMoreExpenses = newExpenses.length > 0;
-
       event.target.complete();
     } catch (error) {
       console.error('Fehler beim Laden weiterer Ausgaben:', error);
@@ -425,5 +432,62 @@ export class ExpensePage implements OnInit, OnDestroy {
     return !!userEntry?.paid && userEntry.amountToPay > 0;
   }
 
+  /**
+   * Animiert das Hochzählen der Gesamtausgabe.
+   */
+  animateSumExpenses() {
+    const duration = 800; // ms
+    const start = this.animatedSumExpenses;
+    const end = this.sumExpenses;
+    const startTime = performance.now();
 
+    const step = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      this.animatedSumExpenses = Math.round(start + (end - start) * progress);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        this.animatedSumExpenses = end;
+      }
+    };
+
+    requestAnimationFrame(step);
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      position: 'bottom',
+      cssClass: 'custom-toast',
+    });
+    await toast.present();
+  }
+
+  async doRefresh(event: any) {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      this.expenses = [];
+      this.groupedExpenses = [];
+      this.visibleGroupedExpenses = [];
+      this.lastVisibleDoc = null;
+      this.hasMoreExpenses = true;
+
+      // Aktuelle Daten aus der DB neu laden
+      await this.loadExpenses();
+
+      // Gruppensumme aktualisieren
+      const updatedGroup = await this.groupService.getGroupById(this.groupId!);
+      if (updatedGroup) {
+        this.sumExpenses = updatedGroup.sumTotalExpenses || 0;
+        this.animateSumExpenses();
+      }
+      await this.presentToast('Ausgabenliste aktualisiert!');
+    } catch (error) {
+      console.error('Fehler beim manuellen Aktualisieren:', error);
+    } finally {
+      event.target.complete();
+    }
+  }
 }

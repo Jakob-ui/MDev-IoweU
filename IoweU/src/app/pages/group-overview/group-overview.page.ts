@@ -9,8 +9,7 @@ import {
     IonCardSubtitle,
     IonCardTitle,
     IonList, IonReorderGroup, IonReorder,
-    ItemReorderEventDetail, IonBadge, IonIcon
-} from '@ionic/angular/standalone';
+    ItemReorderEventDetail, IonBadge, IonIcon, IonRefresherContent, IonRefresher } from '@ionic/angular/standalone';
 import { NavController, Platform } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
@@ -23,22 +22,23 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
   templateUrl: './group-overview.page.html',
   styleUrls: ['./group-overview.page.scss'],
   standalone: true,
-    imports: [
-        IonReorder,
-        IonReorderGroup,
-        CommonModule,
-        IonContent,
-        IonButton,
-        RouterModule,
-        IonCard,
-        IonCardSubtitle,
-        IonCardTitle,
-        IonList,
-        IonBadge,
-        IonToolbar,
-        IonHeader,
-        IonIcon
-    ],
+  imports: [
+    IonRefresher,
+    IonRefresherContent,
+    IonReorder,
+    IonReorderGroup,
+    CommonModule,
+    IonContent,
+    IonButton,
+    RouterModule,
+    IonCard,
+    IonCardSubtitle,
+    IonCardTitle,
+    IonList,
+    IonBadge,
+    IonToolbar,
+    IonHeader,
+  ],
 })
 export class GroupOverviewPage implements OnInit {
   private authService = inject(AuthService);
@@ -65,11 +65,12 @@ export class GroupOverviewPage implements OnInit {
   touchStartY: number | null = null;
   longPressTimeout: any = null;
   autoScrollInterval: any = null;
+  isLoading = true;
 
   constructor() {}
 
   async ngOnInit() {
-    this.loadingService.show();
+    this.isLoading = true;
     try {
       await this.authService.waitForUser();
 
@@ -84,11 +85,11 @@ export class GroupOverviewPage implements OnInit {
         await this.loadMyGroups();
       } else {
         console.error('No user is logged in.');
+        this.isLoading = false;
       }
     } catch (error) {
       console.error('Fehler beim Laden des Benutzers oder der Gruppen:', error);
-    } finally {
-      this.loadingService.hide();
+      this.isLoading = false;
     }
   }
 
@@ -101,6 +102,7 @@ export class GroupOverviewPage implements OnInit {
 
   async loadMyGroups() {
     try {
+      this.isLoading = true;
       if (this.authService.currentUser) {
         const uid = this.authService.currentUser.uid;
 
@@ -114,7 +116,10 @@ export class GroupOverviewPage implements OnInit {
                   (totalBalance, member) => {
                     if (member.uid === uid) {
                       const balance =
-                        member.sumExpenseAmount - member.sumAmountReceived + member.sumAmountPaid - member.sumExpenseMemberAmount;
+                        member.sumExpenseAmount -
+                        member.sumAmountReceived +
+                        member.sumAmountPaid -
+                        member.sumExpenseMemberAmount;
                       return balance;
                     }
                     return totalBalance;
@@ -130,15 +135,25 @@ export class GroupOverviewPage implements OnInit {
                 };
               })
               .sort((a, b) => {
-                const posA = a.position !== undefined && a.position !== null ? a.position : Infinity;
-                const posB = b.position !== undefined && b.position !== null ? b.position : Infinity;
+                const posA =
+                  a.position !== undefined && a.position !== null
+                    ? a.position
+                    : Infinity;
+                const posB =
+                  b.position !== undefined && b.position !== null
+                    ? b.position
+                    : Infinity;
                 return posA - posB;
               });
+            this.isLoading = false;
           }
         );
+      } else {
+        this.isLoading = false;
       }
     } catch (e) {
       console.log('Error loading Groups:', e);
+      this.isLoading = false;
     } finally {
       this.loadingService.hide();
     }
@@ -162,15 +177,15 @@ export class GroupOverviewPage implements OnInit {
   }
 
   onLongPressStart() {
-  this.longPressTimeout = setTimeout(() => {
-    this.isEditMode = true;
+    this.longPressTimeout = setTimeout(() => {
+      this.isEditMode = true;
 
-    // Haptisches Feedback auslösen
-    Haptics.impact({
-      style: ImpactStyle.Heavy, // Korrekte Verwendung von ImpactStyle
-    });
-  }, 1500);
-}
+      // Haptisches Feedback auslösen
+      Haptics.impact({
+        style: ImpactStyle.Heavy, // Korrekte Verwendung von ImpactStyle
+      });
+    }, 1500);
+  }
 
   onLongPressCancel() {
     if (this.longPressTimeout) {
@@ -201,6 +216,27 @@ export class GroupOverviewPage implements OnInit {
     event.detail.complete();
   }
 
+  async doRefresh(event: any) {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      this.isLoading = true;
+
+      // Optional: unsubscribe von alten Listenern
+      if (this.unsubscribeFromGroups) {
+        this.unsubscribeFromGroups();
+        this.unsubscribeFromGroups = null;
+      }
+
+      // Gruppen neu laden
+      await this.loadMyGroups();
+
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren der Gruppen:', error);
+    } finally {
+      event.target.complete();
+      this.isLoading = false;
+    }
+  }
   async saveGroupOrderToDatabase() {
     try {
       for (const group of this.groups) {

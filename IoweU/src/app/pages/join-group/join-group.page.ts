@@ -105,20 +105,20 @@ export class JoinGroupPage {
           if (joinedGroup) {
             this.router.navigate(['/group/' + joinedGroup.groupId]);
           } else {
-            this.error = 'Group not found.';
+            this.error = 'Gruppe wurde nicht gefunden';
             this.joinFailed = true;
           }
         })
         .catch((err) => {
           console.error(err);
-          this.error = 'An error occurred while joining the group.';
+          this.error = 'Es ist ein Fehler aufgetreten, oder du bist schon Mitglied';
           this.joinFailed = true;
         })
         .finally(() => {
           this.loadingService.hide();
         });
     } else {
-      this.error = 'User is not authenticated.';
+      this.error = 'User ist nicht authentifiziert';
       this.joinFailed = true;
       this.loadingService.hide();
     }

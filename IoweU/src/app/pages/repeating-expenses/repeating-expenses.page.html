@@ -22,7 +22,7 @@
 <ion-content [fullscreen]="true">
   <div class="page-container">
     <h4>{{ groupname }}</h4>
-    <h1>wiederkehrende Ausgaben</h1>
+    <h1>wiederholende Ausgaben</h1>
 
     <ion-list class="expense-list">
       <ion-item
@@ -32,11 +32,13 @@
         <div
           class="profile-placeholder"
           [ngStyle]="{
-            'background-color': 'var(--member-color-' + expense.paidBy + ')',
-            'border-color': 'var(--member-color-' + expense.paidBy + ')'
-          }"
-        ></div>
-        <h5>{{ expense.description }}</h5>
+              'background-color': 'var(--member-color-' + expense.paidBy + ')',
+              'border-color': 'var(--member-color-' + expense.paidBy + ')'
+            }"
+        >
+          <span class="username">{{ getFirstLetter(expense.paidBy) }}</span>
+        </div>
+        <h5 class="einzelneAusgabe">{{ expense.description }}</h5>
         <div class="expense-item">
           <div class="Ausgabepreis">
             <span class="wiederholung">

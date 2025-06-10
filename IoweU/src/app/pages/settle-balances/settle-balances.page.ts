@@ -24,6 +24,7 @@ import { Expenses } from '../../services/objects/Expenses';
 import { Transactions } from '../../services/objects/Transactions';
 import { CATEGORIES } from 'src/app/services/objects/Categories';
 import { DebtEntry } from 'src/app/services/objects/DeptEntry';
+import {PushNotificationService} from "../../services/push-notification.service";
 
 
 @Component({
@@ -54,6 +55,7 @@ export class SettleBalancesPage implements OnInit {
   private groupService = inject(GroupService);
   private transactionService = inject(TransactionService);
   private alertController = inject(AlertController);
+  private pushNotificationService = inject(PushNotificationService);
 
   groupname: string = '';
   iosIcons: boolean = false;
@@ -75,7 +77,7 @@ export class SettleBalancesPage implements OnInit {
 
   gruppenausgleich: boolean = false;
 
-  deptList: DebtEntry[] = [];
+  debtList: DebtEntry[] = [];
   expense: Expenses[] = [];
 
   async ngOnInit() {
@@ -86,6 +88,9 @@ export class SettleBalancesPage implements OnInit {
       this.activeRoute.queryParams.subscribe((params) => {
         this.gruppenausgleich = params['settlegroup'] === 'true';
       });
+      console.log(
+        'Gruppenausgleich-Status:', this.gruppenausgleich
+      );
 
       if (!this.authService.currentUser) {
         console.error('Kein Benutzer eingeloggt.');
@@ -112,21 +117,21 @@ export class SettleBalancesPage implements OnInit {
 
       if (this.gruppenausgleich) {
         console.log('Berechne Gruppenausgleich...');
-        this.deptList =
+        this.debtList =
           await this.transactionService.getCalculatedGroupSettlementDebts(
             this.groupId
           );
       } else {
         // Wenn gruppenausgleich false ist, ist es automatisch persönlicher Ausgleich
         console.log('Berechne persönlichen Ausgleich für ' + this.uid + '...');
-        this.deptList =
+        this.debtList =
           await this.transactionService.getCalculatedPersonalSettlementDebts(
             this.groupId,
             this.uid
           );
       }
 
-      console.log('Final berechnete deptList für Anzeige:', this.deptList);
+      console.log('Final berechnete deptList für Anzeige:', this.debtList);
       await this.loadRelatedExpenses();
       this.iosIcons = this.platform.is('ios');
     } catch (error) {
@@ -187,10 +192,32 @@ export class SettleBalancesPage implements OnInit {
     return 'neutral';
   }
 
-  //UI Controll
-  toggleExpenses(index: number) {
+  // Gibt eindeutige Zahler zurück (alle from-UIDs)
+  getUniqueFromUids(): string[] {
+    const uniqueUids = new Set<string>();
+    this.debtList.forEach((debt) => {
+      uniqueUids.add(debt.from);
+    });
+    return Array.from(uniqueUids);
+  }
+
+// Gibt alle Debts für einen Zahler (fromUid) zurück
+  getDebtsByFrom(fromUid: string): DebtEntry[] {
+    return this.debtList.filter((debt) => debt.from === fromUid);
+  }
+
+// Gibt die Gesamtsumme für einen Zahler (fromUid) zurück
+  getTotalDebtForFrom(fromUid: string): number {
+    return this.debtList
+      .filter((debt) => debt.from === fromUid)
+      .reduce((sum, debt) => sum + debt.amount, 0);
+  }
+
+// Pfeil-Toggle
+  togglePayedBy(index: number) {
     this.showExpensesMap[index] = !this.showExpensesMap[index];
   }
+
 
   goBack() {
     this.navCtrl.back();
@@ -198,10 +225,10 @@ export class SettleBalancesPage implements OnInit {
 
   hasDebts(): boolean {
     if (!this.gruppenausgleich) {
-      return this.deptList.some(
+      return this.debtList.some(
         (debt) => debt.from === this.uid && debt.amount > 0
       );
-    } else if (this.deptList.length > 0) {
+    } else if (this.debtList.length > 0) {
       return true;
     }
     return false;
@@ -218,12 +245,12 @@ export class SettleBalancesPage implements OnInit {
 
   // Get Data using Service functions
   async loadRelatedExpenses() {
-    if (!this.deptList || this.deptList.length === 0) {
+    if (!this.debtList || this.debtList.length === 0) {
       this.expense = [];
       return;
     }
 
-    const relatedExpenseIds = this.deptList.flatMap(
+    const relatedExpenseIds = this.debtList.flatMap(
       (debt) => debt.relatedExpenses
     );
     const uniqueRelatedExpenseIds = [...new Set(relatedExpenseIds)];
@@ -256,9 +283,49 @@ export class SettleBalancesPage implements OnInit {
 
       await this.transactionService.executeSettlementTransactions(
         this.groupId,
-        this.deptList,
+        this.debtList,
         settlementType
       );
+
+
+      try {
+        if (!this.debtList || this.debtList.length === 0) {
+          console.warn('Keine offenen Schulden vorhanden.');
+          return;
+        }
+
+        for (const debt of this.debtList) {
+          const creditorUid = debt.to;
+
+          // Nur benachrichtigen, wenn es eine andere Person ist
+          if (creditorUid && creditorUid !== this.uid) {
+            await this.pushNotificationService.sendToUser(
+              creditorUid,
+              'Zahlung erhalten',
+              `${this.displayName} hat seine Schuld gegenüber dir in der Gruppe "${this.groupname}" beglichen.`
+            );
+            console.log(`Benachrichtigung an ${creditorUid} gesendet.`);
+          }
+        }
+
+        const successAlert = await this.alertController.create({
+          header: 'Benachrichtigungen gesendet',
+          message: 'Alle relevanten Mitglieder wurden über den Ausgleich informiert.',
+          buttons: ['OK'],
+        });
+        await successAlert.present();
+
+      } catch (error) {
+        console.error('Fehler beim Senden der Benachrichtigungen:', error);
+        const errorAlert = await this.alertController.create({
+          header: 'Fehler',
+          message: 'Beim Senden der Benachrichtigungen ist ein Fehler aufgetreten.',
+          buttons: ['OK'],
+        });
+        await errorAlert.present();
+      }
+
+
     } catch (error) {
       console.error('Fehler beim Ausführen der Zahlung:', error);
       const errorAlert = await this.alertController.create({
@@ -280,7 +347,7 @@ export class SettleBalancesPage implements OnInit {
           text: 'Nein',
           role: 'cancel',
           handler: () => {
-            this.router.navigate(['expense', this.groupId]);
+            this.router.navigate(['finance', this.groupId]);
           },
         },
         {
