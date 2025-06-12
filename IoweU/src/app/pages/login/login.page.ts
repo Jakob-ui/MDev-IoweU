@@ -144,8 +144,8 @@ export class LoginPage {
     } catch (error: any) {
       this.loadingService.hide();
       console.error('Fehler beim Google Login:', error);
-      this.error =
-        'Google Login fehlgeschlagen, bitte versuchen Sie es erneut.';
+      (this.error =
+        'Google Login fehlgeschlagen, bitte versuchen Sie es erneut.');
       this.loginFailed = true;
     } finally {
       this.loadingService.hide();
