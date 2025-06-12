@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
-  <string name="app_name">IoweU</string>
-  <string name="title_activity_main">IoweU</string>
+    <string name="app_name">IoweU</string>
+    <string name="title_activity_main">IoweU</string>
+    <string name="package_name">ioweu.eu</string>
+    <string name="custom_url_scheme">ioweu.eu</string>
 </resources>
