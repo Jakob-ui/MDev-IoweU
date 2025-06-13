@@ -7,8 +7,6 @@ import { NetworkService } from './services/network.service';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { Capacitor } from '@capacitor/core';
-// @ts-ignore
-import { SplashScreen } from '@capacitor/splash-screen';
 
 @Component({
   selector: 'app-root',
@@ -84,9 +82,10 @@ export class AppComponent implements OnInit {
     if (!this.authService.currentUser) {
       console.warn('User not authenticated, skipping push notification initialization');
       // Splashscreen ausblenden, falls verwendet
+      /*
       if (Capacitor.isNativePlatform()) {
         SplashScreen.hide();
-      }
+      }*/
       this.loading = false;
       this.loadingService.hide(); // <-- Stelle sicher, dass das Overlay ausgeblendet wird
       return;
@@ -104,11 +103,11 @@ export class AppComponent implements OnInit {
       });
     }
     }
-
+    /*
     // Splashscreen ausblenden, falls verwendet
     if (Capacitor.isNativePlatform()) {
       SplashScreen.hide();
-    }
+    } */
     this.loading = false;
     this.loadingService.hide(); // Lade-Overlay ausblenden nach Abschluss der Initialisierung
   }
