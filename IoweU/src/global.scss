@@ -571,13 +571,16 @@ ion-item.select-interface-option::part(native) {
   --background: var(--ion-color-light);
   margin: 5px 0;
   padding: 8px;
-  width: 80%;
+  width: 95%;
   max-width: 800px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-direction: row;
 }
+
+
+
 .info-item::part(native) {
   height: 60px;
   border-radius: 15px;
@@ -601,6 +604,7 @@ cursor: pointer;
 .user-info .profile-placeholder {
   width: 20px;
   height: 20px;
+  min-width: 20px;
   border-radius: 50%;
   background: var(--user-color, #1a65eb);
   display: flex;
@@ -626,6 +630,7 @@ cursor: pointer;
 .profile-placeholder {
   width: 25px;
   height: 25px;
+  min-width: 25px;
   border-radius: 50%;
   background: var(--user-color, #1a65eb);
   display: flex;
