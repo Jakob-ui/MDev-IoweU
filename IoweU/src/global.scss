@@ -571,14 +571,18 @@ ion-item.select-interface-option::part(native) {
   --background: var(--ion-color-light);
   margin: 5px 0;
   padding: 8px;
-  width: 95%;
+  width: 80%;
   max-width: 800px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-direction: row;
 }
-
+@media (max-width: 768px) {
+  .info-item {
+    max-width: 95%;
+  }
+}
 
 
 .info-item::part(native) {
@@ -918,7 +922,7 @@ body.color-blind {
     padding-top: env(safe-area-inset-top);
   }
   ion-toolbar {
-    padding-top: 70px !important;
+    padding-top: 40px !important;
   }
 
 }

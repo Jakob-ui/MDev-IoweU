@@ -30,6 +30,12 @@ h5 {
   padding: 15px 10px;
 }
 
+@media (max-width: 768px) {
+  .transaction {
+    max-width: 95%;
+  }
+}
+
 .top-container{
   display: flex;
   justify-content: space-between;
