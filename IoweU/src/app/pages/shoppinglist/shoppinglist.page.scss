@@ -296,9 +296,14 @@ ion-button.outline-button::part(native) {
 .shoppinglist-item{
   display: flex !important;
   justify-content: center !important;
-  width: 95%;
+  width: 80%;
   margin-bottom: 10px;
   margin-top: 5px;
+}
+@media (max-width: 768px) {
+  .shoppinglist-item {
+    max-width: 95%;
+  }
 }
 
 .custom-toast {
