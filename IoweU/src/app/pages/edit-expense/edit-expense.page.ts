@@ -1281,15 +1281,13 @@ export class EditExpensePage {
         } else {
           personalMessage = `${myName} hat die Ausgabe "${expenseDesc}" in der Gruppe "${groupName}" gelöscht.`;
         }
-
+        this.router.navigate(['/expense', this.groupId]);
         await this.pushNotificationService.sendToUser(
           member.uid,
           `AUSGABE in "${groupName}" GELÖSCHT!`,
           personalMessage
         );
       }
-
-      this.router.navigate(['/expense', this.groupId]);
     } catch (e) {
       console.error('Fehler beim Löschen der Ausgabe:', e);
       alert('Beim Löschen ist ein Fehler aufgetreten.');

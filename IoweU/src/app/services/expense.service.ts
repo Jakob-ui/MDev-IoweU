@@ -22,13 +22,14 @@ import { Groups } from './objects/Groups';
 import { Members } from './objects/Members';
 import { Balances } from './objects/Balances';
 import { RepeatingExpenses } from './objects/RepeatingExpenses';
+import { LoadingService } from './loading.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ExpenseService {
   private firestore = inject(Firestore);
-
+  private loadingService = inject(LoadingService)
   //1. Ausgabe hinzufügen
 
   async createExpense(
@@ -221,6 +222,7 @@ export class ExpenseService {
         console.log('Ausgbabe wurde bereits bezahlt, löschen nicht möglich');
         return;
       }
+      this.loadingService.show();
       const expenseRef = doc(
         this.firestore,
         'groups',
@@ -264,6 +266,8 @@ export class ExpenseService {
         error
       );
       throw error;
+    } finally {
+      this.loadingService.hide();
     }
   }
 
