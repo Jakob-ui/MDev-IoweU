@@ -618,3 +618,50 @@ export const sendPushNotification = onRequest(
   }
 );
 
+function generateAccessCode() {
+  const numbers = Array.from({ length: 5 }, () =>
+    Math.floor(Math.random() * 10)
+  ).join('');
+
+  const specialChars = '!@#$%^';
+  const safeSpecialChars = specialChars.replace(/[\/\\?&=]/g, '');
+  const special =
+    safeSpecialChars[Math.floor(Math.random() * safeSpecialChars.length)];
+
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const letter1 = letters[Math.floor(Math.random() * letters.length)];
+  const letter2 = letters[Math.floor(Math.random() * letters.length)];
+
+  let codeArr = (numbers + letter1 + letter2).split('');
+
+  const specialPos = Math.floor(Math.random() * (codeArr.length + 1));
+  codeArr.splice(specialPos, 0, special);
+
+  return codeArr.join('');
+}
+
+export const rotateAccessCodes = onSchedule(
+  {
+    schedule: 'every 60 minutes',
+    timeZone: 'Europe/Berlin',
+    region: 'europe-west1',
+  },
+  async () => {
+    const groupsRef = firestore.collection('groups');
+    try {
+      const groupsSnapshot = await groupsRef.get();
+
+      const batch = firestore.batch();
+
+      for (const groupDoc of groupsSnapshot.docs) {
+        const newCode = generateAccessCode();
+        batch.update(groupDoc.ref, { accessCode: newCode });
+      }
+
+      await batch.commit();
+      logger.info('Access codes updated for all groups.');
+    } catch (error) {
+      logger.error('Error rotating access codes:', error);
+    }
+  }
+);
