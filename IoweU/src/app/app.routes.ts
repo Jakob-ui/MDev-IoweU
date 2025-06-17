@@ -110,6 +110,12 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'join-group/:code',
+    loadComponent: () =>
+      import('./pages/join-group/join-group.page').then((m) => m.JoinGroupPage),
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'account-settings',
     loadComponent: () =>
       import('./pages/account-settings/account-settings.page').then(

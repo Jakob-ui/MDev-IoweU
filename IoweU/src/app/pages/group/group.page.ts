@@ -25,7 +25,7 @@ import { Members } from 'src/app/services/objects/Members';
 import {ShoppinglistService} from "../../services/shoppinglist.service";
 import {ShoppingProducts} from "../../services/objects/ShoppingProducts";
 import { addIcons } from 'ionicons';
-import { copyOutline, logoWhatsapp } from 'ionicons/icons';
+import { copyOutline, logoWhatsapp, linkOutline } from 'ionicons/icons';
 
 addIcons({
   'copy-outline': copyOutline,
@@ -388,21 +388,35 @@ export class GroupPage implements OnInit {
 
   copyAccessCode(event: Event): void {
     event.stopPropagation();
-    navigator.clipboard.writeText(this.accessCode).then(async () => {
-      console.log('Access-Code wurde kopiert:', this.accessCode);
-      await this.presentToast('Accesscode wurde kopiert!');
-    }).catch(err => {
-      console.error('Fehler beim Kopieren:', err);
-    });
+    navigator.clipboard
+      .writeText(this.accessCode)
+      .then(async () => {
+        console.log('Access-Code wurde kopiert:', this.accessCode);
+        await this.presentToast('Accesscode wurde kopiert!');
+      })
+      .catch((err) => {
+        console.error('Fehler beim Kopieren:', err);
+      });
+  }
+
+  copyLinkCode(event: Event): void {
+    event.stopPropagation();
+    navigator.clipboard
+      .writeText(`https://app.ioweu.eu/join-group/${this.accessCode}`)
+      .then(async () => {
+        await this.presentToast('AccessLink wurde kopiert!');
+      })
+      .catch((err) => {
+        console.error('Fehler beim Kopieren:', err);
+      });
   }
 
   shareViaWhatsApp(event: Event): void {
     event.stopPropagation();
-    const text = `Hier ist mein Gruppen-Code für die App: ${this.accessCode}`;
+    const text = `https://app.ioweu.eu/join-group/${this.accessCode}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   }
-
 
   async presentToast(message: string) {
     const toast = await this.toastController.create({

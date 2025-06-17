@@ -54,8 +54,20 @@
         ></qrcode>
         <h5>Code zum Beitreten:</h5>
 
+        <div class="access-code-bubble">
+          <h5 class="access-code">{{ accessCode }}</h5>
+        </div>
+        <h6>Teilen über:</h6>
         <div class="access-code-actions">
           <!-- Kopieren -->
+          <ion-icon
+          [src]="'assets/icon/ionicons/link-outline.svg'"
+          name="link-outline"
+          class="edit-button"
+          (click)="copyLinkCode($event)"
+          title="Code kopieren"
+        ></ion-icon>
+
           <ion-icon
             name="copy-outline"
             class="edit-button"
@@ -63,7 +75,7 @@
             title="Code kopieren"
           ></ion-icon>
 
-          <h5 class="access-code">{{ accessCode }}</h5>
+          
           <!-- WhatsApp teilen -->
           <ion-icon
             name="logo-whatsapp"
@@ -72,7 +84,6 @@
             title="Code per WhatsApp teilen"
           ></ion-icon>
         </div>
-
       </div>
     </div>
   </div>

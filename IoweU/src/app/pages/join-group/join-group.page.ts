@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { Capacitor } from '@capacitor/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -37,17 +37,18 @@ import { PermissionStatus, Camera } from '@capacitor/camera';
 export class JoinGroupPage {
   private groupService = inject(GroupService);
   private loadingService = inject(LoadingService);
-  private auth = inject(Auth);
   private authService = inject(AuthService);
   private router = inject(Router);
   private alertController = inject(AlertController);
   private toastController = inject(ToastController);
+  private route = inject(ActivatedRoute);
 
   showScanner: any;
   joinCode: string = '';
   platformIsNative = Capacitor.isNativePlatform();
   error: string = '';
   joinFailed: boolean = false;
+  code: string|null = null;
 
   private qrCodeScanner: Html5QrcodeScanner | null = null;
   Capacitor: any;
@@ -56,6 +57,11 @@ export class JoinGroupPage {
   updateExpensesCallback: (() => void) | null = null;
 
   ngOnInit() {
+    this.code = this.route.snapshot.paramMap.get('code');
+    if (this.code) {
+      this.joinCode = this.code;
+      this.joinGroup();
+    }
     BarcodeScanner.isSupported().then(
       (result: { supported: boolean | undefined }) => {
         this.isSupported = result.supported;
