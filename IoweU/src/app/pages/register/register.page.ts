@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
-  IonContent,
-  IonInput,
-  IonInputPasswordToggle,
-  IonItem,
-  IonButton,
-  IonLabel,
+    IonContent,
+    IonInput,
+    IonInputPasswordToggle,
+    IonItem,
+    IonButton,
+    IonLabel, IonNote,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
@@ -18,17 +18,18 @@ import { LoadingService } from 'src/app/services/loading.service';
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
   standalone: true,
-  imports: [
-    IonLabel,
-    IonButton,
-    IonItem,
-    IonInput,
-    IonContent,
-    CommonModule,
-    FormsModule,
-    IonInputPasswordToggle,
-    RouterLink,
-  ],
+    imports: [
+        IonLabel,
+        IonButton,
+        IonItem,
+        IonInput,
+        IonContent,
+        CommonModule,
+        FormsModule,
+        IonInputPasswordToggle,
+        RouterLink,
+        IonNote,
+    ],
 })
 export class RegisterPage implements OnInit {
   private router = inject(Router);
@@ -154,4 +155,6 @@ export class RegisterPage implements OnInit {
       window.matchMedia('(prefers-color-scheme: dark)').matches
     );
   }
+
+  protected readonly navigator = navigator;
 }

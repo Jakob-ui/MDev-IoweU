@@ -15,9 +15,13 @@
       <ion-input
         type="text"
         placeholder="Benutzername"
+        maxlength="10"
         [(ngModel)]="name"
         (ngModelChange)="inputChange()"
       >
+        <ion-note slot="end"
+        >{{ name.length || 0 }}/10</ion-note
+        >
       </ion-input>
     </ion-item>
     <ion-item class="input-item">
