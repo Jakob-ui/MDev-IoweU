@@ -1122,3 +1122,9 @@ ion-alert {
   background-color: #000 !important;
 }
 }
+
+/* Eigene Farben für "Alle" im Member-Dropdown */
+:root {
+  --member-color-background-all: #ffffff;
+  --member-color-all: #939393;
+}

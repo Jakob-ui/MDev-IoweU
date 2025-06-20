@@ -125,7 +125,7 @@ export class ShoppinglistPage implements OnInit {
 
 
   async ngOnInit() {
-    this.loadingService.show();
+   
 
     try {
       // User und Group initialisieren (wie von dir schon implementiert)
@@ -176,6 +176,9 @@ export class ShoppinglistPage implements OnInit {
           { uid: 'all', username: 'Alle' }
         ];
       }
+
+      // Stelle sicher, dass groupMembers geladen ist, bevor du das setzt!
+      this.selectedMember = this.groupMembers?.find(m => m.uid === 'all');
 
       window.addEventListener('resize', this.updateCheckboxVisibility.bind(this));
       this.unsubscribeProductsListener = this.shoppinglistService.listenToShoppingProductsChanges(
@@ -795,6 +798,13 @@ export class ShoppinglistPage implements OnInit {
     };
 
     stepFn();
+  }
+
+  // Schließt das Member-Dropdown bei Klick außerhalb
+  onDocumentClick(event: Event) {
+    if (this.forMemberDropdownOpen) {
+      this.forMemberDropdownOpen = false;
+    }
   }
 
 }

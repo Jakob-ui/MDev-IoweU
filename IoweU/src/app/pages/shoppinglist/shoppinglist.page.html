@@ -107,22 +107,29 @@
               </ion-item>
             </div>
 
-            <div class="input-container">
+            <div class="input-container for-member">
               <span class="input-label">Für</span>
-              <ion-item class="input-item" (click)="toggleForMemberDropdown($event)">
+              <ion-item class="input-item" (click)="toggleForMemberDropdown($event); $event.stopPropagation()">
                 <ion-label>
-                  <div class="selected-forMember">
-                    <div class="member-info"
-                         [ngStyle]="{
+                  <div class="selected-for-member">
+                    <div
+                      class="member-info"
+                      [ngStyle]="{
                         'background-color': 'var(--member-color-background-' + selectedMember?.uid + ')',
                         'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
-                      }">
-                      <div class="profile-placeholder"
-                           [ngStyle]="{
+                      }"
+                    >
+                      <div
+                        class="profile-placeholder"
+                        [ngStyle]="{
                           'background-color': 'var(--member-color-' + selectedMember?.uid + ')',
                           'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
-                        }"></div>
-                      <span class="member-name">{{ selectedMember?.username }}</span>
+                        }"
+                      ></div>
+                      <span class="member-name">
+                        {{ selectedMember?.username || 'Alle' }}
+                      </span>
+              
                     </div>
                   </div>
                 </ion-label>
@@ -135,23 +142,25 @@
                     class="dropDownFelder"
                     button
                     *ngFor="let groupMember of groupMembers"
-                    (click)="groupMember.uid === 'all' ? editSelectedAllMembers($event) : editSelectedMember(groupMember, $event)">
-                    <div class="member-info"
-                         [ngClass]="{'all-members-option': groupMember.uid === 'all'}"
-                         [ngStyle]="{
-                           'background-color': groupMember.uid === 'all' ? '#999' : 'var(--member-color-background-' + groupMember.uid + ')',
-                           'border-color': groupMember.uid === 'all' ? '#999' : 'var(--member-color-' + groupMember.uid + ')'
-                         }">
-                      <div class="profile-placeholder"
-                           [ngStyle]="{
-                             'background-color': groupMember.uid === 'all' ? '#999' : 'var(--member-color-' + groupMember.uid + ')',
-                             'border-color': groupMember.uid === 'all' ? '#999' : 'var(--member-color-' + groupMember.uid + ')'
-                           }"></div>
+                    (click)="selectMember(groupMember, $event); $event.stopPropagation()"
+                  >
+                    <div
+                      class="member-info"
+                      [ngStyle]="{
+                        'background-color': groupMember.uid === 'all' ? 'var(--member-color-background-all)' : 'var(--member-color-background-' + groupMember.uid + ')',
+                        'border-color': groupMember.uid === 'all' ? 'var(--member-color-all)' : 'var(--member-color-' + groupMember.uid + ')'
+                      }"
+                    >
+                      <div
+                        class="profile-placeholder"
+                        [ngStyle]="{
+                          'background-color': groupMember.uid === 'all' ? 'var(--member-color-all)' : 'var(--member-color-' + groupMember.uid + ')',
+                          'border-color': groupMember.uid === 'all' ? 'var(--member-color-all)' : 'var(--member-color-' + groupMember.uid + ')'
+                        }"
+                      ></div>
                       <span class="member-name">{{ groupMember.username }}</span>
                     </div>
                   </ion-item>
-
-
                 </ion-list>
               </div>
             </div>
@@ -165,7 +174,7 @@
   </div>
 
 
-  <div class="page-container">
+  <div class="page-container" (document:click)="onDocumentClick($event)">
     <h4>{{ groupname }}</h4>
     <h1>Einkaufsliste</h1>
 
@@ -265,11 +274,11 @@
               </ion-item>
             </div>
 
-            <div class="input-container">
+            <div class="input-container for-member">
               <span class="input-label">für</span>
-              <ion-item class="input-item" (click)="toggleForMemberDropdown($event)">
+              <ion-item class="input-item" (click)="toggleForMemberDropdown($event); $event.stopPropagation()">
                 <ion-label>
-                  <div class="selected-forMember">
+                  <div class="selected-for-member">
                     <div
                       class="member-info"
                       [ngStyle]="{
@@ -284,7 +293,7 @@
                       'border-color': 'var(--member-color-' + selectedMember?.uid + ')'
                     }"
                       ></div>
-                      <span class="member-name">{{ selectedMember?.username }}</span>
+                      <span class="member-name">{{ selectedMember?.username || 'Alle' }}</span>
                     </div>
                   </div>
                 </ion-label>
@@ -296,20 +305,20 @@
                     class="dropDownFelder"
                     button
                     *ngFor="let groupMember of groupMembers"
-                    (click)="selectMember(groupMember, $event)"
+                    (click)="selectMember(groupMember, $event); $event.stopPropagation()"
                   >
                     <div
                       class="member-info"
                       [ngStyle]="{
-                    'background-color': 'var(--member-color-background-' + groupMember.uid + ')',
-                    'border-color': 'var(--member-color-' + groupMember.uid + ')'
+                    'background-color': groupMember.uid === 'all' ? 'var(--member-color-background-all)' : 'var(--member-color-background-' + groupMember.uid + ')',
+                    'border-color': groupMember.uid === 'all' ? 'var(--member-color-all)' : 'var(--member-color-' + groupMember.uid + ')'
                   }"
                     >
                       <div
                         class="profile-placeholder"
                         [ngStyle]="{
-                      'background-color': 'var(--member-color-' + groupMember.uid + ')',
-                      'border-color': 'var(--member-color-' + groupMember.uid + ')'
+                      'background-color': groupMember.uid === 'all' ? 'var(--member-color-all)' : 'var(--member-color-' + groupMember.uid + ')',
+                      'border-color': groupMember.uid === 'all' ? 'var(--member-color-all)' : 'var(--member-color-' + groupMember.uid + ')'
                     }"
                       ></div>
                       <span class="member-name">{{ groupMember.username }}</span>
@@ -398,3 +407,7 @@
   >
   </ion-datetime>
 </ion-content>
+    (ionCancel)="closeDatePicker()"
+    style="z-index: 1001; position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);"
+  >
+

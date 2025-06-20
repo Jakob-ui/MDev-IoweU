@@ -96,7 +96,7 @@ export class ShoppingcartPage implements OnInit {
   animatedCount: number = 0; // Animierte Produktanzahl
 
   async ngOnInit() {
-    this.loadingService.show();
+    
 
     try {
       // Benutzer wird gewartet und überprüft

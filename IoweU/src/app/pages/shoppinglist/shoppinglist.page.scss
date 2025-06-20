@@ -234,7 +234,7 @@ ion-button.outline-button::part(native) {
 .bottom-container {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  
   margin-top: 1rem;
   gap: 10px;
   flex-direction: row;
@@ -340,6 +340,55 @@ ion-checkbox{
 
 
 
+.for-member {
+  position: relative;
+
+  .custom-dropdown {
+    position: absolute;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    max-width: 200%;
+    top: 100%;
+    left: 0;
+    border-radius: 10px;
+    background-color: #ffffff;
+  }
+  ion-item.dropDownFelder::part(native) {
+    background-color: #ffffff !important;
+    color: var(--ion-color-light) !important;
+  }
+  .selected-for-member {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--ion-color-dark);
+    max-height: 28px;
+  }
+
+  .member-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 2px solid var(--member-color, #1a65eb);
+    padding: 5px 10px 5px 5px;
+    border-radius: 50px;
+  }
+
+  .profile-placeholder {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid;
+  }
+
+  .member-name {
+    font-size: 14px;
+    color: var(--ion-color-dark);
+  }
+}
+
+
+
 @media (prefers-color-scheme: dark) {
   .date {
     color: black !important;
@@ -372,5 +421,16 @@ p{
   .info-wrapper h5 {
     color: #fff !important;
   }
-
+  .for-member {
+    .custom-dropdown {
+      background-color: #121212;
+    }
+    ion-item.dropDownFelder::part(native) {
+      background-color: #121212 !important;
+    }
+    .member-name {
+      color: #000000;
+    }
+    
+  }
 }
