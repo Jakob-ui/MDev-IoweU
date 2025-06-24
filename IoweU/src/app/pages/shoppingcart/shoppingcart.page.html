@@ -173,8 +173,13 @@
             <span class="username">{{ getFirstLetter(shoppingproduct.memberId) }}</span>
           </div>
 
-          <div class="shoppingproduct-item" (click)="toggleDetailsOverlay(shoppingproduct.shoppingProductId)">
+          <div class="shoppingproduct-item">
+            <div class="product-info" (click)="toggleDetailsOverlay(shoppingproduct.shoppingProductId)">
             <span class="first-container">{{ shoppingproduct.quantity }} {{ shoppingproduct.unit }}</span>
+            <div class="divider"></div>
+            <h5 class="shoppingproduct-name">{{ shoppingproduct.productname }}</h5>
+            <span class="forMember">für {{ getUsernameById(shoppingproduct.forMemberId) }}</span>
+          </div>
             <div
             class="buttons"
             slot="end"
@@ -188,8 +193,6 @@
               (ionChange)="onCheckboxChange($event, shoppingproduct.shoppingProductId)">
             </ion-checkbox>
           </div>
-            <h5 class="shoppingproduct-name">{{ shoppingproduct.productname }}</h5>
-            <span class="forMember">für {{ getUsernameById(shoppingproduct.forMemberId) }}</span>
           </div>
         </ion-item>
       </ng-container>

@@ -396,6 +396,9 @@ ion-checkbox{
   .add-product-wrapper{
     background-color: transparent;
   }
+  ion-icon{
+    filter: invert(1) !important;
+  }
   ion-input {
     color: #000 !important;
   }
