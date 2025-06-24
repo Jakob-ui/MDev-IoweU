@@ -175,7 +175,19 @@
 
           <div class="shoppingproduct-item" (click)="toggleDetailsOverlay(shoppingproduct.shoppingProductId)">
             <span class="first-container">{{ shoppingproduct.quantity }} {{ shoppingproduct.unit }}</span>
+            <div
+            class="buttons"
+            slot="end"
+            *ngIf="showCheckbox">
+            <ion-icon
+              [src]="iosIcons ? 'assets/icon/ionicons/ios-trash.svg' : 'assets/icon/ionicons/md-trash.svg'"
+              (click)="showDeleteAlert()"
+            ></ion-icon>
             <div class="divider"></div>
+            <ion-checkbox
+              (ionChange)="onCheckboxChange($event, shoppingproduct.shoppingProductId)">
+            </ion-checkbox>
+          </div>
             <h5 class="shoppingproduct-name">{{ shoppingproduct.productname }}</h5>
             <span class="forMember">für {{ getUsernameById(shoppingproduct.forMemberId) }}</span>
           </div>

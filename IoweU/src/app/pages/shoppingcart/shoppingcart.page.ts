@@ -8,8 +8,7 @@ import {
   IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList,
 
   IonToolbar,
-  Platform
-} from '@ionic/angular/standalone';
+  Platform, IonCheckbox } from '@ionic/angular/standalone';
 import {AuthService} from "../../services/auth.service";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {LoadingService} from "../../services/loading.service";
@@ -24,7 +23,22 @@ import {AlertController, NavController, ToastController} from "@ionic/angular";
   templateUrl: './shoppingcart.page.html',
   styleUrls: ['./shoppingcart.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader,  IonToolbar, CommonModule, FormsModule, IonButton, IonCard, IonIcon, IonInput, IonItem,  IonLabel, IonList, RouterLink]
+  imports: [
+    IonCheckbox,
+    IonContent,
+    IonHeader,
+    IonToolbar,
+    CommonModule,
+    FormsModule,
+    IonButton,
+    IonCard,
+    IonIcon,
+    IonInput,
+    IonItem,
+    IonLabel,
+    IonList,
+    RouterLink,
+  ],
 })
 export class ShoppingcartPage implements OnInit {
   private authService = inject(AuthService);
@@ -49,13 +63,17 @@ export class ShoppingcartPage implements OnInit {
   iosIcons: boolean = false;
 
   forMemberDropdownOpen: boolean = false;
-  selectedMember: any = this.uid ? { uid: this.uid, username: 'Dein Name' } : null;
+  selectedMember: any = this.uid
+    ? { uid: this.uid, username: 'Dein Name' }
+    : null;
 
   showDetails: boolean = false;
+  public showCheckbox: boolean = false;
 
   shoppingCartId: string | null = '';
   shoppingproducts: ShoppingProducts[] = [];
-  groupedProducts: { date: string; shoppingproducts: ShoppingProducts[] }[] = [];
+  groupedProducts: { date: string; shoppingproducts: ShoppingProducts[] }[] =
+    [];
 
   overlayState: 'start' | 'normal' | 'hidden' = 'start';
   detailsOverlayState: 'start' | 'normal' | 'hidden' = 'start';
@@ -75,7 +93,7 @@ export class ShoppingcartPage implements OnInit {
     unit: 'Stück',
     productname: '',
     forMemberId: this.uid || '',
-    dueDate: null
+    dueDate: null,
   };
 
   selectedProduct: ShoppingProducts = {
@@ -86,7 +104,7 @@ export class ShoppingcartPage implements OnInit {
     quantity: 0,
     unit: '',
     date: '',
-    status: ''
+    status: '',
   };
 
   isDatePickerOpen = false;
@@ -96,13 +114,12 @@ export class ShoppingcartPage implements OnInit {
   animatedCount: number = 0; // Animierte Produktanzahl
 
   async ngOnInit() {
-    
-
+    this.updateCheckboxVisibility();
     try {
       // Benutzer wird gewartet und überprüft
       await this.authService.waitForUser();
 
-         //Backbutton Verhalten
+      //Backbutton Verhalten
       this.platform.backButton.subscribeWithPriority(10, () => {
         if (this.overlayState === 'normal') {
           this.overlayState = 'hidden'; // Nur Overlay schließen
@@ -122,7 +139,10 @@ export class ShoppingcartPage implements OnInit {
 
       // Die groupId aus der URL erhalten
       this.groupId = this.activeRoute.snapshot.paramMap.get('groupId');
-      this.shoppingCartId = await this.shoppinglistService.getShoppingCartIdByGroupId(this.groupId!);
+      this.shoppingCartId =
+        await this.shoppinglistService.getShoppingCartIdByGroupId(
+          this.groupId!
+        );
       console.log('shoppingCartId:', this.shoppingCartId);
 
       if (!this.groupId) {
@@ -130,43 +150,38 @@ export class ShoppingcartPage implements OnInit {
         return;
       }
 
-
       const currentGroup = await this.groupService.getGroupById(this.groupId);
       if (currentGroup) {
         this.groupname = currentGroup.groupname || 'Unbekannte Gruppe';
-        const originalMembers = Array.isArray(currentGroup.members) ? currentGroup.members : [];
+        const originalMembers = Array.isArray(currentGroup.members)
+          ? currentGroup.members
+          : [];
         this.groupMembers = [
           { uid: 'all', username: 'Alle' },
-          ...originalMembers
+          ...originalMembers,
         ];
       } else {
         this.groupname = 'Unbekannte Gruppe';
-        this.groupMembers = [
-          { uid: 'all', username: 'Alle' }
-        ];
+        this.groupMembers = [{ uid: 'all', username: 'Alle' }];
       }
 
-
-      this.selectedMember =
-        this.groupMembers.find(
-          (member) => member.uid === this.shoppingproducts[0]?.forMemberId
-        ) ||
-        { uid: this.uid, username: this.displayName || 'Unbekannt' };
+      this.selectedMember = this.groupMembers.find(
+        (member) => member.uid === this.shoppingproducts[0]?.forMemberId
+      ) || { uid: this.uid, username: this.displayName || 'Unbekannt' };
 
       // Hole die Produkte für diese Gruppe
       await this.loadShoppingCartProducts();
 
-      this.unsubscribeShoppingCart = this.shoppinglistService.listenToShoppingCartChanges(
-        this.groupId,
-        this.shoppingCartId,
-        (products) => {
-          this.shoppingproducts = products;
-          this.groupProductsByDate();
-          this.animateCount(this.shoppingproducts.length); // Animation triggern
-        }
-      );
-
-
+      this.unsubscribeShoppingCart =
+        this.shoppinglistService.listenToShoppingCartChanges(
+          this.groupId,
+          this.shoppingCartId,
+          (products) => {
+            this.shoppingproducts = products;
+            this.groupProductsByDate();
+            this.animateCount(this.shoppingproducts.length); // Animation triggern
+          }
+        );
     } catch (error) {
       console.error('Fehler beim Initialisieren der Seite:', error);
     } finally {
@@ -181,6 +196,15 @@ export class ShoppingcartPage implements OnInit {
     }
   }
 
+  onCheckboxChange(event: any, shoppingProductId: string) {
+    if (event.detail.checked) {
+      this.moveProductToList(shoppingProductId);
+    }
+  }
+
+  private updateCheckboxVisibility() {
+    this.showCheckbox = window.innerWidth > 600;
+  }
 
   async loadShoppingCartProducts() {
     try {
@@ -194,8 +218,14 @@ export class ShoppingcartPage implements OnInit {
         return;
       }
 
-      const allProducts = await this.shoppinglistService.getShoppingCartProducts(this.groupId, this.shoppingCartId);
-      this.shoppingproducts = allProducts.filter(p => p.status === 'im Warenkorb');
+      const allProducts =
+        await this.shoppinglistService.getShoppingCartProducts(
+          this.groupId,
+          this.shoppingCartId
+        );
+      this.shoppingproducts = allProducts.filter(
+        (p) => p.status === 'im Warenkorb'
+      );
       this.groupProductsByDate();
       this.animateCount(this.shoppingproducts.length); // Animation triggern
     } catch (error) {
@@ -203,10 +233,9 @@ export class ShoppingcartPage implements OnInit {
     }
   }
 
-
   groupProductsByDate() {
     const grouped: { [key: string]: ShoppingProducts[] } = {
-      'Nicht dringend': []
+      'Nicht dringend': [],
     };
 
     const today = new Date();
@@ -238,13 +267,20 @@ export class ShoppingcartPage implements OnInit {
 
     // Frühestes Fälligkeitsdatum berechnen (außer "Nicht dringend")
     if (validDates.length > 0) {
-      this.earliestDueDate = new Date(Math.min(...validDates.map(d => d.getTime())));
+      this.earliestDueDate = new Date(
+        Math.min(...validDates.map((d) => d.getTime()))
+      );
     } else {
       this.earliestDueDate = new Date(); // Fallback
     }
 
     // earliestDueDate Label erzeugen
-    this.earliestDueDateLabel = this.formatDateLabel(this.earliestDueDate.toISOString().split('T')[0], today, yesterday, tomorrow);
+    this.earliestDueDateLabel = this.formatDateLabel(
+      this.earliestDueDate.toISOString().split('T')[0],
+      today,
+      yesterday,
+      tomorrow
+    );
 
     const sortedDates = Object.keys(grouped).sort((a, b) => {
       if (a === 'Nicht dringend') return 1;
@@ -253,14 +289,22 @@ export class ShoppingcartPage implements OnInit {
     });
 
     this.groupedProducts = sortedDates.map((date) => ({
-      date: date === 'Nicht dringend'
-        ? 'Nicht dringend'
-        : this.formatDateLabel(date, today, yesterday, tomorrow),
-      shoppingproducts: grouped[date].sort((a, b) => new Date(b['date']).getTime() - new Date(a['date']).getTime()),
+      date:
+        date === 'Nicht dringend'
+          ? 'Nicht dringend'
+          : this.formatDateLabel(date, today, yesterday, tomorrow),
+      shoppingproducts: grouped[date].sort(
+        (a, b) => new Date(b['date']).getTime() - new Date(a['date']).getTime()
+      ),
     }));
   }
 
-  formatDateLabel(date: string, today: Date, yesterday: Date, tomorrow: Date): string {
+  formatDateLabel(
+    date: string,
+    today: Date,
+    yesterday: Date,
+    tomorrow: Date
+  ): string {
     const dateObj = new Date(date);
 
     if (dateObj.toDateString() === today.toDateString()) {
@@ -297,7 +341,6 @@ export class ShoppingcartPage implements OnInit {
     return d < today;
   }
 
-
   getFirstLetter(paidBy: string): string {
     const member = this.groupMembers.find((m) => m.uid === paidBy);
     if (member && member.username && member.username.length > 0) {
@@ -308,10 +351,9 @@ export class ShoppingcartPage implements OnInit {
 
   // Methode, um den Benutzernamen anhand der forMemberId zu finden
   getUsernameById(memberId: string): string {
-    const member = this.groupMembers.find(m => m.uid === memberId);
+    const member = this.groupMembers.find((m) => m.uid === memberId);
     return member ? member.username : 'Unbekanntes Mitglied';
   }
-
 
   goBack() {
     if (this.overlayState === 'normal') {
@@ -322,9 +364,7 @@ export class ShoppingcartPage implements OnInit {
     }
   }
 
-
   toggleInfoOverlay() {
-
     console.log('Overlay state:', this.overlayState);
 
     // Wenn der Zustand "start" ist, wechselt er zu "normal", um das Overlay zu zeigen
@@ -356,14 +396,15 @@ export class ShoppingcartPage implements OnInit {
 
     try {
       // Rufe das Produkt anhand von groupId, shoppingListId und shoppingProductId ab
-      const selectedShoppingProduct = await this.shoppinglistService.getShoppingCartProductById(
-        this.groupId,
-        this.shoppingCartId,
-        shoppingProductId
-      );
+      const selectedShoppingProduct =
+        await this.shoppinglistService.getShoppingCartProductById(
+          this.groupId,
+          this.shoppingCartId,
+          shoppingProductId
+        );
 
       if (selectedShoppingProduct) {
-        this.selectedProduct = {...selectedShoppingProduct}; // Kopie setzen
+        this.selectedProduct = { ...selectedShoppingProduct }; // Kopie setzen
       } else {
         console.error('Produkt konnte nicht geladen werden');
         return;
@@ -384,7 +425,6 @@ export class ShoppingcartPage implements OnInit {
     }
   }
 
-
   getDateDisplay(date: string): string {
     if (!date) return '';
 
@@ -399,7 +439,6 @@ export class ShoppingcartPage implements OnInit {
 
     return new Intl.DateTimeFormat('de-AT').format(dueDate);
   }
-
 
   goToCreateExpense() {
     try {
@@ -422,7 +461,7 @@ export class ShoppingcartPage implements OnInit {
 
       await this.shoppinglistService.deleteShoppingProduct(
         this.groupId!,
-        this.shoppingCartId,  // Hier wird sicher die shoppingListId übergeben
+        this.shoppingCartId, // Hier wird sicher die shoppingListId übergeben
         shoppingProductId
       );
       console.log('Produkt gelöscht:', shoppingProductId);
@@ -456,7 +495,9 @@ export class ShoppingcartPage implements OnInit {
 
       setTimeout(() => {
         this.moveProductToList(shoppingProduct.shoppingProductId);
-        this.presentToast('Produkt wurde zurück in die Einkaufsliste verschoben!');
+        this.presentToast(
+          'Produkt wurde zurück in die Einkaufsliste verschoben!'
+        );
         this.shoppingproducts = this.shoppingproducts.filter(
           (p) => p.shoppingProductId !== shoppingProduct.shoppingProductId
         );
@@ -482,7 +523,8 @@ export class ShoppingcartPage implements OnInit {
     }
 
     try {
-      const shoppingCart = await this.shoppinglistService.getShoppingCartByGroupId(groupId);
+      const shoppingCart =
+        await this.shoppinglistService.getShoppingCartByGroupId(groupId);
       if (!shoppingCart) {
         console.error('Keine Einkaufsliste für diese Gruppe gefunden');
         return;
@@ -490,7 +532,11 @@ export class ShoppingcartPage implements OnInit {
 
       const shoppingCartId = shoppingCart.shoppingcartId;
 
-      await this.shoppinglistService.moveProductBackToShoppingList(groupId, shoppingCartId, shoppingProductId);
+      await this.shoppinglistService.moveProductBackToShoppingList(
+        groupId,
+        shoppingCartId,
+        shoppingProductId
+      );
       console.log('Produkt verschoben!');
 
       this.loadShoppingCartProducts();
@@ -524,21 +570,23 @@ export class ShoppingcartPage implements OnInit {
             if (this.productToDelete && (this.productToDelete as any).swiped) {
               (this.productToDelete as any).swiped = null;
             }
-          }
+          },
         },
         {
           text: 'Löschen',
           handler: () => {
             if (this.productToDelete) {
-              this.deleteProductForShoppingCart(this.productToDelete.shoppingProductId);
+              this.deleteProductForShoppingCart(
+                this.productToDelete.shoppingProductId
+              );
               this.presentToast('Produkt wurde erfolgreich gelöscht!');
 
               this.showDeleteConfirm = false;
               this.productToDelete = null;
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     await alert.present();
@@ -566,5 +614,4 @@ export class ShoppingcartPage implements OnInit {
 
     stepFn();
   }
-
 }

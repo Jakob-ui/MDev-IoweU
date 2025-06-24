@@ -126,7 +126,7 @@ export class ShoppinglistPage implements OnInit {
 
   async ngOnInit() {
    
-
+    this.updateCheckboxVisibility();
     try {
       // User und Group initialisieren (wie von dir schon implementiert)
       await this.authService.waitForUser();
@@ -180,7 +180,6 @@ export class ShoppinglistPage implements OnInit {
       // Stelle sicher, dass groupMembers geladen ist, bevor du das setzt!
       this.selectedMember = this.groupMembers?.find(m => m.uid === 'all');
 
-      window.addEventListener('resize', this.updateCheckboxVisibility.bind(this));
       this.unsubscribeProductsListener = this.shoppinglistService.listenToShoppingProductsChanges(
         this.groupId,
         this.shoppingListId,
@@ -205,7 +204,6 @@ export class ShoppinglistPage implements OnInit {
 
 
   ngOnDestroy() {
-    window.removeEventListener('resize', this.updateCheckboxVisibility.bind(this));
     if (this.unsubscribeProductsListener) {
       this.unsubscribeProductsListener();
     }
