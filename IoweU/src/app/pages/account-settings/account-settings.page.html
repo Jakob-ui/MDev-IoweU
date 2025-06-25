@@ -77,6 +77,7 @@
         class="color-input"
         ngx-colors-trigger
         [(ngModel)]="color" 
+        (ngModelChange)="onColorChange(color)"
         [style.color]="color"
       ></div>
     </ion-item>

@@ -91,6 +91,7 @@ ion-toggle::part(handle) {
   border-radius: 50%; /* macht es rund */
   border: 2px solid #ccc; /* optional: leichter Rand */
   cursor: pointer;
+  background: var(--user-color);
   display: inline-block;
 }
 

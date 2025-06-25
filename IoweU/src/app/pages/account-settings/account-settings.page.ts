@@ -109,7 +109,10 @@ export class AccountSettingsPage implements OnInit {
         this.initialColor = this.color;
 
         if (this.color) {
-          document.documentElement.style.setProperty('--user-color', this.color);
+          document.documentElement.style.setProperty(
+            '--user-color',
+            this.initialColor
+          );
         }
 
         console.log('Aktueller Benutzer:', {
@@ -166,11 +169,16 @@ export class AccountSettingsPage implements OnInit {
     this.userEditing = false;
   }
 
+  onColorChange(color: string) {
+    document.documentElement.style.setProperty('--user-color', color);
+  }
+
   async goBack() {
     if (this.hasChanges()) {
       const alert = await this.alertController.create({
         header: 'Ungespeicherte Änderungen',
-        message: 'Du hast Änderungen vorgenommen. Möchtest du ohne Speichern zurückgehen?',
+        message:
+          'Du hast Änderungen vorgenommen. Möchtest du ohne Speichern zurückgehen?',
         buttons: [
           {
             text: 'Änderungen speichern',
@@ -200,6 +208,7 @@ export class AccountSettingsPage implements OnInit {
   }
 
   performGoBack() {
+    document.documentElement.style.setProperty('--user-color', this.initialColor);
     if (this.acc.getShouldReloadGroupOverview()) {
       this.acc.setShouldReloadGroupOverview(false);
       this.loadingService.show();
@@ -212,7 +221,6 @@ export class AccountSettingsPage implements OnInit {
       this.navCtrl.back();
     }
   }
-
 
   proofTime(): boolean {
     const lastedited = localStorage.getItem('lastedited');
@@ -269,8 +277,6 @@ export class AccountSettingsPage implements OnInit {
       this.loadingService.hide();
     }
   }
-
-
 
   public loginAlertButtons = [
     {
