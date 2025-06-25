@@ -44,7 +44,7 @@ export class RegisterPage implements OnInit {
   password = '';
   name = '';
   img: string = '';
-  color: string = '#ffffff'; 
+  color: string = ''; 
   error = '';
   loading: boolean = false;
   timeout: any;
