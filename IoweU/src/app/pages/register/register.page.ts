@@ -30,7 +30,7 @@ import { NgxColorsModule } from 'ngx-colors';
     IonInputPasswordToggle,
     RouterLink,
     NgxColorsModule,
-   
+    IonNote,
   ],
 })
 export class RegisterPage implements OnInit {
