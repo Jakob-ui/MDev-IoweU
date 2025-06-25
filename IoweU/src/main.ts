@@ -14,9 +14,6 @@ import { provideMessaging, getMessaging } from '@angular/fire/messaging';
 import {getFunctions, provideFunctions} from "@angular/fire/functions";
 import { provideHttpClient } from '@angular/common/http';
 
-
-setLogLevel('error');
-
 bootstrapApplication(AppComponent, {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },

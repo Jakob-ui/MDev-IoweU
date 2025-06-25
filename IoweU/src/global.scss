@@ -924,8 +924,14 @@ body.color-blind {
   ion-toolbar {
     padding-top: 40px !important;
   }
-
 }
+
+@media (max-width: 525px) { 
+  .button-container{
+    padding-bottom: 12%;
+  }
+}
+
 
 .loading-overlay {
   position: fixed;

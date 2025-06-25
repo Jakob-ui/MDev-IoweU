@@ -36,7 +36,6 @@
     "@capacitor/network": "^7.0.1",
     "@capacitor/preferences": "^7.0.1",
     "@capacitor/push-notifications": "^7.0.1",
-    "@capacitor/status-bar": "7.0.0",
     "@ionic/angular": "^8.5.2",
     "@types/date-fns": "^2.6.3",
     "angularx-qrcode": "^19.0.0",
