@@ -44,7 +44,7 @@ export class RegisterPage implements OnInit {
   password = '';
   name = '';
   img: string = '';
-  color: string = ''; 
+  color: string = '';
   error = '';
   loading: boolean = false;
   timeout: any;
@@ -71,7 +71,6 @@ export class RegisterPage implements OnInit {
     this.failed = false;
     this.registerFailed = false; // Button zurücksetzen
   }
-
 
   private generateRandomHexColor(): string {
     return `#${Math.floor(Math.random() * 16777215)
@@ -109,7 +108,7 @@ export class RegisterPage implements OnInit {
     this.loadingService.show(); // Ladeoverlay anzeigen
     try {
       const usercolor =
-      this.color === '' ? this.generateRandomHexColor() : this.color;
+        this.color === '' ? this.generateRandomHexColor() : this.color;
 
       console.log('Verwendete Farbe:', usercolor);
       const userCredential = await this.authService.signup(
@@ -152,6 +151,10 @@ export class RegisterPage implements OnInit {
       console.error('Fehler beim Laden der Daten', error);
       this.loading = false;
     }
+  }
+  
+  onColorChange(color: string) {
+    document.documentElement.style.setProperty('--user-color', color);
   }
 
   isDarkMode(): boolean {
