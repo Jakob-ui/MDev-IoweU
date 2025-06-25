@@ -24,10 +24,17 @@
         >
       </ion-input>
     </ion-item>
+
     <ion-item class="input-item">
       <ion-label class="label">Profilfarbe wählen:</ion-label>
-      <input type="color" [(ngModel)]="color" class="colorinput" />
+      <div
+        class="color-input"
+        ngx-colors-trigger
+        [(ngModel)]="color" 
+        [style.color]="color"
+      ></div>
     </ion-item>
+
     <ion-item class="input-item">
       <ion-input
         type="Email"

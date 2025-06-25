@@ -12,24 +12,26 @@ import {
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
 import { LoadingService } from 'src/app/services/loading.service';
+import { NgxColorsModule } from 'ngx-colors';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
   standalone: true,
-    imports: [
-        IonLabel,
-        IonButton,
-        IonItem,
-        IonInput,
-        IonContent,
-        CommonModule,
-        FormsModule,
-        IonInputPasswordToggle,
-        RouterLink,
-        IonNote,
-    ],
+  imports: [
+    IonLabel,
+    IonButton,
+    IonItem,
+    IonInput,
+    IonContent,
+    CommonModule,
+    FormsModule,
+    IonInputPasswordToggle,
+    RouterLink,
+    NgxColorsModule,
+   
+  ],
 })
 export class RegisterPage implements OnInit {
   private router = inject(Router);
@@ -42,7 +44,7 @@ export class RegisterPage implements OnInit {
   password = '';
   name = '';
   img: string = '';
-  color = '';
+  color: string = '#ffffff'; 
   error = '';
   loading: boolean = false;
   timeout: any;
@@ -69,6 +71,7 @@ export class RegisterPage implements OnInit {
     this.failed = false;
     this.registerFailed = false; // Button zurücksetzen
   }
+
 
   private generateRandomHexColor(): string {
     return `#${Math.floor(Math.random() * 16777215)
@@ -106,7 +109,9 @@ export class RegisterPage implements OnInit {
     this.loadingService.show(); // Ladeoverlay anzeigen
     try {
       const usercolor =
-        this.color === '' ? this.generateRandomHexColor() : this.color;
+      this.color === '' ? this.generateRandomHexColor() : this.color;
+
+      console.log('Verwendete Farbe:', usercolor);
       const userCredential = await this.authService.signup(
         this.email,
         this.password,

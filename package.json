@@ -1,6 +1,10 @@
 {
   "dependencies": {
+    "@angular-material-components/color-picker": "^16.0.1",
     "@capacitor-firebase/authentication": "^7.2.0",
-    "firebase": "^11.8.1"
+    "@iplab/ngx-color-picker": "^16.2.1",
+    "firebase": "^11.8.1",
+    "ngx-color-picker": "^10.1.0",
+    "ngx-colors": "^3.6.0"
   }
 }

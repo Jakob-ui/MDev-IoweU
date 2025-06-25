@@ -21,6 +21,7 @@ import { UserService } from 'src/app/services/user.service';
 import { AlertController } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { NgxColorsModule } from 'ngx-colors';
 
 @Component({
   selector: 'app-account-settings',
@@ -41,6 +42,7 @@ import { ChangeDetectorRef } from '@angular/core';
     FormsModule,
     IonInput,
     RouterModule,
+    NgxColorsModule,
   ],
 })
 export class AccountSettingsPage implements OnInit {

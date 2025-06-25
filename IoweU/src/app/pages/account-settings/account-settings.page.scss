@@ -85,7 +85,14 @@ ion-toggle::part(handle) {
   background-color: var(--ion-color-primary);
 }
 
-
+.color-input {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%; /* macht es rund */
+  border: 2px solid #ccc; /* optional: leichter Rand */
+  cursor: pointer;
+  display: inline-block;
+}
 
 @media (prefers-color-scheme: dark) {
   .farbenblind-label {
