@@ -927,8 +927,11 @@ body.color-blind {
 }
 
 @media (max-width: 525px) { 
+  ion-toolbar {
+    padding-top: 12% !important;
+  }
   .button-container{
-    padding-bottom: 12%;
+    padding-bottom: 10%;
   }
 }
 
